@@ -1,0 +1,150 @@
+# Default values for n3n
+replicaCount: 2
+
+image:
+  repository: n3n/flow-platform
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Enable WebSocket support
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
+  hosts:
+    - host: n3n.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Application configuration
+config:
+  # JWT secret - MUST be set in production
+  jwtSecret: ""
+  # Encryption key for credentials
+  encryptionKey: ""
+  # Allowed CORS origins (comma-separated)
+  allowedOrigins: "https://n3n.local"
+  # Log level
+  logLevel: INFO
+  # Execution settings
+  executionRetentionDays: 30
+  executionMaxConcurrent: 100
+  executionTimeoutMs: 300000
+
+# Database configuration
+database:
+  # Use external database or built-in PostgreSQL
+  external: false
+  host: ""
+  port: 5432
+  name: n3n
+  username: n3n
+  password: ""
+  # Connection pool settings
+  poolSize: 10
+  minIdle: 2
+
+# Redis configuration
+redis:
+  # Use external Redis or built-in
+  external: false
+  host: ""
+  port: 6379
+  password: ""
+
+# Built-in PostgreSQL (Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    username: n3n
+    password: n3n-secret
+    database: n3n
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Built-in Redis (Bitnami chart)
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# Health checks
+healthCheck:
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    path: /actuator/prometheus

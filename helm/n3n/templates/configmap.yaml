@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "n3n.fullname" . }}-config
+  labels:
+    {{- include "n3n.labels" . | nindent 4 }}
+data:
+  SERVER_PORT: "8080"
+  {{- if .Values.database.external }}
+  DATABASE_URL: "jdbc:postgresql://{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}"
+  DATABASE_USERNAME: {{ .Values.database.username | quote }}
+  {{- else }}
+  DATABASE_URL: "jdbc:postgresql://{{ include "n3n.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+  DATABASE_USERNAME: {{ .Values.postgresql.auth.username | quote }}
+  {{- end }}
+  DB_POOL_SIZE: {{ .Values.database.poolSize | default 10 | quote }}
+  DB_MIN_IDLE: {{ .Values.database.minIdle | default 2 | quote }}
+  {{- if .Values.redis.external }}
+  REDIS_HOST: {{ .Values.redis.host | quote }}
+  REDIS_PORT: {{ .Values.redis.port | default 6379 | quote }}
+  {{- else }}
+  REDIS_HOST: "{{ include "n3n.fullname" . }}-redis-master"
+  REDIS_PORT: "6379"
+  {{- end }}
+  ALLOWED_ORIGINS: {{ .Values.config.allowedOrigins | quote }}
+  LOG_LEVEL_ROOT: {{ .Values.config.logLevel | default "INFO" | quote }}
+  LOG_LEVEL_APP: {{ .Values.config.logLevel | default "INFO" | quote }}
+  LOG_LEVEL_SECURITY: "WARN"
+  EXECUTION_RETENTION_DAYS: {{ .Values.config.executionRetentionDays | default 30 | quote }}
+  EXECUTION_MAX_CONCURRENT: {{ .Values.config.executionMaxConcurrent | default 100 | quote }}
+  EXECUTION_TIMEOUT_MS: {{ .Values.config.executionTimeoutMs | default 300000 | quote }}

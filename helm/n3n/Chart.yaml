@@ -1,0 +1,23 @@
+apiVersion: v2
+name: n3n
+description: N3N Flow Platform - A workflow automation platform similar to n8n
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - workflow
+  - automation
+  - flow
+  - n8n
+maintainers:
+  - name: N3N Team
+    email: team@n3n.local
+dependencies:
+  - name: postgresql
+    version: "~14.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "~18.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
