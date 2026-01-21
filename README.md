@@ -5,7 +5,7 @@
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-green.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
 
@@ -416,7 +416,7 @@ npm run build
 
 ## License
 
-MIT License - 詳見 [LICENSE](LICENSE)
+Apache License 2.0 - 詳見 [LICENSE](LICENSE)
 
 ---
 
