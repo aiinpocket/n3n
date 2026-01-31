@@ -2,11 +2,13 @@ import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Popconfirm, Tag } from 'antd'
 import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useFlowStore } from '../stores/flowStore'
 import type { Flow } from '../api/flow'
 
 export default function FlowListPage() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const { flows, totalElements, loading, currentPage, pageSize, searchQuery, fetchFlows, setSearchQuery, createFlow, deleteFlow } = useFlowStore()
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [form] = Form.useForm()
@@ -27,13 +29,13 @@ export default function FlowListPage() {
     setCreating(true)
     try {
       const flow = await createFlow(values.name, values.description)
-      message.success('流程建立成功')
+      message.success(t('flow.createSuccess'))
       setCreateModalOpen(false)
       form.resetFields()
       navigate(`/flows/${flow.id}/edit`)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } }
-      message.error(err.response?.data?.message || '建立失敗')
+      message.error(err.response?.data?.message || t('common.createFailed'))
     } finally {
       setCreating(false)
     }
@@ -42,15 +44,23 @@ export default function FlowListPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteFlow(id)
-      message.success('流程已刪除')
+      message.success(t('flow.deleteSuccess'))
     } catch {
-      message.error('刪除失敗')
+      message.error(t('common.deleteFailed'))
+    }
+  }
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
     }
   }
 
   const columns = [
     {
-      title: '名稱',
+      title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record: Flow) => (
@@ -58,32 +68,32 @@ export default function FlowListPage() {
       ),
     },
     {
-      title: '描述',
+      title: t('common.description'),
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
     },
     {
-      title: '最新版本',
+      title: t('flow.latestVersion'),
       dataIndex: 'latestVersion',
       key: 'latestVersion',
       render: (version: string | null) => version || '-',
     },
     {
-      title: '已發布版本',
+      title: t('flow.publishedVersion'),
       dataIndex: 'publishedVersion',
       key: 'publishedVersion',
       render: (version: string | null) =>
-        version ? <Tag color="green">{version}</Tag> : <Tag>未發布</Tag>,
+        version ? <Tag color="green">{version}</Tag> : <Tag>{t('common.notPublished')}</Tag>,
     },
     {
-      title: '更新時間',
+      title: t('common.updatedAt'),
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString('zh-TW'),
+      render: (date: string) => new Date(date).toLocaleString(getLocale()),
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 200,
       render: (_: unknown, record: Flow) => (
@@ -94,7 +104,7 @@ export default function FlowListPage() {
             icon={<EditOutlined />}
             onClick={() => navigate(`/flows/${record.id}/edit`)}
           >
-            編輯
+            {t('common.edit')}
           </Button>
           <Button
             type="link"
@@ -103,16 +113,16 @@ export default function FlowListPage() {
             disabled={!record.publishedVersion}
             onClick={() => navigate(`/executions/new?flowId=${record.id}`)}
           >
-            執行
+            {t('flow.trigger')}
           </Button>
           <Popconfirm
-            title="確定要刪除此流程？"
+            title={t('flow.deleteConfirm')}
             onConfirm={() => handleDelete(record.id)}
-            okText="確定"
-            cancelText="取消"
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
           >
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              刪除
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -123,11 +133,11 @@ export default function FlowListPage() {
   return (
     <>
       <Card
-        title="流程列表"
+        title={t('flow.title')}
         extra={
           <Space>
             <Input.Search
-              placeholder="搜尋流程名稱或描述"
+              placeholder={t('flow.searchPlaceholder')}
               allowClear
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
@@ -140,7 +150,7 @@ export default function FlowListPage() {
               icon={<PlusOutlined />}
               onClick={() => setCreateModalOpen(true)}
             >
-              新增流程
+              {t('flow.newFlow')}
             </Button>
           </Space>
         }
@@ -155,14 +165,14 @@ export default function FlowListPage() {
             pageSize,
             total: totalElements,
             showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 項`,
+            showTotal: (total) => t('common.total', { count: total }),
             onChange: (page, size) => fetchFlows(page - 1, size, searchQuery),
           }}
         />
       </Card>
 
       <Modal
-        title="新增流程"
+        title={t('flow.newFlow')}
         open={createModalOpen}
         onCancel={() => {
           setCreateModalOpen(false)
@@ -177,16 +187,16 @@ export default function FlowListPage() {
         >
           <Form.Item
             name="name"
-            label="流程名稱"
-            rules={[{ required: true, message: '請輸入流程名稱' }]}
+            label={t('flow.flowName')}
+            rules={[{ required: true, message: t('flow.flowNamePlaceholder') }]}
           >
-            <Input placeholder="請輸入流程名稱" />
+            <Input placeholder={t('flow.flowNamePlaceholder')} />
           </Form.Item>
           <Form.Item
             name="description"
-            label="描述"
+            label={t('flow.flowDescription')}
           >
-            <Input.TextArea rows={3} placeholder="請輸入流程描述（選填）" />
+            <Input.TextArea rows={3} placeholder={t('flow.flowDescriptionPlaceholder')} />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
@@ -194,10 +204,10 @@ export default function FlowListPage() {
                 setCreateModalOpen(false)
                 form.resetFields()
               }}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="primary" htmlType="submit" loading={creating}>
-                建立
+                {t('common.create')}
               </Button>
             </Space>
           </Form.Item>

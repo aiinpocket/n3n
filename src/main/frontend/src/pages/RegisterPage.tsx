@@ -1,7 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, message } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 const { Title, Text } = Typography
 
@@ -9,11 +11,12 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const { register, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
+  const { t } = useTranslation()
 
   const handleSubmit = async (values: { email: string; password: string; name: string }) => {
     try {
       await register(values.email, values.password, values.name)
-      message.success('Registration successful! Please login.')
+      message.success(t('auth.loginSuccess'))
       navigate('/login')
     } catch {
       // Error is handled in store
@@ -30,9 +33,12 @@ export default function RegisterPage() {
     }}>
       <Card style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
-            <Title level={2} style={{ margin: 0 }}>Create Account</Title>
-            <Text type="secondary">Join N3N Flow Platform</Text>
+          <div style={{ textAlign: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, right: 0 }}>
+              <LanguageSwitcher />
+            </div>
+            <Title level={2} style={{ margin: 0 }}>{t('auth.register')}</Title>
+            <Text type="secondary">N3N Flow Platform</Text>
           </div>
 
           {error && (
@@ -54,13 +60,13 @@ export default function RegisterPage() {
             <Form.Item
               name="name"
               rules={[
-                { required: true, message: 'Please enter your name' },
-                { min: 2, message: 'Name must be at least 2 characters' },
+                { required: true, message: t('auth.nameRequired') },
+                { min: 2, message: t('auth.nameRequired') },
               ]}
             >
               <Input
                 prefix={<UserOutlined />}
-                placeholder="Name"
+                placeholder={t('auth.name')}
                 size="large"
               />
             </Form.Item>
@@ -68,13 +74,13 @@ export default function RegisterPage() {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: t('auth.emailRequired') },
+                { type: 'email', message: t('auth.emailRequired') },
               ]}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="Email"
+                placeholder={t('auth.email')}
                 size="large"
               />
             </Form.Item>
@@ -82,13 +88,13 @@ export default function RegisterPage() {
             <Form.Item
               name="password"
               rules={[
-                { required: true, message: 'Please enter your password' },
-                { min: 8, message: 'Password must be at least 8 characters' },
+                { required: true, message: t('auth.passwordRequired') },
+                { min: 8, message: t('auth.passwordMinLength') },
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="Password"
+                placeholder={t('auth.password')}
                 size="large"
               />
             </Form.Item>
@@ -97,20 +103,20 @@ export default function RegisterPage() {
               name="confirmPassword"
               dependencies={['password']}
               rules={[
-                { required: true, message: 'Please confirm your password' },
+                { required: true, message: t('auth.passwordRequired') },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue('password') === value) {
                       return Promise.resolve()
                     }
-                    return Promise.reject(new Error('Passwords do not match'))
+                    return Promise.reject(new Error(t('auth.passwordMismatch')))
                   },
                 }),
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="Confirm Password"
+                placeholder={t('auth.confirmPassword')}
                 size="large"
               />
             </Form.Item>
@@ -123,14 +129,14 @@ export default function RegisterPage() {
                 block
                 size="large"
               >
-                Register
+                {t('auth.register')}
               </Button>
             </Form.Item>
           </Form>
 
           <div style={{ textAlign: 'center' }}>
             <Text type="secondary">
-              Already have an account? <Link to="/login">Login</Link>
+              {t('auth.hasAccount')} <Link to="/login">{t('auth.login')}</Link>
             </Text>
           </div>
         </Space>

@@ -22,6 +22,7 @@ import {
   HistoryOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import * as agentApi from '../api/agent'
 import type {
   Conversation,
@@ -32,11 +33,12 @@ import ChatMessage from '../components/ai/ChatMessage'
 import ComponentRecommendation from '../components/ai/ComponentRecommendation'
 import FlowPreview from '../components/ai/FlowPreview'
 
-const { Title, Text, Paragraph } = Typography
+const { Title, Paragraph } = Typography
 const { TextArea } = Input
 
 const AIAssistantPage: React.FC = () => {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversation, setCurrentConversation] = useState<ConversationDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -44,6 +46,14 @@ const AIAssistantPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [historyVisible, setHistoryVisible] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
+    }
+  }
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -60,7 +70,7 @@ const AIAssistantPage: React.FC = () => {
       const convs = await agentApi.getConversations(true)
       setConversations(convs)
     } catch {
-      message.error('無法載入對話列表')
+      message.error(t('chat.loadFailed'))
     }
   }
 
@@ -68,13 +78,13 @@ const AIAssistantPage: React.FC = () => {
     setLoading(true)
     try {
       const conv = await agentApi.createConversation({
-        title: '新對話',
+        title: t('chat.newConversation'),
       })
       const detail = await agentApi.getConversation(conv.id)
       setCurrentConversation(detail)
       await fetchConversations()
     } catch {
-      message.error('無法建立新對話')
+      message.error(t('chat.createFailed'))
     } finally {
       setLoading(false)
     }
@@ -87,7 +97,7 @@ const AIAssistantPage: React.FC = () => {
       const detail = await agentApi.getConversation(conv.id)
       setCurrentConversation(detail)
     } catch {
-      message.error('無法載入對話')
+      message.error(t('chat.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -144,7 +154,7 @@ const AIAssistantPage: React.FC = () => {
         }
       })
     } catch {
-      message.error('發送訊息失敗')
+      message.error(t('chat.sendFailed'))
       // Remove temp message on error
       setCurrentConversation((prev) => {
         if (!prev) return prev
@@ -163,10 +173,10 @@ const AIAssistantPage: React.FC = () => {
 
     try {
       await agentApi.completeConversation(currentConversation.id, flowId)
-      message.success('流程已建立！')
+      message.success(t('chat.flowCreated'))
       navigate(`/flows/${flowId}/edit`)
     } catch {
-      message.error('建立流程失敗')
+      message.error(t('chat.flowCreateFailed'))
     }
   }
 
@@ -197,15 +207,15 @@ const AIAssistantPage: React.FC = () => {
           <Space>
             <RobotOutlined style={{ fontSize: 24 }} />
             <Title level={4} style={{ margin: 0 }}>
-              AI 工作流程助手
+              {t('ai.assistant')}
             </Title>
           </Space>
           <Space>
             <Button icon={<HistoryOutlined />} onClick={() => setHistoryVisible(true)}>
-              歷史對話
+              {t('chat.history')}
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleNewConversation}>
-              新對話
+              {t('chat.newConversation')}
             </Button>
           </Space>
         </div>
@@ -221,15 +231,15 @@ const AIAssistantPage: React.FC = () => {
               image={<RobotOutlined style={{ fontSize: 64, color: '#ccc' }} />}
               description={
                 <div>
-                  <Paragraph>歡迎使用 AI 工作流程助手！</Paragraph>
+                  <Paragraph>{t('chat.welcome')}</Paragraph>
                   <Paragraph type="secondary">
-                    用自然語言描述您想要建立的工作流程，AI 會推薦適合的元件並幫您建立流程。
+                    {t('chat.welcomeDesc')}
                   </Paragraph>
                 </div>
               }
             >
               <Button type="primary" icon={<PlusOutlined />} onClick={handleNewConversation}>
-                開始新對話
+                {t('chat.startNew')}
               </Button>
             </Empty>
           ) : (
@@ -243,7 +253,7 @@ const AIAssistantPage: React.FC = () => {
                 <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                   <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
                   <div style={{ flex: 1, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
-                    <Spin size="small" /> AI 正在思考...
+                    <Spin size="small" /> {t('chat.thinking')}
                   </div>
                 </div>
               )}
@@ -260,7 +270,7 @@ const AIAssistantPage: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="描述您想要的工作流程... (Shift+Enter 換行)"
+                placeholder={t('chat.placeholder')}
                 autoSize={{ minRows: 1, maxRows: 4 }}
                 style={{ flex: 1 }}
                 disabled={sending}
@@ -272,11 +282,11 @@ const AIAssistantPage: React.FC = () => {
                 loading={sending}
                 disabled={!inputValue.trim()}
               >
-                發送
+                {t('chat.send')}
               </Button>
             </Space.Compact>
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary">Token 使用: {currentConversation.totalTokens}</Text>
+              <Typography.Text type="secondary">{t('chat.tokenUsage')}: {currentConversation.totalTokens}</Typography.Text>
             </div>
           </div>
         )}
@@ -285,14 +295,14 @@ const AIAssistantPage: React.FC = () => {
       {/* Side Panel - Recommendations & Preview */}
       <Card
         style={{ flex: 1, height: '100%', overflow: 'auto' }}
-        title="AI 推薦"
+        title={t('ai.recommendation')}
       >
         {lastAiMessage?.structuredData ? (
           <div>
             {lastAiMessage.structuredData.understanding && (
               <Alert
                 type="info"
-                message="需求理解"
+                message={t('ai.understanding')}
                 description={lastAiMessage.structuredData.understanding}
                 style={{ marginBottom: 16 }}
               />
@@ -300,7 +310,7 @@ const AIAssistantPage: React.FC = () => {
 
             {lastAiMessage.structuredData.existingComponents && (
               <ComponentRecommendation
-                title="推薦使用的現有元件"
+                title={t('ai.existingComponents')}
                 components={lastAiMessage.structuredData.existingComponents}
                 type="existing"
               />
@@ -308,7 +318,7 @@ const AIAssistantPage: React.FC = () => {
 
             {lastAiMessage.structuredData.suggestedNewComponents && (
               <ComponentRecommendation
-                title="建議新增的元件"
+                title={t('ai.suggestedComponents')}
                 components={lastAiMessage.structuredData.suggestedNewComponents}
                 type="new"
               />
@@ -325,13 +335,13 @@ const AIAssistantPage: React.FC = () => {
             )}
           </div>
         ) : (
-          <Empty description="AI 會在這裡顯示推薦的元件和流程預覽" />
+          <Empty description={t('chat.emptyRecommendation')} />
         )}
       </Card>
 
       {/* History Modal */}
       <Modal
-        title="歷史對話"
+        title={t('chat.history')}
         open={historyVisible}
         onCancel={() => setHistoryVisible(false)}
         footer={null}
@@ -345,9 +355,9 @@ const AIAssistantPage: React.FC = () => {
               onClick={() => handleSelectConversation(conv)}
               actions={[
                 conv.status === 'ACTIVE' ? (
-                  <Tag color="processing">進行中</Tag>
+                  <Tag color="processing">{t('chat.active')}</Tag>
                 ) : conv.status === 'COMPLETED' ? (
-                  <Tag color="success">已完成</Tag>
+                  <Tag color="success">{t('chat.completed')}</Tag>
                 ) : (
                   <Tag>{conv.status}</Tag>
                 ),
@@ -356,11 +366,11 @@ const AIAssistantPage: React.FC = () => {
               <List.Item.Meta
                 avatar={<Avatar icon={<RobotOutlined />} />}
                 title={conv.title}
-                description={new Date(conv.updatedAt).toLocaleString('zh-TW')}
+                description={new Date(conv.updatedAt).toLocaleString(getLocale())}
               />
             </List.Item>
           )}
-          locale={{ emptyText: '沒有歷史對話' }}
+          locale={{ emptyText: t('chat.noHistory') }}
         />
       </Modal>
     </div>

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, Steps } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, RocketOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -12,6 +14,7 @@ export default function SetupPage() {
   const [form] = Form.useForm()
   const [step, setStep] = useState(0)
   const [registeredEmail, setRegisteredEmail] = useState('')
+  const { t } = useTranslation()
 
   const handleSubmit = async (values: { email: string; password: string; name: string }) => {
     try {
@@ -47,26 +50,29 @@ export default function SetupPage() {
     }}>
       <Card style={{ width: 480, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, right: 0 }}>
+              <LanguageSwitcher />
+            </div>
             <RocketOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
-            <Title level={2} style={{ margin: 0 }}>Welcome to N3N Flow</Title>
-            <Text type="secondary">Set up your administrator account</Text>
+            <Title level={2} style={{ margin: 0 }}>{t('setup.title')}</Title>
+            <Text type="secondary">{t('setup.subtitle')}</Text>
           </div>
 
           <Steps
             current={step}
             size="small"
             items={[
-              { title: 'Create Admin' },
-              { title: 'Complete' },
+              { title: t('setup.createAdmin') },
+              { title: t('setup.complete') },
             ]}
           />
 
           {step === 0 ? (
             <>
               <Alert
-                message="First Time Setup"
-                description="Create your administrator account. This account will have full access to manage the platform."
+                message={t('setup.firstTimeSetup')}
+                description={t('setup.firstTimeSetupDesc')}
                 type="info"
                 showIcon
               />
@@ -89,22 +95,22 @@ export default function SetupPage() {
               >
                 <Form.Item
                   name="name"
-                  label="Name"
-                  rules={[{ required: true, message: 'Please enter your name' }]}
+                  label={t('auth.name')}
+                  rules={[{ required: true, message: t('auth.nameRequired') }]}
                 >
                   <Input
                     prefix={<UserOutlined />}
-                    placeholder="Your name"
+                    placeholder={t('auth.name')}
                     size="large"
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="email"
-                  label="Email"
+                  label={t('auth.email')}
                   rules={[
-                    { required: true, message: 'Please enter your email' },
-                    { type: 'email', message: 'Please enter a valid email' },
+                    { required: true, message: t('auth.emailRequired') },
+                    { type: 'email', message: t('auth.emailRequired') },
                   ]}
                 >
                   <Input
@@ -116,38 +122,38 @@ export default function SetupPage() {
 
                 <Form.Item
                   name="password"
-                  label="Password"
+                  label={t('auth.password')}
                   rules={[
-                    { required: true, message: 'Please enter your password' },
-                    { min: 8, message: 'Password must be at least 8 characters' },
+                    { required: true, message: t('auth.passwordRequired') },
+                    { min: 8, message: t('auth.passwordMinLength') },
                   ]}
                 >
                   <Input.Password
                     prefix={<LockOutlined />}
-                    placeholder="At least 8 characters"
+                    placeholder={t('auth.passwordMinLength')}
                     size="large"
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="confirmPassword"
-                  label="Confirm Password"
+                  label={t('auth.confirmPassword')}
                   dependencies={['password']}
                   rules={[
-                    { required: true, message: 'Please confirm your password' },
+                    { required: true, message: t('auth.passwordRequired') },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('password') === value) {
                           return Promise.resolve()
                         }
-                        return Promise.reject(new Error('Passwords do not match'))
+                        return Promise.reject(new Error(t('auth.passwordMismatch')))
                       },
                     }),
                   ]}
                 >
                   <Input.Password
                     prefix={<LockOutlined />}
-                    placeholder="Confirm password"
+                    placeholder={t('auth.confirmPassword')}
                     size="large"
                   />
                 </Form.Item>
@@ -160,7 +166,7 @@ export default function SetupPage() {
                     block
                     size="large"
                   >
-                    Create Admin Account
+                    {t('setup.createAdmin')}
                   </Button>
                 </Form.Item>
               </Form>
@@ -168,12 +174,12 @@ export default function SetupPage() {
           ) : (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
               <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 24 }} />
-              <Title level={3}>Setup Complete!</Title>
+              <Title level={3}>{t('setup.setupComplete')}</Title>
               <Paragraph type="secondary">
-                Administrator account <Text strong>{registeredEmail}</Text> has been created.
+                {t('auth.email')}: <Text strong>{registeredEmail}</Text>
               </Paragraph>
               <Paragraph type="secondary">
-                Redirecting to dashboard...
+                {t('setup.redirecting')}
               </Paragraph>
             </div>
           )}

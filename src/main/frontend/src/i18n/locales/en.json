@@ -27,7 +27,14 @@
     "name": "Name",
     "description": "Description",
     "createdAt": "Created At",
-    "updatedAt": "Updated At"
+    "updatedAt": "Updated At",
+    "total": "Total {{count}} items",
+    "notPublished": "Not Published",
+    "createSuccess": "Created successfully",
+    "createFailed": "Create failed",
+    "deleteFailed": "Delete failed",
+    "saveFailed": "Save failed",
+    "loadFailed": "Load failed"
   },
   "nav": {
     "home": "Home",
@@ -35,6 +42,7 @@
     "executions": "Executions",
     "components": "Components",
     "credentials": "Credentials",
+    "services": "Services",
     "aiAssistant": "AI Assistant",
     "aiSettings": "AI Settings",
     "settings": "Settings",
@@ -71,22 +79,28 @@
     "redirecting": "Redirecting to dashboard..."
   },
   "flow": {
-    "title": "Flow Management",
+    "title": "Flow List",
     "newFlow": "New Flow",
     "editFlow": "Edit Flow",
     "deleteFlow": "Delete Flow",
     "deleteConfirm": "Are you sure you want to delete this flow?",
     "deleteSuccess": "Flow deleted",
+    "createSuccess": "Flow created successfully",
     "saveSuccess": "Flow saved",
     "publishSuccess": "Flow published",
     "flowName": "Flow Name",
-    "flowDescription": "Flow Description",
+    "flowNamePlaceholder": "Enter flow name",
+    "flowDescription": "Description",
+    "flowDescriptionPlaceholder": "Enter flow description (optional)",
+    "latestVersion": "Latest Version",
+    "publishedVersion": "Published Version",
     "version": "Version",
     "published": "Published",
     "draft": "Draft",
-    "trigger": "Trigger",
+    "trigger": "Run",
     "noFlows": "No flows yet",
-    "createFirst": "Create your first flow"
+    "createFirst": "Create your first flow",
+    "searchPlaceholder": "Search flow name or description"
   },
   "execution": {
     "title": "Execution History",
@@ -100,9 +114,41 @@
     "duration": "Duration",
     "noExecutions": "No executions yet"
   },
+  "service": {
+    "title": "External Services",
+    "newService": "New Service",
+    "editService": "Edit Service",
+    "deleteService": "Delete Service",
+    "deleteConfirm": "Are you sure you want to delete this service?",
+    "deleteSuccess": "Service deleted",
+    "serviceName": "Service Name",
+    "baseUrl": "Base URL",
+    "schemaUrl": "API Schema Path",
+    "noServices": "No services yet"
+  },
+  "credential": {
+    "title": "Credentials",
+    "newCredential": "New Credential",
+    "editCredential": "Edit Credential",
+    "deleteCredential": "Delete Credential",
+    "deleteConfirm": "Are you sure you want to delete this credential?",
+    "deleteSuccess": "Credential deleted",
+    "credentialName": "Credential Name",
+    "credentialType": "Credential Type",
+    "noCredentials": "No credentials yet"
+  },
+  "component": {
+    "title": "Components",
+    "newComponent": "New Component",
+    "editComponent": "Edit Component",
+    "deleteComponent": "Delete Component",
+    "deleteConfirm": "Are you sure you want to delete this component?",
+    "deleteSuccess": "Component deleted",
+    "noComponents": "No components yet"
+  },
   "ai": {
     "title": "AI Settings",
-    "assistant": "AI Assistant",
+    "assistant": "AI Workflow Assistant",
     "newConfig": "New AI Config",
     "editConfig": "Edit AI Config",
     "deleteConfig": "Delete AI Config",
@@ -159,14 +205,33 @@
       "encryption": "API Keys are stored with AES-256 encryption",
       "multiple": "Configure multiple settings and choose one as default",
       "ollamaLocal": "Ollama runs locally and doesn't require an API Key"
-    }
+    },
+    "recommendation": "AI Recommendations",
+    "understanding": "Understanding",
+    "existingComponents": "Recommended Existing Components",
+    "suggestedComponents": "Suggested New Components",
+    "flowPreview": "Flow Preview"
   },
   "chat": {
-    "placeholder": "Describe the workflow you want to create...",
+    "placeholder": "Describe the workflow you want... (Shift+Enter for new line)",
     "send": "Send",
-    "thinking": "Thinking...",
-    "welcome": "Hello! I'm the N3N AI Assistant. Describe the workflow you'd like to create and I'll help you design it.",
-    "error": "An error occurred. Please try again."
+    "thinking": "AI is thinking...",
+    "welcome": "Welcome to AI Workflow Assistant!",
+    "welcomeDesc": "Describe the workflow you'd like to create in natural language. AI will recommend suitable components and help you build the workflow.",
+    "error": "An error occurred. Please try again.",
+    "newConversation": "New Chat",
+    "history": "History",
+    "startNew": "Start New Chat",
+    "noHistory": "No chat history",
+    "tokenUsage": "Token Usage",
+    "active": "Active",
+    "completed": "Completed",
+    "sendFailed": "Failed to send message",
+    "loadFailed": "Failed to load conversation",
+    "createFailed": "Failed to create conversation",
+    "flowCreated": "Flow created!",
+    "flowCreateFailed": "Failed to create flow",
+    "emptyRecommendation": "AI recommendations will appear here"
   },
   "language": {
     "title": "Language",

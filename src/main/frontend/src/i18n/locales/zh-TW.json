@@ -27,7 +27,14 @@
     "name": "名稱",
     "description": "描述",
     "createdAt": "建立時間",
-    "updatedAt": "更新時間"
+    "updatedAt": "更新時間",
+    "total": "共 {{count}} 項",
+    "notPublished": "未發布",
+    "createSuccess": "建立成功",
+    "createFailed": "建立失敗",
+    "deleteFailed": "刪除失敗",
+    "saveFailed": "儲存失敗",
+    "loadFailed": "載入失敗"
   },
   "nav": {
     "home": "首頁",
@@ -35,6 +42,7 @@
     "executions": "執行記錄",
     "components": "元件",
     "credentials": "認證管理",
+    "services": "外部服務",
     "aiAssistant": "AI 助手",
     "aiSettings": "AI 設定",
     "settings": "設定",
@@ -71,22 +79,28 @@
     "redirecting": "正在導向至儀表板..."
   },
   "flow": {
-    "title": "流程管理",
+    "title": "流程列表",
     "newFlow": "新增流程",
     "editFlow": "編輯流程",
     "deleteFlow": "刪除流程",
-    "deleteConfirm": "確定要刪除此流程嗎？",
+    "deleteConfirm": "確定要刪除此流程？",
     "deleteSuccess": "流程已刪除",
+    "createSuccess": "流程建立成功",
     "saveSuccess": "流程已儲存",
     "publishSuccess": "流程已發布",
     "flowName": "流程名稱",
-    "flowDescription": "流程描述",
+    "flowNamePlaceholder": "請輸入流程名稱",
+    "flowDescription": "描述",
+    "flowDescriptionPlaceholder": "請輸入流程描述（選填）",
+    "latestVersion": "最新版本",
+    "publishedVersion": "已發布版本",
     "version": "版本",
     "published": "已發布",
     "draft": "草稿",
-    "trigger": "觸發執行",
+    "trigger": "執行",
     "noFlows": "尚無流程",
-    "createFirst": "建立您的第一個流程"
+    "createFirst": "建立您的第一個流程",
+    "searchPlaceholder": "搜尋流程名稱或描述"
   },
   "execution": {
     "title": "執行記錄",
@@ -100,9 +114,41 @@
     "duration": "執行時間",
     "noExecutions": "尚無執行記錄"
   },
+  "service": {
+    "title": "外部服務",
+    "newService": "新增服務",
+    "editService": "編輯服務",
+    "deleteService": "刪除服務",
+    "deleteConfirm": "確定要刪除此服務？",
+    "deleteSuccess": "服務已刪除",
+    "serviceName": "服務名稱",
+    "baseUrl": "服務地址",
+    "schemaUrl": "API 文檔路徑",
+    "noServices": "尚無外部服務"
+  },
+  "credential": {
+    "title": "認證管理",
+    "newCredential": "新增認證",
+    "editCredential": "編輯認證",
+    "deleteCredential": "刪除認證",
+    "deleteConfirm": "確定要刪除此認證？",
+    "deleteSuccess": "認證已刪除",
+    "credentialName": "認證名稱",
+    "credentialType": "認證類型",
+    "noCredentials": "尚無認證"
+  },
+  "component": {
+    "title": "元件管理",
+    "newComponent": "新增元件",
+    "editComponent": "編輯元件",
+    "deleteComponent": "刪除元件",
+    "deleteConfirm": "確定要刪除此元件？",
+    "deleteSuccess": "元件已刪除",
+    "noComponents": "尚無元件"
+  },
   "ai": {
     "title": "AI 設定",
-    "assistant": "AI 助手",
+    "assistant": "AI 工作流程助手",
     "newConfig": "新增 AI 設定",
     "editConfig": "編輯 AI 設定",
     "deleteConfig": "刪除 AI 設定",
@@ -159,14 +205,33 @@
       "encryption": "API Key 使用 AES-256 加密儲存，安全無虞",
       "multiple": "可設定多組設定，並選擇一組作為預設",
       "ollamaLocal": "Ollama 為本地運行，不需要 API Key"
-    }
+    },
+    "recommendation": "AI 推薦",
+    "understanding": "需求理解",
+    "existingComponents": "推薦使用的現有元件",
+    "suggestedComponents": "建議新增的元件",
+    "flowPreview": "流程預覽"
   },
   "chat": {
-    "placeholder": "描述您想要建立的工作流程...",
+    "placeholder": "描述您想要的工作流程... (Shift+Enter 換行)",
     "send": "發送",
-    "thinking": "思考中...",
-    "welcome": "您好！我是 N3N AI 助手。請描述您想要建立的工作流程，我會幫您設計。",
-    "error": "發生錯誤，請稍後再試"
+    "thinking": "AI 正在思考...",
+    "welcome": "歡迎使用 AI 工作流程助手！",
+    "welcomeDesc": "用自然語言描述您想要建立的工作流程，AI 會推薦適合的元件並幫您建立流程。",
+    "error": "發生錯誤，請稍後再試",
+    "newConversation": "新對話",
+    "history": "歷史對話",
+    "startNew": "開始新對話",
+    "noHistory": "沒有歷史對話",
+    "tokenUsage": "Token 使用",
+    "active": "進行中",
+    "completed": "已完成",
+    "sendFailed": "發送訊息失敗",
+    "loadFailed": "無法載入對話",
+    "createFailed": "無法建立新對話",
+    "flowCreated": "流程已建立！",
+    "flowCreateFailed": "建立流程失敗",
+    "emptyRecommendation": "AI 會在這裡顯示推薦的元件和流程預覽"
   },
   "language": {
     "title": "語言",

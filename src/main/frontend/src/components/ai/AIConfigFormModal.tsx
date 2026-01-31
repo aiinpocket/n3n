@@ -13,6 +13,7 @@ import {
   Typography,
 } from 'antd'
 import { ThunderboltOutlined, ReloadOutlined, LinkOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAiStore } from '../../stores/aiStore'
 import type { AiProviderConfig, AiModel } from '../../api/ai'
 
@@ -26,31 +27,12 @@ interface Props {
   onSuccess: () => void
 }
 
-const providerDescriptions: Record<string, string> = {
-  claude: 'Anthropic Claude - 強大的推理和分析能力',
-  openai: 'OpenAI ChatGPT - 廣泛的知識和程式碼能力',
-  gemini: 'Google Gemini - 多模態和長上下文支援',
-  ollama: 'Ollama - 本地運行的開源模型，無需 API Key',
-}
-
 // API Key 申請連結
-const providerApiLinks: Record<string, { url: string; label: string }> = {
-  claude: {
-    url: 'https://console.anthropic.com/',
-    label: '前往 Anthropic Console 申請',
-  },
-  openai: {
-    url: 'https://platform.openai.com/api-keys',
-    label: '前往 OpenAI Platform 申請',
-  },
-  gemini: {
-    url: 'https://aistudio.google.com/apikey',
-    label: '前往 Google AI Studio 申請',
-  },
-  ollama: {
-    url: 'https://ollama.com/download',
-    label: '下載 Ollama（免費本地運行）',
-  },
+const providerApiLinks: Record<string, string> = {
+  claude: 'https://console.anthropic.com/',
+  openai: 'https://platform.openai.com/api-keys',
+  gemini: 'https://aistudio.google.com/apikey',
+  ollama: 'https://ollama.com/download',
 }
 
 const AIConfigFormModal: React.FC<Props> = ({
@@ -59,6 +41,7 @@ const AIConfigFormModal: React.FC<Props> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation()
   const {
     providerTypes,
     models,
@@ -169,7 +152,7 @@ const AIConfigFormModal: React.FC<Props> = ({
 
   return (
     <Modal
-      title={editingConfig ? '編輯 AI 設定' : '新增 AI 設定'}
+      title={editingConfig ? t('ai.editConfig') : t('ai.newConfig')}
       open={visible}
       onCancel={onClose}
       footer={null}
@@ -189,11 +172,11 @@ const AIConfigFormModal: React.FC<Props> = ({
 
         <Form.Item
           name="provider"
-          label="AI 供應商"
-          rules={[{ required: true, message: '請選擇 AI 供應商' }]}
+          label={t('ai.provider')}
+          rules={[{ required: true, message: t('ai.provider') }]}
         >
           <Select
-            placeholder="選擇 AI 供應商"
+            placeholder={t('ai.provider')}
             onChange={handleProviderChange}
             disabled={!!editingConfig}
           >
@@ -203,7 +186,7 @@ const AIConfigFormModal: React.FC<Props> = ({
                   <strong>{type.displayName}</strong>
                   <br />
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {providerDescriptions[type.id] || type.description}
+                    {t(`ai.providerDesc.${type.id}` as const)}
                   </Text>
                 </div>
               </Option>
@@ -213,34 +196,34 @@ const AIConfigFormModal: React.FC<Props> = ({
 
         <Form.Item
           name="name"
-          label="設定名稱"
-          rules={[{ required: true, message: '請輸入設定名稱' }]}
+          label={t('ai.configName')}
+          rules={[{ required: true, message: t('ai.configName') }]}
         >
-          <Input placeholder="例如：我的 Claude 設定" />
+          <Input placeholder={t('ai.configNamePlaceholder')} />
         </Form.Item>
 
         {requiresApiKey && (
           <>
             <Form.Item
               name="apiKey"
-              label="API Key"
+              label={t('ai.apiKey')}
               rules={[
                 {
                   required: !editingConfig?.hasCredential,
-                  message: '請輸入 API Key',
+                  message: t('ai.apiKeyPlaceholder'),
                 },
               ]}
               extra={
                 editingConfig?.hasCredential
-                  ? '已設定 API Key，留空則保留原設定'
+                  ? t('ai.apiKeyKept')
                   : undefined
               }
             >
               <Input.Password
                 placeholder={
                   editingConfig?.hasCredential
-                    ? '留空保留原設定，或輸入新的 API Key'
-                    : '請輸入 API Key'
+                    ? t('ai.apiKeyKept')
+                    : t('ai.apiKeyPlaceholder')
                 }
                 onChange={(e) => setCurrentApiKey(e.target.value)}
               />
@@ -253,14 +236,14 @@ const AIConfigFormModal: React.FC<Props> = ({
                 style={{ marginBottom: 16, marginTop: -8 }}
                 message={
                   <span>
-                    還沒有 API Key？
+                    {t('ai.noApiKey')}
                     <a
-                      href={providerApiLinks[selectedProvider].url}
+                      href={providerApiLinks[selectedProvider]}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ marginLeft: 8 }}
                     >
-                      {providerApiLinks[selectedProvider].label}
+                      {t(`ai.providerLink.${selectedProvider}` as const)}
                     </a>
                   </span>
                 }
@@ -278,23 +261,23 @@ const AIConfigFormModal: React.FC<Props> = ({
               style={{ marginBottom: 16 }}
               message={
                 <span>
-                  Ollama 是免費的本地 AI，不需要 API Key！
+                  {t('ai.ollamaFree')}
                   <a
                     href="https://ollama.com/download"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ marginLeft: 8 }}
                   >
-                    下載 Ollama
+                    {t('ai.providerLink.ollama')}
                   </a>
                 </span>
               }
-              description="安裝後執行 ollama run llama3.2 即可開始使用"
+              description={t('ai.ollamaInstruction')}
             />
             <Form.Item
               name="baseUrl"
-              label="Ollama 伺服器位址"
-              rules={[{ required: true, message: '請輸入伺服器位址' }]}
+              label={t('ai.ollamaServerUrl')}
+              rules={[{ required: true, message: t('ai.ollamaServerUrl') }]}
             >
               <Input placeholder="http://localhost:11434" />
             </Form.Item>
@@ -314,10 +297,10 @@ const AIConfigFormModal: React.FC<Props> = ({
                 (requiresApiKey && !currentApiKey && !apiKeyEntered)
               }
             >
-              取得模型清單
+              {t('ai.fetchModels')}
             </Button>
             {models.length > 0 && (
-              <Text type="secondary">找到 {models.length} 個模型</Text>
+              <Text type="secondary">{t('ai.modelsFound', { count: models.length })}</Text>
             )}
           </Space>
         </div>
@@ -325,14 +308,14 @@ const AIConfigFormModal: React.FC<Props> = ({
         <Spin spinning={modelsLoading}>
           <Form.Item
             name="defaultModel"
-            label="預設模型"
-            rules={[{ required: true, message: '請選擇預設模型' }]}
+            label={t('ai.defaultModel')}
+            rules={[{ required: true, message: t('ai.selectModel') }]}
           >
             <Select
               placeholder={
                 models.length === 0
-                  ? '請先取得模型清單'
-                  : '選擇預設模型'
+                  ? t('ai.fetchModelsFirst')
+                  : t('ai.selectModel')
               }
               disabled={models.length === 0}
               showSearch
@@ -359,8 +342,8 @@ const AIConfigFormModal: React.FC<Props> = ({
 
         <Form.Item
           name="temperature"
-          label="Temperature"
-          tooltip="控制回應的隨機性。較低的值會產生更確定性的回應，較高的值會產生更多樣化的回應。"
+          label={t('ai.temperature')}
+          tooltip={t('ai.temperatureTooltip')}
           initialValue={0.7}
         >
           <Slider
@@ -368,10 +351,10 @@ const AIConfigFormModal: React.FC<Props> = ({
             max={2}
             step={0.1}
             marks={{
-              0: '精確',
-              0.7: '平衡',
-              1: '創意',
-              2: '隨機',
+              0: t('ai.precise'),
+              0.7: t('ai.balanced'),
+              1: t('ai.creative'),
+              2: t('ai.random'),
             }}
           />
         </Form.Item>
@@ -380,14 +363,14 @@ const AIConfigFormModal: React.FC<Props> = ({
 
         <Form.Item style={{ marginBottom: 0 }}>
           <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-            <Button onClick={onClose}>取消</Button>
+            <Button onClick={onClose}>{t('common.cancel')}</Button>
             <Button
               type="primary"
               htmlType="submit"
               loading={loading}
               icon={<ThunderboltOutlined />}
             >
-              {editingConfig ? '儲存變更' : '建立設定'}
+              {editingConfig ? t('common.save') : t('common.create')}
             </Button>
           </Space>
         </Form.Item>

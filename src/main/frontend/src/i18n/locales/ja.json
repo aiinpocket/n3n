@@ -27,7 +27,14 @@
     "name": "名前",
     "description": "説明",
     "createdAt": "作成日時",
-    "updatedAt": "更新日時"
+    "updatedAt": "更新日時",
+    "total": "全{{count}}件",
+    "notPublished": "未公開",
+    "createSuccess": "作成しました",
+    "createFailed": "作成に失敗しました",
+    "deleteFailed": "削除に失敗しました",
+    "saveFailed": "保存に失敗しました",
+    "loadFailed": "読み込みに失敗しました"
   },
   "nav": {
     "home": "ホーム",
@@ -35,6 +42,7 @@
     "executions": "実行履歴",
     "components": "コンポーネント",
     "credentials": "認証管理",
+    "services": "外部サービス",
     "aiAssistant": "AIアシスタント",
     "aiSettings": "AI設定",
     "settings": "設定",
@@ -71,22 +79,28 @@
     "redirecting": "ダッシュボードにリダイレクト中..."
   },
   "flow": {
-    "title": "フロー管理",
+    "title": "フロー一覧",
     "newFlow": "新規フロー",
     "editFlow": "フローを編集",
     "deleteFlow": "フローを削除",
     "deleteConfirm": "このフローを削除してもよろしいですか？",
     "deleteSuccess": "フローを削除しました",
+    "createSuccess": "フローを作成しました",
     "saveSuccess": "フローを保存しました",
     "publishSuccess": "フローを公開しました",
     "flowName": "フロー名",
-    "flowDescription": "フローの説明",
+    "flowNamePlaceholder": "フロー名を入力",
+    "flowDescription": "説明",
+    "flowDescriptionPlaceholder": "フローの説明を入力（任意）",
+    "latestVersion": "最新バージョン",
+    "publishedVersion": "公開バージョン",
     "version": "バージョン",
     "published": "公開済み",
     "draft": "下書き",
     "trigger": "実行",
     "noFlows": "フローがありません",
-    "createFirst": "最初のフローを作成しましょう"
+    "createFirst": "最初のフローを作成しましょう",
+    "searchPlaceholder": "フロー名または説明で検索"
   },
   "execution": {
     "title": "実行履歴",
@@ -100,9 +114,41 @@
     "duration": "実行時間",
     "noExecutions": "実行履歴がありません"
   },
+  "service": {
+    "title": "外部サービス",
+    "newService": "新規サービス",
+    "editService": "サービスを編集",
+    "deleteService": "サービスを削除",
+    "deleteConfirm": "このサービスを削除してもよろしいですか？",
+    "deleteSuccess": "サービスを削除しました",
+    "serviceName": "サービス名",
+    "baseUrl": "ベースURL",
+    "schemaUrl": "APIスキーマパス",
+    "noServices": "サービスがありません"
+  },
+  "credential": {
+    "title": "認証管理",
+    "newCredential": "新規認証",
+    "editCredential": "認証を編集",
+    "deleteCredential": "認証を削除",
+    "deleteConfirm": "この認証を削除してもよろしいですか？",
+    "deleteSuccess": "認証を削除しました",
+    "credentialName": "認証名",
+    "credentialType": "認証タイプ",
+    "noCredentials": "認証がありません"
+  },
+  "component": {
+    "title": "コンポーネント",
+    "newComponent": "新規コンポーネント",
+    "editComponent": "コンポーネントを編集",
+    "deleteComponent": "コンポーネントを削除",
+    "deleteConfirm": "このコンポーネントを削除してもよろしいですか？",
+    "deleteSuccess": "コンポーネントを削除しました",
+    "noComponents": "コンポーネントがありません"
+  },
   "ai": {
     "title": "AI設定",
-    "assistant": "AIアシスタント",
+    "assistant": "AIワークフローアシスタント",
     "newConfig": "AI設定を追加",
     "editConfig": "AI設定を編集",
     "deleteConfig": "AI設定を削除",
@@ -159,14 +205,33 @@
       "encryption": "APIキーはAES-256で暗号化して保存されます",
       "multiple": "複数の設定を作成し、デフォルトを選択できます",
       "ollamaLocal": "Ollamaはローカルで実行され、APIキーは不要です"
-    }
+    },
+    "recommendation": "AIの推薦",
+    "understanding": "理解内容",
+    "existingComponents": "推奨する既存コンポーネント",
+    "suggestedComponents": "提案する新規コンポーネント",
+    "flowPreview": "フロープレビュー"
   },
   "chat": {
-    "placeholder": "作成したいワークフローを説明してください...",
+    "placeholder": "作成したいワークフローを説明... (Shift+Enterで改行)",
     "send": "送信",
-    "thinking": "考え中...",
-    "welcome": "こんにちは！N3N AIアシスタントです。作成したいワークフローを説明してください。設計をお手伝いします。",
-    "error": "エラーが発生しました。もう一度お試しください。"
+    "thinking": "AIが考え中...",
+    "welcome": "AIワークフローアシスタントへようこそ！",
+    "welcomeDesc": "作成したいワークフローを自然言語で説明してください。AIが適切なコンポーネントを推薦し、フローの作成をお手伝いします。",
+    "error": "エラーが発生しました。もう一度お試しください。",
+    "newConversation": "新規チャット",
+    "history": "履歴",
+    "startNew": "新しいチャットを開始",
+    "noHistory": "チャット履歴がありません",
+    "tokenUsage": "トークン使用量",
+    "active": "進行中",
+    "completed": "完了",
+    "sendFailed": "メッセージの送信に失敗しました",
+    "loadFailed": "会話の読み込みに失敗しました",
+    "createFailed": "会話の作成に失敗しました",
+    "flowCreated": "フローを作成しました！",
+    "flowCreateFailed": "フローの作成に失敗しました",
+    "emptyRecommendation": "AIの推薦がここに表示されます"
   },
   "language": {
     "title": "言語",
