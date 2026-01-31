@@ -12,7 +12,7 @@ import {
   Divider,
   Typography,
 } from 'antd'
-import { ThunderboltOutlined, ReloadOutlined } from '@ant-design/icons'
+import { ThunderboltOutlined, ReloadOutlined, LinkOutlined } from '@ant-design/icons'
 import { useAiStore } from '../../stores/aiStore'
 import type { AiProviderConfig, AiModel } from '../../api/ai'
 
@@ -31,6 +31,26 @@ const providerDescriptions: Record<string, string> = {
   openai: 'OpenAI ChatGPT - 廣泛的知識和程式碼能力',
   gemini: 'Google Gemini - 多模態和長上下文支援',
   ollama: 'Ollama - 本地運行的開源模型，無需 API Key',
+}
+
+// API Key 申請連結
+const providerApiLinks: Record<string, { url: string; label: string }> = {
+  claude: {
+    url: 'https://console.anthropic.com/',
+    label: '前往 Anthropic Console 申請',
+  },
+  openai: {
+    url: 'https://platform.openai.com/api-keys',
+    label: '前往 OpenAI Platform 申請',
+  },
+  gemini: {
+    url: 'https://aistudio.google.com/apikey',
+    label: '前往 Google AI Studio 申請',
+  },
+  ollama: {
+    url: 'https://ollama.com/download',
+    label: '下載 Ollama（免費本地運行）',
+  },
 }
 
 const AIConfigFormModal: React.FC<Props> = ({
@@ -200,40 +220,85 @@ const AIConfigFormModal: React.FC<Props> = ({
         </Form.Item>
 
         {requiresApiKey && (
-          <Form.Item
-            name="apiKey"
-            label="API Key"
-            rules={[
-              {
-                required: !editingConfig?.hasCredential,
-                message: '請輸入 API Key',
-              },
-            ]}
-            extra={
-              editingConfig?.hasCredential
-                ? '已設定 API Key，留空則保留原設定'
-                : undefined
-            }
-          >
-            <Input.Password
-              placeholder={
+          <>
+            <Form.Item
+              name="apiKey"
+              label="API Key"
+              rules={[
+                {
+                  required: !editingConfig?.hasCredential,
+                  message: '請輸入 API Key',
+                },
+              ]}
+              extra={
                 editingConfig?.hasCredential
-                  ? '留空保留原設定，或輸入新的 API Key'
-                  : '請輸入 API Key'
+                  ? '已設定 API Key，留空則保留原設定'
+                  : undefined
               }
-              onChange={(e) => setCurrentApiKey(e.target.value)}
-            />
-          </Form.Item>
+            >
+              <Input.Password
+                placeholder={
+                  editingConfig?.hasCredential
+                    ? '留空保留原設定，或輸入新的 API Key'
+                    : '請輸入 API Key'
+                }
+                onChange={(e) => setCurrentApiKey(e.target.value)}
+              />
+            </Form.Item>
+            {selectedProvider && providerApiLinks[selectedProvider] && (
+              <Alert
+                type="info"
+                showIcon
+                icon={<LinkOutlined />}
+                style={{ marginBottom: 16, marginTop: -8 }}
+                message={
+                  <span>
+                    還沒有 API Key？
+                    <a
+                      href={providerApiLinks[selectedProvider].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ marginLeft: 8 }}
+                    >
+                      {providerApiLinks[selectedProvider].label}
+                    </a>
+                  </span>
+                }
+              />
+            )}
+          </>
         )}
 
         {selectedProvider === 'ollama' && (
-          <Form.Item
-            name="baseUrl"
-            label="Ollama 伺服器位址"
-            rules={[{ required: true, message: '請輸入伺服器位址' }]}
-          >
-            <Input placeholder="http://localhost:11434" />
-          </Form.Item>
+          <>
+            <Alert
+              type="success"
+              showIcon
+              icon={<LinkOutlined />}
+              style={{ marginBottom: 16 }}
+              message={
+                <span>
+                  Ollama 是免費的本地 AI，不需要 API Key！
+                  <a
+                    href="https://ollama.com/download"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ marginLeft: 8 }}
+                  >
+                    下載 Ollama
+                  </a>
+                </span>
+              }
+              description="安裝後執行 ollama run llama3.2 即可開始使用"
+            />
+            <Form.Item
+              name="baseUrl"
+              label="Ollama 伺服器位址"
+              rules={[{ required: true, message: '請輸入伺服器位址' }]}
+            >
+              <Input placeholder="http://localhost:11434" />
+            </Form.Item>
+          </>
         )}
 
         <Divider />
