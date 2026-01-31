@@ -1,5 +1,7 @@
 # N3N Flow Platform
 
+[English](README.en.md) | [日本語](README.ja.md) | 繁體中文
+
 > 用說的就能建立自動化流程 - 讓 AI 幫你把想法變成可執行的工作流程
 
 ---

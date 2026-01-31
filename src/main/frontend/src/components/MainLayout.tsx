@@ -12,60 +12,63 @@ import {
   RobotOutlined,
   SettingOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const { Header, Sider, Content } = Layout
-
-const menuItems = [
-  {
-    key: '/flows',
-    icon: <ApartmentOutlined />,
-    label: '流程管理',
-  },
-  {
-    key: '/executions',
-    icon: <PlayCircleOutlined />,
-    label: '執行記錄',
-  },
-  {
-    key: '/services',
-    icon: <ApiOutlined />,
-    label: '外部服務',
-  },
-  {
-    key: '/credentials',
-    icon: <KeyOutlined />,
-    label: '認證管理',
-  },
-  {
-    key: '/components',
-    icon: <AppstoreOutlined />,
-    label: '元件管理',
-  },
-  {
-    key: 'ai',
-    icon: <RobotOutlined />,
-    label: 'AI 助手',
-    children: [
-      {
-        key: '/ai-assistant',
-        icon: <RobotOutlined />,
-        label: 'AI 對話',
-      },
-      {
-        key: '/settings/ai',
-        icon: <SettingOutlined />,
-        label: 'AI 設定',
-      },
-    ],
-  },
-]
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
+  const { t } = useTranslation()
+
+  const menuItems = [
+    {
+      key: '/flows',
+      icon: <ApartmentOutlined />,
+      label: t('nav.flows'),
+    },
+    {
+      key: '/executions',
+      icon: <PlayCircleOutlined />,
+      label: t('nav.executions'),
+    },
+    {
+      key: '/services',
+      icon: <ApiOutlined />,
+      label: t('nav.components'),
+    },
+    {
+      key: '/credentials',
+      icon: <KeyOutlined />,
+      label: t('nav.credentials'),
+    },
+    {
+      key: '/components',
+      icon: <AppstoreOutlined />,
+      label: t('nav.components'),
+    },
+    {
+      key: 'ai',
+      icon: <RobotOutlined />,
+      label: t('nav.aiAssistant'),
+      children: [
+        {
+          key: '/ai-assistant',
+          icon: <RobotOutlined />,
+          label: t('nav.aiAssistant'),
+        },
+        {
+          key: '/settings/ai',
+          icon: <SettingOutlined />,
+          label: t('nav.aiSettings'),
+        },
+      ],
+    },
+  ]
 
   const selectedKey = menuItems.find(item =>
     location.pathname.startsWith(item.key)
@@ -80,7 +83,7 @@ export default function MainLayout() {
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: '登出',
+      label: t('nav.logout'),
       onClick: handleLogout,
     },
   ]
@@ -119,12 +122,15 @@ export default function MainLayout() {
           justifyContent: 'space-between',
         }}>
           <h2 style={{ margin: 0, fontSize: 16 }}>Flow Platform</h2>
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>{user?.name || 'User'}</span>
-            </Space>
-          </Dropdown>
+          <Space size="large">
+            <LanguageSwitcher />
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Space style={{ cursor: 'pointer' }}>
+                <Avatar icon={<UserOutlined />} />
+                <span>{user?.name || 'User'}</span>
+              </Space>
+            </Dropdown>
+          </Space>
         </Header>
         <Content style={{ margin: 16 }}>
           <Outlet />
