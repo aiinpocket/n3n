@@ -257,15 +257,60 @@ Secure credential storage with AES-256-GCM encryption.
 | PUT | `/api/components/{id}` | Update component |
 | DELETE | `/api/components/{id}` | Delete component |
 
+### Skills
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/skills` | List all skills |
+| GET | `/api/skills/builtin` | List built-in skills |
+| GET | `/api/skills/categories` | List skill categories |
+| GET | `/api/skills/category/{category}` | List skills by category |
+| GET | `/api/skills/{id}` | Get skill details |
+| POST | `/api/skills/{id}/execute` | Execute skill (test) |
+
+**Built-in Skill Categories:** `http`, `web`, `data`, `file`, `notify`, `system`
+
 ### Webhooks
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/webhooks` | List webhooks |
+| GET | `/api/webhooks/flow/{flowId}` | List webhooks for flow |
 | POST | `/api/webhooks` | Create webhook |
 | GET | `/api/webhooks/{id}` | Get webhook details |
+| POST | `/api/webhooks/{id}/activate` | Activate webhook |
+| POST | `/api/webhooks/{id}/deactivate` | Deactivate webhook |
 | DELETE | `/api/webhooks/{id}` | Delete webhook |
-| POST | `/webhooks/trigger/{token}` | Trigger webhook (public) |
+
+#### Webhook Trigger Endpoints (Public)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/webhook/{path}` | Trigger via GET |
+| POST | `/webhook/{path}` | Trigger via POST |
+| PUT | `/webhook/{path}` | Trigger via PUT |
+| DELETE | `/webhook/{path}` | Trigger via DELETE |
+
+**Create Webhook Request:**
+```json
+{
+  "flowId": "uuid",
+  "name": "GitHub Push Trigger",
+  "path": "github-push",
+  "method": "POST",
+  "authType": "signature",
+  "authConfig": { "secret": "your-secret" }
+}
+```
+
+**Trigger Response:**
+```json
+{
+  "success": true,
+  "executionId": "uuid",
+  "message": "Flow execution started"
+}
+```
 
 ### Admin (Admin role required)
 

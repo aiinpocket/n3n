@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Node, Edge } from '@xyflow/react'
 import { Flow, FlowVersion, flowApi, FlowDefinition } from '../api/flow'
+import { logger } from '../utils/logger'
 
 interface FlowListState {
   flows: Flow[]
@@ -264,7 +265,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
 
       return flowVersion
     } catch (error) {
-      console.error('Auto-save failed:', error)
+      logger.error('Auto-save failed:', error)
       return null
     } finally {
       set({ saving: false })

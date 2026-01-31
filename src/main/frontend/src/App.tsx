@@ -21,6 +21,8 @@ import ServiceDetailPage from './pages/ServiceDetailPage'
 import CredentialListPage from './pages/CredentialListPage'
 import AISettingsPage from './pages/AISettingsPage'
 import AIAssistantPage from './pages/AIAssistantPage'
+import SkillsPage from './pages/SkillsPage'
+import WebhooksPage from './pages/WebhooksPage'
 
 // Map i18n language to Ant Design locale
 const antdLocales = {
@@ -114,6 +116,8 @@ function App() {
             <Route path="credentials" element={<CredentialListPage />} />
             <Route path="settings/ai" element={<AISettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
+            <Route path="skills" element={<SkillsPage />} />
+            <Route path="webhooks" element={<WebhooksPage />} />
           </Route>
           </Routes>
         </SetupCheck>

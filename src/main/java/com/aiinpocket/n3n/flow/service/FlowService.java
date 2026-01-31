@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.flow.service;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.entity.Flow;
@@ -65,7 +66,7 @@ public class FlowService {
             List<FlowVersion> versions = versionsByFlowId.getOrDefault(flow.getId(), List.of());
             String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
             String publishedVersion = versions.stream()
-                .filter(v -> "published".equals(v.getStatus()))
+                .filter(v -> Status.FlowVersion.PUBLISHED.equals(v.getStatus()))
                 .findFirst()
                 .map(FlowVersion::getVersion)
                 .orElse(null);
@@ -80,7 +81,7 @@ public class FlowService {
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flow.getId());
         String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
         String publishedVersion = versions.stream()
-            .filter(v -> "published".equals(v.getStatus()))
+            .filter(v -> Status.FlowVersion.PUBLISHED.equals(v.getStatus()))
             .findFirst()
             .map(FlowVersion::getVersion)
             .orElse(null);
@@ -94,7 +95,7 @@ public class FlowService {
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(id);
         String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
         String publishedVersion = versions.stream()
-            .filter(v -> "published".equals(v.getStatus()))
+            .filter(v -> Status.FlowVersion.PUBLISHED.equals(v.getStatus()))
             .findFirst()
             .map(FlowVersion::getVersion)
             .orElse(null);
@@ -170,7 +171,7 @@ public class FlowService {
     }
 
     public FlowVersionResponse getPublishedVersion(UUID flowId) {
-        FlowVersion v = flowVersionRepository.findByFlowIdAndStatus(flowId, "published")
+        FlowVersion v = flowVersionRepository.findByFlowIdAndStatus(flowId, Status.FlowVersion.PUBLISHED)
             .orElseThrow(() -> new ResourceNotFoundException("No published version for flow: " + flowId));
         return FlowVersionResponse.from(v);
     }
@@ -186,7 +187,7 @@ public class FlowService {
 
         if (version != null) {
             // Update existing version (only if draft)
-            if (!"draft".equals(version.getStatus())) {
+            if (!Status.FlowVersion.DRAFT.equals(version.getStatus())) {
                 throw new IllegalArgumentException("Cannot modify a non-draft version");
             }
             version.setDefinition(request.getDefinition());
@@ -200,7 +201,7 @@ public class FlowService {
                 .version(request.getVersion())
                 .definition(request.getDefinition())
                 .settings(request.getSettings() != null ? request.getSettings() : Map.of())
-                .status("draft")
+                .status(Status.FlowVersion.DRAFT)
                 .createdBy(userId)
                 .build();
         }
@@ -216,18 +217,18 @@ public class FlowService {
         FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
 
-        if ("published".equals(v.getStatus())) {
+        if (Status.FlowVersion.PUBLISHED.equals(v.getStatus())) {
             return FlowVersionResponse.from(v);
         }
 
         // Deprecate current published version
-        flowVersionRepository.findByFlowIdAndStatus(flowId, "published")
+        flowVersionRepository.findByFlowIdAndStatus(flowId, Status.FlowVersion.PUBLISHED)
             .ifPresent(current -> {
-                current.setStatus("deprecated");
+                current.setStatus(Status.FlowVersion.DEPRECATED);
                 flowVersionRepository.save(current);
             });
 
-        v.setStatus("published");
+        v.setStatus(Status.FlowVersion.PUBLISHED);
         v = flowVersionRepository.save(v);
         log.info("Flow version published: flowId={}, version={}", flowId, version);
 

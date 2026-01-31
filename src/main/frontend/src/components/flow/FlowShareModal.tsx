@@ -30,7 +30,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
     try {
       const data = await flowShareApi.getShares(flowId)
       setShares(data)
-    } catch (error) {
+    } catch {
       message.error('無法載入分享清單')
     } finally {
       setLoading(false)

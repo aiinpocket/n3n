@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { websocketService, ExecutionEvent } from '../api/websocket';
+import { logger } from '../utils/logger';
 
 export interface NodeExecutionState {
   nodeId: string;
@@ -48,7 +49,7 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
       await websocketService.connect();
       set({ isConnected: true });
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
+      logger.error('Failed to connect WebSocket:', error);
       set({ isConnected: false });
     }
   },

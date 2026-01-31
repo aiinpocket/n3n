@@ -11,6 +11,8 @@ import {
   LogoutOutlined,
   RobotOutlined,
   SettingOutlined,
+  ToolOutlined,
+  LinkOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -45,6 +47,16 @@ export default function MainLayout() {
       key: '/credentials',
       icon: <KeyOutlined />,
       label: t('nav.credentials'),
+    },
+    {
+      key: '/skills',
+      icon: <ToolOutlined />,
+      label: t('nav.skills'),
+    },
+    {
+      key: '/webhooks',
+      icon: <LinkOutlined />,
+      label: t('nav.webhooks'),
     },
     {
       key: '/components',

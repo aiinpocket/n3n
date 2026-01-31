@@ -99,8 +99,10 @@ docker compose up -d --build
 
 - **AI Workflow Generation** - Describe in natural language, AI creates the workflow for you
 - **Visual Editor** - Drag and drop interface, intuitive adjustments
-- **Real-time Monitoring** - See every step of workflow execution
-- **Secure Storage** - Your API keys and passwords are encrypted
+- **Real-time Monitoring** - See every step of workflow execution with live node status updates
+- **Webhook Triggers** - Let external systems (GitHub, Slack, etc.) automatically trigger workflows
+- **Skills System** - Built-in automation skills, no extra setup needed
+- **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
 
 ---
 

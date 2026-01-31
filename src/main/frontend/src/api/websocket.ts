@@ -1,5 +1,6 @@
 import SockJS from 'sockjs-client';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
+import { logger } from '../utils/logger';
 
 export interface ExecutionEvent {
   type:
@@ -39,9 +40,7 @@ class WebSocketService {
       this.client = new Client({
         webSocketFactory: () => socket as unknown as WebSocket,
         debug: (str) => {
-          if (import.meta.env.DEV) {
-            console.log('[STOMP]', str);
-          }
+          logger.debug('[STOMP] ' + str);
         },
         reconnectDelay: this.reconnectDelay,
         heartbeatIncoming: 10000,
@@ -49,19 +48,19 @@ class WebSocketService {
       });
 
       this.client.onConnect = () => {
-        console.log('WebSocket connected');
+        logger.info('WebSocket connected');
         this.connected = true;
         this.reconnectAttempts = 0;
         resolve();
       };
 
       this.client.onStompError = (frame) => {
-        console.error('STOMP error:', frame.headers['message']);
+        logger.error('STOMP error:', frame.headers['message']);
         reject(new Error(frame.headers['message']));
       };
 
       this.client.onDisconnect = () => {
-        console.log('WebSocket disconnected');
+        logger.info('WebSocket disconnected');
         this.connected = false;
         this.subscriptions.clear();
       };
@@ -70,7 +69,7 @@ class WebSocketService {
         this.connected = false;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
-          console.log(`WebSocket reconnecting... attempt ${this.reconnectAttempts}`);
+          logger.info(`WebSocket reconnecting... attempt ${this.reconnectAttempts}`);
         }
       };
 
@@ -101,7 +100,7 @@ class WebSocketService {
 
   private subscribe(topic: string, handler: EventHandler): () => void {
     if (!this.client || !this.connected) {
-      console.warn('WebSocket not connected. Call connect() first.');
+      logger.warn('WebSocket not connected. Call connect() first.');
       // Queue handler for when connection is established
       if (!this.handlers.has(topic)) {
         this.handlers.set(topic, new Set());
@@ -125,7 +124,7 @@ class WebSocketService {
           const event: ExecutionEvent = JSON.parse(message.body);
           this.handlers.get(topic)?.forEach((h) => h(event));
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+          logger.error('Failed to parse WebSocket message:', error);
         }
       });
       this.subscriptions.set(topic, subscription);

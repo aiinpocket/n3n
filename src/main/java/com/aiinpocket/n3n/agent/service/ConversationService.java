@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.agent.service;
 
 import com.aiinpocket.n3n.agent.context.ComponentContextBuilder;
+import com.aiinpocket.n3n.agent.context.SkillContextBuilder;
 import com.aiinpocket.n3n.agent.entity.AgentConversation;
 import com.aiinpocket.n3n.agent.entity.AgentConversation.ConversationStatus;
 import com.aiinpocket.n3n.agent.entity.AgentConversation.MessageRole;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,7 +38,8 @@ public class ConversationService {
     private final AgentConversationRepository conversationRepository;
     private final AgentMessageRepository messageRepository;
     private final UserRepository userRepository;
-    private final ComponentContextBuilder contextBuilder;
+    private final ComponentContextBuilder componentContextBuilder;
+    private final SkillContextBuilder skillContextBuilder;
     private final SessionIsolator sessionIsolator;
 
     /**
@@ -51,8 +54,10 @@ public class ConversationService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
 
-        // 建構元件上下文快照
-        Map<String, Object> contextSnapshot = contextBuilder.buildContext();
+        // 建構元件和技能上下文快照
+        Map<String, Object> contextSnapshot = new LinkedHashMap<>();
+        contextSnapshot.put("components", componentContextBuilder.buildContext());
+        contextSnapshot.put("skills", skillContextBuilder.buildContext());
 
         // 建立對話
         AgentConversation conversation = AgentConversation.builder()
@@ -269,33 +274,70 @@ public class ConversationService {
     private String buildSystemPrompt(Map<String, Object> context) {
         StringBuilder sb = new StringBuilder();
         sb.append("你是 N3N Flow Platform 的 AI 工作流程助手。\n\n");
-        sb.append("你的任務是幫助使用者設計和建構工作流程。使用者會用自然語言描述他們的需求，");
-        sb.append("你需要：\n");
-        sb.append("1. 理解使用者的需求\n");
-        sb.append("2. 推薦適合的現有元件\n");
-        sb.append("3. 如果需要，建議新增元件\n");
-        sb.append("4. 生成完整的流程定義\n\n");
+
+        sb.append("## 核心理念\n\n");
+        sb.append("N3N 是一個視覺化流程編排平台，採用「設計階段用 AI、執行階段用 API」的架構：\n");
+        sb.append("- **設計階段**：你幫助使用者理解需求、推薦技能/元件、設計流程結構\n");
+        sb.append("- **執行階段**：流程透過純 API 呼叫執行，不消耗 AI token，穩定可靠\n\n");
+
+        sb.append("## 你的任務\n\n");
+        sb.append("1. **理解需求**：仔細分析使用者描述的自動化需求\n");
+        sb.append("2. **推薦技能**：優先使用已有的技能（Skills），它們是預備好的 API\n");
+        sb.append("3. **推薦元件**：需要時使用已註冊的元件\n");
+        sb.append("4. **設計流程**：產生完整的流程定義（nodes + edges）\n\n");
+
+        // 加入技能上下文
+        String skillContext = skillContextBuilder.buildContextPrompt();
+        if (!skillContext.isEmpty()) {
+            sb.append(skillContext);
+        }
 
         // 加入元件上下文
-        String componentContext = contextBuilder.buildContextPrompt();
+        String componentContext = componentContextBuilder.buildContextPrompt();
         sb.append(componentContext);
 
-        sb.append("\n\n當你推薦元件或生成流程時，請使用以下 JSON 格式回應：\n");
+        sb.append("\n## 回應格式\n\n");
+        sb.append("當你推薦技能/元件或生成流程時，請使用以下 JSON 格式回應：\n");
         sb.append("```json\n");
         sb.append("{\n");
-        sb.append("  \"understanding\": \"對使用者需求的理解\",\n");
+        sb.append("  \"understanding\": \"對使用者需求的理解摘要\",\n");
+        sb.append("  \"recommendedSkills\": [\n");
+        sb.append("    { \"name\": \"skill_name\", \"purpose\": \"用途說明\", \"params\": {} }\n");
+        sb.append("  ],\n");
         sb.append("  \"existingComponents\": [\n");
-        sb.append("    { \"name\": \"元件名稱\", \"purpose\": \"用途說明\" }\n");
+        sb.append("    { \"name\": \"component_name\", \"purpose\": \"用途說明\" }\n");
         sb.append("  ],\n");
         sb.append("  \"suggestedNewComponents\": [\n");
-        sb.append("    { \"name\": \"新元件名稱\", \"description\": \"功能描述\" }\n");
+        sb.append("    { \"name\": \"新元件名稱\", \"description\": \"為什麼需要以及功能描述\" }\n");
         sb.append("  ],\n");
         sb.append("  \"flowDefinition\": {\n");
-        sb.append("    \"nodes\": [...],\n");
-        sb.append("    \"edges\": [...]\n");
+        sb.append("    \"nodes\": [\n");
+        sb.append("      { \"id\": \"node-1\", \"type\": \"trigger|action|skill|condition|...\", ");
+        sb.append("\"position\": {\"x\": 0, \"y\": 0}, \"data\": {\"label\": \"...\", \"nodeType\": \"...\", ");
+        sb.append("\"skillName\": \"...\", \"config\": {...}} }\n");
+        sb.append("    ],\n");
+        sb.append("    \"edges\": [\n");
+        sb.append("      { \"id\": \"edge-1\", \"source\": \"node-1\", \"target\": \"node-2\" }\n");
+        sb.append("    ]\n");
         sb.append("  }\n");
         sb.append("}\n");
-        sb.append("```\n");
+        sb.append("```\n\n");
+
+        sb.append("## 節點類型說明\n\n");
+        sb.append("- `trigger`: 手動觸發（流程入口）\n");
+        sb.append("- `scheduleTrigger`: 排程觸發\n");
+        sb.append("- `skill`: 技能節點（執行預備好的 API）\n");
+        sb.append("- `httpRequest`: HTTP 請求\n");
+        sb.append("- `action`: 一般動作\n");
+        sb.append("- `condition`: 條件分支（有 true/false 兩個輸出）\n");
+        sb.append("- `loop`: 迴圈\n");
+        sb.append("- `code`: 自訂程式碼\n");
+        sb.append("- `output`: 流程輸出（結束點）\n\n");
+
+        sb.append("## 重要原則\n\n");
+        sb.append("1. **優先使用技能**：技能執行時不消耗 AI token，穩定可靠\n");
+        sb.append("2. **避免重複造輪子**：先檢查現有元件和技能\n");
+        sb.append("3. **解釋你的選擇**：說明為什麼推薦特定的技能或元件\n");
 
         return sb.toString();
     }

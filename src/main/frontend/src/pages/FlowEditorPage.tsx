@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography } from 'antd'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge } from 'antd'
 import {
   SaveOutlined,
   PlayCircleOutlined,
@@ -11,6 +11,8 @@ import {
   CheckCircleOutlined,
   SyncOutlined,
   ApiOutlined,
+  PauseCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -31,6 +33,9 @@ import { useFlowStore } from '../stores/flowStore'
 import NodeConfigPanel from '../components/editor/NodeConfigPanel'
 import ServiceNodePanel from '../components/editor/ServiceNodePanel'
 import { customNodeTypes } from '../components/nodes/CustomNodes'
+import { executionAwareNodeTypes } from '../components/nodes/ExecutionAwareNodes'
+import { useFlowExecution } from '../hooks/useFlowExecution'
+import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 import type { ExternalService, ServiceEndpoint } from '../types'
 
 const { Text } = Typography
@@ -51,6 +56,7 @@ const nodeTypeOptions = [
 
 export default function FlowEditorPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const {
     currentFlow,
@@ -75,8 +81,43 @@ export default function FlowEditorPage() {
     clearEditor,
   } = useFlowStore()
 
-  // Memoize node types for ReactFlow
-  const memoizedNodeTypes = useMemo(() => customNodeTypes, [])
+  // Execution mode state
+  const [executionMode, setExecutionMode] = useState(false)
+  const [activeExecutionId, setActiveExecutionId] = useState<string | null>(
+    searchParams.get('executionId')
+  )
+
+  // Flow execution hook
+  const {
+    executionId,
+    isExecuting,
+    executionStatus,
+    nodesWithExecutionState,
+    startExecution,
+    stopExecution,
+    clearExecution,
+    isConnected,
+  } = useFlowExecution({ flowId: id || '', nodes })
+
+  // Sync activeExecutionId with execution hook
+  useEffect(() => {
+    if (executionId) {
+      setActiveExecutionId(executionId)
+      setExecutionMode(true)
+    }
+  }, [executionId])
+
+  // Memoize node types based on execution mode
+  const memoizedNodeTypes = useMemo(
+    () => (executionMode ? executionAwareNodeTypes : customNodeTypes),
+    [executionMode]
+  )
+
+  // Use nodes with execution state when in execution mode
+  const displayNodes = useMemo(
+    () => (executionMode ? nodesWithExecutionState : nodes),
+    [executionMode, nodesWithExecutionState, nodes]
+  )
 
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [servicePanelOpen, setServicePanelOpen] = useState(false)
@@ -317,8 +358,13 @@ export default function FlowEditorPage() {
                 {currentVersion.version}
               </Tag>
             )}
-            {isDirty && <Tag color="orange">未儲存</Tag>}
-            {saving && (
+            {executionMode && (
+              <Tag color={isExecuting ? 'processing' : executionStatus === 'completed' ? 'success' : executionStatus === 'failed' ? 'error' : 'default'}>
+                {isExecuting ? '執行中' : executionStatus === 'completed' ? '已完成' : executionStatus === 'failed' ? '失敗' : '監控模式'}
+              </Tag>
+            )}
+            {!executionMode && isDirty && <Tag color="orange">未儲存</Tag>}
+            {!executionMode && saving && (
               <Tag icon={<SyncOutlined spin />} color="processing">
                 儲存中
               </Tag>
@@ -369,34 +415,93 @@ export default function FlowEditorPage() {
                 發布
               </Button>
             </Tooltip>
-            <Tooltip title={!currentFlow?.publishedVersion ? '尚無已發布版本' : ''}>
-              <Button
-                icon={<PlayCircleOutlined />}
-                disabled={!currentFlow?.publishedVersion}
-                onClick={() => navigate(`/executions/new?flowId=${id}`)}
-              >
-                執行
-              </Button>
-            </Tooltip>
+            {/* Execution Controls */}
+            {executionMode ? (
+              <Space>
+                <Badge status={isConnected ? 'success' : 'error'} text={isConnected ? 'Live' : ''} />
+                {isExecuting ? (
+                  <Button
+                    danger
+                    icon={<PauseCircleOutlined />}
+                    onClick={stopExecution}
+                  >
+                    停止執行
+                  </Button>
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<PlayCircleOutlined />}
+                    onClick={startExecution}
+                    disabled={!currentFlow?.publishedVersion}
+                  >
+                    重新執行
+                  </Button>
+                )}
+                <Button
+                  icon={<EyeOutlined />}
+                  onClick={() => {
+                    setExecutionMode(false)
+                    clearExecution()
+                  }}
+                >
+                  退出監控
+                </Button>
+              </Space>
+            ) : (
+              <Tooltip title={!currentFlow?.publishedVersion ? '尚無已發布版本' : ''}>
+                <Button
+                  type="primary"
+                  icon={<PlayCircleOutlined />}
+                  disabled={!currentFlow?.publishedVersion}
+                  onClick={async () => {
+                    setExecutionMode(true)
+                    try {
+                      await startExecution()
+                    } catch {
+                      message.error('執行失敗')
+                      setExecutionMode(false)
+                    }
+                  }}
+                >
+                  執行並監控
+                </Button>
+              </Tooltip>
+            )}
           </Space>
         }
-        styles={{ body: { padding: 0, height: 'calc(100vh - 200px)' } }}
+        styles={{ body: { padding: 0, height: 'calc(100vh - 200px)', position: 'relative' } }}
       >
         <ReactFlow
-          nodes={nodes}
+          nodes={displayNodes}
           edges={edges}
           nodeTypes={memoizedNodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={handleNodeClick}
-          onPaneClick={handlePaneClick}
+          onNodesChange={executionMode ? undefined : onNodesChange}
+          onEdgesChange={executionMode ? undefined : onEdgesChange}
+          onConnect={executionMode ? undefined : onConnect}
+          onNodeClick={executionMode ? undefined : handleNodeClick}
+          onPaneClick={executionMode ? undefined : handlePaneClick}
+          nodesDraggable={!executionMode}
+          nodesConnectable={!executionMode}
+          elementsSelectable={!executionMode}
           fitView
         >
           <Controls />
           <MiniMap />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         </ReactFlow>
+
+        {/* Execution Overlay */}
+        {executionMode && (
+          <ExecutionOverlay
+            executionId={activeExecutionId}
+            flowId={id || ''}
+            onClose={() => {
+              setExecutionMode(false)
+              clearExecution()
+            }}
+            onExecutionStart={setActiveExecutionId}
+          />
+        )}
       </Card>
 
       <NodeConfigPanel
