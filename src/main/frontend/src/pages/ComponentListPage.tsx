@@ -23,6 +23,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import { useTranslation } from 'react-i18next'
 import {
   componentApi,
   ComponentResponse,
@@ -43,6 +44,7 @@ const statusColors: Record<string, string> = {
 const categories = ['trigger', 'action', 'condition', 'transform', 'output', 'utility']
 
 export default function ComponentListPage() {
+  const { t, i18n } = useTranslation()
   const [components, setComponents] = useState<ComponentResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState<TablePaginationConfig>({
@@ -50,6 +52,14 @@ export default function ComponentListPage() {
     pageSize: 20,
     total: 0,
   })
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
+    }
+  }
 
   // Create component modal
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -79,11 +89,11 @@ export default function ComponentListPage() {
       })
     } catch (error) {
       console.error('Failed to load components:', error)
-      message.error('載入元件失敗')
+      message.error(t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadComponents()
@@ -97,13 +107,13 @@ export default function ComponentListPage() {
     setCreating(true)
     try {
       await componentApi.create(values)
-      message.success('元件建立成功')
+      message.success(t('common.createSuccess'))
       setCreateModalOpen(false)
       createForm.resetFields()
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '建立失敗')
+      message.error(err.response?.data?.message || err.message || t('common.createFailed'))
     } finally {
       setCreating(false)
     }
@@ -112,11 +122,11 @@ export default function ComponentListPage() {
   const handleDelete = async (id: string) => {
     try {
       await componentApi.delete(id)
-      message.success('元件刪除成功')
+      message.success(t('component.deleteSuccess'))
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '刪除失敗')
+      message.error(err.response?.data?.message || err.message || t('common.deleteFailed'))
     }
   }
 
@@ -129,7 +139,7 @@ export default function ComponentListPage() {
       setVersions(data)
     } catch (error) {
       console.error('Failed to load versions:', error)
-      message.error('載入版本失敗')
+      message.error(t('component.loadVersionsFailed'))
     } finally {
       setLoadingVersions(false)
     }
@@ -146,7 +156,7 @@ export default function ComponentListPage() {
         configSchema: values.configSchemaJson ? JSON.parse(values.configSchemaJson) : undefined,
       }
       await componentApi.createVersion(selectedComponent.id, request)
-      message.success('版本建立成功')
+      message.success(t('component.versionCreated'))
       setAddVersionModalOpen(false)
       versionForm.resetFields()
       // Reload versions
@@ -156,9 +166,9 @@ export default function ComponentListPage() {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
       if (err.message?.includes('JSON')) {
-        message.error('JSON 格式錯誤')
+        message.error(t('component.jsonFormatError'))
       } else {
-        message.error(err.response?.data?.message || err.message || '建立版本失敗')
+        message.error(err.response?.data?.message || err.message || t('component.versionCreateFailed'))
       }
     } finally {
       setAddingVersion(false)
@@ -173,33 +183,33 @@ export default function ComponentListPage() {
       } else if (newStatus === 'deprecated') {
         await componentApi.deprecateVersion(selectedComponent.id, version.version)
       } else {
-        message.warning('只能將狀態設為 active 或 deprecated')
+        message.warning(t('component.statusWarning'))
         return
       }
-      message.success('狀態更新成功')
+      message.success(t('component.statusUpdated'))
       // Reload versions
       const data = await componentApi.listVersions(selectedComponent.id)
       setVersions(data)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '狀態更新失敗')
+      message.error(err.response?.data?.message || err.message || t('component.statusUpdateFailed'))
     }
   }
 
   const columns: ColumnsType<ComponentResponse> = [
     {
-      title: '名稱',
+      title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
       render: (name: string) => <Text code>{name}</Text>,
     },
     {
-      title: '顯示名稱',
+      title: t('component.displayName'),
       dataIndex: 'displayName',
       key: 'displayName',
     },
     {
-      title: '描述',
+      title: t('common.description'),
       dataIndex: 'description',
       key: 'description',
       width: 200,
@@ -207,35 +217,35 @@ export default function ComponentListPage() {
       render: (desc: string) => desc || '-',
     },
     {
-      title: '分類',
+      title: t('component.category'),
       dataIndex: 'category',
       key: 'category',
       render: (category: string) => <Tag>{category || '-'}</Tag>,
     },
     {
-      title: '最新版本',
+      title: t('component.latestVersion'),
       dataIndex: 'latestVersion',
       key: 'latestVersion',
       render: (version: string) => version || '-',
     },
     {
-      title: '啟用版本數',
+      title: t('component.activeVersionCount'),
       dataIndex: 'activeVersionCount',
       key: 'activeVersionCount',
       render: (count: number) => count ?? 0,
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 180,
       render: (_, record) => (
         <Space>
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openVersionDrawer(record)}>
-            版本
+            {t('component.versions')}
           </Button>
-          <Popconfirm title="確定要刪除此元件？" onConfirm={() => handleDelete(record.id)} okText="確定" cancelText="取消">
+          <Popconfirm title={t('component.deleteConfirm')} onConfirm={() => handleDelete(record.id)} okText={t('common.confirm')} cancelText={t('common.cancel')}>
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              刪除
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -246,14 +256,14 @@ export default function ComponentListPage() {
   return (
     <>
       <Card
-        title="元件列表"
+        title={t('component.title')}
         extra={
           <Space>
             <Button icon={<ReloadOutlined />} onClick={() => loadComponents(pagination.current, pagination.pageSize)}>
-              重新整理
+              {t('common.refresh')}
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
-              註冊元件
+              {t('component.newComponent')}
             </Button>
           </Space>
         }
@@ -262,26 +272,26 @@ export default function ComponentListPage() {
       </Card>
 
       {/* Create Component Modal */}
-      <Modal title="註冊新元件" open={createModalOpen} onCancel={() => setCreateModalOpen(false)} footer={null} destroyOnClose>
+      <Modal title={t('component.registerComponent')} open={createModalOpen} onCancel={() => setCreateModalOpen(false)} footer={null} destroyOnClose>
         <Form form={createForm} layout="vertical" onFinish={handleCreate}>
           <Form.Item
             name="name"
-            label="元件名稱"
+            label={t('component.componentName')}
             rules={[
-              { required: true, message: '請輸入元件名稱' },
-              { pattern: /^[a-z][a-z0-9-]*$/, message: '只能使用小寫字母、數字和連字號，且必須以字母開頭' },
+              { required: true, message: t('component.componentNameRequired') },
+              { pattern: /^[a-z][a-z0-9-]*$/, message: t('component.componentNamePattern') },
             ]}
           >
-            <Input placeholder="例如: http-request" />
+            <Input placeholder={t('component.componentNamePlaceholder')} />
           </Form.Item>
-          <Form.Item name="displayName" label="顯示名稱" rules={[{ required: true, message: '請輸入顯示名稱' }]}>
-            <Input placeholder="例如: HTTP 請求" />
+          <Form.Item name="displayName" label={t('component.displayName')} rules={[{ required: true, message: t('component.displayNameRequired') }]}>
+            <Input placeholder={t('component.displayNamePlaceholder')} />
           </Form.Item>
-          <Form.Item name="description" label="描述">
-            <TextArea rows={3} placeholder="元件功能說明" />
+          <Form.Item name="description" label={t('common.description')}>
+            <TextArea rows={3} placeholder={t('component.descriptionPlaceholder')} />
           </Form.Item>
-          <Form.Item name="category" label="分類">
-            <Select placeholder="選擇分類" allowClear>
+          <Form.Item name="category" label={t('component.category')}>
+            <Select placeholder={t('component.selectCategory')} allowClear>
               {categories.map((cat) => (
                 <Select.Option key={cat} value={cat}>
                   {cat}
@@ -291,9 +301,9 @@ export default function ComponentListPage() {
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button onClick={() => setCreateModalOpen(false)}>取消</Button>
+              <Button onClick={() => setCreateModalOpen(false)}>{t('common.cancel')}</Button>
               <Button type="primary" htmlType="submit" loading={creating}>
-                建立
+                {t('common.create')}
               </Button>
             </Space>
           </Form.Item>
@@ -302,7 +312,7 @@ export default function ComponentListPage() {
 
       {/* Version Drawer */}
       <Drawer
-        title={`${selectedComponent?.displayName || ''} - 版本管理`}
+        title={`${selectedComponent?.displayName || ''} - ${t('component.versionManagement')}`}
         placement="right"
         width={600}
         open={versionDrawerOpen}
@@ -313,7 +323,7 @@ export default function ComponentListPage() {
         }}
         extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddVersionModalOpen(true)}>
-            新增版本
+            {t('component.addVersion')}
           </Button>
         }
       >
@@ -345,7 +355,7 @@ export default function ComponentListPage() {
                 description={
                   <Descriptions size="small" column={1}>
                     <Descriptions.Item label="Image">{version.image}</Descriptions.Item>
-                    <Descriptions.Item label="建立時間">{new Date(version.createdAt).toLocaleString()}</Descriptions.Item>
+                    <Descriptions.Item label={t('common.createdAt')}>{new Date(version.createdAt).toLocaleString(getLocale())}</Descriptions.Item>
                   </Descriptions>
                 }
               />
@@ -355,19 +365,19 @@ export default function ComponentListPage() {
       </Drawer>
 
       {/* Add Version Modal */}
-      <Modal title="新增版本" open={addVersionModalOpen} onCancel={() => setAddVersionModalOpen(false)} footer={null} width={600} destroyOnClose>
+      <Modal title={t('component.addVersion')} open={addVersionModalOpen} onCancel={() => setAddVersionModalOpen(false)} footer={null} width={600} destroyOnClose>
         <Form form={versionForm} layout="vertical" onFinish={handleAddVersion}>
-          <Form.Item name="version" label="版本號" rules={[{ required: true, message: '請輸入版本號' }]}>
-            <Input placeholder="例如: 1.0.0" />
+          <Form.Item name="version" label={t('component.versionNumber')} rules={[{ required: true, message: t('component.versionRequired') }]}>
+            <Input placeholder={t('component.versionPlaceholder')} />
           </Form.Item>
-          <Form.Item name="image" label="Docker Image" rules={[{ required: true, message: '請輸入 Docker Image' }]}>
-            <Input placeholder="例如: registry.example.com/http-request:1.0.0" />
+          <Form.Item name="image" label="Docker Image" rules={[{ required: true, message: t('component.imageRequired') }]}>
+            <Input placeholder={t('component.imagePlaceholder')} />
           </Form.Item>
           <Form.Item
             name="interfaceDefJson"
-            label="介面定義 (JSON)"
-            rules={[{ required: true, message: '請輸入介面定義' }]}
-            extra="定義輸入輸出介面"
+            label={t('component.interfaceDef')}
+            rules={[{ required: true, message: t('component.interfaceDefRequired') }]}
+            extra={t('component.interfaceDefExtra')}
           >
             <TextArea
               rows={6}
@@ -381,7 +391,7 @@ export default function ComponentListPage() {
               )}
             />
           </Form.Item>
-          <Form.Item name="configSchemaJson" label="設定 Schema (JSON)" extra="選填，定義元件設定選項">
+          <Form.Item name="configSchemaJson" label={t('component.configSchema')} extra={t('component.configSchemaExtra')}>
             <TextArea
               rows={4}
               placeholder={JSON.stringify(
@@ -396,9 +406,9 @@ export default function ComponentListPage() {
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button onClick={() => setAddVersionModalOpen(false)}>取消</Button>
+              <Button onClick={() => setAddVersionModalOpen(false)}>{t('common.cancel')}</Button>
               <Button type="primary" htmlType="submit" loading={addingVersion}>
-                建立
+                {t('common.create')}
               </Button>
             </Space>
           </Form.Item>

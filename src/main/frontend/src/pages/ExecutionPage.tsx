@@ -24,6 +24,7 @@ import {
   ClockCircleOutlined,
   ReloadOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse } from '../api/execution'
 import { useExecutionMonitor, useExecutionActions } from '../hooks/useExecutionMonitor'
 import { flowApi } from '../api/flow'
@@ -50,7 +51,16 @@ export default function ExecutionPage() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const flowId = searchParams.get('flowId')
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
+    }
+  }
 
   const [executionData, setExecutionData] = useState<ExecutionResponse | null>(null)
   const [nodeExecutions, setNodeExecutions] = useState<NodeExecutionResponse[]>([])
@@ -90,7 +100,7 @@ export default function ExecutionPage() {
           setLoading(false)
         } catch (error) {
           console.error('Failed to load flow:', error)
-          message.error('無法載入 Flow')
+          message.error(t('common.loadFailed'))
           navigate('/flows')
         }
       }
@@ -132,11 +142,11 @@ export default function ExecutionPage() {
     setStarting(true)
     try {
       const response = await startExecution({ flowId })
-      message.success('執行已啟動')
+      message.success(t('execution.started'))
       navigate(`/executions/${response.id}`, { replace: true })
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '啟動失敗')
+      message.error(err.response?.data?.message || err.message || t('execution.startFailed'))
     } finally {
       setStarting(false)
     }
@@ -146,13 +156,13 @@ export default function ExecutionPage() {
     if (!id) return
     try {
       await cancelExecution(id, cancelReason)
-      message.success('執行已取消')
+      message.success(t('execution.cancelSuccess'))
       setCancelModalOpen(false)
       setCancelReason('')
       loadExecution()
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '取消失敗')
+      message.error(err.response?.data?.message || err.message || t('execution.cancelFailed'))
     }
   }
 
@@ -163,7 +173,7 @@ export default function ExecutionPage() {
         title={
           <Space>
             <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} />
-            <span>執行 Flow: {flowName}</span>
+            <span>{t('execution.runFlow')}: {flowName}</span>
           </Space>
         }
       >
@@ -174,11 +184,11 @@ export default function ExecutionPage() {
         ) : (
           <Result
             icon={<PlayCircleOutlined style={{ color: '#1890ff' }} />}
-            title={`準備執行 "${flowName}"`}
-            subTitle="點擊下方按鈕開始執行此 Flow"
+            title={t('execution.readyToRun', { name: flowName })}
+            subTitle={t('execution.clickToStart')}
             extra={
               <Button type="primary" size="large" icon={<PlayCircleOutlined />} onClick={handleStartExecution} loading={starting}>
-                開始執行
+                {t('execution.startExecution')}
               </Button>
             }
           />
@@ -198,7 +208,7 @@ export default function ExecutionPage() {
 
   if (!executionData) {
     return (
-      <Result status="404" title="找不到執行記錄" subTitle="此執行記錄可能已被刪除或不存在" extra={<Button onClick={() => navigate('/flows')}>返回 Flow 列表</Button>} />
+      <Result status="404" title={t('execution.notFound')} subTitle={t('execution.notFoundDesc')} extra={<Button onClick={() => navigate('/flows')}>{t('execution.backToFlows')}</Button>} />
     )
   }
 
@@ -210,21 +220,21 @@ export default function ExecutionPage() {
         title={
           <Space>
             <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} />
-            <span>執行詳情</span>
+            <span>{t('execution.detail')}</span>
             <Tag icon={statusIcons[executionData.status]} color={statusColors[executionData.status]}>
               {executionData.status.toUpperCase()}
             </Tag>
-            {isConnected && <Tag color="green">即時連線</Tag>}
+            {isConnected && <Tag color="green">{t('execution.realtime')}</Tag>}
           </Space>
         }
         extra={
           <Space>
             <Button icon={<ReloadOutlined />} onClick={loadExecution}>
-              重新載入
+              {t('execution.reload')}
             </Button>
             {isRunning && (
               <Button danger icon={<StopOutlined />} onClick={() => setCancelModalOpen(true)}>
-                取消執行
+                {t('execution.cancel')}
               </Button>
             )}
           </Space>
@@ -232,20 +242,20 @@ export default function ExecutionPage() {
       >
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Descriptions bordered column={2}>
-            <Descriptions.Item label="執行 ID">{executionData.id}</Descriptions.Item>
-            <Descriptions.Item label="Flow 名稱">{executionData.flowName || '-'}</Descriptions.Item>
-            <Descriptions.Item label="版本">{executionData.version || '-'}</Descriptions.Item>
-            <Descriptions.Item label="觸發類型">{executionData.triggerType}</Descriptions.Item>
-            <Descriptions.Item label="開始時間">{executionData.startedAt ? new Date(executionData.startedAt).toLocaleString() : '-'}</Descriptions.Item>
-            <Descriptions.Item label="完成時間">{executionData.completedAt ? new Date(executionData.completedAt).toLocaleString() : '-'}</Descriptions.Item>
-            <Descriptions.Item label="執行時間">{executionData.durationMs != null ? `${executionData.durationMs} ms` : '-'}</Descriptions.Item>
-            <Descriptions.Item label="建立時間">{new Date(executionData.createdAt).toLocaleString()}</Descriptions.Item>
-            {executionData.cancelReason && <Descriptions.Item label="取消原因">{executionData.cancelReason}</Descriptions.Item>}
+            <Descriptions.Item label={t('execution.executionId')}>{executionData.id}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.flowName')}>{executionData.flowName || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('flow.version')}>{executionData.version || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.triggerType')}>{executionData.triggerType}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.startTime')}>{executionData.startedAt ? new Date(executionData.startedAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.endTime')}>{executionData.completedAt ? new Date(executionData.completedAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.duration')}>{executionData.durationMs != null ? `${executionData.durationMs} ms` : '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('common.createdAt')}>{new Date(executionData.createdAt).toLocaleString(getLocale())}</Descriptions.Item>
+            {executionData.cancelReason && <Descriptions.Item label={t('execution.cancelReason')}>{executionData.cancelReason}</Descriptions.Item>}
           </Descriptions>
 
-          <Card title="節點執行記錄" size="small">
+          <Card title={t('execution.nodeExecutions')} size="small">
             {nodeExecutions.length === 0 ? (
-              <Text type="secondary">尚無節點執行記錄</Text>
+              <Text type="secondary">{t('execution.noNodeExecutions')}</Text>
             ) : (
               <Timeline
                 items={nodeExecutions.map((node) => ({
@@ -273,8 +283,8 @@ export default function ExecutionPage() {
         </Space>
       </Card>
 
-      <Modal title="取消執行" open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => setCancelModalOpen(false)}>
-        <Input.TextArea placeholder="取消原因（選填）" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
+      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => setCancelModalOpen(false)}>
+        <Input.TextArea placeholder={t('execution.cancelReasonPlaceholder')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
       </Modal>
     </>
   )

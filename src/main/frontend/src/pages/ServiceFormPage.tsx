@@ -14,6 +14,7 @@ import {
   Typography,
 } from 'antd'
 import { ArrowLeftOutlined, SaveOutlined, ThunderboltOutlined, KeyOutlined, PlusOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
 import { useCredentialStore } from '../stores/credentialStore'
 import type { CreateServiceRequest, UpdateServiceRequest } from '../types'
@@ -26,6 +27,7 @@ const { Text } = Typography
 export default function ServiceFormPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const isEdit = !!id
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
@@ -76,7 +78,7 @@ export default function ServiceFormPage() {
           authConfig,
         }
         await updateService(id, updateData)
-        message.success('服務已更新')
+        message.success(t('service.updateSuccess'))
       } else {
         const createData: CreateServiceRequest = {
           name: values.name as string,
@@ -89,12 +91,12 @@ export default function ServiceFormPage() {
           authConfig,
         }
         const service = await createService(createData)
-        message.success('服務已建立')
+        message.success(t('common.createSuccess'))
         navigate(`/services/${service.id}`)
       }
     } catch (error: unknown) {
       const err = error as { message?: string }
-      message.error(err.message || '操作失敗')
+      message.error(err.message || t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -103,7 +105,7 @@ export default function ServiceFormPage() {
   const handleTestConnection = async () => {
     const baseUrl = form.getFieldValue('baseUrl')
     if (!baseUrl) {
-      message.warning('請先輸入服務地址')
+      message.warning(t('service.enterBaseUrlFirst'))
       return
     }
 
@@ -114,7 +116,7 @@ export default function ServiceFormPage() {
         const result = await testConnection(id)
         setTestResult(result)
       } else {
-        setTestResult({ success: false, message: '請先儲存服務後再測試連線' })
+        setTestResult({ success: false, message: t('service.saveBeforeTest') })
       }
     } finally {
       setTesting(false)
@@ -130,7 +132,7 @@ export default function ServiceFormPage() {
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate('/services')}
           />
-          {isEdit ? '編輯服務' : '註冊新服務'}
+          {isEdit ? t('service.editService') : t('service.newService')}
         </Space>
       }
     >
@@ -143,49 +145,49 @@ export default function ServiceFormPage() {
           authType: 'none',
         }}
       >
-        <Divider orientation="left">基本資訊</Divider>
+        <Divider orientation="left">{t('service.basicInfo')}</Divider>
 
         <Form.Item
           name="name"
-          label="服務識別名稱"
+          label={t('service.identifierName')}
           rules={[
-            { required: true, message: '請輸入服務識別名稱' },
-            { pattern: /^[a-z][a-z0-9-]*$/, message: '只能包含小寫字母、數字和連字號，且必須以字母開頭' },
+            { required: true, message: t('service.identifierRequired') },
+            { pattern: /^[a-z][a-z0-9-]*$/, message: t('service.identifierPattern') },
           ]}
-          tooltip="用於系統內部識別的唯一名稱"
+          tooltip={t('service.identifierTooltip')}
         >
-          <Input placeholder="例如: user-service" disabled={isEdit} />
+          <Input placeholder={t('service.identifierPlaceholder')} disabled={isEdit} />
         </Form.Item>
 
         <Form.Item
           name="displayName"
-          label="顯示名稱"
-          rules={[{ required: true, message: '請輸入顯示名稱' }]}
+          label={t('service.displayName')}
+          rules={[{ required: true, message: t('service.displayNameRequired') }]}
         >
-          <Input placeholder="例如: 用戶服務" />
+          <Input placeholder={t('service.displayNamePlaceholder')} />
         </Form.Item>
 
-        <Form.Item name="description" label="描述">
-          <TextArea rows={3} placeholder="描述此服務的用途" />
+        <Form.Item name="description" label={t('common.description')}>
+          <TextArea rows={3} placeholder={t('service.descriptionPlaceholder')} />
         </Form.Item>
 
-        <Divider orientation="left">連線設定</Divider>
+        <Divider orientation="left">{t('service.connectionSettings')}</Divider>
 
         <Form.Item
           name="baseUrl"
-          label="服務地址"
+          label={t('service.baseUrl')}
           rules={[
-            { required: true, message: '請輸入服務地址' },
-            { type: 'url', message: '請輸入有效的 URL' },
+            { required: true, message: t('service.baseUrlRequired') },
+            { type: 'url', message: t('service.baseUrlInvalid') },
           ]}
-          tooltip="服務的基礎 URL，例如 http://localhost:8080"
+          tooltip={t('service.baseUrlTooltip')}
         >
           <Input placeholder="http://localhost:8080" />
         </Form.Item>
 
         <Form.Item
           name="protocol"
-          label="協議類型"
+          label={t('service.protocol')}
           rules={[{ required: true }]}
         >
           <Select disabled={isEdit}>
@@ -197,10 +199,10 @@ export default function ServiceFormPage() {
 
         <Form.Item
           name="schemaUrl"
-          label="OpenAPI/Swagger 文檔路徑"
-          tooltip="如果服務有 OpenAPI 文檔，填入路徑後系統會自動解析 API 端點"
+          label={t('service.schemaUrl')}
+          tooltip={t('service.schemaUrlTooltip')}
         >
-          <Input placeholder="例如: /v3/api-docs 或 /swagger.json" />
+          <Input placeholder={t('service.schemaUrlPlaceholder')} />
         </Form.Item>
 
         {testResult && (
@@ -212,11 +214,11 @@ export default function ServiceFormPage() {
           />
         )}
 
-        <Divider orientation="left">認證設定</Divider>
+        <Divider orientation="left">{t('service.authSettings')}</Divider>
 
         <Alert
-          message="安全提示"
-          description="選擇已儲存的認證資訊，平台會在呼叫外部服務時自動解密並注入認證。認證資訊使用 AES-256 加密儲存。"
+          message={t('service.securityTip')}
+          description={t('service.securityTipDesc')}
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
@@ -227,14 +229,14 @@ export default function ServiceFormPage() {
           label={
             <Space>
               <KeyOutlined />
-              <span>選擇認證</span>
+              <span>{t('service.selectCredential')}</span>
             </Space>
           }
-          tooltip="選擇已建立的認證資訊，或建立新的認證"
+          tooltip={t('service.selectCredentialTooltip')}
         >
           <Select
             allowClear
-            placeholder="選擇認證（可選）"
+            placeholder={t('service.selectCredentialPlaceholder')}
             dropdownRender={(menu) => (
               <>
                 {menu}
@@ -245,7 +247,7 @@ export default function ServiceFormPage() {
                   onClick={() => setCredentialModalVisible(true)}
                   style={{ width: '100%', textAlign: 'left' }}
                 >
-                  建立新認證
+                  {t('credential.newCredential')}
                 </Button>
               </>
             )}
@@ -268,17 +270,16 @@ export default function ServiceFormPage() {
           items={[
             {
               key: 'auth',
-              label: '手動認證設定（進階）',
+              label: t('service.manualAuthSettings'),
               children: (
                 <>
                   <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-                    如果不想使用已儲存的認證，可以在此手動設定認證配置。
-                    注意：手動設定的認證不會被加密儲存。
+                    {t('service.manualAuthDesc')}
                   </Text>
 
-                  <Form.Item name="authType" label="認證類型">
+                  <Form.Item name="authType" label={t('service.authType')}>
                     <Select>
-                      <Option value="none">無認證</Option>
+                      <Option value="none">{t('service.noAuth')}</Option>
                       <Option value="api_key">API Key</Option>
                       <Option value="bearer">Bearer Token</Option>
                       <Option value="basic">Basic Auth</Option>
@@ -287,12 +288,12 @@ export default function ServiceFormPage() {
 
                   <Form.Item
                     name="authConfig"
-                    label="認證配置 (JSON)"
-                    tooltip="根據認證類型設定對應的配置"
+                    label={t('service.authConfig')}
+                    tooltip={t('service.authConfigTooltip')}
                   >
                     <TextArea
                       rows={4}
-                      placeholder={`例如:
+                      placeholder={`${t('service.example')}:
 {
   "headerName": "X-API-Key",
   "tokenPrefix": "Bearer "
@@ -301,8 +302,8 @@ export default function ServiceFormPage() {
                   </Form.Item>
 
                   <Text type="secondary">
-                    API Key 範例: {'{"headerName": "X-API-Key"}'}<br />
-                    Bearer Token 範例: {'{"headerName": "Authorization", "tokenPrefix": "Bearer "}'}
+                    API Key {t('service.example')}: {'{"headerName": "X-API-Key"}'}<br />
+                    Bearer Token {t('service.example')}: {'{"headerName": "Authorization", "tokenPrefix": "Bearer "}'}
                   </Text>
                 </>
               ),
@@ -316,7 +317,7 @@ export default function ServiceFormPage() {
         <Form.Item>
           <Space>
             <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
-              {isEdit ? '更新服務' : '建立服務'}
+              {isEdit ? t('service.updateService') : t('service.createService')}
             </Button>
             {isEdit && (
               <Button
@@ -324,10 +325,10 @@ export default function ServiceFormPage() {
                 loading={testing}
                 onClick={handleTestConnection}
               >
-                測試連線
+                {t('service.testConnection')}
               </Button>
             )}
-            <Button onClick={() => navigate('/services')}>取消</Button>
+            <Button onClick={() => navigate('/services')}>{t('common.cancel')}</Button>
           </Space>
         </Form.Item>
       </Form>

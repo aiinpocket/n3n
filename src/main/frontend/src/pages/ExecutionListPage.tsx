@@ -11,6 +11,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse } from '../api/execution'
 import { useAllExecutions } from '../hooks/useExecutionMonitor'
 
@@ -34,6 +35,7 @@ const statusIcons: Record<string, React.ReactNode> = {
 
 export default function ExecutionListPage() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const [executions, setExecutions] = useState<ExecutionResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState<TablePaginationConfig>({
@@ -44,6 +46,14 @@ export default function ExecutionListPage() {
 
   // Real-time updates from WebSocket
   const { executions: realtimeExecutions, isConnected } = useAllExecutions()
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
+    }
+  }
 
   const loadExecutions = useCallback(async (page = 1, pageSize = 20) => {
     setLoading(true)
@@ -57,11 +67,11 @@ export default function ExecutionListPage() {
       })
     } catch (error) {
       console.error('Failed to load executions:', error)
-      message.error('載入執行記錄失敗')
+      message.error(t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadExecutions()
@@ -88,7 +98,7 @@ export default function ExecutionListPage() {
 
   const columns: ColumnsType<ExecutionResponse> = [
     {
-      title: '執行 ID',
+      title: t('execution.executionId'),
       dataIndex: 'id',
       key: 'id',
       width: 120,
@@ -99,20 +109,20 @@ export default function ExecutionListPage() {
       ),
     },
     {
-      title: '流程名稱',
+      title: t('execution.flowName'),
       dataIndex: 'flowName',
       key: 'flowName',
       render: (name: string) => name || '-',
     },
     {
-      title: '版本',
+      title: t('flow.version'),
       dataIndex: 'version',
       key: 'version',
       width: 80,
       render: (version: number) => version || '-',
     },
     {
-      title: '狀態',
+      title: t('common.status'),
       dataIndex: 'status',
       key: 'status',
       width: 120,
@@ -123,32 +133,32 @@ export default function ExecutionListPage() {
       ),
     },
     {
-      title: '開始時間',
+      title: t('execution.startTime'),
       dataIndex: 'startedAt',
       key: 'startedAt',
       width: 180,
-      render: (time: string) => (time ? new Date(time).toLocaleString() : '-'),
+      render: (time: string) => (time ? new Date(time).toLocaleString(getLocale()) : '-'),
     },
     {
-      title: '耗時',
+      title: t('execution.duration'),
       dataIndex: 'durationMs',
       key: 'durationMs',
       width: 100,
       render: (ms: number) => (ms != null ? `${ms}ms` : '-'),
     },
     {
-      title: '觸發類型',
+      title: t('execution.triggerType'),
       dataIndex: 'triggerType',
       key: 'triggerType',
       width: 100,
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 80,
       render: (_, record) => (
         <Button type="link" icon={<EyeOutlined />} onClick={() => navigate(`/executions/${record.id}`)}>
-          查看
+          {t('execution.view')}
         </Button>
       ),
     },
@@ -158,13 +168,13 @@ export default function ExecutionListPage() {
     <Card
       title={
         <Space>
-          <span>執行記錄</span>
-          {isConnected && <Tag color="green">即時連線</Tag>}
+          <span>{t('execution.title')}</span>
+          {isConnected && <Tag color="green">{t('execution.realtime')}</Tag>}
         </Space>
       }
       extra={
         <Button icon={<ReloadOutlined />} onClick={() => loadExecutions(pagination.current, pagination.pageSize)}>
-          重新整理
+          {t('common.refresh')}
         </Button>
       }
     >

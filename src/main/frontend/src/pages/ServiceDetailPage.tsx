@@ -27,6 +27,7 @@ import {
   ThunderboltOutlined,
   ApiOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
 import type { ServiceEndpoint, CreateEndpointRequest } from '../types'
 
@@ -37,6 +38,7 @@ const { Text } = Typography
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [endpointModalOpen, setEndpointModalOpen] = useState(false)
   const [editingEndpoint, setEditingEndpoint] = useState<ServiceEndpoint | null>(null)
   const [form] = Form.useForm()
@@ -67,9 +69,9 @@ export default function ServiceDetailPage() {
     setRefreshing(true)
     try {
       const result = await refreshSchema(id)
-      message.success(`已更新: 新增 ${result.addedEndpoints} 個, 更新 ${result.updatedEndpoints} 個端點`)
+      message.success(t('service.schemaUpdated', { added: result.addedEndpoints, updated: result.updatedEndpoints }))
     } catch {
-      message.error('Schema 更新失敗')
+      message.error(t('service.schemaUpdateFailed'))
     } finally {
       setRefreshing(false)
     }
@@ -81,7 +83,7 @@ export default function ServiceDetailPage() {
     try {
       const result = await testConnection(id)
       if (result.success) {
-        message.success(`連線成功 (${result.latencyMs}ms)`)
+        message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
         message.error(result.message)
       }
@@ -102,22 +104,22 @@ export default function ServiceDetailPage() {
         queryParams: values.queryParams ? JSON.parse(values.queryParams as string) : undefined,
         requestBody: values.requestBody ? JSON.parse(values.requestBody as string) : undefined,
         responseSchema: values.responseSchema ? JSON.parse(values.responseSchema as string) : undefined,
-        tags: values.tags ? (values.tags as string).split(',').map((t) => t.trim()) : undefined,
+        tags: values.tags ? (values.tags as string).split(',').map((tag) => tag.trim()) : undefined,
       }
 
       if (editingEndpoint) {
         await updateEndpoint(id, editingEndpoint.id, data)
-        message.success('端點已更新')
+        message.success(t('service.endpointUpdated'))
       } else {
         await createEndpoint(id, data)
-        message.success('端點已建立')
+        message.success(t('service.endpointCreated'))
       }
       setEndpointModalOpen(false)
       form.resetFields()
       setEditingEndpoint(null)
     } catch (error: unknown) {
       const err = error as { message?: string }
-      message.error(err.message || '操作失敗')
+      message.error(err.message || t('common.error'))
     }
   }
 
@@ -141,9 +143,9 @@ export default function ServiceDetailPage() {
     if (!id) return
     try {
       await deleteEndpoint(id, endpointId)
-      message.success('端點已刪除')
+      message.success(t('service.endpointDeleted'))
     } catch {
-      message.error('刪除失敗')
+      message.error(t('common.deleteFailed'))
     }
   }
 
@@ -160,38 +162,38 @@ export default function ServiceDetailPage() {
 
   const columns = [
     {
-      title: '方法',
+      title: t('service.method'),
       dataIndex: 'method',
       key: 'method',
       width: 80,
       render: (method: string) => <Tag color={getMethodColor(method)}>{method}</Tag>,
     },
     {
-      title: '路徑',
+      title: t('service.path'),
       dataIndex: 'path',
       key: 'path',
       render: (path: string) => <code>{path}</code>,
     },
     {
-      title: '名稱',
+      title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: '描述',
+      title: t('common.description'),
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
     },
     {
-      title: '標籤',
+      title: t('service.tags'),
       dataIndex: 'tags',
       key: 'tags',
       render: (tags: string[] | null) =>
         tags?.map((tag) => <Tag key={tag}>{tag}</Tag>) || '-',
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 150,
       render: (_: unknown, record: ServiceEndpoint) => (
@@ -202,16 +204,16 @@ export default function ServiceDetailPage() {
             icon={<EditOutlined />}
             onClick={() => handleEditEndpoint(record)}
           >
-            編輯
+            {t('common.edit')}
           </Button>
           <Popconfirm
-            title="確定要刪除此端點？"
+            title={t('service.deleteEndpointConfirm')}
             onConfirm={() => handleDeleteEndpoint(record.id)}
-            okText="確定"
-            cancelText="取消"
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
           >
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              刪除
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -248,16 +250,16 @@ export default function ServiceDetailPage() {
               loading={testing}
               onClick={handleTestConnection}
             >
-              測試連線
+              {t('service.testConnection')}
             </Button>
             {currentService.schemaUrl && (
-              <Tooltip title="重新解析 OpenAPI 文檔">
+              <Tooltip title={t('service.refreshSchemaTooltip')}>
                 <Button
                   icon={<SyncOutlined spin={refreshing} />}
                   loading={refreshing}
                   onClick={handleRefreshSchema}
                 >
-                  更新 Schema
+                  {t('service.refreshSchema')}
                 </Button>
               </Tooltip>
             )}
@@ -266,44 +268,44 @@ export default function ServiceDetailPage() {
               icon={<EditOutlined />}
               onClick={() => navigate(`/services/${id}/edit`)}
             >
-              編輯服務
+              {t('service.editService')}
             </Button>
           </Space>
         }
       >
         <Descriptions bordered column={2} style={{ marginBottom: 24 }}>
-          <Descriptions.Item label="識別名稱">
+          <Descriptions.Item label={t('service.identifierName')}>
             <code>{currentService.name}</code>
           </Descriptions.Item>
-          <Descriptions.Item label="協議">
+          <Descriptions.Item label={t('service.protocol')}>
             <Tag color="blue">{currentService.protocol}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="服務地址" span={2}>
+          <Descriptions.Item label={t('service.baseUrl')} span={2}>
             <Text copyable>{currentService.baseUrl}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="Schema URL">
             {currentService.schemaUrl || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="認證類型">
-            {currentService.authType || '無'}
+          <Descriptions.Item label={t('service.authType')}>
+            {currentService.authType || t('service.noAuth')}
           </Descriptions.Item>
-          <Descriptions.Item label="狀態">
+          <Descriptions.Item label={t('common.status')}>
             <Tag color={currentService.status === 'active' ? 'green' : 'red'}>
-              {currentService.status === 'active' ? '運作中' : currentService.status}
+              {currentService.status === 'active' ? t('service.statusActive') : currentService.status}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="端點數量">
-            {currentService.endpoints.length} 個
+          <Descriptions.Item label={t('service.endpointCount')}>
+            {currentService.endpoints.length}
           </Descriptions.Item>
           {currentService.description && (
-            <Descriptions.Item label="描述" span={2}>
+            <Descriptions.Item label={t('common.description')} span={2}>
               {currentService.description}
             </Descriptions.Item>
           )}
         </Descriptions>
 
         <Card
-          title="API 端點"
+          title={t('service.apiEndpoints')}
           size="small"
           extra={
             <Button
@@ -316,7 +318,7 @@ export default function ServiceDetailPage() {
                 setEndpointModalOpen(true)
               }}
             >
-              手動新增端點
+              {t('service.addEndpoint')}
             </Button>
           }
         >
@@ -331,7 +333,7 @@ export default function ServiceDetailPage() {
       </Card>
 
       <Modal
-        title={editingEndpoint ? '編輯端點' : '新增端點'}
+        title={editingEndpoint ? t('service.editEndpoint') : t('service.addEndpoint')}
         open={endpointModalOpen}
         onCancel={() => {
           setEndpointModalOpen(false)
@@ -344,20 +346,20 @@ export default function ServiceDetailPage() {
         <Form form={form} layout="vertical" onFinish={handleEndpointSubmit}>
           <Form.Item
             name="name"
-            label="端點名稱"
-            rules={[{ required: true, message: '請輸入端點名稱' }]}
+            label={t('service.endpointName')}
+            rules={[{ required: true, message: t('service.endpointNameRequired') }]}
           >
-            <Input placeholder="例如: createUser" />
+            <Input placeholder={t('service.endpointNamePlaceholder')} />
           </Form.Item>
 
-          <Form.Item name="description" label="描述">
-            <Input placeholder="描述此端點的用途" />
+          <Form.Item name="description" label={t('common.description')}>
+            <Input placeholder={t('service.endpointDescPlaceholder')} />
           </Form.Item>
 
           <Space style={{ width: '100%' }} align="start">
             <Form.Item
               name="method"
-              label="HTTP 方法"
+              label={t('service.httpMethod')}
               rules={[{ required: true }]}
               style={{ width: 150 }}
             >
@@ -372,35 +374,35 @@ export default function ServiceDetailPage() {
 
             <Form.Item
               name="path"
-              label="路徑"
-              rules={[{ required: true, message: '請輸入路徑' }]}
+              label={t('service.path')}
+              rules={[{ required: true, message: t('service.pathRequired') }]}
               style={{ flex: 1 }}
             >
-              <Input placeholder="例如: /users/{userId}" />
+              <Input placeholder={t('service.pathPlaceholder')} />
             </Form.Item>
           </Space>
 
-          <Form.Item name="tags" label="標籤 (逗號分隔)">
-            <Input placeholder="例如: users, auth" />
+          <Form.Item name="tags" label={t('service.tagsComma')}>
+            <Input placeholder={t('service.tagsPlaceholder')} />
           </Form.Item>
 
           <Collapse
             items={[
               {
                 key: 'schema',
-                label: 'Schema 定義（JSON Schema 格式）',
+                label: t('service.schemaDef'),
                 children: (
                   <>
-                    <Form.Item name="pathParams" label="路徑參數">
+                    <Form.Item name="pathParams" label={t('service.pathParams')}>
                       <TextArea rows={3} placeholder='{"type": "object", "properties": {...}}' />
                     </Form.Item>
-                    <Form.Item name="queryParams" label="查詢參數">
+                    <Form.Item name="queryParams" label={t('service.queryParams')}>
                       <TextArea rows={3} placeholder='{"type": "object", "properties": {...}}' />
                     </Form.Item>
-                    <Form.Item name="requestBody" label="請求體">
+                    <Form.Item name="requestBody" label={t('service.requestBody')}>
                       <TextArea rows={4} placeholder='{"type": "object", "properties": {...}}' />
                     </Form.Item>
-                    <Form.Item name="responseSchema" label="響應格式">
+                    <Form.Item name="responseSchema" label={t('service.responseSchema')}>
                       <TextArea rows={4} placeholder='{"type": "object", "properties": {...}}' />
                     </Form.Item>
                   </>
@@ -419,10 +421,10 @@ export default function ServiceDetailPage() {
                   form.resetFields()
                 }}
               >
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="primary" htmlType="submit">
-                {editingEndpoint ? '更新' : '建立'}
+                {editingEndpoint ? t('common.save') : t('common.create')}
               </Button>
             </Space>
           </Form.Item>

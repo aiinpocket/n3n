@@ -2,13 +2,23 @@ import { useEffect, useState } from 'react'
 import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
 import type { ExternalService } from '../types'
 
 export default function ServiceListPage() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const { services, totalElements, isLoading, currentPage, pageSize, fetchServices, deleteService, testConnection } = useServiceStore()
   const [testingId, setTestingId] = useState<string | null>(null)
+
+  const getLocale = () => {
+    switch (i18n.language) {
+      case 'ja': return 'ja-JP'
+      case 'en': return 'en-US'
+      default: return 'zh-TW'
+    }
+  }
 
   useEffect(() => {
     fetchServices()
@@ -17,9 +27,9 @@ export default function ServiceListPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteService(id)
-      message.success('服務已刪除')
+      message.success(t('service.deleteSuccess'))
     } catch {
-      message.error('刪除失敗')
+      message.error(t('common.deleteFailed'))
     }
   }
 
@@ -28,7 +38,7 @@ export default function ServiceListPage() {
     try {
       const result = await testConnection(id)
       if (result.success) {
-        message.success(`連線成功 (${result.latencyMs}ms)`)
+        message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
         message.warning(result.message)
       }
@@ -40,11 +50,11 @@ export default function ServiceListPage() {
   const getStatusTag = (status: string) => {
     switch (status) {
       case 'active':
-        return <Tag color="green">運作中</Tag>
+        return <Tag color="green">{t('service.statusActive')}</Tag>
       case 'inactive':
-        return <Tag color="default">停用</Tag>
+        return <Tag color="default">{t('service.statusInactive')}</Tag>
       case 'error':
-        return <Tag color="red">錯誤</Tag>
+        return <Tag color="red">{t('service.statusError')}</Tag>
       default:
         return <Tag>{status}</Tag>
     }
@@ -61,7 +71,7 @@ export default function ServiceListPage() {
 
   const columns = [
     {
-      title: '服務名稱',
+      title: t('service.serviceName'),
       dataIndex: 'displayName',
       key: 'displayName',
       render: (name: string, record: ExternalService) => (
@@ -69,42 +79,42 @@ export default function ServiceListPage() {
       ),
     },
     {
-      title: '識別名稱',
+      title: t('service.identifierName'),
       dataIndex: 'name',
       key: 'name',
       render: (name: string) => <code>{name}</code>,
     },
     {
-      title: '協議',
+      title: t('service.protocol'),
       dataIndex: 'protocol',
       key: 'protocol',
       render: (protocol: string) => getProtocolTag(protocol),
     },
     {
-      title: '端點數量',
+      title: t('service.endpointCount'),
       dataIndex: 'endpointCount',
       key: 'endpointCount',
-      render: (count: number) => <Tag>{count} 個 API</Tag>,
+      render: (count: number) => <Tag>{count} API</Tag>,
     },
     {
-      title: '狀態',
+      title: t('common.status'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => getStatusTag(status),
     },
     {
-      title: '更新時間',
+      title: t('common.updatedAt'),
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString('zh-TW'),
+      render: (date: string) => new Date(date).toLocaleString(getLocale()),
     },
     {
-      title: '操作',
+      title: t('common.actions'),
       key: 'action',
       width: 250,
       render: (_: unknown, record: ExternalService) => (
         <Space>
-          <Tooltip title="測試連線">
+          <Tooltip title={t('service.testConnection')}>
             <Button
               type="link"
               size="small"
@@ -112,7 +122,7 @@ export default function ServiceListPage() {
               icon={record.status === 'active' ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
               onClick={() => handleTestConnection(record.id)}
             >
-              測試
+              {t('service.test')}
             </Button>
           </Tooltip>
           <Button
@@ -121,17 +131,17 @@ export default function ServiceListPage() {
             icon={<EditOutlined />}
             onClick={() => navigate(`/services/${record.id}/edit`)}
           >
-            編輯
+            {t('common.edit')}
           </Button>
           <Popconfirm
-            title="確定要刪除此服務？"
-            description="刪除後，使用此服務的流程可能無法正常執行。"
+            title={t('service.deleteConfirm')}
+            description={t('service.deleteConfirmDesc')}
             onConfirm={() => handleDelete(record.id)}
-            okText="確定"
-            cancelText="取消"
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
           >
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              刪除
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -144,7 +154,7 @@ export default function ServiceListPage() {
       title={
         <Space>
           <ApiOutlined />
-          外部服務管理
+          {t('service.title')}
         </Space>
       }
       extra={
@@ -153,7 +163,7 @@ export default function ServiceListPage() {
           icon={<PlusOutlined />}
           onClick={() => navigate('/services/new')}
         >
-          註冊新服務
+          {t('service.newService')}
         </Button>
       }
     >
@@ -167,7 +177,7 @@ export default function ServiceListPage() {
           pageSize,
           total: totalElements,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 項`,
+          showTotal: (total) => t('common.total', { count: total }),
           onChange: (page, size) => fetchServices(page - 1, size),
         }}
       />
