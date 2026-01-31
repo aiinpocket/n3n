@@ -17,11 +17,19 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  // Setup 狀態
+  setupRequired: boolean | null  // null = 未檢查, true = 需要設定, false = 已設定
+  setupChecked: boolean
+  // Recovery Key 相關狀態
+  showRecoveryKeyModal: boolean
+  recoveryKey: string[] | null
+  checkSetupStatus: () => Promise<void>
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, name: string) => Promise<void>
+  register: (email: string, password: string, name: string) => Promise<boolean | undefined>
   logout: () => Promise<void>
   refreshAccessToken: () => Promise<void>
   clearError: () => void
+  confirmRecoveryKeyBackup: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,18 +41,39 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      setupRequired: null,
+      setupChecked: false,
+      showRecoveryKeyModal: false,
+      recoveryKey: null,
+
+      checkSetupStatus: async () => {
+        try {
+          const response = await apiClient.get('/auth/setup-status')
+          set({
+            setupRequired: response.data.setupRequired,
+            setupChecked: true
+          })
+        } catch {
+          // If API fails, assume setup is not required
+          set({ setupRequired: false, setupChecked: true })
+        }
+      },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/login', { email, password })
-          const { accessToken, refreshToken, user } = response.data
+          const { accessToken, refreshToken, user, recoveryKey, needsRecoveryKeyBackup } = response.data
+
           set({
             accessToken,
             refreshToken,
             user,
             isAuthenticated: true,
             isLoading: false,
+            // 如果需要備份 Recovery Key，顯示 Modal
+            showRecoveryKeyModal: needsRecoveryKeyBackup || false,
+            recoveryKey: recoveryKey || null,
           })
         } catch (error: unknown) {
           const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Login failed'
@@ -56,8 +85,13 @@ export const useAuthStore = create<AuthState>()(
       register: async (email: string, password: string, name: string) => {
         set({ isLoading: true, error: null })
         try {
-          await apiClient.post('/auth/register', { email, password, name })
-          set({ isLoading: false })
+          const response = await apiClient.post('/auth/register', { email, password, name })
+          const isAdminSetup = response.data.message === 'Admin account created successfully'
+          set({
+            isLoading: false,
+            setupRequired: false,  // Setup is complete after registration
+          })
+          return isAdminSetup
         } catch (error: unknown) {
           const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Registration failed'
           set({ error: message, isLoading: false })
@@ -101,6 +135,13 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      confirmRecoveryKeyBackup: () => {
+        set({
+          showRecoveryKeyModal: false,
+          recoveryKey: null,
+        })
+      },
     }),
     {
       name: 'n3n-auth',

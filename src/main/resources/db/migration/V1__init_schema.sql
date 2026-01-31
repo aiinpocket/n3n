@@ -222,22 +222,5 @@ COMMENT ON COLUMN component_versions.config_schema IS 'JSON Schema for component
 COMMENT ON COLUMN component_versions.resources IS 'K8s resource requirements';
 
 -- =====================================================
--- Default Admin User (password: admin123)
--- BCrypt hash generated with strength 12
+-- No default admin user - first registered user becomes admin
 -- =====================================================
-
-INSERT INTO users (id, email, password_hash, name, status, email_verified)
-VALUES (
-    'a0000000-0000-0000-0000-000000000001',
-    'admin@n3n.local',
-    '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-    'Admin',
-    'active',
-    true
-);
-
-INSERT INTO user_roles (user_id, role)
-VALUES ('a0000000-0000-0000-0000-000000000001', 'ADMIN');
-
-INSERT INTO user_roles (user_id, role)
-VALUES ('a0000000-0000-0000-0000-000000000001', 'USER');

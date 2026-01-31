@@ -9,6 +9,8 @@ import {
   KeyOutlined,
   UserOutlined,
   LogoutOutlined,
+  RobotOutlined,
+  SettingOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from '../stores/authStore'
 
@@ -39,6 +41,23 @@ const menuItems = [
     key: '/components',
     icon: <AppstoreOutlined />,
     label: '元件管理',
+  },
+  {
+    key: 'ai',
+    icon: <RobotOutlined />,
+    label: 'AI 助手',
+    children: [
+      {
+        key: '/ai-assistant',
+        icon: <RobotOutlined />,
+        label: 'AI 對話',
+      },
+      {
+        key: '/settings/ai',
+        icon: <SettingOutlined />,
+        label: 'AI 設定',
+      },
+    ],
   },
 ]
 

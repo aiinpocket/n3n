@@ -50,7 +50,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 // Webhook trigger endpoints (no auth - uses signature validation)
                 .requestMatchers("/webhook/**").permitAll()

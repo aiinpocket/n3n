@@ -52,6 +52,20 @@ public class Credential {
     @Builder.Default
     private Map<String, Object> metadata = Map.of();
 
+    /**
+     * 加密使用的 key 版本
+     */
+    @Column(name = "key_version")
+    @Builder.Default
+    private Integer keyVersion = 1;
+
+    /**
+     * 金鑰狀態：active=正常, mismatched=key不匹配, migrating=遷移中
+     */
+    @Column(name = "key_status")
+    @Builder.Default
+    private String keyStatus = "active";
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -59,4 +73,18 @@ public class Credential {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    /**
+     * 檢查金鑰是否匹配
+     */
+    public boolean isKeyMatched() {
+        return "active".equals(keyStatus);
+    }
+
+    /**
+     * 檢查是否正在遷移
+     */
+    public boolean isMigrating() {
+        return "migrating".equals(keyStatus);
+    }
 }

@@ -1,4 +1,38 @@
 services:
+  # N3N Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: n3n-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      DATABASE_URL: jdbc:postgresql://postgres:5432/n3n
+      DATABASE_USERNAME: n3n
+      DATABASE_PASSWORD: n3n
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # JWT Secret (change in production!)
+      JWT_SECRET: dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5z
+      # CORS
+      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+
+  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: n3n-postgres
@@ -15,7 +49,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: n3n-redis
@@ -29,6 +65,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -67,6 +67,9 @@ public class AuthService {
             throw new EmailAlreadyExistsException("Email already registered");
         }
 
+        // Check if this is the first user (will become admin)
+        boolean isFirstUser = userRepository.count() == 0;
+
         User user = User.builder()
             .email(request.getEmail())
             .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -78,18 +81,37 @@ public class AuthService {
 
         user = userRepository.save(user);
 
-        // Assign default role
-        UserRole role = UserRole.builder()
-            .userId(user.getId())
-            .role("USER")
-            .build();
-        userRoleRepository.save(role);
+        // Assign roles - first user gets ADMIN + USER
+        List<String> roles;
+        if (isFirstUser) {
+            UserRole adminRole = UserRole.builder()
+                .userId(user.getId())
+                .role("ADMIN")
+                .build();
+            userRoleRepository.save(adminRole);
 
-        log.info("User registered: {}", user.getEmail());
+            UserRole userRole = UserRole.builder()
+                .userId(user.getId())
+                .role("USER")
+                .build();
+            userRoleRepository.save(userRole);
+
+            roles = List.of("ADMIN", "USER");
+            log.info("First user registered as admin: {}", user.getEmail());
+        } else {
+            UserRole role = UserRole.builder()
+                .userId(user.getId())
+                .role("USER")
+                .build();
+            userRoleRepository.save(role);
+
+            roles = List.of("USER");
+            log.info("User registered: {}", user.getEmail());
+        }
 
         return AuthResponse.builder()
-            .message("Registration successful")
-            .user(UserResponse.from(user, List.of("USER")))
+            .message(isFirstUser ? "Admin account created successfully" : "Registration successful")
+            .user(UserResponse.from(user, roles))
             .build();
     }
 
@@ -138,6 +160,13 @@ public class AuthService {
             .toList();
 
         return UserResponse.from(user, roles);
+    }
+
+    /**
+     * Check if initial setup is needed (no users exist)
+     */
+    public boolean isSetupRequired() {
+        return userRepository.count() == 0;
     }
 
     private AuthResponse generateAuthResponse(User user, String ipAddress, String userAgent) {

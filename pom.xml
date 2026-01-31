@@ -29,6 +29,7 @@
     <properties>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <frontend.skip>false</frontend.skip>
     </properties>
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -59,6 +60,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
         <!-- Database -->
@@ -213,6 +218,7 @@
                 <configuration>
                     <workingDirectory>src/main/frontend</workingDirectory>
                     <installDirectory>target</installDirectory>
+                    <skip>${frontend.skip}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -245,7 +251,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Copy frontend build to static resources -->
+            <!-- Copy frontend build to static resources (skip if frontend.skip=true) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -257,6 +263,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                            <skip>${frontend.skip}</skip>
                             <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
                             <resources>
                                 <resource>

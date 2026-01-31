@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +28,54 @@ public class FlowService {
     private final DagParser dagParser;
 
     public Page<FlowResponse> listFlows(Pageable pageable) {
-        return flowRepository.findByIsDeletedFalse(pageable)
-            .map(this::toFlowResponse);
+        Page<Flow> flowPage = flowRepository.findByIsDeletedFalse(pageable);
+        return toFlowResponsePage(flowPage);
     }
 
     public Page<FlowResponse> searchFlows(String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
             return listFlows(pageable);
         }
-        return flowRepository.searchFlows(query.trim(), pageable)
-            .map(this::toFlowResponse);
+        Page<Flow> flowPage = flowRepository.searchFlows(query.trim(), pageable);
+        return toFlowResponsePage(flowPage);
     }
 
+    /**
+     * 批次轉換 Flow Page 為 FlowResponse Page（解決 N+1 問題）
+     */
+    private Page<FlowResponse> toFlowResponsePage(Page<Flow> flowPage) {
+        if (flowPage.isEmpty()) {
+            return flowPage.map(FlowResponse::from);
+        }
+
+        // 批次查詢所有版本
+        List<UUID> flowIds = flowPage.getContent().stream()
+            .map(Flow::getId)
+            .toList();
+
+        List<FlowVersion> allVersions = flowVersionRepository
+            .findByFlowIdInOrderByFlowIdAscCreatedAtDesc(flowIds);
+
+        // 建立 flowId -> 版本列表 的對應
+        Map<UUID, List<FlowVersion>> versionsByFlowId = allVersions.stream()
+            .collect(Collectors.groupingBy(FlowVersion::getFlowId));
+
+        // 轉換為 FlowResponse
+        return flowPage.map(flow -> {
+            List<FlowVersion> versions = versionsByFlowId.getOrDefault(flow.getId(), List.of());
+            String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
+            String publishedVersion = versions.stream()
+                .filter(v -> "published".equals(v.getStatus()))
+                .findFirst()
+                .map(FlowVersion::getVersion)
+                .orElse(null);
+            return FlowResponse.from(flow, latestVersion, publishedVersion);
+        });
+    }
+
+    /**
+     * 單一 Flow 轉換（用於 getFlow 等單一查詢場景）
+     */
     private FlowResponse toFlowResponse(Flow flow) {
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flow.getId());
         String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();

@@ -1,0 +1,29 @@
+# Build outputs
+target/
+src/main/frontend/node_modules/
+src/main/frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+LICENSE
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

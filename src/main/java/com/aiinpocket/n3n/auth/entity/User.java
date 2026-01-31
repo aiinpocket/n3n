@@ -50,6 +50,19 @@ public class User {
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
+    /**
+     * 是否已備份 Recovery Key
+     */
+    @Column(name = "recovery_key_backed_up")
+    @Builder.Default
+    private Boolean recoveryKeyBackedUp = false;
+
+    /**
+     * Recovery Key 備份確認時間
+     */
+    @Column(name = "recovery_key_backed_up_at")
+    private Instant recoveryKeyBackedUpAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

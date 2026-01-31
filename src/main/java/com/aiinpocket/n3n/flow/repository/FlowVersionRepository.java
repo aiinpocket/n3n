@@ -18,4 +18,15 @@ public interface FlowVersionRepository extends JpaRepository<FlowVersion, UUID> 
     Optional<FlowVersion> findByFlowIdAndStatus(UUID flowId, String status);
 
     boolean existsByFlowIdAndVersion(UUID flowId, String version);
+
+    /**
+     * 批次查詢多個 Flow 的版本資訊（解決 N+1 問題）
+     * 結果按 flowId 和 createdAt DESC 排序
+     */
+    List<FlowVersion> findByFlowIdInOrderByFlowIdAscCreatedAtDesc(List<UUID> flowIds);
+
+    /**
+     * 批次查詢多個 Flow 的已發布版本
+     */
+    List<FlowVersion> findByFlowIdInAndStatus(List<UUID> flowIds, String status);
 }
