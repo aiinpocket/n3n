@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - host: Redis host (default: localhost)
  * - port: Redis port (default: 6379)
  * - password: Redis password (optional)
- * - database: Redis database number (default: 0)
+ * - database: Redis database number (default: 1, to avoid conflict with app cache on db 0)
  * - ssl: Enable SSL (default: false)
  * - url: Redis URL (redis://... or rediss://...) - overrides above
  */
@@ -1062,12 +1062,13 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
                     // Use default
                 }
             }
-            int database = 0;
+            // Default to database 1 to avoid conflict with application cache (database 0)
+            int database = 1;
             if (databaseStr != null && !databaseStr.isEmpty()) {
                 try {
                     database = Integer.parseInt(databaseStr);
                 } catch (NumberFormatException e) {
-                    // Use default
+                    // Use default (1)
                 }
             }
 
