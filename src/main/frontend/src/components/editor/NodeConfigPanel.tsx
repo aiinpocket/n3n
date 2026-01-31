@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Drawer,
   Form,
@@ -22,6 +22,7 @@ import {
 import { Node } from '@xyflow/react'
 import Editor from '@monaco-editor/react'
 import { fetchNodeType, NodeTypeInfo } from '../../api/nodeTypes'
+import MultiOperationConfig from './MultiOperationConfig'
 
 const { Text, Title } = Typography
 const { TextArea } = Input
@@ -218,6 +219,13 @@ export default function NodeConfigPanel({
     )
   }
 
+  // Check if schema is multi-operation
+  const isMultiOperation = useMemo(() => {
+    if (!nodeTypeInfo?.configSchema) return false
+    const schema = nodeTypeInfo.configSchema as Record<string, unknown>
+    return schema['x-multi-operation'] === true
+  }, [nodeTypeInfo?.configSchema])
+
   const renderConfigForm = () => {
     if (!nodeTypeInfo?.configSchema) {
       return <Text type="secondary">No configuration available</Text>
@@ -226,6 +234,26 @@ export default function NodeConfigPanel({
     const schema = nodeTypeInfo.configSchema as {
       properties?: Record<string, SchemaProperty>
       required?: string[]
+      'x-multi-operation'?: boolean
+      'x-credential-type'?: string
+      'x-resources'?: unknown[]
+      'x-operation-definitions'?: unknown[]
+    }
+
+    // Use MultiOperationConfig for multi-operation nodes
+    if (isMultiOperation) {
+      return (
+        <MultiOperationConfig
+          schema={schema as Parameters<typeof MultiOperationConfig>[0]['schema']}
+          values={form.getFieldsValue() as Record<string, unknown>}
+          onChange={(allValues) => {
+            form.setFieldsValue(allValues)
+            if (node) {
+              onUpdate(node.id, allValues)
+            }
+          }}
+        />
+      )
     }
 
     if (!schema.properties) {
