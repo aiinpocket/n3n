@@ -38,5 +38,18 @@ src/main/frontend/dist/
 src/main/frontend/.eslintcache
 
 .idea/
-CLAUDE.md
 .claude/
+CLAUDE.md
+TODO_*.md
+
+### Agents ###
+agents/macos/.build/
+agents/macos/.swiftpm/
+agents/macos/Package.resolved
+agents/windows/bin/
+agents/windows/obj/
+agents/windows/**/bin/
+agents/windows/**/obj/
+agents/windows/publish/
+agents/windows/*.user
+agents/windows/.vs/

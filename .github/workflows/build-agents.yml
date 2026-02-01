@@ -1,0 +1,174 @@
+name: Build and Deploy Agents
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'agents/**'
+      - '.github/workflows/build-agents.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'agents/**'
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  build-macos:
+    runs-on: macos-14  # Apple Silicon runner
+    outputs:
+      sha256: ${{ steps.info.outputs.sha256 }}
+      size: ${{ steps.info.outputs.size }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '5.9'
+
+      - name: Build macOS Agent (arm64)
+        working-directory: agents/macos
+        run: swift build -c release
+
+      - name: Calculate hash and size
+        id: info
+        working-directory: agents/macos
+        run: |
+          SHA256=$(shasum -a 256 .build/release/n3n-agent | awk '{print $1}')
+          SIZE=$(stat -f%z .build/release/n3n-agent)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: n3n-agent-macos-arm64
+          path: agents/macos/.build/release/n3n-agent
+          retention-days: 7
+
+  build-windows:
+    runs-on: windows-latest
+    outputs:
+      sha256: ${{ steps.info.outputs.sha256 }}
+      size: ${{ steps.info.outputs.size }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: agents/windows
+        run: dotnet restore
+
+      - name: Build Windows Agent (x64)
+        working-directory: agents/windows
+        run: |
+          dotnet publish src/N3NAgent.CLI -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
+
+      - name: Calculate hash and size
+        id: info
+        working-directory: agents/windows
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash ./publish/n3n-agent.exe -Algorithm SHA256).Hash.ToLower()
+          $size = (Get-Item ./publish/n3n-agent.exe).Length
+          echo "sha256=$hash" >> $env:GITHUB_OUTPUT
+          echo "size=$size" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: n3n-agent-windows-x64
+          path: agents/windows/publish/n3n-agent.exe
+          retention-days: 7
+
+  deploy:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: n3n-agent-macos-arm64
+          path: artifacts/macos
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: n3n-agent-windows-x64
+          path: artifacts/windows
+
+      - name: Copy to downloads directory
+        run: |
+          cp artifacts/macos/n3n-agent src/main/resources/static/downloads/n3n-agent-macos-arm64
+          cp artifacts/windows/n3n-agent.exe src/main/resources/static/downloads/n3n-agent-windows-x64.exe
+          chmod +x src/main/resources/static/downloads/n3n-agent-macos-arm64
+
+      - name: Update versions.json
+        run: |
+          MACOS_SHA256="${{ needs.build-macos.outputs.sha256 }}"
+          MACOS_SIZE="${{ needs.build-macos.outputs.size }}"
+          WINDOWS_SHA256="${{ needs.build-windows.outputs.sha256 }}"
+          WINDOWS_SIZE="${{ needs.build-windows.outputs.size }}"
+          RELEASE_DATE=$(date +%Y-%m-%d)
+
+          cat > src/main/resources/static/downloads/versions.json << EOF
+          {
+            "agents": {
+              "macos": {
+                "arm64": {
+                  "version": "1.0.0",
+                  "filename": "n3n-agent-macos-arm64",
+                  "sha256": "${MACOS_SHA256}",
+                  "size": ${MACOS_SIZE},
+                  "minOS": "13.0"
+                },
+                "x86_64": {
+                  "version": "1.0.0",
+                  "filename": "n3n-agent-macos-x86_64",
+                  "sha256": "",
+                  "size": 0,
+                  "minOS": "13.0",
+                  "status": "coming-soon"
+                }
+              },
+              "windows": {
+                "x86_64": {
+                  "version": "1.0.0",
+                  "filename": "n3n-agent-windows-x64.exe",
+                  "sha256": "${WINDOWS_SHA256}",
+                  "size": ${WINDOWS_SIZE}
+                }
+              },
+              "linux": {
+                "x86_64": {
+                  "version": "1.0.0",
+                  "filename": "n3n-agent-linux-x64",
+                  "sha256": "",
+                  "size": 0,
+                  "status": "coming-soon"
+                }
+              }
+            },
+            "latestVersion": "1.0.0",
+            "releaseDate": "${RELEASE_DATE}"
+          }
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/main/resources/static/downloads/
+          git diff --staged --quiet || git commit -m "chore: Update agent binaries [skip ci]"
+          git push
