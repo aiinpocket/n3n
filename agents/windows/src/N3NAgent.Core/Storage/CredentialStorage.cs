@@ -245,3 +245,67 @@ public class StorageException : Exception
 {
     public StorageException(string message) : base(message) { }
 }
+
+/// <summary>
+/// Registration config file structure for token-based registration.
+/// </summary>
+public class RegistrationConfig
+{
+    public int Version { get; set; }
+    public GatewayInfo Gateway { get; set; } = new();
+    public RegistrationInfo Registration { get; set; } = new();
+
+    public class GatewayInfo
+    {
+        public string Url { get; set; } = "";
+        public string Domain { get; set; } = "";
+        public int Port { get; set; }
+    }
+
+    public class RegistrationInfo
+    {
+        public string Token { get; set; } = "";
+        public string AgentId { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Load config from a JSON file.
+    /// </summary>
+    public static RegistrationConfig? LoadFromFile(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        var json = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<RegistrationConfig>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+    }
+
+    /// <summary>
+    /// Find config file in common locations.
+    /// </summary>
+    public static string? FindConfigFile()
+    {
+        var locations = new[]
+        {
+            // Same directory as executable
+            Path.Combine(AppContext.BaseDirectory, "n3n-agent-config.json"),
+            // Current working directory
+            Path.Combine(Directory.GetCurrentDirectory(), "n3n-agent-config.json"),
+            // User's home directory
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "n3n-agent-config.json"),
+            // AppData local
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "N3N Agent", "config.json"),
+        };
+
+        foreach (var location in locations)
+        {
+            if (File.Exists(location))
+                return location;
+        }
+
+        return null;
+    }
+}

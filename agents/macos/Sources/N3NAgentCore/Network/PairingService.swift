@@ -126,6 +126,121 @@ public final class PairingService {
         return deviceKeys
     }
 
+    // MARK: - Token-based Registration
+
+    /// Register with the platform using a one-time token from config file.
+    public func registerWithToken(
+        config: RegistrationConfig,
+        deviceName: String
+    ) async throws -> DeviceKeys {
+        logger.info("Starting token-based registration")
+
+        // 1. Generate device key pair
+        let keyPair = crypto.generateKeyPair()
+        let deviceId = UUID().uuidString
+
+        // 2. Generate device fingerprint
+        let fingerprint = crypto.generateDeviceFingerprint()
+
+        // 3. Build registration request
+        let request = TokenRegistrationRequest(
+            token: config.registration.token,
+            deviceId: deviceId,
+            deviceName: deviceName,
+            platform: "macos",
+            devicePublicKey: keyPair.publicKeyBase64,
+            deviceFingerprint: fingerprint
+        )
+
+        // 4. Build registration URL
+        let registerUrl = config.gateway.url
+            .replacingOccurrences(of: "wss://", with: "https://")
+            .replacingOccurrences(of: "ws://", with: "http://")
+            .replacingOccurrences(of: "/ws/agent/secure", with: "")
+            .replacingOccurrences(of: "/ws/agent", with: "")
+            + "/api/public/agents/register"
+
+        logger.debug("Sending registration request to: \(registerUrl)")
+
+        var urlRequest = URLRequest(url: URL(string: registerUrl)!)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let encoder = JSONEncoder()
+        urlRequest.httpBody = try encoder.encode(request)
+
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw PairingError.networkError("Invalid response")
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+            logger.error("Registration failed: \(errorBody)")
+            throw PairingError.pairingFailed(errorBody)
+        }
+
+        // 5. Parse response
+        let decoder = JSONDecoder()
+        let registrationResponse = try decoder.decode(TokenRegistrationResponse.self, from: data)
+
+        guard registrationResponse.success else {
+            throw PairingError.pairingFailed(registrationResponse.error ?? "Unknown error")
+        }
+
+        guard let platformPublicKeyBase64 = registrationResponse.platformPublicKey,
+              let platformFingerprint = registrationResponse.platformFingerprint,
+              let deviceToken = registrationResponse.deviceToken else {
+            throw PairingError.invalidResponse
+        }
+
+        // 6. Parse platform public key
+        let platformPublicKey = try crypto.parsePublicKey(base64: platformPublicKeyBase64)
+
+        // 7. Derive shared secret
+        let sharedSecret = try crypto.deriveSharedSecret(
+            privateKey: keyPair.privateKey,
+            peerPublicKey: platformPublicKey
+        )
+
+        // 8. Derive encryption keys
+        let salt = (deviceId + "platform").data(using: .utf8)!
+        let info = "n3n-agent-v1".data(using: .utf8)!
+        let derivedKeys = crypto.deriveKeys(
+            sharedSecret: sharedSecret,
+            salt: salt,
+            info: info
+        )
+
+        // 9. Store device keys
+        let deviceKeys = DeviceKeys(
+            deviceId: deviceId,
+            deviceToken: deviceToken,
+            platformPublicKey: platformPublicKeyBase64,
+            platformFingerprint: platformFingerprint,
+            encryptKeyC2S: derivedKeys.encryptKeyClientToServer.withUnsafeBytes { Data($0) },
+            encryptKeyS2C: derivedKeys.encryptKeyServerToClient.withUnsafeBytes { Data($0) },
+            authKey: derivedKeys.authKey.withUnsafeBytes { Data($0) },
+            lastSequence: crypto.generateInitialSequence()
+        )
+
+        try storage.storeDeviceKeys(deviceKeys)
+
+        // Store private key separately (more secure)
+        try storage.storePrivateKey(keyPair.privateKeyData, deviceId: deviceId)
+
+        // Store the gateway URL for future connections
+        var agentConfig = AgentConfig()
+        agentConfig.platformUrl = config.gateway.url
+        agentConfig.deviceName = deviceName
+        try storage.storeConfig(agentConfig)
+
+        logger.info("Registration successful! Device ID: \(deviceId)")
+
+        return deviceKeys
+    }
+
     /// Check if device is already paired.
     public func isPaired() -> Bool {
         do {
@@ -163,6 +278,23 @@ struct PairingRequest: Codable {
 }
 
 struct PairingResponse: Codable {
+    let success: Bool
+    let platformPublicKey: String?
+    let platformFingerprint: String?
+    let deviceToken: String?
+    let error: String?
+}
+
+struct TokenRegistrationRequest: Codable {
+    let token: String
+    let deviceId: String
+    let deviceName: String
+    let platform: String
+    let devicePublicKey: String
+    let deviceFingerprint: String
+}
+
+struct TokenRegistrationResponse: Codable {
     let success: Bool
     let platformPublicKey: String?
     let platformFingerprint: String?

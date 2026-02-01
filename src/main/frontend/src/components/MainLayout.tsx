@@ -15,6 +15,7 @@ import {
   LinkOutlined,
   DesktopOutlined,
   ShopOutlined,
+  CloudServerOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -89,6 +90,18 @@ export default function MainLayout() {
           key: '/settings/ai',
           icon: <SettingOutlined />,
           label: t('nav.aiSettings'),
+        },
+      ],
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: t('nav.settings'),
+      children: [
+        {
+          key: '/settings/gateway',
+          icon: <CloudServerOutlined />,
+          label: 'Gateway 設定',
         },
       ],
     },

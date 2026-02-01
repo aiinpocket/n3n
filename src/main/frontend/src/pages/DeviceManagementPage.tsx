@@ -13,7 +13,11 @@ import {
   message,
   Popconfirm,
   Tag,
+  Table,
+  Modal,
+  Input,
 } from 'antd'
+import type { ColumnsType } from 'antd/es/table'
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -21,41 +25,50 @@ import {
   AppleOutlined,
   WindowsOutlined,
   DesktopOutlined,
-  WarningOutlined,
+  StopOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  CopyOutlined,
 } from '@ant-design/icons'
 import {
-  listDevices,
-  unpairDevice,
-  revokeAllDevices,
   getDownloadInfo,
   formatSize,
   getDownloadUrl,
-  type Device,
   type DownloadInfo,
 } from '../api/device'
-import DeviceCard from '../components/agent/DeviceCard'
-import DevicePairingModal from '../components/agent/DevicePairingModal'
-import DeviceEditModal from '../components/agent/DeviceEditModal'
+import {
+  listRegistrations,
+  generateAgentToken,
+  blockAgent,
+  unblockAgent,
+  deleteRegistration,
+  getStatusInfo,
+  formatTime,
+  type AgentRegistration,
+  type TokenGenerationResult,
+} from '../api/agentRegistration'
 
 const { Title, Text, Paragraph } = Typography
+const { TextArea } = Input
 
 const DeviceManagementPage: React.FC = () => {
-  const [devices, setDevices] = useState<Device[]>([])
+  const [registrations, setRegistrations] = useState<AgentRegistration[]>([])
   const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [pairingModalOpen, setPairingModalOpen] = useState(false)
-  const [editingDevice, setEditingDevice] = useState<Device | null>(null)
+  const [generatingToken, setGeneratingToken] = useState(false)
+  const [tokenResult, setTokenResult] = useState<TokenGenerationResult | null>(null)
+  const [tokenModalOpen, setTokenModalOpen] = useState(false)
 
-  const fetchDevices = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const [deviceList, downloads] = await Promise.all([
-        listDevices(),
+      const [regs, downloads] = await Promise.all([
+        listRegistrations(),
         getDownloadInfo().catch(() => null),
       ])
-      setDevices(deviceList)
+      setRegistrations(regs)
       setDownloadInfo(downloads)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : '載入設備列表失敗'
@@ -66,32 +79,147 @@ const DeviceManagementPage: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    fetchDevices()
-  }, [fetchDevices])
+    fetchData()
+  }, [fetchData])
 
-  const handleUnpair = async (deviceId: string) => {
+  const handleGenerateToken = async () => {
     try {
-      await unpairDevice(deviceId)
-      message.success('設備已解除配對')
-      fetchDevices()
+      setGeneratingToken(true)
+      const result = await generateAgentToken()
+      setTokenResult(result)
+      setTokenModalOpen(true)
+      fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '解除配對失敗'
+      const errorMessage = err instanceof Error ? err.message : '產生 Token 失敗'
+      message.error(errorMessage)
+    } finally {
+      setGeneratingToken(false)
+    }
+  }
+
+  const handleBlock = async (id: string) => {
+    try {
+      await blockAgent(id, 'Blocked by user')
+      message.success('Agent 已封鎖')
+      fetchData()
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '封鎖失敗'
       message.error(errorMessage)
     }
   }
 
-  const handleRevokeAll = async () => {
+  const handleUnblock = async (id: string) => {
     try {
-      await revokeAllDevices()
-      message.success('所有設備已撤銷')
-      fetchDevices()
+      await unblockAgent(id)
+      message.success('Agent 已解除封鎖')
+      fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '撤銷失敗'
+      const errorMessage = err instanceof Error ? err.message : '解除封鎖失敗'
       message.error(errorMessage)
     }
   }
 
-  const renderDeviceList = () => {
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteRegistration(id)
+      message.success('Agent 已刪除')
+      fetchData()
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '刪除失敗'
+      message.error(errorMessage)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    message.success('已複製到剪貼簿')
+  }
+
+  const columns: ColumnsType<AgentRegistration> = [
+    {
+      title: '狀態',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: AgentRegistration['status']) => {
+        const info = getStatusInfo(status)
+        return <Tag color={info.color}>{info.label}</Tag>
+      },
+    },
+    {
+      title: '裝置名稱',
+      dataIndex: 'deviceName',
+      key: 'deviceName',
+      render: (name: string | null, record: AgentRegistration) => (
+        <Space direction="vertical" size={0}>
+          <Text strong>{name || '(待註冊)'}</Text>
+          {record.platform && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {record.platform}
+            </Text>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '建立時間',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 180,
+      render: (time: number) => formatTime(time),
+    },
+    {
+      title: '最後活動',
+      dataIndex: 'lastSeenAt',
+      key: 'lastSeenAt',
+      width: 180,
+      render: (time: number | null) => formatTime(time),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 200,
+      render: (_: unknown, record: AgentRegistration) => (
+        <Space>
+          {record.status === 'BLOCKED' ? (
+            <Button
+              size="small"
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleUnblock(record.id)}
+            >
+              解除封鎖
+            </Button>
+          ) : record.status === 'REGISTERED' ? (
+            <Popconfirm
+              title="封鎖此 Agent"
+              description="封鎖後此 Agent 將無法連線到平台"
+              onConfirm={() => handleBlock(record.id)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button size="small" icon={<StopOutlined />} danger>
+                封鎖
+              </Button>
+            </Popconfirm>
+          ) : null}
+          <Popconfirm
+            title="刪除此 Agent"
+            description="刪除後無法復原，需要重新產生 Token"
+            onConfirm={() => handleDelete(record.id)}
+            okText="確定"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+          >
+            <Button size="small" icon={<DeleteOutlined />} danger>
+              刪除
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ]
+
+  const renderAgentList = () => {
     if (loading) {
       return (
         <div style={{ textAlign: 'center', padding: 60 }}>
@@ -105,40 +233,36 @@ const DeviceManagementPage: React.FC = () => {
         <Alert
           type="error"
           message={error}
-          action={<Button onClick={fetchDevices}>重試</Button>}
+          action={<Button onClick={fetchData}>重試</Button>}
         />
       )
     }
 
-    if (devices.length === 0) {
+    if (registrations.length === 0) {
       return (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="尚未配對任何設備"
+          description="尚未新增任何 Agent"
         >
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setPairingModalOpen(true)}
+            onClick={handleGenerateToken}
+            loading={generatingToken}
           >
-            新增設備
+            新增 Agent
           </Button>
         </Empty>
       )
     }
 
     return (
-      <Row gutter={[16, 16]}>
-        {devices.map((device) => (
-          <Col xs={24} sm={12} lg={8} key={device.deviceId}>
-            <DeviceCard
-              device={device}
-              onEdit={setEditingDevice}
-              onDelete={handleUnpair}
-            />
-          </Col>
-        ))}
-      </Row>
+      <Table
+        columns={columns}
+        dataSource={registrations}
+        rowKey="id"
+        pagination={false}
+      />
     )
   }
 
@@ -233,9 +357,9 @@ const DeviceManagementPage: React.FC = () => {
 
   const tabItems = [
     {
-      key: 'devices',
-      label: `已配對設備 (${devices.length})`,
-      children: renderDeviceList(),
+      key: 'agents',
+      label: `Agent 列表 (${registrations.length})`,
+      children: renderAgentList(),
     },
     {
       key: 'downloads',
@@ -245,7 +369,14 @@ const DeviceManagementPage: React.FC = () => {
           <Alert
             type="info"
             message="N3N Agent 讓您可以從平台遠端控制您的電腦"
-            description="下載並安裝 Agent 後，使用配對碼將設備連接到平台。支援螢幕截圖、命令執行、檔案管理等功能。"
+            description={
+              <ol style={{ margin: 0, paddingLeft: 20 }}>
+                <li>下載並安裝對應平台的 Agent</li>
+                <li>點擊「新增 Agent」產生設定檔</li>
+                <li>將設定檔放到 Agent 目錄並啟動</li>
+                <li>Agent 會自動連線到平台</li>
+              </ol>
+            }
           />
           {renderDownloads()}
         </Space>
@@ -268,51 +399,74 @@ const DeviceManagementPage: React.FC = () => {
             設備管理
           </Title>
           <Paragraph type="secondary">
-            管理已連接的設備和下載 Agent
+            管理已連接的 Agent 和下載 Agent 程式
           </Paragraph>
         </div>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchDevices}>
+          <Button icon={<ReloadOutlined />} onClick={fetchData}>
             重新整理
           </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setPairingModalOpen(true)}
+            onClick={handleGenerateToken}
+            loading={generatingToken}
           >
-            新增設備
+            新增 Agent
           </Button>
-          {devices.length > 0 && (
-            <Popconfirm
-              title="撤銷所有設備"
-              description="確定要撤銷所有已配對的設備嗎？此操作無法復原。"
-              onConfirm={handleRevokeAll}
-              okText="確定"
-              cancelText="取消"
-              okButtonProps={{ danger: true }}
-            >
-              <Button danger icon={<WarningOutlined />}>
-                撤銷全部
-              </Button>
-            </Popconfirm>
-          )}
         </Space>
       </div>
 
       <Tabs items={tabItems} />
 
-      <DevicePairingModal
-        open={pairingModalOpen}
-        onClose={() => setPairingModalOpen(false)}
-        onPaired={fetchDevices}
-      />
-
-      <DeviceEditModal
-        device={editingDevice}
-        open={!!editingDevice}
-        onClose={() => setEditingDevice(null)}
-        onUpdated={fetchDevices}
-      />
+      <Modal
+        title="Agent 設定檔"
+        open={tokenModalOpen}
+        onCancel={() => setTokenModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setTokenModalOpen(false)}>
+            關閉
+          </Button>,
+          <Button
+            key="copy"
+            type="primary"
+            icon={<CopyOutlined />}
+            onClick={() => {
+              if (tokenResult) {
+                copyToClipboard(JSON.stringify(tokenResult.config, null, 2))
+              }
+            }}
+          >
+            複製設定
+          </Button>,
+        ]}
+        width={600}
+      >
+        {tokenResult && (
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <Alert
+              type="warning"
+              message="請妥善保存此設定檔"
+              description="此設定檔包含一次性的註冊 Token，關閉視窗後將無法再次查看。"
+            />
+            <div>
+              <Text strong>設定檔內容：</Text>
+              <TextArea
+                value={JSON.stringify(tokenResult.config, null, 2)}
+                autoSize={{ minRows: 10, maxRows: 20 }}
+                readOnly
+                style={{ fontFamily: 'monospace', marginTop: 8 }}
+              />
+            </div>
+            <div>
+              <Text type="secondary">
+                將此設定檔儲存為 <Text code>n3n-agent-config.json</Text>，
+                放到 Agent 程式的同一目錄下，然後啟動 Agent。
+              </Text>
+            </div>
+          </Space>
+        )}
+      </Modal>
     </div>
   )
 }

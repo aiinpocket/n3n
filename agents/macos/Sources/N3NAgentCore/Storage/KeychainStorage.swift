@@ -264,3 +264,61 @@ public enum KeychainError: Error, LocalizedError {
         }
     }
 }
+
+// MARK: - Registration Config File
+
+/// Config file structure for token-based registration
+public struct RegistrationConfig: Codable {
+    public let version: Int
+    public let gateway: GatewayInfo
+    public let registration: RegistrationInfo
+
+    public struct GatewayInfo: Codable {
+        public let url: String
+        public let domain: String
+        public let port: Int
+    }
+
+    public struct RegistrationInfo: Codable {
+        public let token: String
+        public let agentId: String
+    }
+
+    /// Load config from a JSON file
+    public static func load(from url: URL) throws -> RegistrationConfig {
+        let data = try Data(contentsOf: url)
+        let decoder = JSONDecoder()
+        return try decoder.decode(RegistrationConfig.self, from: data)
+    }
+
+    /// Find config file in common locations
+    public static func findConfigFile() -> URL? {
+        let fileManager = FileManager.default
+
+        // Check locations in order:
+        // 1. Same directory as executable
+        // 2. Current working directory
+        // 3. Home directory
+        // 4. Application Support directory
+
+        let locations: [URL] = [
+            Bundle.main.bundleURL.appendingPathComponent("n3n-agent-config.json"),
+            URL(fileURLWithPath: fileManager.currentDirectoryPath)
+                .appendingPathComponent("n3n-agent-config.json"),
+            fileManager.homeDirectoryForCurrentUser
+                .appendingPathComponent("n3n-agent-config.json"),
+            fileManager.homeDirectoryForCurrentUser
+                .appendingPathComponent(".n3n/config.json"),
+            fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("N3N Agent/config.json")
+        ].compactMap { $0 }
+
+        for location in locations {
+            if fileManager.fileExists(atPath: location.path) {
+                return location
+            }
+        }
+
+        return nil
+    }
+}

@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.gateway.handler;
 
+import com.aiinpocket.n3n.agent.service.AgentRegistrationService;
 import com.aiinpocket.n3n.gateway.node.NodeConnection;
 import com.aiinpocket.n3n.gateway.node.NodeRegistry;
 import com.aiinpocket.n3n.gateway.protocol.GatewayEvent;
@@ -39,6 +40,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
     private final SecureMessageService secureMessageService;
     private final DeviceKeyStore deviceKeyStore;
     private final AgentPairingService pairingService;
+    private final AgentRegistrationService agentRegistrationService;
 
     /**
      * Pending requests waiting for responses
@@ -223,6 +225,13 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
+            // Check if agent is blocked in database
+            if (agentRegistrationService.isDeviceBlocked(deviceId)) {
+                sendPlainResponse(session, GatewayResponse.error(
+                    request.getId(), "AUTH_ERROR", "This agent has been blocked"));
+                return;
+            }
+
             // Handshake successful - switch to encrypted mode
             handshakeSessions.remove(sessionId);
             sessionToDevice.put(sessionId, deviceId);
@@ -260,6 +269,9 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             sessionToConnection.put(sessionId, connectionId);
 
             log.info("Secure handshake completed: deviceId={}, connectionId={}", deviceId, connectionId);
+
+            // Update last seen timestamp
+            agentRegistrationService.updateLastSeen(deviceId);
 
             // Send success response (still unencrypted, as client expects it)
             sendPlainResponse(session, GatewayResponse.success(request.getId(), Map.of(

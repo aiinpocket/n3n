@@ -94,6 +94,86 @@ public class PairingService
     }
 
     /// <summary>
+    /// Register with the platform using a one-time token from config file.
+    /// </summary>
+    public async Task<PairingResult> RegisterWithTokenAsync(RegistrationConfig config)
+    {
+        // Generate new key pair
+        var (privateKey, publicKey) = AgentCrypto.GenerateKeyPair();
+        var deviceId = Guid.NewGuid().ToString();
+
+        // Build registration request
+        var registerRequest = new TokenRegistrationRequest
+        {
+            Token = config.Registration.Token,
+            DeviceId = deviceId,
+            DeviceName = Environment.MachineName,
+            Platform = "windows",
+            DevicePublicKey = Convert.ToBase64String(publicKey),
+            DeviceFingerprint = GenerateDeviceFingerprint()
+        };
+
+        // Build registration URL
+        var registerUrl = config.Gateway.Url
+            .Replace("wss://", "https://")
+            .Replace("ws://", "http://")
+            .Replace("/ws/agent/secure", "")
+            .Replace("/ws/agent", "")
+            + "/api/public/agents/register";
+
+        var response = await _httpClient.PostAsJsonAsync(registerUrl, registerRequest);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new PairingException($"Registration failed: {response.StatusCode} - {error}");
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<TokenRegistrationResponse>();
+        if (result == null || !result.Success)
+            throw new PairingException(result?.Error ?? "Invalid response from platform");
+
+        // Derive shared secret using ECDH
+        var platformPublicKey = Convert.FromBase64String(result.PlatformPublicKey!);
+        var sharedSecret = AgentCrypto.DeriveSharedSecret(privateKey, platformPublicKey);
+
+        // Derive session key
+        var sessionKey = AgentCrypto.DeriveSessionKey(sharedSecret, deviceId);
+
+        // Store credentials securely
+        _storage.StoreDeviceKeys(new DeviceKeys
+        {
+            DeviceId = deviceId,
+            DeviceToken = result.DeviceToken!,
+            PlatformPublicKey = result.PlatformPublicKey!,
+            PlatformFingerprint = result.PlatformFingerprint!,
+            EncryptKeyC2S = sessionKey,
+            EncryptKeyS2C = sessionKey,
+            PairedAt = DateTime.UtcNow
+        });
+        _storage.StoreConfig(new AgentConfig
+        {
+            PlatformUrl = config.Gateway.Url,
+            DeviceName = Environment.MachineName
+        });
+
+        return new PairingResult
+        {
+            DeviceId = deviceId,
+            DeviceName = Environment.MachineName,
+            Success = true
+        };
+    }
+
+    private string GenerateDeviceFingerprint()
+    {
+        var info = $"{Environment.MachineName}:{Environment.OSVersion}:{Environment.UserName}";
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(info));
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
     /// Check if the agent is already paired.
     /// </summary>
     public bool IsPaired()
@@ -208,4 +288,43 @@ public class PairingStatus
 public class PairingException : Exception
 {
     public PairingException(string message) : base(message) { }
+}
+
+public class TokenRegistrationRequest
+{
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = "";
+
+    [JsonPropertyName("deviceId")]
+    public string DeviceId { get; set; } = "";
+
+    [JsonPropertyName("deviceName")]
+    public string DeviceName { get; set; } = "";
+
+    [JsonPropertyName("platform")]
+    public string Platform { get; set; } = "";
+
+    [JsonPropertyName("devicePublicKey")]
+    public string DevicePublicKey { get; set; } = "";
+
+    [JsonPropertyName("deviceFingerprint")]
+    public string DeviceFingerprint { get; set; } = "";
+}
+
+public class TokenRegistrationResponse
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    [JsonPropertyName("platformPublicKey")]
+    public string? PlatformPublicKey { get; set; }
+
+    [JsonPropertyName("platformFingerprint")]
+    public string? PlatformFingerprint { get; set; }
+
+    [JsonPropertyName("deviceToken")]
+    public string? DeviceToken { get; set; }
+
+    [JsonPropertyName("error")]
+    public string? Error { get; set; }
 }

@@ -24,6 +24,7 @@ import AIAssistantPage from './pages/AIAssistantPage'
 import SkillsPage from './pages/SkillsPage'
 import WebhooksPage from './pages/WebhooksPage'
 import DeviceManagementPage from './pages/DeviceManagementPage'
+import GatewaySettingsPage from './pages/GatewaySettingsPage'
 import MarketplacePage from './pages/MarketplacePage'
 
 // Map i18n language to Ant Design locale
@@ -121,6 +122,7 @@ function App() {
             <Route path="skills" element={<SkillsPage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
+            <Route path="settings/gateway" element={<GatewaySettingsPage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
           </Route>
           </Routes>
