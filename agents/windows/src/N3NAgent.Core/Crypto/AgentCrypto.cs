@@ -19,19 +19,19 @@ public class AgentCrypto
     /// <summary>
     /// Generate a new X25519 key pair for key exchange.
     /// </summary>
-    public KeyPair GenerateKeyPair()
+    public static (byte[] PrivateKey, byte[] PublicKey) GenerateKeyPair()
     {
         using var ecdh = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
         var privateKey = ecdh.ExportECPrivateKey();
         var publicKey = ecdh.ExportSubjectPublicKeyInfo();
 
-        return new KeyPair(privateKey, publicKey);
+        return (privateKey, publicKey);
     }
 
     /// <summary>
     /// Derive shared secret from our private key and peer's public key.
     /// </summary>
-    public byte[] DeriveSharedSecret(byte[] privateKey, byte[] peerPublicKey)
+    public static byte[] DeriveSharedSecret(byte[] privateKey, byte[] peerPublicKey)
     {
         using var ecdh = ECDiffieHellman.Create();
         ecdh.ImportECPrivateKey(privateKey, out _);
@@ -40,6 +40,16 @@ public class AgentCrypto
         peerEcdh.ImportSubjectPublicKeyInfo(peerPublicKey, out _);
 
         return ecdh.DeriveKeyMaterial(peerEcdh.PublicKey);
+    }
+
+    /// <summary>
+    /// Derive a session key from shared secret using HKDF.
+    /// </summary>
+    public static byte[] DeriveSessionKey(byte[] sharedSecret, string deviceId)
+    {
+        var salt = Encoding.UTF8.GetBytes("n3n-agent-session");
+        var info = Encoding.UTF8.GetBytes($"session-{deviceId}");
+        return HKDF.DeriveKey(HashAlgorithmName.SHA256, sharedSecret, 32, salt, info);
     }
 
     /// <summary>
@@ -64,7 +74,7 @@ public class AgentCrypto
     /// <summary>
     /// Encrypt data using AES-256-GCM.
     /// </summary>
-    public EncryptedData Encrypt(byte[] plaintext, byte[] key, byte[]? aad = null)
+    public static EncryptedData Encrypt(byte[] plaintext, byte[] key, byte[]? aad = null)
     {
         using var aes = new AesGcm(key, 16);
         var nonce = new byte[12];
@@ -81,12 +91,12 @@ public class AgentCrypto
     /// <summary>
     /// Decrypt data using AES-256-GCM.
     /// </summary>
-    public byte[] Decrypt(byte[] ciphertext, byte[] tag, byte[] key, byte[] nonce, byte[]? aad = null)
+    public static byte[] Decrypt(EncryptedData data, byte[] key, byte[]? aad = null)
     {
         using var aes = new AesGcm(key, 16);
-        var plaintext = new byte[ciphertext.Length];
+        var plaintext = new byte[data.Ciphertext.Length];
 
-        aes.Decrypt(nonce, ciphertext, tag, plaintext, aad);
+        aes.Decrypt(data.Nonce, data.Ciphertext, data.Tag, plaintext, aad);
 
         return plaintext;
     }
@@ -176,6 +186,33 @@ public record DerivedKeys(
 public record EncryptedData(byte[] Nonce, byte[] Ciphertext, byte[] Tag)
 {
     public byte[] Combined => Nonce.Concat(Ciphertext).Concat(Tag).ToArray();
+
+    /// <summary>
+    /// Convert to compact Base64 string format.
+    /// </summary>
+    public string ToCompact()
+    {
+        var nonceB64 = Convert.ToBase64String(Nonce);
+        var ciphertextB64 = Convert.ToBase64String(Ciphertext);
+        var tagB64 = Convert.ToBase64String(Tag);
+        return $"{nonceB64}.{ciphertextB64}.{tagB64}";
+    }
+
+    /// <summary>
+    /// Parse from compact Base64 string format.
+    /// </summary>
+    public static EncryptedData FromCompact(string compact)
+    {
+        var parts = compact.Split('.');
+        if (parts.Length != 3)
+            throw new CryptoException("Invalid compact format");
+
+        return new EncryptedData(
+            Convert.FromBase64String(parts[0]),
+            Convert.FromBase64String(parts[1]),
+            Convert.FromBase64String(parts[2])
+        );
+    }
 }
 
 public class CryptoException : Exception

@@ -107,9 +107,9 @@ public class AgentConnection : IAsyncDisposable
         var plaintext = Encoding.UTF8.GetBytes(json);
 
         var seq = Interlocked.Increment(ref _sequence);
-        var secureMessage = AgentCrypto.Encrypt(plaintext, sessionKey, deviceId, seq);
+        var encrypted = AgentCrypto.Encrypt(plaintext, sessionKey);
 
-        var messageBytes = Encoding.UTF8.GetBytes(secureMessage.ToCompact());
+        var messageBytes = Encoding.UTF8.GetBytes(encrypted.ToCompact());
 
         lock (_sendLock)
         {
@@ -182,7 +182,12 @@ public class AgentConnection : IAsyncDisposable
             }
 
             // Decrypt message
-            var plaintext = AgentCrypto.Decrypt(secureMessage, sessionKey);
+            var encryptedData = new EncryptedData(
+                secureMessage.GetNonceBytes(),
+                secureMessage.GetCiphertextBytes(),
+                secureMessage.GetTagBytes()
+            );
+            var plaintext = AgentCrypto.Decrypt(encryptedData, sessionKey);
             var json = Encoding.UTF8.GetString(plaintext);
 
             MessageReceived?.Invoke(this, json);
