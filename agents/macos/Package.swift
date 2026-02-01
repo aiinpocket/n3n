@@ -13,8 +13,8 @@ let package = Package(
     dependencies: [
         // WebSocket client
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.14.0"),
-        // Argument parser for CLI
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+        // Argument parser for CLI (fixed to 1.3.x to avoid experimental features in 1.4+)
+        .package(url: "https://github.com/apple/swift-argument-parser.git", .upToNextMinor(from: "1.3.0")),
         // Logging
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
     ],
