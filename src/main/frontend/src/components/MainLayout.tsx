@@ -13,6 +13,8 @@ import {
   SettingOutlined,
   ToolOutlined,
   LinkOutlined,
+  DesktopOutlined,
+  ShopOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -62,6 +64,16 @@ export default function MainLayout() {
       key: '/components',
       icon: <AppstoreOutlined />,
       label: t('nav.components'),
+    },
+    {
+      key: '/devices',
+      icon: <DesktopOutlined />,
+      label: t('nav.devices'),
+    },
+    {
+      key: '/marketplace',
+      icon: <ShopOutlined />,
+      label: t('nav.marketplace'),
     },
     {
       key: 'ai',

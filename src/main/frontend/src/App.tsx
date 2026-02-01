@@ -23,6 +23,8 @@ import AISettingsPage from './pages/AISettingsPage'
 import AIAssistantPage from './pages/AIAssistantPage'
 import SkillsPage from './pages/SkillsPage'
 import WebhooksPage from './pages/WebhooksPage'
+import DeviceManagementPage from './pages/DeviceManagementPage'
+import MarketplacePage from './pages/MarketplacePage'
 
 // Map i18n language to Ant Design locale
 const antdLocales = {
@@ -118,6 +120,8 @@ function App() {
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
+            <Route path="devices" element={<DeviceManagementPage />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
           </Route>
           </Routes>
         </SetupCheck>
