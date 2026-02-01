@@ -30,7 +30,7 @@ public class AgentConnection : IAsyncDisposable
 
     public AgentConnection()
     {
-        _storage = new CredentialStorage();
+        _storage = CredentialStorage.Instance;
         _capabilities = CapabilityRegistry.Instance;
     }
 

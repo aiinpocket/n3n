@@ -79,6 +79,44 @@ public class CredentialStorage
         DeleteCredential($"{CredentialPrefix}Config");
     }
 
+    // MARK: - Helper Methods
+
+    /// <summary>
+    /// Get the device ID if paired.
+    /// </summary>
+    public string? GetDeviceId()
+    {
+        var keys = LoadDeviceKeys();
+        return keys?.DeviceId;
+    }
+
+    /// <summary>
+    /// Get the platform URL from config.
+    /// </summary>
+    public string? GetPlatformUrl()
+    {
+        var config = LoadConfig();
+        return config?.PlatformUrl;
+    }
+
+    /// <summary>
+    /// Get the device token if paired.
+    /// </summary>
+    public string? GetDeviceToken()
+    {
+        var keys = LoadDeviceKeys();
+        return keys?.DeviceToken;
+    }
+
+    /// <summary>
+    /// Get the session key (C2S encryption key) if paired.
+    /// </summary>
+    public byte[]? GetSessionKey()
+    {
+        var keys = LoadDeviceKeys();
+        return keys?.EncryptKeyC2S;
+    }
+
     // MARK: - Windows Credential Manager P/Invoke
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]

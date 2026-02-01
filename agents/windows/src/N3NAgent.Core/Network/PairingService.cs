@@ -23,7 +23,7 @@ public class PairingService
         {
             Timeout = TimeSpan.FromSeconds(30)
         };
-        _storage = new CredentialStorage();
+        _storage = CredentialStorage.Instance;
     }
 
     /// <summary>
@@ -71,10 +71,19 @@ public class PairingService
         var sessionKey = AgentCrypto.DeriveSessionKey(sharedSecret, result.DeviceId);
 
         // Store credentials securely
-        _storage.StoreDeviceId(result.DeviceId);
-        _storage.StoreDeviceToken(result.DeviceToken);
-        _storage.StoreSessionKey(sessionKey);
-        _storage.StorePlatformUrl(_platformUrl);
+        _storage.StoreDeviceKeys(new DeviceKeys
+        {
+            DeviceId = result.DeviceId,
+            DeviceToken = result.DeviceToken,
+            PlatformPublicKey = result.PlatformPublicKey,
+            EncryptKeyC2S = sessionKey,
+            EncryptKeyS2C = sessionKey, // Same key for now
+            PairedAt = DateTime.UtcNow
+        });
+        _storage.StoreConfig(new AgentConfig
+        {
+            PlatformUrl = _platformUrl
+        });
 
         return new PairingResult
         {

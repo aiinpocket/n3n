@@ -25,7 +25,7 @@ public class Agent : IAsyncDisposable
 
     public Agent(int reconnectDelayMs = 5000, int maxReconnectDelayMs = 60000)
     {
-        _storage = new CredentialStorage();
+        _storage = CredentialStorage.Instance;
         _capabilities = CapabilityRegistry.Instance;
         _reconnectDelayMs = reconnectDelayMs;
         _maxReconnectDelayMs = maxReconnectDelayMs;
