@@ -94,17 +94,19 @@ The backend is organized into the following modules:
 ```
 com.aiinpocket.n3n/
 ├── admin/           # Admin user management
-├── agent/           # AI agent functionality
-├── ai/              # AI provider integration
+├── agent/           # Device/Agent management for local automation
+├── ai/              # AI provider integration (OpenAI, Claude, Gemini, Ollama)
 ├── api/             # Common API controllers
 ├── auth/            # Authentication & authorization
 ├── activity/        # User activity logging
 ├── common/          # Shared utilities, configs, exceptions
 ├── component/       # Custom component registry
-├── credential/      # Credential management (encryption)
+├── credential/      # Credential management (AES-256-GCM encryption)
 ├── execution/       # Flow execution engine
 ├── flow/            # Flow CRUD & versioning
+├── gateway/         # Agent Gateway (WebSocket, ECDH encryption)
 ├── oauth2/          # OAuth2 integration
+├── plugin/          # Plugin Marketplace system
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
 ├── template/        # Flow templates
@@ -139,6 +141,20 @@ Secure credential storage with AES-256-GCM encryption.
 - `EncryptionService` - Encrypt/decrypt sensitive data
 - `MasterKeyProvider` - Master key management
 - `CredentialService` - CRUD with encryption
+- `RecoveryKeyService` - BIP39-based recovery key generation
+
+#### plugin/
+Plugin marketplace with dynamic node registration.
+- `MarketplaceController` - Plugin browsing, install, uninstall APIs
+- `PluginService` - Plugin lifecycle management
+- `PluginNodeRegistrar` - Dynamic registration of plugin nodes
+- `DynamicPluginNodeHandler` - Runtime execution of plugin-defined nodes
+
+#### gateway/
+WebSocket gateway for local agent communication.
+- `AgentGatewayHandler` - WebSocket connection management
+- `AgentConnectionManager` - Track connected agents
+- Security: X25519 ECDH key exchange + AES-256-GCM encryption
 
 ---
 
@@ -312,6 +328,78 @@ Secure credential storage with AES-256-GCM encryption.
 }
 ```
 
+### Plugin Marketplace
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/marketplace/categories` | List plugin categories |
+| GET | `/api/marketplace/plugins` | Search plugins (with filters) |
+| GET | `/api/marketplace/plugins/featured` | Get featured plugins |
+| GET | `/api/marketplace/plugins/installed` | Get installed plugins |
+| GET | `/api/marketplace/plugins/{id}` | Get plugin details |
+| POST | `/api/marketplace/plugins/{id}/install` | Install plugin |
+| DELETE | `/api/marketplace/plugins/{id}/uninstall` | Uninstall plugin |
+| POST | `/api/marketplace/plugins/{id}/update` | Update to latest version |
+| POST | `/api/marketplace/plugins/{id}/rate` | Rate a plugin |
+
+**Search Query Parameters:**
+- `category` - Filter by category
+- `pricing` - `free`, `paid`, `freemium`
+- `sortBy` - `popular`, `recent`, `rating`, `name`
+- `q` - Search query
+- `page`, `pageSize` - Pagination
+
+**Plugin Response:**
+```json
+{
+  "id": "uuid",
+  "name": "openai",
+  "displayName": "OpenAI",
+  "description": "OpenAI GPT integration",
+  "category": "ai",
+  "author": "N3N Team",
+  "version": "1.0.0",
+  "downloads": 1250,
+  "rating": 4.8,
+  "isInstalled": true,
+  "installedVersion": "1.0.0"
+}
+```
+
+### Devices & Agents
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/devices` | List user's devices |
+| POST | `/api/devices/pairing-code` | Generate 6-digit pairing code |
+| POST | `/api/devices/pair` | Complete pairing with code |
+| GET | `/api/devices/{id}` | Get device details |
+| PUT | `/api/devices/{id}` | Update device name/settings |
+| DELETE | `/api/devices/{id}` | Remove device |
+| POST | `/api/devices/{id}/command` | Send command to agent |
+
+**Pairing Flow:**
+1. User requests pairing code: `POST /api/devices/pairing-code`
+2. Agent submits code with public key: `POST /api/devices/pair`
+3. Server responds with encrypted session key
+4. All further communication is encrypted
+
+**Security:**
+- X25519 ECDH for key exchange
+- AES-256-GCM for command encryption
+- 6-digit code expires in 5 minutes
+
+### Recovery Keys
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/credentials/recovery-key/status` | Check if recovery key exists |
+| POST | `/api/credentials/recovery-key/generate` | Generate new recovery key |
+| POST | `/api/credentials/recovery-key/verify` | Verify recovery phrase |
+| POST | `/api/credentials/recovery-key/recover` | Recover credentials |
+
+**Recovery Key Format:** 24-word BIP39 mnemonic phrase
+
 ### Admin (Admin role required)
 
 | Method | Endpoint | Description |
@@ -420,6 +508,81 @@ CREATE TABLE credentials (
 );
 ```
 
+### Plugin Tables
+
+#### plugins
+```sql
+CREATE TABLE plugins (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    icon_url VARCHAR(500),
+    repository_url VARCHAR(500),
+    documentation_url VARCHAR(500),
+    downloads INTEGER DEFAULT 0,
+    rating DECIMAL(3,2) DEFAULT 0,
+    rating_count INTEGER DEFAULT 0,
+    pricing VARCHAR(20) DEFAULT 'free',
+    is_featured BOOLEAN DEFAULT FALSE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+```
+
+#### plugin_versions
+```sql
+CREATE TABLE plugin_versions (
+    id UUID PRIMARY KEY,
+    plugin_id UUID NOT NULL REFERENCES plugins(id),
+    version VARCHAR(50) NOT NULL,
+    changelog TEXT,
+    min_platform_version VARCHAR(50),
+    node_definitions JSONB NOT NULL,
+    config_schema JSONB,
+    credential_type VARCHAR(100),
+    is_latest BOOLEAN DEFAULT FALSE,
+    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(plugin_id, version)
+);
+```
+
+#### plugin_installations
+```sql
+CREATE TABLE plugin_installations (
+    id UUID PRIMARY KEY,
+    plugin_id UUID NOT NULL REFERENCES plugins(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    version_id UUID NOT NULL REFERENCES plugin_versions(id),
+    installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    UNIQUE(plugin_id, user_id)
+);
+```
+
+### Device Tables
+
+#### devices
+```sql
+CREATE TABLE devices (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    device_type VARCHAR(50) NOT NULL,
+    os_type VARCHAR(50),
+    os_version VARCHAR(50),
+    agent_version VARCHAR(50),
+    public_key TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    last_seen_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
 ### Redis Keys
 
 | Pattern | Purpose |
@@ -428,6 +591,8 @@ CREATE TABLE credentials (
 | `execution:{id}:nodes` | Node execution states |
 | `flow:{id}:lock` | Concurrency control lock |
 | `data:{uuid}` | Large data blob storage |
+| `pairing:{code}` | Device pairing code (5min TTL) |
+| `agent:{deviceId}:session` | Agent session key |
 
 ---
 
@@ -484,6 +649,105 @@ npm run dev
 - Zustand for state management
 - TypeScript strict mode
 - Ant Design components
+
+### Agent Gateway Architecture
+
+The Agent Gateway enables secure communication with local agents:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Local Agent (macOS/Windows)                             │
+│  - FileSystem, Clipboard, Notification capabilities     │
+└────────────────────────┬────────────────────────────────┘
+                         │ WebSocket (WSS)
+                         │ X25519 ECDH + AES-256-GCM
+┌────────────────────────▼────────────────────────────────┐
+│  Agent Gateway (/gateway WebSocket)                      │
+│  - AgentConnectionManager: Track online agents          │
+│  - Command routing: Flow node → Agent                   │
+│  - Response handling: Agent → Flow execution            │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│  Device Management                                       │
+│  - Pairing: 6-digit code + public key exchange          │
+│  - Device registry: Store device info in PostgreSQL     │
+│  - Session keys: Store in Redis                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Pairing Protocol:**
+1. User requests pairing code → Server generates 6-digit code, stores in Redis (5min TTL)
+2. Agent submits code + X25519 public key → Server validates code
+3. Server generates session key, encrypts with agent's public key
+4. All subsequent commands encrypted with AES-256-GCM
+
+**Command Message Format:**
+```json
+{
+  "type": "command",
+  "id": "uuid",
+  "capability": "fileSystem",
+  "action": "readFile",
+  "params": { "path": "/path/to/file" },
+  "encrypted": "base64-encoded-aes-gcm-ciphertext"
+}
+```
+
+### Plugin System Architecture
+
+The plugin system allows dynamic registration of node types at runtime:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Plugin Marketplace UI                                   │
+│  Browse → Install → Use in Flow Editor                  │
+└────────────────────────┬────────────────────────────────┘
+                         │ Install/Uninstall
+┌────────────────────────▼────────────────────────────────┐
+│  PluginService                                           │
+│  - Install: Save to DB + Register nodes                 │
+│  - Uninstall: Remove from DB + Unregister nodes         │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│  PluginNodeRegistrar                                     │
+│  - Registers DynamicPluginNodeHandler to registry       │
+│  - Tracks handlers per user (for user-specific plugins) │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│  NodeHandlerRegistry                                     │
+│  - Central registry of all node types                   │
+│  - Lookup by type name during execution                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Plugin Node Definition (JSONB):**
+```json
+{
+  "nodes": [{
+    "type": "openai",
+    "displayName": "OpenAI",
+    "category": "ai",
+    "icon": "robot",
+    "resources": {
+      "chat": {
+        "displayName": "Chat",
+        "operations": [{
+          "name": "createCompletion",
+          "displayName": "Create Completion",
+          "fields": [
+            { "name": "model", "type": "string", "required": true },
+            { "name": "prompt", "type": "string", "format": "textarea" },
+            { "name": "temperature", "type": "number", "default": 0.7 }
+          ]
+        }]
+      }
+    }
+  }]
+}
+```
 
 ### Adding a New Node Type
 
