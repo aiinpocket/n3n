@@ -1,0 +1,41 @@
+{
+  "agents": {
+    "macos": {
+      "arm64": {
+        "version": "1.0.0",
+        "filename": "n3n-agent-macos-arm64",
+        "sha256": "",
+        "size": 13846152,
+        "minOS": "13.0"
+      },
+      "x86_64": {
+        "version": "1.0.0",
+        "filename": "n3n-agent-macos-x86_64",
+        "sha256": "",
+        "size": 0,
+        "minOS": "13.0",
+        "status": "coming-soon"
+      }
+    },
+    "windows": {
+      "x86_64": {
+        "version": "1.0.0",
+        "filename": "n3n-agent-windows-x64.exe",
+        "sha256": "",
+        "size": 0,
+        "status": "coming-soon"
+      }
+    },
+    "linux": {
+      "x86_64": {
+        "version": "1.0.0",
+        "filename": "n3n-agent-linux-x64",
+        "sha256": "",
+        "size": 0,
+        "status": "coming-soon"
+      }
+    }
+  },
+  "latestVersion": "1.0.0",
+  "releaseDate": "2026-02-01"
+}

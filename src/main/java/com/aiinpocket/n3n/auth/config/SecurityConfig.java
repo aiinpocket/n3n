@@ -52,6 +52,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                // Agent pairing completion (uses pairing code for auth)
+                .requestMatchers("/api/agent/pair/complete").permitAll()
                 // Webhook trigger endpoints (no auth - uses signature validation)
                 .requestMatchers("/webhook/**").permitAll()
                 // Actuator endpoints for K8s probes
