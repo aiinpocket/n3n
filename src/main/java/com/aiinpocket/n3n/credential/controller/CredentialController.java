@@ -1,8 +1,11 @@
 package com.aiinpocket.n3n.credential.controller;
 
+import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
+import com.aiinpocket.n3n.credential.dto.TestCredentialRequest;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
+import com.aiinpocket.n3n.credential.service.ConnectionTestService;
 import com.aiinpocket.n3n.credential.service.CredentialService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import java.util.UUID;
 public class CredentialController {
 
     private final CredentialService credentialService;
+    private final ConnectionTestService connectionTestService;
 
     @GetMapping
     public ResponseEntity<Page<CredentialResponse>> listCredentials(
@@ -83,5 +87,31 @@ public class CredentialController {
     @GetMapping("/types")
     public ResponseEntity<List<CredentialType>> listCredentialTypes() {
         return ResponseEntity.ok(credentialService.listCredentialTypes());
+    }
+
+    /**
+     * Test an unsaved credential connection
+     * This allows testing connection before saving the credential
+     */
+    @PostMapping("/test")
+    public ResponseEntity<ConnectionTestResult> testConnection(
+            @Valid @RequestBody TestCredentialRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        ConnectionTestResult result = connectionTestService.testConnection(
+                request.getType(), request.getData());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Test a saved credential connection
+     * This tests the connection and updates the credential's metadata with the result
+     */
+    @PostMapping("/{id}/test")
+    public ResponseEntity<ConnectionTestResult> testSavedCredential(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        ConnectionTestResult result = connectionTestService.testSavedCredential(id, userId);
+        return ResponseEntity.ok(result);
     }
 }

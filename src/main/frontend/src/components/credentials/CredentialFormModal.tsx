@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, message, Alert } from 'antd'
+import { Modal, Form, Input, Select, message, Alert, Button, Space } from 'antd'
+import { CheckCircleOutlined, CloseCircleOutlined, ApiOutlined } from '@ant-design/icons'
 import { useCredentialStore } from '../../stores/credentialStore'
-import { CredentialType, CreateCredentialRequest } from '../../api/credential'
+import { CredentialType, CreateCredentialRequest, ConnectionTestResult } from '../../api/credential'
+import { useTranslation } from 'react-i18next'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -25,14 +27,20 @@ interface FieldProperty {
   default?: string | number
 }
 
+// Database credential types that support connection testing
+const TESTABLE_TYPES = ['mongodb', 'postgres', 'postgresql', 'mysql', 'mariadb', 'redis', 'database']
+
 const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
   visible,
   onClose,
   onSuccess
 }) => {
+  const { t } = useTranslation()
   const [form] = Form.useForm()
-  const { credentialTypes, fetchCredentialTypes, createCredential, loading } = useCredentialStore()
+  const { credentialTypes, fetchCredentialTypes, createCredential, testUnsavedCredential, loading } = useCredentialStore()
   const [selectedType, setSelectedType] = useState<CredentialType | null>(null)
+  const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null)
+  const [testing, setTesting] = useState(false)
 
   useEffect(() => {
     if (visible && credentialTypes.length === 0) {
@@ -44,15 +52,52 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
     if (!visible) {
       form.resetFields()
       setSelectedType(null)
+      setTestResult(null)
+      setTesting(false)
     }
   }, [visible, form])
 
   const handleTypeChange = (typeName: string) => {
     const type = credentialTypes.find(t => t.name === typeName)
     setSelectedType(type || null)
-    // Reset data fields when type changes
+    // Reset data fields and test result when type changes
     form.setFieldsValue({ data: {} })
+    setTestResult(null)
   }
+
+  const handleTestConnection = async () => {
+    try {
+      const values = await form.validateFields(['type', 'data'])
+      const typeName = values.type?.toLowerCase()
+
+      if (!typeName || !TESTABLE_TYPES.includes(typeName)) {
+        message.warning(t('credential.testNotSupported', '此類型不支援連線測試'))
+        return
+      }
+
+      setTesting(true)
+      setTestResult(null)
+
+      const result = await testUnsavedCredential({
+        type: values.type,
+        data: values.data || {}
+      })
+
+      setTestResult(result)
+
+      if (result.success) {
+        message.success(t('credential.testSuccess', '連線測試成功'))
+      } else {
+        message.error(result.message || t('credential.testFailed', '連線測試失敗'))
+      }
+    } catch {
+      // Validation failed - don't show error, just let form show validation errors
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const isTestable = selectedType && TESTABLE_TYPES.includes(selectedType.name.toLowerCase())
 
   const handleSubmit = async () => {
     try {
@@ -213,9 +258,55 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
         {selectedType && (
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: 16 }}>
             <div style={{ fontWeight: 500, marginBottom: 12 }}>
-              {selectedType.displayName} 設定
+              {selectedType.displayName} {t('credential.settings', '設定')}
             </div>
             {renderDataFields()}
+
+            {/* Test Connection Section */}
+            {isTestable && (
+              <div style={{ marginTop: 16, padding: 12, background: 'var(--color-bg-secondary)', borderRadius: 6 }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Button
+                    type="default"
+                    icon={<ApiOutlined />}
+                    onClick={handleTestConnection}
+                    loading={testing}
+                    disabled={loading}
+                  >
+                    {testing ? t('credential.testing', '測試中...') : t('credential.testConnection', '測試連線')}
+                  </Button>
+
+                  {testResult && (
+                    <Alert
+                      type={testResult.success ? 'success' : 'error'}
+                      icon={testResult.success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                      message={
+                        <Space>
+                          <span>{testResult.success ? t('credential.connectionSuccess', '連線成功') : t('credential.connectionFailed', '連線失敗')}</span>
+                          {testResult.latencyMs > 0 && (
+                            <span style={{ color: 'var(--color-text-secondary)', fontSize: 12 }}>
+                              ({testResult.latencyMs}ms)
+                            </span>
+                          )}
+                        </Space>
+                      }
+                      description={
+                        <div>
+                          {testResult.message && <div>{testResult.message}</div>}
+                          {testResult.serverVersion && (
+                            <div style={{ marginTop: 4, color: 'var(--color-text-secondary)', fontSize: 12 }}>
+                              {t('credential.serverVersion', '伺服器版本')}: {testResult.serverVersion}
+                            </div>
+                          )}
+                        </div>
+                      }
+                      showIcon
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
+                </Space>
+              </div>
+            )}
           </div>
         )}
       </Form>

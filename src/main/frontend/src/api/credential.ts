@@ -39,6 +39,19 @@ export interface PageResponse<T> {
   size: number
 }
 
+export interface ConnectionTestResult {
+  success: boolean
+  message: string
+  latencyMs: number
+  serverVersion?: string
+  testedAt: string
+}
+
+export interface TestCredentialRequest {
+  type: string
+  data: Record<string, unknown>
+}
+
 // Credential API
 export const credentialApi = {
   // List credentials accessible by user
@@ -74,9 +87,15 @@ export const credentialApi = {
     await apiClient.delete(`/credentials/${id}`)
   },
 
-  // Test credential (if supported)
-  test: async (id: string): Promise<{ success: boolean; message?: string }> => {
+  // Test saved credential connection
+  test: async (id: string): Promise<ConnectionTestResult> => {
     const response = await apiClient.post(`/credentials/${id}/test`)
+    return response.data
+  },
+
+  // Test unsaved credential connection (before saving)
+  testUnsaved: async (request: TestCredentialRequest): Promise<ConnectionTestResult> => {
+    const response = await apiClient.post('/credentials/test', request)
     return response.data
   },
 

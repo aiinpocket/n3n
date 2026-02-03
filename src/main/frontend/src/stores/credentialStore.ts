@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { credentialApi, Credential, CredentialType, CreateCredentialRequest } from '../api/credential'
+import { credentialApi, Credential, CredentialType, CreateCredentialRequest, ConnectionTestResult, TestCredentialRequest } from '../api/credential'
 
 interface CredentialState {
   credentials: Credential[]
@@ -14,7 +14,8 @@ interface CredentialState {
   fetchCredentialTypes: () => Promise<void>
   createCredential: (request: CreateCredentialRequest) => Promise<Credential>
   deleteCredential: (id: string) => Promise<void>
-  testCredential: (id: string) => Promise<{ success: boolean; message?: string }>
+  testCredential: (id: string) => Promise<ConnectionTestResult>
+  testUnsavedCredential: (request: TestCredentialRequest) => Promise<ConnectionTestResult>
   clearError: () => void
 }
 
@@ -92,7 +93,26 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
       return await credentialApi.test(id)
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to test credential'
-      return { success: false, message }
+      return {
+        success: false,
+        message,
+        latencyMs: 0,
+        testedAt: new Date().toISOString()
+      }
+    }
+  },
+
+  testUnsavedCredential: async (request: TestCredentialRequest) => {
+    try {
+      return await credentialApi.testUnsaved(request)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to test connection'
+      return {
+        success: false,
+        message,
+        latencyMs: 0,
+        testedAt: new Date().toISOString()
+      }
     }
   },
 
