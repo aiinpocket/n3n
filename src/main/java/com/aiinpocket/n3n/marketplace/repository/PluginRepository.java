@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Repository for Plugin entities.
  */
-@Repository
+@Repository("marketplacePluginRepository")
 public interface PluginRepository extends JpaRepository<Plugin, UUID> {
 
     /**
@@ -56,7 +56,7 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
     /**
      * Search plugins by name or description
      */
-    @Query("SELECT p FROM Plugin p WHERE p.published = true AND " +
+    @Query("SELECT p FROM MarketplacePlugin p WHERE p.published = true AND " +
            "(LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(p.displayName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))")
@@ -65,25 +65,25 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
     /**
      * Find popular plugins (by download count)
      */
-    @Query("SELECT p FROM Plugin p WHERE p.published = true ORDER BY p.downloadCount DESC")
+    @Query("SELECT p FROM MarketplacePlugin p WHERE p.published = true ORDER BY p.downloadCount DESC")
     List<Plugin> findPopular(Pageable pageable);
 
     /**
      * Find trending plugins (by weekly downloads)
      */
-    @Query("SELECT p FROM Plugin p WHERE p.published = true ORDER BY p.weeklyDownloads DESC")
+    @Query("SELECT p FROM MarketplacePlugin p WHERE p.published = true ORDER BY p.weeklyDownloads DESC")
     List<Plugin> findTrending(Pageable pageable);
 
     /**
      * Find recently updated plugins
      */
-    @Query("SELECT p FROM Plugin p WHERE p.published = true ORDER BY p.updatedAt DESC")
+    @Query("SELECT p FROM MarketplacePlugin p WHERE p.published = true ORDER BY p.updatedAt DESC")
     List<Plugin> findRecentlyUpdated(Pageable pageable);
 
     /**
      * Find top rated plugins
      */
-    @Query("SELECT p FROM Plugin p WHERE p.published = true AND p.ratingCount >= :minRatings ORDER BY p.ratingAvg DESC")
+    @Query("SELECT p FROM MarketplacePlugin p WHERE p.published = true AND p.ratingCount >= :minRatings ORDER BY p.ratingAvg DESC")
     List<Plugin> findTopRated(@Param("minRatings") int minRatings, Pageable pageable);
 
     /**
@@ -94,6 +94,6 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
     /**
      * Get all categories
      */
-    @Query("SELECT DISTINCT p.category FROM Plugin p WHERE p.published = true AND p.category IS NOT NULL")
+    @Query("SELECT DISTINCT p.category FROM MarketplacePlugin p WHERE p.published = true AND p.category IS NOT NULL")
     List<String> findAllCategories();
 }

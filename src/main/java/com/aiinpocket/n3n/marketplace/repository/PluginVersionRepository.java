@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Repository for PluginVersion entities.
  */
-@Repository
+@Repository("marketplacePluginVersionRepository")
 public interface PluginVersionRepository extends JpaRepository<PluginVersion, UUID> {
 
     /**

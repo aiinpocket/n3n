@@ -29,6 +29,7 @@ public final class CapabilityRegistry {
         register(FileSystemCapability())
         register(ClipboardCapability())
         register(NotificationCapability())
+        register(NotesCapability())
     }
 
     public func register(_ capability: Capability) {

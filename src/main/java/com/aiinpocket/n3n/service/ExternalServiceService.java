@@ -319,4 +319,160 @@ public class ExternalServiceService {
         }
         return url;
     }
+
+    /**
+     * Get endpoint schema for flow editor node configuration.
+     */
+    public EndpointSchemaResponse getEndpointSchema(UUID serviceId, UUID endpointId) {
+        ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(serviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + serviceId));
+
+        ServiceEndpoint endpoint = endpointRepository.findById(endpointId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endpoint not found: " + endpointId));
+
+        if (!endpoint.getServiceId().equals(serviceId)) {
+            throw new IllegalArgumentException("Endpoint does not belong to the specified service");
+        }
+
+        Map<String, Object> configSchema = buildConfigSchema(endpoint);
+        Map<String, Object> interfaceDefinition = buildInterfaceDefinition(endpoint);
+
+        return EndpointSchemaResponse.builder()
+                .serviceId(serviceId)
+                .endpointId(endpointId)
+                .displayName(service.getDisplayName() + " - " + endpoint.getName())
+                .description(endpoint.getDescription())
+                .method(endpoint.getMethod())
+                .path(endpoint.getPath())
+                .configSchema(configSchema)
+                .interfaceDefinition(interfaceDefinition)
+                .build();
+    }
+
+    /**
+     * Build JSON Schema format configSchema from endpoint definition.
+     */
+    private Map<String, Object> buildConfigSchema(ServiceEndpoint endpoint) {
+        Map<String, Object> properties = new java.util.LinkedHashMap<>();
+        List<String> required = new java.util.ArrayList<>();
+
+        // Add path parameters section
+        if (endpoint.getPathParams() != null && !endpoint.getPathParams().isEmpty()) {
+            Map<String, Object> pathParamsSchema = new java.util.LinkedHashMap<>();
+            pathParamsSchema.put("type", "object");
+            pathParamsSchema.put("title", "Path Parameters");
+            pathParamsSchema.put("description", "URL path parameters (e.g., /users/{userId})");
+            pathParamsSchema.put("properties", endpoint.getPathParams().getOrDefault("properties", Map.of()));
+
+            // Mark all path params as required
+            Object pathRequired = endpoint.getPathParams().get("required");
+            if (pathRequired != null) {
+                pathParamsSchema.put("required", pathRequired);
+            }
+
+            properties.put("pathParams", pathParamsSchema);
+            required.add("pathParams");
+        }
+
+        // Add query parameters section
+        if (endpoint.getQueryParams() != null && !endpoint.getQueryParams().isEmpty()) {
+            Map<String, Object> queryParamsSchema = new java.util.LinkedHashMap<>();
+            queryParamsSchema.put("type", "object");
+            queryParamsSchema.put("title", "Query Parameters");
+            queryParamsSchema.put("description", "URL query parameters");
+            queryParamsSchema.put("properties", endpoint.getQueryParams().getOrDefault("properties", Map.of()));
+
+            Object queryRequired = endpoint.getQueryParams().get("required");
+            if (queryRequired != null) {
+                queryParamsSchema.put("required", queryRequired);
+            }
+
+            properties.put("queryParams", queryParamsSchema);
+        }
+
+        // Add request body section (for POST, PUT, PATCH)
+        if (endpoint.getRequestBody() != null && !endpoint.getRequestBody().isEmpty()) {
+            Map<String, Object> requestBodySchema = new java.util.LinkedHashMap<>();
+            requestBodySchema.put("type", "object");
+            requestBodySchema.put("title", "Request Body");
+            requestBodySchema.put("description", "HTTP request body");
+
+            // Copy all properties from requestBody schema
+            if (endpoint.getRequestBody().containsKey("properties")) {
+                requestBodySchema.put("properties", endpoint.getRequestBody().get("properties"));
+            }
+            if (endpoint.getRequestBody().containsKey("required")) {
+                requestBodySchema.put("required", endpoint.getRequestBody().get("required"));
+            }
+
+            properties.put("requestBody", requestBodySchema);
+
+            // Mark as required if method requires body
+            String method = endpoint.getMethod().toUpperCase();
+            if (List.of("POST", "PUT", "PATCH").contains(method)) {
+                required.add("requestBody");
+            }
+        }
+
+        // Add headers section
+        properties.put("headers", Map.of(
+                "type", "object",
+                "title", "Custom Headers",
+                "description", "Additional HTTP headers",
+                "additionalProperties", Map.of("type", "string")
+        ));
+
+        return Map.of(
+                "type", "object",
+                "properties", properties,
+                "required", required,
+                "x-endpoint-config", true
+        );
+    }
+
+    /**
+     * Build interface definition (inputs/outputs) from endpoint definition.
+     */
+    private Map<String, Object> buildInterfaceDefinition(ServiceEndpoint endpoint) {
+        List<Map<String, Object>> inputs = new java.util.ArrayList<>();
+        List<Map<String, Object>> outputs = new java.util.ArrayList<>();
+
+        // Input: general input from previous node
+        inputs.add(Map.of(
+                "name", "input",
+                "type", "any",
+                "required", false,
+                "description", "Input data from previous node (can be used in expressions)"
+        ));
+
+        // Output: based on responseSchema
+        if (endpoint.getResponseSchema() != null && !endpoint.getResponseSchema().isEmpty()) {
+            Map<String, Object> outputDef = new java.util.LinkedHashMap<>();
+            outputDef.put("name", "output");
+            outputDef.put("type", "object");
+            outputDef.put("description", "HTTP response data");
+            outputDef.put("schema", endpoint.getResponseSchema());
+            outputs.add(outputDef);
+        } else {
+            outputs.add(Map.of(
+                    "name", "output",
+                    "type", "any",
+                    "description", "HTTP response (structure depends on the API)"
+            ));
+        }
+
+        // Also include status and headers in output
+        outputs.add(Map.of(
+                "name", "status",
+                "type", "integer",
+                "description", "HTTP status code"
+        ));
+        outputs.add(Map.of(
+                "name", "headers",
+                "type", "object",
+                "description", "Response headers"
+        ));
+
+        return Map.of("inputs", inputs, "outputs", outputs);
+    }
 }

@@ -19,10 +19,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * REST API for the Plugin Marketplace.
+ * REST API for the Plugin Marketplace (Publisher/Admin operations).
+ * Consumer-facing API is at /api/marketplace (MarketplaceController).
  */
 @RestController
-@RequestMapping("/api/marketplace")
+@RequestMapping("/api/marketplace/publisher")
 @RequiredArgsConstructor
 public class PluginController {
 

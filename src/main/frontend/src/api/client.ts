@@ -21,8 +21,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
+    const status = error.response?.status
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle 401 (Unauthorized) - try to refresh token
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       try {
@@ -32,8 +34,22 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch {
         useAuthStore.getState().logout()
-        window.location.href = '/login'
+        window.location.href = '/login?reason=session_expired'
       }
+    }
+
+    // Handle 403 (Forbidden) - user not logged in or session invalid
+    if (status === 403) {
+      const { accessToken } = useAuthStore.getState()
+      if (!accessToken) {
+        // Not logged in at all
+        window.location.href = '/login?reason=login_required'
+        return Promise.reject(new Error('請先登入'))
+      }
+      // Has token but still 403 - might be expired or invalid
+      useAuthStore.getState().logout()
+      window.location.href = '/login?reason=session_expired'
+      return Promise.reject(new Error('登入已過期，請重新登入'))
     }
 
     return Promise.reject(error)

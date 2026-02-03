@@ -14,7 +14,7 @@ import java.util.UUID;
 /**
  * Repository for PluginReview entities.
  */
-@Repository
+@Repository("marketplacePluginReviewRepository")
 public interface PluginReviewRepository extends JpaRepository<PluginReview, UUID> {
 
     /**
@@ -35,7 +35,7 @@ public interface PluginReviewRepository extends JpaRepository<PluginReview, UUID
     /**
      * Get average rating for a plugin
      */
-    @Query("SELECT AVG(r.rating) FROM PluginReview r WHERE r.plugin.id = :pluginId")
+    @Query("SELECT AVG(r.rating) FROM MarketplacePluginReview r WHERE r.plugin.id = :pluginId")
     Double getAverageRating(@Param("pluginId") UUID pluginId);
 
     /**

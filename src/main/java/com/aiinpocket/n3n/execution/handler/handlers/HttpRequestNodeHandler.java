@@ -69,7 +69,9 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
 
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
+        log.info("HttpRequestNodeHandler.doExecute called for node: {}", context.getNodeId());
         String url = getStringConfig(context, "url", "");
+        log.info("URL config: '{}'", url);
         String method = getStringConfig(context, "method", "GET").toUpperCase();
         int timeout = getIntConfig(context, "timeout", DEFAULT_TIMEOUT_SECONDS);
 
@@ -112,10 +114,14 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
                 .build();
 
             Request request = requestBuilder.build();
-            log.debug("HTTP {} {} with timeout {}s", method, url, timeout);
+            log.info("Executing HTTP {} {} with timeout {}s", method, url, timeout);
 
             try (Response response = client.newCall(request).execute()) {
-                return processResponse(response, context);
+                NodeExecutionResult result = processResponse(response, context);
+                log.info("HTTP response: status={}, success={}, outputKeys={}",
+                    response.code(), result.isSuccess(),
+                    result.getOutput() != null ? result.getOutput().keySet() : "null");
+                return result;
             }
 
         } catch (IOException e) {
@@ -194,6 +200,7 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
             }
 
             bodyString = responseBody.string();
+            log.info("HTTP response body length: {} bytes", bodyString.length());
 
             // Try to parse as JSON
             String contentType = response.header("Content-Type", "");

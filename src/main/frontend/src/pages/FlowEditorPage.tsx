@@ -14,6 +14,8 @@ import {
   PauseCircleOutlined,
   EyeOutlined,
   RocketOutlined,
+  BulbOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -38,6 +40,9 @@ import { executionAwareNodeTypes } from '../components/nodes/ExecutionAwareNodes
 import { useFlowExecution } from '../hooks/useFlowExecution'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 import OptimizationPanel from '../components/flow/OptimizationPanel'
+import PublishFlowModal from '../components/ai/PublishFlowModal'
+import NodeRecommendationDrawer from '../components/ai/NodeRecommendationDrawer'
+import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
 import type { ExternalService, ServiceEndpoint } from '../types'
 
 const { Text } = Typography
@@ -124,6 +129,9 @@ export default function FlowEditorPage() {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [servicePanelOpen, setServicePanelOpen] = useState(false)
   const [optimizationPanelOpen, setOptimizationPanelOpen] = useState(false)
+  const [publishModalOpen, setPublishModalOpen] = useState(false)
+  const [nodeRecommendationOpen, setNodeRecommendationOpen] = useState(false)
+  const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
   const [saveForm] = Form.useForm()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -400,6 +408,23 @@ export default function FlowEditorPage() {
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
               外部服務
             </Button>
+            <Tooltip title="用口語描述，AI 幫你生成流程">
+              <Button
+                icon={<ThunderboltOutlined />}
+                onClick={() => setFlowGeneratorOpen(true)}
+                style={{ color: '#722ed1', borderColor: '#722ed1' }}
+              >
+                AI 生成
+              </Button>
+            </Tooltip>
+            <Tooltip title="智慧節點推薦，根據流程推薦適合的節點">
+              <Button
+                icon={<BulbOutlined />}
+                onClick={() => setNodeRecommendationOpen(true)}
+              >
+                智慧推薦
+              </Button>
+            </Tooltip>
             <Tooltip title="使用 AI 分析流程，找出可優化的地方">
               <Button
                 icon={<RocketOutlined />}
@@ -433,7 +458,7 @@ export default function FlowEditorPage() {
               <Button
                 type="primary"
                 icon={<CloudUploadOutlined />}
-                onClick={handlePublish}
+                onClick={() => setPublishModalOpen(true)}
                 disabled={!currentVersion || currentVersion.status === 'published'}
               >
                 發布
@@ -597,6 +622,81 @@ export default function FlowEditorPage() {
           // Highlight the selected nodes by selecting the first one
           if (nodeIds.length > 0) {
             setSelectedNodeId(nodeIds[0])
+          }
+        }}
+      />
+
+      <PublishFlowModal
+        open={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        flowDefinition={{
+          nodes: nodes.map(n => ({
+            id: n.id,
+            type: n.type || 'unknown',
+            position: n.position,
+            data: n.data as Record<string, unknown>,
+          })),
+          edges: edges.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+          })),
+        }}
+        flowId={id || ''}
+        version={currentVersion?.version || ''}
+        onPublish={async () => {
+          if (currentVersion) {
+            await publishVersion(currentVersion.version)
+            if (id) loadVersions(id)
+          }
+        }}
+        onHighlightNodes={(nodeIds) => {
+          if (nodeIds.length > 0) {
+            setSelectedNodeId(nodeIds[0])
+          }
+        }}
+      />
+
+      <NodeRecommendationDrawer
+        open={nodeRecommendationOpen}
+        onClose={() => setNodeRecommendationOpen(false)}
+        currentFlow={{
+          nodes: nodes.map(n => ({
+            id: n.id,
+            type: n.type || 'unknown',
+            data: n.data as Record<string, unknown>,
+          })),
+          edges: edges.map(e => ({
+            source: e.source,
+            target: e.target,
+          })),
+        }}
+        onAddNode={handleAddNode}
+      />
+
+      <FlowGeneratorModal
+        open={flowGeneratorOpen}
+        onClose={() => setFlowGeneratorOpen(false)}
+        onCreateFlow={(flowDef) => {
+          if (flowDef) {
+            // Convert generated flow to react-flow nodes
+            const newNodes = flowDef.nodes.map((n, i) => ({
+              id: n.id,
+              type: n.type,
+              position: { x: 250, y: i * 120 + 50 },
+              data: {
+                label: n.label || n.type,
+                nodeType: n.type,
+                ...n.config,
+              },
+            }))
+            setNodes(newNodes)
+            setEdges(flowDef.edges.map((e, i) => ({
+              id: `edge-${i}`,
+              source: e.source,
+              target: e.target,
+            })))
+            message.success('流程已建立，您可以進一步調整')
           }
         }}
       />

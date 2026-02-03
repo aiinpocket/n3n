@@ -165,6 +165,33 @@
     "mediumPriority": "Medium",
     "lowPriority": "Low"
   },
+  "aiAssistant": {
+    "analyzing": "AI Analysis",
+    "reviewSuggestions": "Review Suggestions",
+    "analyzingFlow": "Analyzing flow...",
+    "aiThinking": "AI is thinking about optimization suggestions",
+    "analyzeFailed": "AI analysis failed",
+    "canStillPublish": "You can still publish directly",
+    "noSuggestions": "No optimization suggestions",
+    "flowIsOptimal": "Your flow is already well optimized!",
+    "suggestionsFound": "Found {{count}} optimization suggestions",
+    "analysisTime": "Analysis took {{time}} seconds",
+    "affectedNodes": "Affected nodes",
+    "skipAndPublish": "Skip and publish directly",
+    "applyAndPublish": "Apply {{count}} suggestions and publish",
+    "suggestionsApplied": "Applied {{count}} suggestions",
+    "suggestionHint": "These are just suggestions. You can apply, ignore, or publish directly.",
+    "applySuggestion": "Apply this suggestion",
+    "selected": "Selected",
+    "deselect": "Deselect",
+    "viewNodes": "View affected nodes",
+    "suggestion": {
+      "parallel": "Parallel Execution",
+      "merge": "Merge Requests",
+      "remove": "Remove Redundant",
+      "reorder": "Reorder"
+    }
+  },
   "execution": {
     "title": "Execution History",
     "running": "Running",

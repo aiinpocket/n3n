@@ -232,7 +232,7 @@ public class DeviceKeys
 
 public class AgentConfig
 {
-    public string PlatformUrl { get; set; } = "wss://localhost:8080/ws/agent/secure";
+    public string PlatformUrl { get; set; } = "wss://localhost:8080/gateway/agent/secure";
     public string DeviceName { get; set; } = Environment.MachineName;
     public bool EnableDirectConnection { get; set; }
     public int ListenPort { get; set; } = 9999;

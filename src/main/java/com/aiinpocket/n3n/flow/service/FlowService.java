@@ -2,11 +2,15 @@ package com.aiinpocket.n3n.flow.service;
 
 import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.execution.handler.NodeHandler;
+import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
+import com.aiinpocket.n3n.service.ExternalServiceService;
+import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,9 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +29,8 @@ public class FlowService {
     private final FlowRepository flowRepository;
     private final FlowVersionRepository flowVersionRepository;
     private final DagParser dagParser;
+    private final NodeHandlerRegistry nodeHandlerRegistry;
+    private final ExternalServiceService externalServiceService;
 
     public Page<FlowResponse> listFlows(Pageable pageable) {
         Page<Flow> flowPage = flowRepository.findByIsDeletedFalse(pageable);
@@ -264,5 +268,200 @@ public class FlowService {
             .executionOrder(result.getExecutionOrder())
             .dependencies(result.getDependencies())
             .build();
+    }
+
+    /**
+     * Get upstream node outputs for a specific node in a flow version.
+     * Used by the flow editor for input mapping.
+     */
+    @SuppressWarnings("unchecked")
+    public List<UpstreamNodeOutput> getUpstreamOutputs(UUID flowId, String version, String nodeId) {
+        FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
+            .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
+
+        Map<String, Object> definition = v.getDefinition();
+        if (definition == null) {
+            return List.of();
+        }
+
+        List<Map<String, Object>> nodes = (List<Map<String, Object>>) definition.get("nodes");
+        List<Map<String, Object>> edges = (List<Map<String, Object>>) definition.get("edges");
+
+        if (nodes == null || edges == null) {
+            return List.of();
+        }
+
+        // Build a map of nodeId -> node data
+        Map<String, Map<String, Object>> nodeMap = new HashMap<>();
+        for (Map<String, Object> node : nodes) {
+            String id = (String) node.get("id");
+            if (id != null) {
+                nodeMap.put(id, node);
+            }
+        }
+
+        // Find all upstream nodes (source nodes of edges targeting our nodeId)
+        Set<String> upstreamNodeIds = new HashSet<>();
+        for (Map<String, Object> edge : edges) {
+            String target = (String) edge.get("target");
+            String source = (String) edge.get("source");
+            if (nodeId.equals(target) && source != null) {
+                upstreamNodeIds.add(source);
+            }
+        }
+
+        // Build UpstreamNodeOutput for each upstream node
+        List<UpstreamNodeOutput> result = new ArrayList<>();
+        for (String upstreamNodeId : upstreamNodeIds) {
+            Map<String, Object> nodeData = nodeMap.get(upstreamNodeId);
+            if (nodeData == null) {
+                continue;
+            }
+
+            Map<String, Object> data = (Map<String, Object>) nodeData.get("data");
+            if (data == null) {
+                data = Map.of();
+            }
+
+            String nodeLabel = (String) data.getOrDefault("label", upstreamNodeId);
+            String nodeType = (String) data.getOrDefault("nodeType", "action");
+
+            // Get output schema from handler or external service
+            Map<String, Object> outputSchema = getNodeOutputSchema(nodeType, data);
+            List<UpstreamNodeOutput.OutputField> flattenedFields = flattenOutputSchema(outputSchema, upstreamNodeId);
+
+            result.add(UpstreamNodeOutput.builder()
+                .nodeId(upstreamNodeId)
+                .nodeLabel(nodeLabel)
+                .nodeType(nodeType)
+                .outputSchema(outputSchema)
+                .flattenedFields(flattenedFields)
+                .build());
+        }
+
+        return result;
+    }
+
+    /**
+     * Get output schema for a node based on its type.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getNodeOutputSchema(String nodeType, Map<String, Object> nodeData) {
+        // For external service nodes, fetch schema from service
+        if ("externalService".equals(nodeType)) {
+            String serviceIdStr = (String) nodeData.get("serviceId");
+            String endpointIdStr = (String) nodeData.get("endpointId");
+            if (serviceIdStr != null && endpointIdStr != null) {
+                try {
+                    UUID serviceId = UUID.fromString(serviceIdStr);
+                    UUID endpointId = UUID.fromString(endpointIdStr);
+                    EndpointSchemaResponse schema = externalServiceService.getEndpointSchema(serviceId, endpointId);
+                    Map<String, Object> interfaceDef = schema.getInterfaceDefinition();
+                    if (interfaceDef != null && interfaceDef.containsKey("outputs")) {
+                        List<Map<String, Object>> outputs = (List<Map<String, Object>>) interfaceDef.get("outputs");
+                        if (!outputs.isEmpty() && outputs.get(0).containsKey("schema")) {
+                            return (Map<String, Object>) outputs.get(0).get("schema");
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not fetch external service schema: {}", e.getMessage());
+                }
+            }
+        }
+
+        // For other node types, get schema from handler
+        Optional<NodeHandler> handlerOpt = nodeHandlerRegistry.findHandler(nodeType);
+        if (handlerOpt.isPresent()) {
+            NodeHandler handler = handlerOpt.get();
+            Map<String, Object> interfaceDef = handler.getInterfaceDefinition();
+            if (interfaceDef != null && interfaceDef.containsKey("outputs")) {
+                List<Map<String, Object>> outputs = (List<Map<String, Object>>) interfaceDef.get("outputs");
+                if (!outputs.isEmpty()) {
+                    // Return a combined schema for all outputs
+                    Map<String, Object> schema = new LinkedHashMap<>();
+                    schema.put("type", "object");
+                    Map<String, Object> properties = new LinkedHashMap<>();
+                    for (Map<String, Object> output : outputs) {
+                        String name = (String) output.get("name");
+                        String type = (String) output.getOrDefault("type", "any");
+                        String description = (String) output.get("description");
+                        Map<String, Object> prop = new LinkedHashMap<>();
+                        prop.put("type", type);
+                        if (description != null) {
+                            prop.put("description", description);
+                        }
+                        properties.put(name, prop);
+                    }
+                    schema.put("properties", properties);
+                    return schema;
+                }
+            }
+        }
+
+        // Default output schema
+        return Map.of(
+            "type", "object",
+            "properties", Map.of(
+                "data", Map.of("type", "any", "description", "Node output data")
+            )
+        );
+    }
+
+    /**
+     * Flatten output schema into a list of selectable fields.
+     */
+    @SuppressWarnings("unchecked")
+    private List<UpstreamNodeOutput.OutputField> flattenOutputSchema(Map<String, Object> schema, String nodeId) {
+        List<UpstreamNodeOutput.OutputField> fields = new ArrayList<>();
+        flattenSchemaRecursive(schema, "", nodeId, fields, 0);
+        return fields;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void flattenSchemaRecursive(
+            Map<String, Object> schema,
+            String basePath,
+            String nodeId,
+            List<UpstreamNodeOutput.OutputField> fields,
+            int depth) {
+
+        if (depth > 5) {
+            return; // Prevent infinite recursion
+        }
+
+        Map<String, Object> properties = (Map<String, Object>) schema.get("properties");
+        if (properties == null) {
+            return;
+        }
+
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            String key = entry.getKey();
+            Map<String, Object> propSchema = (Map<String, Object>) entry.getValue();
+
+            String path = basePath.isEmpty() ? key : basePath + "." + key;
+            String type = (String) propSchema.getOrDefault("type", "any");
+            String description = (String) propSchema.get("description");
+            String expression = "{{ $node[\"" + nodeId + "\"].json." + path + " }}";
+
+            fields.add(UpstreamNodeOutput.OutputField.builder()
+                .path(path)
+                .type(type)
+                .description(description)
+                .expression(expression)
+                .build());
+
+            // Recurse into nested objects
+            if ("object".equals(type) && propSchema.containsKey("properties")) {
+                flattenSchemaRecursive(propSchema, path, nodeId, fields, depth + 1);
+            }
+
+            // Handle arrays
+            if ("array".equals(type) && propSchema.containsKey("items")) {
+                Map<String, Object> itemsSchema = (Map<String, Object>) propSchema.get("items");
+                if (itemsSchema != null && "object".equals(itemsSchema.get("type"))) {
+                    flattenSchemaRecursive(itemsSchema, path + "[0]", nodeId, fields, depth + 1);
+                }
+            }
+        }
     }
 }

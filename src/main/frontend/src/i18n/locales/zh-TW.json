@@ -165,6 +165,33 @@
     "mediumPriority": "中等",
     "lowPriority": "低"
   },
+  "aiAssistant": {
+    "analyzing": "AI 分析",
+    "reviewSuggestions": "確認建議",
+    "analyzingFlow": "正在分析流程...",
+    "aiThinking": "AI 正在思考優化建議",
+    "analyzeFailed": "AI 分析失敗",
+    "canStillPublish": "您仍可直接發布流程",
+    "noSuggestions": "沒有優化建議",
+    "flowIsOptimal": "您的流程已經很優化了！",
+    "suggestionsFound": "發現 {{count}} 項優化建議",
+    "analysisTime": "分析耗時 {{time}} 秒",
+    "affectedNodes": "相關節點",
+    "skipAndPublish": "跳過建議，直接發布",
+    "applyAndPublish": "套用 {{count}} 項建議並發布",
+    "suggestionsApplied": "已套用 {{count}} 項建議",
+    "suggestionHint": "這些只是建議，您可以選擇套用、忽略，或直接發布。",
+    "applySuggestion": "套用此建議",
+    "selected": "已選擇",
+    "deselect": "取消",
+    "viewNodes": "檢視相關節點",
+    "suggestion": {
+      "parallel": "並行執行",
+      "merge": "合併請求",
+      "remove": "移除冗餘",
+      "reorder": "重新排序"
+    }
+  },
   "execution": {
     "title": "執行記錄",
     "running": "執行中",

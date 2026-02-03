@@ -1,15 +1,30 @@
 import Foundation
 import Security
 import CryptoKit
+import Logging
 
-/// Secure storage using macOS Keychain.
+/// Secure storage using macOS Keychain with file fallback.
 public final class KeychainStorage {
 
     public static let shared = KeychainStorage()
 
     private let service = "com.aiinpocket.n3n.agent"
+    private let logger = Logger(label: "n3n.agent.storage")
 
-    private init() {}
+    /// When true, skip Keychain and use only file storage.
+    /// Set this to true when running in CLI mode where Keychain may block.
+    public var useFileStorageOnly: Bool = false
+
+    /// File storage directory for fallback
+    private var fileStorageDir: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport.appendingPathComponent("N3N Agent")
+    }
+
+    private init() {
+        // Ensure file storage directory exists
+        try? FileManager.default.createDirectory(at: fileStorageDir, withIntermediateDirectories: true)
+    }
 
     // MARK: - Device Keys
 
@@ -18,6 +33,14 @@ public final class KeychainStorage {
         let encoder = JSONEncoder()
         let data = try encoder.encode(keys)
 
+        // In CLI mode or when Keychain is unavailable, use file storage only
+        if useFileStorageOnly {
+            logger.info("Using file storage for device keys (CLI mode)")
+            try storeToFile(data, filename: "device-keys.json")
+            return
+        }
+
+        // Try Keychain first
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -30,13 +53,28 @@ public final class KeychainStorage {
         SecItemDelete(query as CFDictionary)
 
         let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.saveFailed(status)
+        if status == errSecSuccess {
+            logger.info("Stored device keys in Keychain")
+            return
         }
+
+        // Fallback to file storage
+        logger.warning("Keychain failed (status: \(status)), using file storage")
+        try storeToFile(data, filename: "device-keys.json")
     }
 
     /// Load device keys.
     public func loadDeviceKeys() throws -> DeviceKeys? {
+        // In CLI mode or when Keychain is unavailable, use file storage only
+        if useFileStorageOnly {
+            if let data = loadFromFile(filename: "device-keys.json") {
+                let decoder = JSONDecoder()
+                return try decoder.decode(DeviceKeys.self, from: data)
+            }
+            return nil
+        }
+
+        // Try Keychain first
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -48,15 +86,18 @@ public final class KeychainStorage {
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
-        guard status == errSecSuccess, let data = result as? Data else {
-            if status == errSecItemNotFound {
-                return nil
-            }
-            throw KeychainError.loadFailed(status)
+        if status == errSecSuccess, let data = result as? Data {
+            let decoder = JSONDecoder()
+            return try decoder.decode(DeviceKeys.self, from: data)
         }
 
-        let decoder = JSONDecoder()
-        return try decoder.decode(DeviceKeys.self, from: data)
+        // Fallback to file storage
+        if let data = loadFromFile(filename: "device-keys.json") {
+            let decoder = JSONDecoder()
+            return try decoder.decode(DeviceKeys.self, from: data)
+        }
+
+        return nil
     }
 
     /// Delete device keys (unpair).
@@ -67,10 +108,8 @@ public final class KeychainStorage {
             kSecAttrAccount as String: "device-keys"
         ]
 
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.deleteFailed(status)
-        }
+        SecItemDelete(query as CFDictionary)
+        deleteFile(filename: "device-keys.json")
     }
 
     // MARK: - Private Key
@@ -89,9 +128,14 @@ public final class KeychainStorage {
         SecItemDelete(query as CFDictionary)
 
         let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.saveFailed(status)
+        if status == errSecSuccess {
+            logger.info("Stored private key in Keychain")
+            return
         }
+
+        // Fallback to file storage
+        logger.warning("Keychain failed for private key (status: \(status)), using file storage")
+        try storeToFile(privateKey, filename: "private-key-\(deviceId).dat")
     }
 
     /// Load the device's private key.
@@ -107,14 +151,12 @@ public final class KeychainStorage {
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
-        guard status == errSecSuccess, let data = result as? Data else {
-            if status == errSecItemNotFound {
-                return nil
-            }
-            throw KeychainError.loadFailed(status)
+        if status == errSecSuccess, let data = result as? Data {
+            return data
         }
 
-        return data
+        // Fallback to file storage
+        return loadFromFile(filename: "private-key-\(deviceId).dat")
     }
 
     // MARK: - Configuration
@@ -136,9 +178,13 @@ public final class KeychainStorage {
         SecItemDelete(query as CFDictionary)
 
         let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.saveFailed(status)
+        if status == errSecSuccess {
+            return
         }
+
+        // Fallback to file storage
+        logger.warning("Keychain failed for config (status: \(status)), using file storage")
+        try storeToFile(data, filename: "agent-config.json")
     }
 
     /// Load agent configuration.
@@ -154,15 +200,18 @@ public final class KeychainStorage {
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
-        guard status == errSecSuccess, let data = result as? Data else {
-            if status == errSecItemNotFound {
-                return nil
-            }
-            throw KeychainError.loadFailed(status)
+        if status == errSecSuccess, let data = result as? Data {
+            let decoder = JSONDecoder()
+            return try decoder.decode(AgentConfig.self, from: data)
         }
 
-        let decoder = JSONDecoder()
-        return try decoder.decode(AgentConfig.self, from: data)
+        // Fallback to file storage
+        if let data = loadFromFile(filename: "agent-config.json") {
+            let decoder = JSONDecoder()
+            return try decoder.decode(AgentConfig.self, from: data)
+        }
+
+        return nil
     }
 
     /// Clear all stored data (full reset).
@@ -181,6 +230,28 @@ public final class KeychainStorage {
         for query in queries {
             SecItemDelete(query as CFDictionary)
         }
+
+        // Also clear file storage
+        try? FileManager.default.removeItem(at: fileStorageDir)
+        try? FileManager.default.createDirectory(at: fileStorageDir, withIntermediateDirectories: true)
+    }
+
+    // MARK: - File Storage Helpers
+
+    private func storeToFile(_ data: Data, filename: String) throws {
+        let fileURL = fileStorageDir.appendingPathComponent(filename)
+        try data.write(to: fileURL)
+        logger.info("Stored data to file: \(filename)")
+    }
+
+    private func loadFromFile(filename: String) -> Data? {
+        let fileURL = fileStorageDir.appendingPathComponent(filename)
+        return try? Data(contentsOf: fileURL)
+    }
+
+    private func deleteFile(filename: String) {
+        let fileURL = fileStorageDir.appendingPathComponent(filename)
+        try? FileManager.default.removeItem(at: fileURL)
     }
 }
 
@@ -230,7 +301,7 @@ public struct AgentConfig: Codable {
     public var logLevel: String
 
     public init(
-        platformUrl: String = "wss://localhost:8080/ws/agent/secure",
+        platformUrl: String = "wss://localhost:8080/gateway/agent/secure",
         deviceName: String = Host.current().localizedName ?? "My Mac",
         enableDirectConnection: Bool = false,
         listenPort: Int = 9999,
@@ -282,6 +353,12 @@ public struct RegistrationConfig: Codable {
     public struct RegistrationInfo: Codable {
         public let token: String
         public let agentId: String
+    }
+
+    public init(version: Int, gateway: GatewayInfo, registration: RegistrationInfo) {
+        self.version = version
+        self.gateway = gateway
+        self.registration = registration
     }
 
     /// Load config from a JSON file

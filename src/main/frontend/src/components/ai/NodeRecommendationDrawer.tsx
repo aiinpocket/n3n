@@ -1,0 +1,311 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import {
+  Drawer,
+  Input,
+  Tabs,
+  Card,
+  Button,
+  Tag,
+  Space,
+  Spin,
+  Empty,
+  Alert,
+  Typography,
+  List,
+  Tooltip,
+} from 'antd'
+import {
+  SearchOutlined,
+  PlusOutlined,
+  RobotOutlined,
+  AppstoreOutlined,
+  CheckCircleOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons'
+import {
+  aiAssistantApi,
+  NodeCategoryInfo,
+  InstalledNodeInfo,
+  NodeRecommendation,
+  getCategoryIcon,
+} from '../../api/aiAssistant'
+
+const { Text, Paragraph } = Typography
+
+interface Props {
+  open: boolean
+  onClose: () => void
+  currentFlow?: { nodes: unknown[]; edges: unknown[] }
+  onAddNode?: (nodeType: string) => void
+}
+
+export const NodeRecommendationDrawer: React.FC<Props> = ({
+  open,
+  onClose,
+  currentFlow,
+  onAddNode,
+}) => {
+  const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categories, setCategories] = useState<NodeCategoryInfo[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [installedNodes, setInstalledNodes] = useState<InstalledNodeInfo[]>([])
+  const [aiRecommendations, setAiRecommendations] = useState<NodeRecommendation[]>([])
+  const [aiAvailable, setAiAvailable] = useState(true)
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const cats = await aiAssistantApi.getNodeCategories()
+      setCategories(cats)
+    } catch (error) {
+      console.error('Failed to load categories:', error)
+    }
+  }, [])
+
+  const loadInstalledNodes = useCallback(async (category?: string) => {
+    try {
+      const nodes = await aiAssistantApi.getInstalledNodes(category || undefined)
+      setInstalledNodes(nodes)
+    } catch (error) {
+      console.error('Failed to load installed nodes:', error)
+    }
+  }, [])
+
+  const loadRecommendations = useCallback(async () => {
+    if (!currentFlow) return
+
+    setLoading(true)
+    try {
+      const response = await aiAssistantApi.recommendNodes({
+        currentFlow,
+        searchQuery: searchQuery || undefined,
+        category: selectedCategory || undefined,
+      })
+      setAiAvailable(response.aiAvailable)
+      setAiRecommendations(response.aiRecommendations || [])
+    } catch (error) {
+      console.error('Failed to load recommendations:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentFlow, searchQuery, selectedCategory])
+
+  useEffect(() => {
+    if (open) {
+      loadCategories()
+      loadInstalledNodes()
+      loadRecommendations()
+    }
+  }, [open, loadCategories, loadInstalledNodes, loadRecommendations])
+
+  useEffect(() => {
+    if (open && selectedCategory) {
+      loadInstalledNodes(selectedCategory)
+    }
+  }, [selectedCategory, open, loadInstalledNodes])
+
+  const handleSearch = () => {
+    loadRecommendations()
+  }
+
+  const handleAddNode = (nodeType: string) => {
+    onAddNode?.(nodeType)
+  }
+
+  const renderCategoryGrid = () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+      <Tag
+        style={{ cursor: 'pointer', padding: '4px 12px' }}
+        color={selectedCategory === null ? 'blue' : undefined}
+        onClick={() => setSelectedCategory(null)}
+      >
+        全部
+      </Tag>
+      {categories.map((cat) => (
+        <Tag
+          key={cat.id}
+          style={{ cursor: 'pointer', padding: '4px 12px' }}
+          color={selectedCategory === cat.id ? 'blue' : undefined}
+          onClick={() => setSelectedCategory(cat.id)}
+        >
+          {getCategoryIcon(cat.icon)} {cat.displayName} ({cat.installedCount})
+        </Tag>
+      ))}
+    </div>
+  )
+
+  const renderInstalledNode = (node: InstalledNodeInfo) => (
+    <Card
+      key={node.nodeType}
+      size="small"
+      style={{ marginBottom: 8 }}
+      actions={[
+        <Button
+          key="add"
+          type="link"
+          icon={<PlusOutlined />}
+          onClick={() => handleAddNode(node.nodeType)}
+        >
+          新增到流程
+        </Button>,
+      ]}
+    >
+      <Card.Meta
+        title={
+          <Space>
+            <Text strong>{node.displayName}</Text>
+            <Tag color="green" icon={<CheckCircleOutlined />}>
+              已安裝
+            </Tag>
+          </Space>
+        }
+        description={
+          <>
+            <Text type="secondary">{node.description}</Text>
+            <br />
+            <Tag style={{ marginTop: 4 }}>{node.category}</Tag>
+          </>
+        }
+      />
+    </Card>
+  )
+
+  const renderRecommendation = (rec: NodeRecommendation) => (
+    <Card
+      key={rec.nodeType}
+      size="small"
+      style={{ marginBottom: 8 }}
+      actions={[
+        <Button
+          key="add"
+          type="link"
+          icon={<PlusOutlined />}
+          onClick={() => handleAddNode(rec.nodeType)}
+        >
+          {rec.needsInstall ? '安裝' : '新增到流程'}
+        </Button>,
+      ]}
+    >
+      <Card.Meta
+        title={
+          <Space>
+            <Text strong>{rec.displayName}</Text>
+            {rec.needsInstall ? (
+              <Tag color="blue">需安裝</Tag>
+            ) : (
+              <Tag color="green">可用</Tag>
+            )}
+          </Space>
+        }
+        description={
+          <>
+            <Paragraph
+              type="secondary"
+              ellipsis={{ rows: 2 }}
+              style={{ marginBottom: 8 }}
+            >
+              <RobotOutlined style={{ marginRight: 4 }} />
+              {rec.matchReason}
+            </Paragraph>
+            {rec.pros.length > 0 && (
+              <div style={{ marginBottom: 4 }}>
+                {rec.pros.map((pro, i) => (
+                  <Tag key={i} color="green" style={{ marginBottom: 2 }}>
+                    ✓ {pro}
+                  </Tag>
+                ))}
+              </div>
+            )}
+            {rec.cons.length > 0 && (
+              <div>
+                {rec.cons.map((con, i) => (
+                  <Tooltip key={i} title={con}>
+                    <Tag color="orange" style={{ marginBottom: 2 }}>
+                      <InfoCircleOutlined /> 注意
+                    </Tag>
+                  </Tooltip>
+                ))}
+              </div>
+            )}
+          </>
+        }
+      />
+    </Card>
+  )
+
+  return (
+    <Drawer
+      title="智慧節點推薦"
+      placement="right"
+      width={480}
+      open={open}
+      onClose={onClose}
+      extra={
+        <Button type="link" onClick={loadRecommendations}>
+          重新整理
+        </Button>
+      }
+    >
+      <Input
+        placeholder="搜尋節點或描述您需要的功能..."
+        prefix={<SearchOutlined />}
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onPressEnter={handleSearch}
+        style={{ marginBottom: 16 }}
+      />
+
+      {renderCategoryGrid()}
+
+      <Tabs
+        defaultActiveKey="installed"
+        items={[
+          {
+            key: 'installed',
+            label: (
+              <span>
+                <AppstoreOutlined /> 已安裝 ({installedNodes.length})
+              </span>
+            ),
+            children: (
+              <List
+                dataSource={installedNodes}
+                renderItem={renderInstalledNode}
+                locale={{ emptyText: <Empty description="沒有已安裝的節點" /> }}
+              />
+            ),
+          },
+          {
+            key: 'ai',
+            label: (
+              <span>
+                <RobotOutlined /> AI 推薦
+              </span>
+            ),
+            children: loading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <Spin tip="AI 分析中..." />
+              </div>
+            ) : !aiAvailable ? (
+              <Alert
+                type="info"
+                message="AI 服務暫時不可用"
+                description="本地 AI 服務 (Llamafile) 未執行。請啟動服務或配置其他 AI 提供者。"
+                showIcon
+              />
+            ) : aiRecommendations.length === 0 ? (
+              <Empty description="暫無推薦" />
+            ) : (
+              <List
+                dataSource={aiRecommendations}
+                renderItem={renderRecommendation}
+              />
+            ),
+          },
+        ]}
+      />
+    </Drawer>
+  )
+}
+
+export default NodeRecommendationDrawer

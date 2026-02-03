@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.execution.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.credential.service.CredentialService;
 import com.aiinpocket.n3n.execution.dto.CreateExecutionRequest;
 import com.aiinpocket.n3n.execution.dto.ExecutionResponse;
 import com.aiinpocket.n3n.execution.dto.NodeExecutionResponse;
@@ -40,6 +41,7 @@ public class ExecutionService {
     private final ExecutionNotificationService notificationService;
     private final NodeHandlerRegistry handlerRegistry;
     private final N3nExpressionEvaluator expressionEvaluator;
+    private final CredentialService credentialService;
 
     public Page<ExecutionResponse> listExecutions(Pageable pageable) {
         return executionRepository.findAllByOrderByStartedAtDesc(pageable)
@@ -237,6 +239,7 @@ public class ExecutionService {
         DagParser.ParseResult parseResult = dagParser.parse(version.getDefinition());
         List<String> executionOrder = parseResult.getExecutionOrder();
         Map<String, Set<String>> dependencies = parseResult.getDependencies();
+        log.info("Execution order: {}", executionOrder);
 
         // Execute nodes in order
         Map<String, Object> context = new HashMap<>();
@@ -247,7 +250,7 @@ public class ExecutionService {
             context.putAll(execution.getTriggerContext());
         }
 
-        Map<String, Object> nodeOutputs = new HashMap<>();
+        Map<String, Object> nodeOutputs = new LinkedHashMap<>();  // Use LinkedHashMap to preserve insertion order
 
         for (String nodeId : executionOrder) {
             // Check if execution was cancelled
@@ -258,7 +261,9 @@ public class ExecutionService {
             }
 
             try {
+                log.info("Executing node: {} (current nodeOutputs keys: {})", nodeId, nodeOutputs.keySet());
                 Map<String, Object> nodeOutput = executeNode(executionId, nodeId, version.getDefinition(), context, nodeOutputs);
+                log.info("Node {} completed with output keys: {}", nodeId, nodeOutput != null ? nodeOutput.keySet() : "null");
                 nodeOutputs.put(nodeId, nodeOutput);
                 context.put(nodeId, nodeOutput);
             } catch (Exception e) {
@@ -343,20 +348,26 @@ public class ExecutionService {
                                                         Map<String, Object> nodeOutputs) {
         // Normalize node type
         String handlerType = normalizeNodeType(nodeType);
+        log.info("Node {} has type '{}', normalized to '{}'", nodeId, nodeType, handlerType);
 
         // Get handler from registry
         NodeHandler handler;
         if (handlerRegistry.hasHandler(handlerType)) {
             handler = handlerRegistry.getHandler(handlerType);
+            log.info("Using handler: {} for node {}", handler.getType(), nodeId);
         } else {
             // Fall back to action handler for unknown types
-            log.debug("No handler for type '{}', using action handler", nodeType);
+            log.warn("No handler for type '{}' (original: '{}'), using action handler", handlerType, nodeType);
             handler = handlerRegistry.getHandler("action");
         }
 
         // Build execution context
         Map<String, Object> inputData = buildInputData(nodeId, context, nodeOutputs);
-        Map<String, Object> nodeConfig = data != null ? new HashMap<>(data) : new HashMap<>();
+        // Extract config from data.config (React Flow node structure)
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nodeConfig = data != null && data.get("config") instanceof Map
+            ? new HashMap<>((Map<String, Object>) data.get("config"))
+            : (data != null ? new HashMap<>(data) : new HashMap<>());
 
         // Get flow info from execution
         Execution execution = executionRepository.findById(executionId).orElse(null);
@@ -373,6 +384,25 @@ public class ExecutionService {
             userId = execution.getTriggeredBy();
         }
 
+        // Create credential resolver using CredentialService
+        final UUID finalUserId = userId;
+        CredentialResolver credentialResolver = new CredentialResolver() {
+            @Override
+            public Map<String, Object> resolve(UUID credentialId, UUID uid) {
+                return credentialService.getDecryptedData(credentialId, uid);
+            }
+
+            @Override
+            public boolean canAccess(UUID credentialId, UUID uid) {
+                try {
+                    credentialService.getDecryptedData(credentialId, uid);
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        };
+
         NodeExecutionContext execContext = NodeExecutionContext.builder()
             .executionId(executionId)
             .nodeId(nodeId)
@@ -385,6 +415,7 @@ public class ExecutionService {
             .flowVersion(flowVersion)
             .userId(userId)
             .expressionEvaluator(expressionEvaluator)
+            .credentialResolver(credentialResolver)
             .build();
 
         // Evaluate expressions in node config
@@ -401,6 +432,7 @@ public class ExecutionService {
             .flowVersion(flowVersion)
             .userId(userId)
             .expressionEvaluator(expressionEvaluator)
+            .credentialResolver(credentialResolver)
             .build();
 
         // Execute handler
@@ -420,17 +452,18 @@ public class ExecutionService {
             return "action";
         }
 
-        // Map common aliases
+        // Map common aliases (return exact handler names as registered)
         return switch (nodeType.toLowerCase()) {
             case "input", "start" -> "trigger";
             case "end" -> "output";
             case "if", "switch", "branch" -> "condition";
             case "foreach", "iterate" -> "loop";
-            case "http", "api", "request" -> "httpRequest";
+            case "http", "api", "request", "httprequest" -> "httpRequest";
             case "script", "js", "javascript" -> "code";
-            case "cron", "schedule" -> "scheduleTrigger";
+            case "cron", "schedule", "scheduletrigger" -> "scheduleTrigger";
             case "delay", "sleep" -> "wait";
-            default -> nodeType.toLowerCase();
+            case "webhooktrigger", "webhook" -> "webhookTrigger";
+            default -> nodeType;  // Return original case for registered handlers
         };
     }
 

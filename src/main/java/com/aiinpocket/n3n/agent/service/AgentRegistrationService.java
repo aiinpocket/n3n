@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.agent.repository.AgentRegistrationRepository;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.gateway.security.AgentCrypto;
+import com.aiinpocket.n3n.gateway.security.AgentPairingService;
 import com.aiinpocket.n3n.gateway.security.DeviceKeyStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class AgentRegistrationService {
     private final GatewaySettingsService gatewaySettingsService;
     private final AgentCrypto agentCrypto;
     private final DeviceKeyStore deviceKeyStore;
+    private final AgentPairingService pairingService;
 
     /**
      * 產生新的註冊 Token
@@ -242,6 +244,85 @@ public class AgentRegistrationService {
 
         registrationRepository.delete(registration);
         log.info("Agent registration deleted: id={}", registrationId);
+    }
+
+    /**
+     * 根據 Token 查詢註冊資訊
+     */
+    @Transactional(readOnly = true)
+    public AgentRegistration getRegistrationByToken(String token) {
+        String tokenHash = hashToken(token);
+        return registrationRepository.findByRegistrationTokenHash(tokenHash).orElse(null);
+    }
+
+    /**
+     * 根據 Token 產生 Agent Config
+     */
+    public GatewaySettingsService.AgentConfig generateConfigForToken(String token) {
+        String agentId = UUID.randomUUID().toString();  // 為了相容性產生新的 agentId
+        return gatewaySettingsService.generateAgentConfig(token, agentId);
+    }
+
+    /**
+     * 完成 Token-based 註冊 (由 Agent 調用)
+     */
+    @Transactional
+    public RegistrationResult completeTokenRegistration(
+            String token,
+            String deviceId,
+            String deviceName,
+            String platform,
+            String devicePublicKey,
+            String deviceFingerprint
+    ) {
+        // 驗證 Token
+        AgentRegistration registration = getRegistrationByToken(token);
+        if (registration == null) {
+            log.warn("Invalid token for registration");
+            return null;
+        }
+
+        // 檢查狀態
+        if (registration.getStatus() != AgentStatus.PENDING) {
+            log.warn("Registration already completed or blocked: {}", registration.getId());
+            return null;
+        }
+
+        UUID userId = registration.getUser().getId();
+
+        try {
+            // 使用 PairingService 完成註冊（包含密鑰派生）
+            AgentPairingService.PairingResult pairingResult = pairingService.completeTokenRegistration(
+                userId,
+                deviceId,
+                deviceName,
+                platform,
+                devicePublicKey,
+                deviceFingerprint
+            );
+
+            // 更新註冊資訊
+            registration.setDeviceId(deviceId);
+            registration.setDeviceName(deviceName);
+            registration.setPlatform(platform);
+            registration.setStatus(AgentStatus.REGISTERED);
+            registration.setRegisteredAt(Instant.now());
+            registration.setLastSeenAt(Instant.now());
+            registrationRepository.save(registration);
+
+            log.info("Agent registered: deviceId={}, userId={}", deviceId, userId);
+
+            return new RegistrationResult(
+                true,
+                pairingResult.platformPublicKey(),
+                pairingResult.platformFingerprint(),
+                pairingResult.deviceToken()
+            );
+
+        } catch (AgentPairingService.PairingException e) {
+            log.error("Failed to complete token registration: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import apiClient from './client'
 
 export interface NodeTypeInfo {
   type: string
@@ -15,34 +15,22 @@ export interface NodeTypeInfo {
   }
 }
 
-const api = axios.create({
-  baseURL: '/api',
-})
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 export async function fetchNodeTypes(): Promise<NodeTypeInfo[]> {
-  const response = await api.get<NodeTypeInfo[]>('/node-types')
+  const response = await apiClient.get<NodeTypeInfo[]>('/node-types')
   return response.data
 }
 
 export async function fetchNodeType(type: string): Promise<NodeTypeInfo> {
-  const response = await api.get<NodeTypeInfo>(`/node-types/${type}`)
+  const response = await apiClient.get<NodeTypeInfo>(`/node-types/${type}`)
   return response.data
 }
 
 export async function fetchNodeTypeSchema(type: string): Promise<Record<string, unknown>> {
-  const response = await api.get<Record<string, unknown>>(`/node-types/${type}/schema`)
+  const response = await apiClient.get<Record<string, unknown>>(`/node-types/${type}/schema`)
   return response.data
 }
 
 export async function fetchTriggerTypes(): Promise<NodeTypeInfo[]> {
-  const response = await api.get<NodeTypeInfo[]>('/node-types/triggers')
+  const response = await apiClient.get<NodeTypeInfo[]>('/node-types/triggers')
   return response.data
 }

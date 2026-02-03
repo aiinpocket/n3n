@@ -16,8 +16,8 @@ import java.util.UUID;
 /**
  * Plugin entity for the marketplace.
  */
-@Entity
-@Table(name = "plugins")
+@Entity(name = "MarketplacePlugin")
+@Table(name = "marketplace_plugins")
 @Data
 @Builder
 @NoArgsConstructor

@@ -158,4 +158,17 @@ public class FlowController {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(flowShareService.getSharedWithMe(userId));
     }
+
+    // ========== Node data mapping endpoints ==========
+
+    /**
+     * Get upstream node outputs for input mapping in the flow editor.
+     */
+    @GetMapping("/{flowId}/versions/{version}/nodes/{nodeId}/upstream-outputs")
+    public ResponseEntity<List<UpstreamNodeOutput>> getUpstreamOutputs(
+            @PathVariable UUID flowId,
+            @PathVariable String version,
+            @PathVariable String nodeId) {
+        return ResponseEntity.ok(flowService.getUpstreamOutputs(flowId, version, nodeId));
+    }
 }

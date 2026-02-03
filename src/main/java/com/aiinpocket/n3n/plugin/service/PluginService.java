@@ -3,8 +3,8 @@ package com.aiinpocket.n3n.plugin.service;
 import com.aiinpocket.n3n.plugin.dto.*;
 import com.aiinpocket.n3n.plugin.entity.*;
 import com.aiinpocket.n3n.plugin.repository.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
-@RequiredArgsConstructor
+@Service("pluginPluginService")
 public class PluginService {
 
     private final PluginRepository pluginRepository;
@@ -25,6 +24,19 @@ public class PluginService {
     private final PluginInstallationRepository pluginInstallationRepository;
     private final PluginRatingRepository pluginRatingRepository;
     private final PluginNodeRegistrar pluginNodeRegistrar;
+
+    public PluginService(
+            @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
+            @Qualifier("pluginPluginVersionRepository") PluginVersionRepository pluginVersionRepository,
+            PluginInstallationRepository pluginInstallationRepository,
+            PluginRatingRepository pluginRatingRepository,
+            PluginNodeRegistrar pluginNodeRegistrar) {
+        this.pluginRepository = pluginRepository;
+        this.pluginVersionRepository = pluginVersionRepository;
+        this.pluginInstallationRepository = pluginInstallationRepository;
+        this.pluginRatingRepository = pluginRatingRepository;
+        this.pluginNodeRegistrar = pluginNodeRegistrar;
+    }
 
     /**
      * Get all categories with plugin counts.

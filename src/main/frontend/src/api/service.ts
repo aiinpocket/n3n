@@ -8,6 +8,7 @@ import type {
   CreateEndpointRequest,
   SchemaRefreshResult,
   ConnectionTestResult,
+  EndpointSchemaResponse,
 } from '../types'
 
 export interface PageResponse<T> {
@@ -73,6 +74,19 @@ export const serviceApi = {
 
   testConnection: async (id: string): Promise<ConnectionTestResult> => {
     const response = await apiClient.post(`/services/${id}/test`)
+    return response.data
+  },
+
+  /**
+   * Get endpoint schema for flow editor node configuration.
+   */
+  getEndpointSchema: async (
+    serviceId: string,
+    endpointId: string
+  ): Promise<EndpointSchemaResponse> => {
+    const response = await apiClient.get(
+      `/services/${serviceId}/endpoints/${endpointId}/schema`
+    )
     return response.data
   },
 }

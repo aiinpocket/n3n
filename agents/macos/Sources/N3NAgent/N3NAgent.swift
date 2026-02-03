@@ -3,6 +3,9 @@ import ArgumentParser
 import Logging
 import N3NAgentCore
 import Darwin
+#if os(macOS)
+import AppKit
+#endif
 
 @main
 struct N3NAgentCLI: AsyncParsableCommand {
@@ -36,6 +39,9 @@ struct Run: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Log level (trace, debug, info, warning, error)")
     var logLevel: String = "info"
 
+    @Option(name: .long, help: "Platform URL for auto-pairing")
+    var platformUrl: String = "http://localhost:8080"
+
     func run() async throws {
         // Configure logging
         LoggingSystem.bootstrap { label in
@@ -45,12 +51,26 @@ struct Run: AsyncParsableCommand {
         }
 
         let logger = Logger(label: "n3n.agent.cli")
+
+        // In CLI mode, use file storage to avoid Keychain blocking issues
+        KeychainStorage.shared.useFileStorageOnly = true
+        logger.info("Running in CLI mode, using file storage")
+
         let agent = Agent.shared
 
-        // Check if paired
-        guard agent.isPaired else {
-            logger.error("Agent is not paired. Run 'n3n-agent pair' first.")
-            throw ExitCode.failure
+        // Check if paired - if not, try auto-pairing with config file
+        if !agent.isPaired {
+            logger.info("Agent is not paired. Looking for config file...")
+
+            // Try to find and load config file (auto-pairing)
+            if let configUrl = findConfigFile() {
+                logger.info("Found config file: \(configUrl.path)")
+                try await autoPairWithConfig(agent: agent, configUrl: configUrl, logger: logger)
+            } else {
+                // No config file found, start interactive wizard
+                logger.info("No config file found. Starting setup wizard...")
+                try await runSetupWizard(agent: agent, platformUrl: platformUrl, logger: logger)
+            }
         }
 
         logger.info("Starting N3N Agent...")
@@ -80,6 +100,167 @@ struct Run: AsyncParsableCommand {
             logger.error("Failed to start agent: \(error.localizedDescription)")
             throw ExitCode.failure
         }
+    }
+
+    /// Find config file in common locations
+    private func findConfigFile() -> URL? {
+        let fileManager = FileManager.default
+        let configFileName = "n3n-agent-config.json"
+
+        // Check locations in order:
+        // 1. Same directory as the app bundle (for zip distribution)
+        // 2. Inside the app's Resources folder
+        // 3. Same directory as executable
+        // 4. Current working directory
+        // 5. Home directory
+        // 6. Downloads folder
+
+        var locations: [URL] = []
+
+        // App bundle parent directory (where the .app is located)
+        if let bundlePath = Bundle.main.bundlePath as NSString? {
+            let appDir = (bundlePath as NSString).deletingLastPathComponent
+            locations.append(URL(fileURLWithPath: appDir).appendingPathComponent(configFileName))
+        }
+
+        // Inside app bundle Resources
+        if let resourcePath = Bundle.main.resourcePath {
+            locations.append(URL(fileURLWithPath: resourcePath).appendingPathComponent(configFileName))
+        }
+
+        // Executable directory
+        let executablePath = Bundle.main.executablePath ?? ""
+        let execDir = (executablePath as NSString).deletingLastPathComponent
+        locations.append(URL(fileURLWithPath: execDir).appendingPathComponent(configFileName))
+
+        // Current working directory
+        locations.append(URL(fileURLWithPath: fileManager.currentDirectoryPath).appendingPathComponent(configFileName))
+
+        // Home directory
+        locations.append(fileManager.homeDirectoryForCurrentUser.appendingPathComponent(configFileName))
+
+        // Downloads folder
+        if let downloadsUrl = fileManager.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+            locations.append(downloadsUrl.appendingPathComponent(configFileName))
+        }
+
+        for location in locations {
+            if fileManager.fileExists(atPath: location.path) {
+                return location
+            }
+        }
+
+        return nil
+    }
+
+    /// Auto-pair using config file
+    private func autoPairWithConfig(agent: Agent, configUrl: URL, logger: Logger) async throws {
+        print("")
+        print("╔══════════════════════════════════════════════════════════════╗")
+        print("║              N3N Agent 自動配對                               ║")
+        print("╠══════════════════════════════════════════════════════════════╣")
+        print("║  找到配置檔案，正在自動完成配對...                             ║")
+        print("╚══════════════════════════════════════════════════════════════╝")
+        print("")
+
+        // Load config
+        let config = try RegistrationConfig.load(from: configUrl)
+
+        // Get device name
+        let deviceName = Host.current().localizedName ?? "My Mac"
+
+        print("配置資訊：")
+        print("  平台: \(config.gateway.domain):\(config.gateway.port)")
+        print("  裝置: \(deviceName)")
+        print("")
+        print("正在配對...")
+
+        // Register with token
+        _ = try await PairingService.shared.registerWithToken(config: config, deviceName: deviceName)
+
+        print("")
+        print("✅ 配對成功！")
+        print("")
+
+        // Optionally delete config file after successful pairing (for security)
+        try? FileManager.default.removeItem(at: configUrl)
+        logger.info("Config file removed after successful pairing")
+    }
+
+    private func runSetupWizard(agent: Agent, platformUrl: String, logger: Logger) async throws {
+        print("")
+        print("╔══════════════════════════════════════════════════════════════╗")
+        print("║              N3N Agent 設定精靈                               ║")
+        print("╠══════════════════════════════════════════════════════════════╣")
+        print("║                                                              ║")
+        print("║  歡迎使用 N3N Agent！                                         ║")
+        print("║  請依照以下步驟完成配對：                                      ║")
+        print("║                                                              ║")
+        print("║  1. 開啟瀏覽器並登入 N3N 平台                                  ║")
+        print("║  2. 進入「設備管理」頁面                                       ║")
+        print("║  3. 點擊「新增 Agent」產生配置                                 ║")
+        print("║  4. 複製產生的 Token 貼到下方                                  ║")
+        print("║                                                              ║")
+        print("╚══════════════════════════════════════════════════════════════╝")
+        print("")
+
+        // Open browser to the pairing page
+        let pairingUrl = "\(platformUrl)/devices?action=add-agent"
+        print("正在開啟瀏覽器... \(pairingUrl)")
+        openBrowser(url: pairingUrl)
+
+        print("")
+        print("請輸入 Token（從網頁複製）：")
+        print("> ", terminator: "")
+
+        guard let token = readLine()?.trimmingCharacters(in: .whitespacesAndNewlines), !token.isEmpty else {
+            print("❌ Token 不能為空")
+            throw ExitCode.failure
+        }
+
+        // Get device name
+        let defaultName = Host.current().localizedName ?? "My Mac"
+        print("")
+        print("裝置名稱 (按 Enter 使用預設: \(defaultName))：")
+        print("> ", terminator: "")
+
+        let inputName = readLine()?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let deviceName = inputName.isEmpty ? defaultName : inputName
+
+        print("")
+        print("正在配對...")
+
+        do {
+            try await agent.pairWithToken(
+                platformUrl: platformUrl,
+                token: token,
+                deviceName: deviceName
+            )
+
+            print("")
+            print("✅ 配對成功！")
+            print("   裝置名稱: \(deviceName)")
+            print("   平台: \(platformUrl)")
+            print("")
+
+        } catch {
+            print("")
+            print("❌ 配對失敗: \(error.localizedDescription)")
+            print("")
+            print("請確認：")
+            print("  - Token 是否正確")
+            print("  - Token 是否已過期（24小時有效）")
+            print("  - 網路連線是否正常")
+            throw ExitCode.failure
+        }
+    }
+
+    private func openBrowser(url: String) {
+        #if os(macOS)
+        if let url = URL(string: url) {
+            NSWorkspace.shared.open(url)
+        }
+        #endif
     }
 
     private func parseLogLevel(_ level: String) -> Logger.Level {

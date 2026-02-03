@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
+@Repository("pluginPluginVersionRepository")
 public interface PluginVersionRepository extends JpaRepository<PluginVersion, UUID> {
 
     List<PluginVersion> findByPluginIdOrderByPublishedAtDesc(UUID pluginId);

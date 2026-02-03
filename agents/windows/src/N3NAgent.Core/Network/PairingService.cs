@@ -117,8 +117,8 @@ public class PairingService
         var registerUrl = config.Gateway.Url
             .Replace("wss://", "https://")
             .Replace("ws://", "http://")
-            .Replace("/ws/agent/secure", "")
-            .Replace("/ws/agent", "")
+            .Replace("/gateway/agent/secure", "")
+            .Replace("/gateway/agent", "")
             + "/api/public/agents/register";
 
         var response = await _httpClient.PostAsJsonAsync(registerUrl, registerRequest);

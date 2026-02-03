@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 // Agent pairing completion (uses pairing code for auth)
                 .requestMatchers("/api/agent/pair/complete").permitAll()
+                // Agent installation (uses token in URL for auth)
+                .requestMatchers("/api/agents/install.sh", "/api/agents/binary/**", "/api/agents/config", "/api/agents/register").permitAll()
                 // Webhook trigger endpoints (no auth - uses signature validation)
                 .requestMatchers("/webhook/**").permitAll()
                 // Actuator endpoints for K8s probes

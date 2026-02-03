@@ -71,24 +71,35 @@ public final class AgentConnection {
             throw ConnectionError.notConfigured
         }
 
+        logger.info("Creating WebSocket connection promise...")
         let promise = eventLoopGroup.next().makePromise(of: Void.self)
+
+        logger.info("Calling WebSocket.connect to \(config.platformUrl)...")
 
         WebSocket.connect(
             to: config.platformUrl,
             on: eventLoopGroup
         ) { [weak self] ws in
-            self?.handleWebSocketConnected(ws)
-        }.whenComplete { [weak self] result in
-            switch result {
-            case .success:
-                promise.succeed(())
-            case .failure(let error):
-                self?.logger.error("WebSocket connection failed: \(error)")
-                promise.fail(error)
+            guard let self = self else {
+                self?.logger.error("Self is nil in WebSocket callback")
+                ws.close(promise: nil)
+                return
             }
+
+            self.logger.info("WebSocket callback invoked, setting up handlers...")
+            self.handleWebSocketConnected(ws)
+
+            // Signal that connection is established AFTER handlers are set up
+            self.logger.info("Handlers set up, succeeding promise")
+            promise.succeed(())
+        }.whenFailure { [weak self] error in
+            self?.logger.error("WebSocket connection failed: \(error)")
+            promise.fail(error)
         }
 
+        logger.info("Waiting for WebSocket connection...")
         try await promise.futureResult.get()
+        logger.info("WebSocket connection established, returning from connectWebSocket")
     }
 
     private func handleWebSocketConnected(_ ws: WebSocket) {
@@ -99,13 +110,28 @@ public final class AgentConnection {
 
         // Set up message handler
         ws.onText { [weak self] ws, text in
+            self?.logger.debug("Received text message: \(text.prefix(200))...")
             self?.handleMessage(text)
         }
 
+        // Set up binary message handler
+        ws.onBinary { [weak self] ws, buffer in
+            self?.logger.debug("Received binary message: \(buffer.readableBytes) bytes")
+        }
+
         // Set up close handler
-        ws.onClose.whenComplete { [weak self] _ in
+        ws.onClose.whenComplete { [weak self] result in
+            switch result {
+            case .success:
+                self?.logger.info("WebSocket close completed normally")
+            case .failure(let error):
+                self?.logger.error("WebSocket close with error: \(error)")
+            }
             self?.handleDisconnected()
         }
+
+        // Log connection state
+        logger.info("WebSocket handlers registered, isClosed=\(ws.isClosed)")
     }
 
     /// Disconnect from the platform.

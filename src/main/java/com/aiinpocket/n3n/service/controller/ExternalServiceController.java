@@ -97,4 +97,15 @@ public class ExternalServiceController {
     public ResponseEntity<Map<String, Object>> testConnection(@PathVariable UUID id) {
         return ResponseEntity.ok(serviceService.testConnection(id));
     }
+
+    /**
+     * Get endpoint schema for flow editor node configuration.
+     * Returns configSchema and interfaceDefinition for the specified endpoint.
+     */
+    @GetMapping("/{serviceId}/endpoints/{endpointId}/schema")
+    public ResponseEntity<EndpointSchemaResponse> getEndpointSchema(
+            @PathVariable UUID serviceId,
+            @PathVariable UUID endpointId) {
+        return ResponseEntity.ok(serviceService.getEndpointSchema(serviceId, endpointId));
+    }
 }

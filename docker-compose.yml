@@ -19,6 +19,9 @@ services:
       JWT_SECRET: dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5z
       # CORS
       ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+      # Flow Optimizer
+      FLOW_OPTIMIZER_ENABLED: "true"
+      FLOW_OPTIMIZER_URL: http://flow-optimizer:8081
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,6 +70,56 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # MongoDB for testing workflows
+  mongodb:
+    image: mongo:7-jammy
+    container_name: n3n-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: n3n_admin
+      MONGO_INITDB_ROOT_PASSWORD: n3n_secret_123
+      MONGO_INITDB_DATABASE: n3n_test
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Flow Optimizer Service (Local AI for flow optimization)
+  # This service is optional - can be enabled with: docker compose up -d flow-optimizer
+  flow-optimizer:
+    build:
+      context: ./flow-optimizer
+      dockerfile: Dockerfile
+    container_name: n3n-flow-optimizer
+    ports:
+      - "8081:8081"
+    environment:
+      LLAMAFILE_HOST: "0.0.0.0"
+      LLAMAFILE_PORT: "8081"
+      LLAMAFILE_THREADS: "4"
+      LLAMAFILE_CTX_SIZE: "4096"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+    restart: unless-stopped
+    profiles:
+      - optimizer
+
 volumes:
   postgres_data:
   redis_data:
+  mongodb_data:

@@ -128,11 +128,21 @@
         </dependency>
 
         <!-- NoSQL Databases -->
-        <!-- MongoDB Driver -->
+        <!-- MongoDB Driver - all components must be same version -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>5.1.0</version>
+            <version>5.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>5.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>5.2.1</version>
         </dependency>
         <!-- Elasticsearch Java Client -->
         <dependency>

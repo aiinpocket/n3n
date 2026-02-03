@@ -14,8 +14,8 @@ import java.util.UUID;
 /**
  * Plugin review/rating entity.
  */
-@Entity
-@Table(name = "plugin_reviews", uniqueConstraints = {
+@Entity(name = "MarketplacePluginReview")
+@Table(name = "marketplace_plugin_reviews", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"plugin_id", "user_id"})
 })
 @Data

@@ -3,7 +3,7 @@ package com.aiinpocket.n3n.plugin.controller;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.plugin.dto.*;
 import com.aiinpocket.n3n.plugin.service.PluginService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +14,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/marketplace")
-@RequiredArgsConstructor
 public class MarketplaceController {
 
     private final PluginService pluginService;
+
+    public MarketplaceController(@Qualifier("pluginPluginService") PluginService pluginService) {
+        this.pluginService = pluginService;
+    }
 
     /**
      * Get all plugin categories.

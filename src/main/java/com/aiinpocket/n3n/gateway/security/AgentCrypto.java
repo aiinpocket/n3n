@@ -121,9 +121,29 @@ public class AgentCrypto {
 
     /**
      * Parse a public key from Base64-encoded bytes.
+     * Supports both raw X25519 keys (32 bytes) and X509-encoded keys.
      */
     public PublicKey parsePublicKey(String base64Key) throws GeneralSecurityException {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+
+        // X25519 raw public key is exactly 32 bytes
+        // If we receive raw key, wrap it in X509 format
+        if (keyBytes.length == 32) {
+            // X509 header for X25519: OID 1.3.101.110
+            // Sequence { Sequence { OID }, BitString { key } }
+            byte[] x509Header = new byte[] {
+                0x30, 0x2A,  // SEQUENCE, length 42
+                0x30, 0x05,  // SEQUENCE, length 5
+                0x06, 0x03, 0x2B, 0x65, 0x6E,  // OID 1.3.101.110 (X25519)
+                0x03, 0x21, 0x00  // BIT STRING, length 33, no unused bits
+            };
+            byte[] x509Encoded = new byte[x509Header.length + keyBytes.length];
+            System.arraycopy(x509Header, 0, x509Encoded, 0, x509Header.length);
+            System.arraycopy(keyBytes, 0, x509Encoded, x509Header.length, keyBytes.length);
+            keyBytes = x509Encoded;
+            log.debug("Converted raw X25519 key to X509 format");
+        }
+
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_AGREEMENT_ALGORITHM);
         return keyFactory.generatePublic(keySpec);
@@ -131,9 +151,21 @@ public class AgentCrypto {
 
     /**
      * Encode a public key to Base64.
+     * Outputs raw 32-byte X25519 public key for cross-platform compatibility.
      */
     public String encodePublicKey(PublicKey publicKey) {
-        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        byte[] encoded = publicKey.getEncoded();
+
+        // X509 encoded X25519 key is 44 bytes (12 byte header + 32 byte key)
+        // Extract raw 32 byte key for compatibility with Swift/CryptoKit
+        if (encoded.length == 44) {
+            byte[] rawKey = new byte[32];
+            System.arraycopy(encoded, 12, rawKey, 0, 32);
+            log.debug("Extracted raw X25519 key from X509 format");
+            return Base64.getEncoder().encodeToString(rawKey);
+        }
+
+        return Base64.getEncoder().encodeToString(encoded);
     }
 
     /**

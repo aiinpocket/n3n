@@ -54,7 +54,7 @@ public class AgentConnection : IAsyncDisposable
         var wsUrl = platformUrl
             .Replace("https://", "wss://")
             .Replace("http://", "ws://")
-            + "/ws/agent";
+            + "/gateway/agent";
 
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("X-Device-Id", deviceId);

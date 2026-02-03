@@ -60,7 +60,7 @@ public final class Agent: AgentConnectionDelegate {
 
         // Store configuration
         let config = AgentConfig(
-            platformUrl: platformUrl.replacingOccurrences(of: "http", with: "ws") + "/ws/agent/secure",
+            platformUrl: platformUrl.replacingOccurrences(of: "http", with: "ws") + "/gateway/agent/secure",
             deviceName: deviceName
         )
         try storage.storeConfig(config)
@@ -80,6 +80,42 @@ public final class Agent: AgentConnectionDelegate {
         logger.info("Unpairing from platform")
         await stop()
         try pairing.unpair()
+    }
+
+    /// Pair with the platform using a token (for one-click setup).
+    public func pairWithToken(platformUrl: String, token: String, deviceName: String) async throws {
+        logger.info("Pairing with platform using token: \(platformUrl)")
+
+        // Parse URL to get domain and port
+        guard let url = URL(string: platformUrl) else {
+            throw AgentError.invalidUrl
+        }
+
+        let scheme = url.scheme ?? "http"
+        let host = url.host ?? "localhost"
+        let port = url.port ?? (scheme == "https" ? 443 : 8080)
+
+        // Build gateway URL
+        let wsScheme = scheme == "https" ? "wss" : "ws"
+        let gatewayUrl = "\(wsScheme)://\(host):\(port)/gateway/agent/secure"
+
+        let config = RegistrationConfig(
+            version: 1,
+            gateway: RegistrationConfig.GatewayInfo(
+                url: gatewayUrl,
+                domain: host,
+                port: port
+            ),
+            registration: RegistrationConfig.RegistrationInfo(
+                token: token,
+                agentId: UUID().uuidString
+            )
+        )
+
+        // Complete registration
+        _ = try await pairing.registerWithToken(config: config, deviceName: deviceName)
+
+        logger.info("Token pairing successful!")
     }
 
     // MARK: - AgentConnectionDelegate
@@ -134,6 +170,7 @@ public enum AgentError: Error, LocalizedError {
     case notConfigured
     case notPaired
     case alreadyRunning
+    case invalidUrl
 
     public var errorDescription: String? {
         switch self {
@@ -143,6 +180,8 @@ public enum AgentError: Error, LocalizedError {
             return "Agent is not paired with any platform."
         case .alreadyRunning:
             return "Agent is already running."
+        case .invalidUrl:
+            return "Invalid platform URL."
         }
     }
 }

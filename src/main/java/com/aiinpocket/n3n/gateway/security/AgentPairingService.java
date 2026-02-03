@@ -129,6 +129,77 @@ public class AgentPairingService {
     }
 
     /**
+     * Complete registration using a one-time token (for one-click install)
+     */
+    public PairingResult completeTokenRegistration(
+            UUID userId,
+            String deviceId,
+            String deviceName,
+            String platform,
+            String devicePublicKey,
+            String deviceFingerprint
+    ) throws PairingException {
+        try {
+            // 1. Generate platform key pair
+            KeyPair platformKeyPair = agentCrypto.generateKeyPair();
+
+            // 2. Parse device public key
+            var parsedDevicePublicKey = agentCrypto.parsePublicKey(devicePublicKey);
+
+            // 3. Derive shared secret
+            byte[] sharedSecret = agentCrypto.deriveSharedSecret(
+                platformKeyPair.getPrivate(),
+                parsedDevicePublicKey
+            );
+
+            // 4. Derive encryption keys
+            byte[] salt = (deviceId + userId.toString()).getBytes();
+            byte[] info = "n3n-agent-v1".getBytes();
+            AgentCrypto.DerivedKeys derivedKeys = agentCrypto.deriveKeys(sharedSecret, salt, info);
+
+            // 5. Compute platform fingerprint
+            String platformFingerprint = agentCrypto.computeFingerprint(
+                platformKeyPair.getPublic().getEncoded()
+            );
+
+            // 6. Generate device token
+            String deviceToken = generateDeviceToken(userId, deviceId);
+
+            // 7. Store device keys
+            Instant now = Instant.now();
+            DeviceKeyStore.DeviceKey deviceKey = DeviceKeyStore.DeviceKey.builder()
+                .deviceId(deviceId)
+                .userId(userId)
+                .deviceName(deviceName)
+                .platform(platform)
+                .fingerprint(deviceFingerprint)
+                .encryptKeyC2S(Base64.getEncoder().encodeToString(derivedKeys.encryptKeyClientToServer()))
+                .encryptKeyS2C(Base64.getEncoder().encodeToString(derivedKeys.encryptKeyServerToClient()))
+                .authKey(Base64.getEncoder().encodeToString(derivedKeys.authKey()))
+                .lastSequence(agentCrypto.generateInitialSequence())
+                .pairedAt(now)
+                .lastActiveAt(now)
+                .revoked(false)
+                .build();
+
+            deviceKeyStore.storeDeviceKey(deviceKey);
+
+            log.info("Token registration completed: deviceId={}, userId={}", deviceId, userId);
+
+            return new PairingResult(
+                agentCrypto.encodePublicKey(platformKeyPair.getPublic()),
+                platformFingerprint,
+                deviceToken,
+                userId
+            );
+
+        } catch (GeneralSecurityException e) {
+            log.error("Cryptographic error during token registration", e);
+            throw new PairingException("Cryptographic error: " + e.getMessage());
+        }
+    }
+
+    /**
      * Unpair a device
      */
     public void unpairDevice(UUID userId, String deviceId) {

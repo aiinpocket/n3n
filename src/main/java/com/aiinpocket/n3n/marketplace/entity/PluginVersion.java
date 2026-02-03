@@ -13,8 +13,8 @@ import java.util.UUID;
 /**
  * Plugin version entity for tracking releases.
  */
-@Entity
-@Table(name = "plugin_versions", uniqueConstraints = {
+@Entity(name = "MarketplacePluginVersion")
+@Table(name = "marketplace_plugin_versions", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"plugin_id", "version"})
 })
 @Data

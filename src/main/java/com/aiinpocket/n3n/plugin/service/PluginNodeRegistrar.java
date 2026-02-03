@@ -9,8 +9,8 @@ import com.aiinpocket.n3n.plugin.repository.PluginInstallationRepository;
 import com.aiinpocket.n3n.plugin.repository.PluginRepository;
 import com.aiinpocket.n3n.plugin.repository.PluginVersionRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,13 +22,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PluginNodeRegistrar {
 
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final PluginRepository pluginRepository;
     private final PluginVersionRepository pluginVersionRepository;
     private final PluginInstallationRepository pluginInstallationRepository;
+
+    public PluginNodeRegistrar(
+            NodeHandlerRegistry nodeHandlerRegistry,
+            @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
+            @Qualifier("pluginPluginVersionRepository") PluginVersionRepository pluginVersionRepository,
+            PluginInstallationRepository pluginInstallationRepository) {
+        this.nodeHandlerRegistry = nodeHandlerRegistry;
+        this.pluginRepository = pluginRepository;
+        this.pluginVersionRepository = pluginVersionRepository;
+        this.pluginInstallationRepository = pluginInstallationRepository;
+    }
 
     // Track registered plugin handlers per user
     // Key: userId, Value: Map<nodeType, handler>

@@ -231,3 +231,45 @@ export interface ConnectionTestResult {
   latencyMs: number
   message: string
 }
+
+// Endpoint Schema types (for flow editor)
+export interface EndpointSchemaResponse {
+  serviceId: string
+  endpointId: string
+  displayName: string
+  description: string | null
+  method: string
+  path: string
+  configSchema: JsonSchema
+  interfaceDefinition: {
+    inputs: Array<{
+      name: string
+      type: string
+      required?: boolean
+      description?: string
+      schema?: JsonSchema
+    }>
+    outputs: Array<{
+      name: string
+      type: string
+      description?: string
+      schema?: JsonSchema
+    }>
+  }
+}
+
+// Upstream node output types (for input mapping)
+export interface UpstreamNodeOutput {
+  nodeId: string
+  nodeLabel: string
+  nodeType: string
+  outputSchema: JsonSchema
+  flattenedFields: OutputField[]
+}
+
+export interface OutputField {
+  path: string
+  type: string
+  description?: string
+  expression: string
+}

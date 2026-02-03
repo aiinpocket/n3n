@@ -62,7 +62,7 @@ public class GatewaySettings {
      */
     public String getWebSocketUrl() {
         String protocol = gatewayPort == 443 || gatewayPort == 9443 ? "wss" : "ws";
-        return String.format("%s://%s:%d/ws/agent/secure", protocol, gatewayDomain, gatewayPort);
+        return String.format("%s://%s:%d/gateway/agent/secure", protocol, gatewayDomain, gatewayPort);
     }
 
     /**

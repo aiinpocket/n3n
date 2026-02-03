@@ -6,8 +6,8 @@ import com.aiinpocket.n3n.marketplace.entity.PluginVersion;
 import com.aiinpocket.n3n.marketplace.repository.PluginRepository;
 import com.aiinpocket.n3n.marketplace.repository.PluginReviewRepository;
 import com.aiinpocket.n3n.marketplace.repository.PluginVersionRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,15 +24,23 @@ import java.util.UUID;
 /**
  * Service for managing plugins in the marketplace.
  */
-@Service
+@Service("marketplacePluginService")
 @Slf4j
-@RequiredArgsConstructor
 @Transactional
 public class PluginService {
 
     private final PluginRepository pluginRepository;
     private final PluginVersionRepository versionRepository;
     private final PluginReviewRepository reviewRepository;
+
+    public PluginService(
+            @Qualifier("marketplacePluginRepository") PluginRepository pluginRepository,
+            @Qualifier("marketplacePluginVersionRepository") PluginVersionRepository versionRepository,
+            @Qualifier("marketplacePluginReviewRepository") PluginReviewRepository reviewRepository) {
+        this.pluginRepository = pluginRepository;
+        this.versionRepository = versionRepository;
+        this.reviewRepository = reviewRepository;
+    }
 
     // Plugin CRUD
 

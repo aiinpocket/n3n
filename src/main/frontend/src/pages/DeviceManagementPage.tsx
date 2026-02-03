@@ -4,8 +4,6 @@ import {
   Button,
   Space,
   Typography,
-  Row,
-  Col,
   Empty,
   Spin,
   Alert,
@@ -21,55 +19,40 @@ import type { ColumnsType } from 'antd/es/table'
 import {
   PlusOutlined,
   ReloadOutlined,
-  DownloadOutlined,
-  AppleOutlined,
-  WindowsOutlined,
-  DesktopOutlined,
+  CopyOutlined,
   StopOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
-  CopyOutlined,
+  AppleOutlined,
+  WindowsOutlined,
 } from '@ant-design/icons'
 import {
-  getDownloadInfo,
-  formatSize,
-  getDownloadUrl,
-  type DownloadInfo,
-} from '../api/device'
-import {
   listRegistrations,
-  generateAgentToken,
   blockAgent,
   unblockAgent,
   deleteRegistration,
   getStatusInfo,
   formatTime,
+  generateInstallCommand,
   type AgentRegistration,
-  type TokenGenerationResult,
 } from '../api/agentRegistration'
 
 const { Title, Text, Paragraph } = Typography
-const { TextArea } = Input
 
 const DeviceManagementPage: React.FC = () => {
   const [registrations, setRegistrations] = useState<AgentRegistration[]>([])
-  const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [generatingToken, setGeneratingToken] = useState(false)
-  const [tokenResult, setTokenResult] = useState<TokenGenerationResult | null>(null)
-  const [tokenModalOpen, setTokenModalOpen] = useState(false)
+  const [installModalOpen, setInstallModalOpen] = useState(false)
+  const [installCommand, setInstallCommand] = useState<string | null>(null)
+  const [generatingCommand, setGeneratingCommand] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const [regs, downloads] = await Promise.all([
-        listRegistrations(),
-        getDownloadInfo().catch(() => null),
-      ])
+      const regs = await listRegistrations()
       setRegistrations(regs)
-      setDownloadInfo(downloads)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : '載入設備列表失敗'
       setError(errorMessage)
@@ -82,18 +65,25 @@ const DeviceManagementPage: React.FC = () => {
     fetchData()
   }, [fetchData])
 
-  const handleGenerateToken = async () => {
+  const handleGenerateInstallCommand = async () => {
     try {
-      setGeneratingToken(true)
-      const result = await generateAgentToken()
-      setTokenResult(result)
-      setTokenModalOpen(true)
-      fetchData()
+      setGeneratingCommand(true)
+      const result = await generateInstallCommand()
+      setInstallCommand(result.command)
+      setInstallModalOpen(true)
+      fetchData() // Refresh to show new pending registration
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '產生 Token 失敗'
+      const errorMessage = err instanceof Error ? err.message : '產生安裝命令失敗'
       message.error(errorMessage)
     } finally {
-      setGeneratingToken(false)
+      setGeneratingCommand(false)
+    }
+  }
+
+  const handleCopyCommand = () => {
+    if (installCommand) {
+      navigator.clipboard.writeText(installCommand)
+      message.success('已複製到剪貼簿')
     }
   }
 
@@ -128,11 +118,6 @@ const DeviceManagementPage: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : '刪除失敗'
       message.error(errorMessage)
     }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    message.success('已複製到剪貼簿')
   }
 
   const columns: ColumnsType<AgentRegistration> = [
@@ -247,8 +232,8 @@ const DeviceManagementPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleGenerateToken}
-            loading={generatingToken}
+            onClick={handleGenerateInstallCommand}
+            loading={generatingCommand}
           >
             新增 Agent
           </Button>
@@ -266,95 +251,6 @@ const DeviceManagementPage: React.FC = () => {
     )
   }
 
-  const renderDownloads = () => {
-    if (!downloadInfo) {
-      return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="下載資訊不可用"
-        />
-      )
-    }
-
-    const platforms = [
-      {
-        key: 'macos',
-        name: 'macOS',
-        icon: <AppleOutlined />,
-        architectures: ['arm64', 'x86_64'],
-      },
-      {
-        key: 'windows',
-        name: 'Windows',
-        icon: <WindowsOutlined />,
-        architectures: ['x86_64'],
-      },
-      {
-        key: 'linux',
-        name: 'Linux',
-        icon: <DesktopOutlined />,
-        architectures: ['x86_64'],
-      },
-    ]
-
-    return (
-      <Row gutter={[16, 16]}>
-        {platforms.map((platform) => (
-          <Col xs={24} sm={12} lg={8} key={platform.key}>
-            <Card
-              title={
-                <Space>
-                  {platform.icon}
-                  {platform.name}
-                </Space>
-              }
-            >
-              <Space direction="vertical" style={{ width: '100%' }}>
-                {platform.architectures.map((arch) => {
-                  const platformData = downloadInfo.agents[platform.key as keyof typeof downloadInfo.agents]
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const info = platformData ? (platformData as any)[arch] : undefined
-
-                  if (!info) return null
-
-                  const isAvailable = info.status !== 'coming-soon' && info.size > 0
-
-                  return (
-                    <div
-                      key={arch}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Space>
-                        <Text>{arch}</Text>
-                        {isAvailable && (
-                          <Text type="secondary">({formatSize(info.size)})</Text>
-                        )}
-                        {!isAvailable && <Tag>即將推出</Tag>}
-                      </Space>
-                      <Button
-                        type="primary"
-                        icon={<DownloadOutlined />}
-                        size="small"
-                        disabled={!isAvailable}
-                        href={isAvailable ? getDownloadUrl(platform.key, arch) : undefined}
-                      >
-                        下載
-                      </Button>
-                    </div>
-                  )
-                })}
-              </Space>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    )
-  }
-
   const tabItems = [
     {
       key: 'agents',
@@ -362,23 +258,40 @@ const DeviceManagementPage: React.FC = () => {
       children: renderAgentList(),
     },
     {
-      key: 'downloads',
-      label: '下載 Agent',
+      key: 'install',
+      label: '安裝說明',
       children: (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <Alert
             type="info"
-            message="N3N Agent 讓您可以從平台遠端控制您的電腦"
+            message="一鍵安裝"
             description={
-              <ol style={{ margin: 0, paddingLeft: 20 }}>
-                <li>下載並安裝對應平台的 Agent</li>
-                <li>點擊「新增 Agent」產生設定檔</li>
-                <li>將設定檔放到 Agent 目錄並啟動</li>
-                <li>Agent 會自動連線到平台</li>
-              </ol>
+              <div>
+                <p>點擊「新增 Agent」按鈕，複製產生的安裝命令，在終端機貼上執行即可。</p>
+                <p style={{ marginBottom: 0 }}>
+                  <strong>macOS / Linux：</strong>打開「終端機」(Terminal)
+                </p>
+              </div>
             }
           />
-          {renderDownloads()}
+          <Card>
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <div style={{ textAlign: 'center' }}>
+                <AppleOutlined style={{ fontSize: 48, color: '#666', marginRight: 24 }} />
+                <WindowsOutlined style={{ fontSize: 48, color: '#0078d4' }} />
+              </div>
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={handleGenerateInstallCommand}
+                loading={generatingCommand}
+                block
+              >
+                產生安裝命令
+              </Button>
+            </Space>
+          </Card>
         </Space>
       ),
     },
@@ -399,7 +312,7 @@ const DeviceManagementPage: React.FC = () => {
             設備管理
           </Title>
           <Paragraph type="secondary">
-            管理已連接的 Agent 和下載 Agent 程式
+            管理已連接的 Agent，或新增 Agent 到您的電腦
           </Paragraph>
         </div>
         <Space>
@@ -409,8 +322,8 @@ const DeviceManagementPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleGenerateToken}
-            loading={generatingToken}
+            onClick={handleGenerateInstallCommand}
+            loading={generatingCommand}
           >
             新增 Agent
           </Button>
@@ -420,52 +333,34 @@ const DeviceManagementPage: React.FC = () => {
       <Tabs items={tabItems} />
 
       <Modal
-        title="Agent 設定檔"
-        open={tokenModalOpen}
-        onCancel={() => setTokenModalOpen(false)}
+        title="安裝 N3N Agent"
+        open={installModalOpen}
+        onCancel={() => setInstallModalOpen(false)}
         footer={[
-          <Button key="close" onClick={() => setTokenModalOpen(false)}>
+          <Button key="close" onClick={() => setInstallModalOpen(false)}>
             關閉
           </Button>,
-          <Button
-            key="copy"
-            type="primary"
-            icon={<CopyOutlined />}
-            onClick={() => {
-              if (tokenResult) {
-                copyToClipboard(JSON.stringify(tokenResult.config, null, 2))
-              }
-            }}
-          >
-            複製設定
+          <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleCopyCommand}>
+            複製命令
           </Button>,
         ]}
         width={600}
       >
-        {tokenResult && (
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <Alert
-              type="warning"
-              message="請妥善保存此設定檔"
-              description="此設定檔包含一次性的註冊 Token，關閉視窗後將無法再次查看。"
-            />
-            <div>
-              <Text strong>設定檔內容：</Text>
-              <TextArea
-                value={JSON.stringify(tokenResult.config, null, 2)}
-                autoSize={{ minRows: 10, maxRows: 20 }}
-                readOnly
-                style={{ fontFamily: 'monospace', marginTop: 8 }}
-              />
-            </div>
-            <div>
-              <Text type="secondary">
-                將此設定檔儲存為 <Text code>n3n-agent-config.json</Text>，
-                放到 Agent 程式的同一目錄下，然後啟動 Agent。
-              </Text>
-            </div>
-          </Space>
-        )}
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Paragraph>
+            在終端機 (Terminal) 中執行以下命令：
+          </Paragraph>
+          <Input.TextArea
+            value={installCommand || ''}
+            readOnly
+            autoSize={{ minRows: 2, maxRows: 4 }}
+            style={{ fontFamily: 'monospace', fontSize: 13 }}
+          />
+          <Alert
+            type="info"
+            message="安裝完成後，Agent 會自動連線到平台。重新整理此頁面可查看狀態。"
+          />
+        </Space>
       </Modal>
     </div>
   )

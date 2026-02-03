@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
+@Repository("pluginPluginRepository")
 public interface PluginRepository extends JpaRepository<Plugin, UUID> {
 
     Optional<Plugin> findByName(String name);

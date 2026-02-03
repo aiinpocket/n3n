@@ -65,7 +65,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String sessionId = session.getId();
-        log.info("New secure WebSocket connection: {}", sessionId);
+        log.info("New secure WebSocket connection: {} (isOpen={})", sessionId, session.isOpen());
 
         // Mark as handshake phase
         handshakeSessions.add(sessionId);
@@ -77,7 +77,13 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             "nonce", UUID.randomUUID().toString()
         ));
 
-        sendPlainMessage(session, challenge);
+        try {
+            log.debug("Sending handshake challenge to {}", sessionId);
+            sendPlainMessage(session, challenge);
+            log.info("Handshake challenge sent to {}", sessionId);
+        } catch (Exception e) {
+            log.error("Failed to send handshake challenge to {}: {}", sessionId, e.getMessage(), e);
+        }
     }
 
     @Override

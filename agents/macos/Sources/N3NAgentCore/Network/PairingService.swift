@@ -47,8 +47,8 @@ public final class PairingService {
         let pairUrl = platformUrl
             .replacingOccurrences(of: "wss://", with: "https://")
             .replacingOccurrences(of: "ws://", with: "http://")
-            .replacingOccurrences(of: "/ws/agent/secure", with: "")
-            .replacingOccurrences(of: "/ws/agent", with: "")
+            .replacingOccurrences(of: "/gateway/agent/secure", with: "")
+            .replacingOccurrences(of: "/gateway/agent", with: "")
             + "/api/agent/pair/complete"
 
         logger.debug("Sending pairing request to: \(pairUrl)")
@@ -156,9 +156,9 @@ public final class PairingService {
         let registerUrl = config.gateway.url
             .replacingOccurrences(of: "wss://", with: "https://")
             .replacingOccurrences(of: "ws://", with: "http://")
-            .replacingOccurrences(of: "/ws/agent/secure", with: "")
-            .replacingOccurrences(of: "/ws/agent", with: "")
-            + "/api/public/agents/register"
+            .replacingOccurrences(of: "/gateway/agent/secure", with: "")
+            .replacingOccurrences(of: "/gateway/agent", with: "")
+            + "/api/agents/register"
 
         logger.debug("Sending registration request to: \(registerUrl)")
 
