@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -7,11 +7,20 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 
 const { Title, Text } = Typography
 
+const REASON_MESSAGES: Record<string, string> = {
+  login_required: '請先登入後再繼續操作',
+  session_expired: '登入已過期，請重新登入',
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { login, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
   const { t } = useTranslation()
+
+  const reason = searchParams.get('reason')
+  const reasonMessage = reason ? REASON_MESSAGES[reason] : null
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
@@ -28,17 +37,30 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f0f2f5',
+      background: 'var(--color-bg-primary)',
     }}>
-      <Card style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+      <Card style={{
+        width: 400,
+        background: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
             </div>
-            <Title level={2} style={{ margin: 0 }}>N3N Flow</Title>
-            <Text type="secondary">Flow Platform</Text>
+            <Title level={2} style={{ margin: 0, color: 'var(--color-text-primary)' }}>N3N Flow</Title>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>Flow Platform</Text>
           </div>
+
+          {reasonMessage && (
+            <Alert
+              message={reasonMessage}
+              type="warning"
+              showIcon
+            />
+          )}
 
           {error && (
             <Alert
@@ -95,8 +117,8 @@ export default function LoginPage() {
           </Form>
 
           <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">
-              {t('auth.noAccount')} <Link to="/register">{t('auth.register')}</Link>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>
+              {t('auth.noAccount')} <Link to="/register" style={{ color: 'var(--color-primary)' }}>{t('auth.register')}</Link>
             </Text>
           </div>
         </Space>

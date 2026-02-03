@@ -203,7 +203,7 @@ const AIAssistantPage: React.FC = () => {
         bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}
       >
         {/* Header */}
-        <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ padding: 16, borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between' }}>
           <Space>
             <RobotOutlined style={{ fontSize: 24 }} />
             <Title level={4} style={{ margin: 0 }}>
@@ -252,7 +252,7 @@ const AIAssistantPage: React.FC = () => {
               {sending && (
                 <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                   <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                  <div style={{ flex: 1, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
+                  <div style={{ flex: 1, padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
                     <Spin size="small" /> {t('chat.thinking')}
                   </div>
                 </div>
@@ -264,7 +264,7 @@ const AIAssistantPage: React.FC = () => {
 
         {/* Input */}
         {currentConversation && (
-          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ padding: 16, borderTop: '1px solid var(--color-border)' }}>
             <Space.Compact style={{ width: '100%' }}>
               <TextArea
                 value={inputValue}

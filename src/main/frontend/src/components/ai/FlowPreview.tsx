@@ -44,9 +44,9 @@ const FlowPreview: React.FC<Props> = ({ flowDefinition, onApply }) => {
       },
       position: node.position || { x: 0, y: 0 },
       style: {
-        border: '1px solid #1890ff',
+        border: '1px solid var(--color-primary)',
         borderRadius: 8,
-        background: '#fff',
+        background: 'var(--color-bg-elevated)',
         padding: 4,
         minWidth: 120,
       },

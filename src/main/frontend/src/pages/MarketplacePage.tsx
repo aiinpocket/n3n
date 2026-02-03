@@ -313,7 +313,7 @@ function PluginDetailModal({
           {plugin.readme && (
             <div
               style={{
-                background: '#f5f5f5',
+                background: 'var(--color-bg-elevated)',
                 padding: 16,
                 borderRadius: 8,
                 maxHeight: 400,
@@ -328,7 +328,7 @@ function PluginDetailModal({
           {plugin.changelog ? (
             <div
               style={{
-                background: '#f5f5f5',
+                background: 'var(--color-bg-elevated)',
                 padding: 16,
                 borderRadius: 8,
                 maxHeight: 400,

@@ -307,7 +307,7 @@ export default function SkillsPage() {
           <>
             <div style={{ marginBottom: 16 }}>
               <strong>{t('skill.inputSchema')}:</strong>
-              <pre style={{ background: '#f5f5f5', padding: 8, borderRadius: 4, fontSize: 12 }}>
+              <pre style={{ background: 'var(--color-bg-elevated)', padding: 8, borderRadius: 4, fontSize: 12, color: 'var(--color-text-primary)' }}>
                 {JSON.stringify(selectedSkill.inputSchema, null, 2)}
               </pre>
             </div>
@@ -329,12 +329,13 @@ export default function SkillsPage() {
                 <strong>{t('skill.result')}:</strong>
                 <pre
                   style={{
-                    background: testResult.startsWith('Error') ? '#fff2f0' : '#f6ffed',
+                    background: testResult.startsWith('Error') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
                     padding: 8,
                     borderRadius: 4,
                     fontSize: 12,
                     maxHeight: 200,
                     overflow: 'auto',
+                    color: testResult.startsWith('Error') ? 'var(--color-error)' : 'var(--color-success)',
                   }}
                 >
                   {testResult}

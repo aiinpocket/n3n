@@ -1,14 +1,728 @@
+/* N3N Flow Platform - Design System */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* CSS Variables - Dark Theme */
+:root {
+  /* Background Colors */
+  --color-bg-primary: #020617;
+  --color-bg-secondary: #0F172A;
+  --color-bg-elevated: #1E293B;
+  --color-bg-hover: #334155;
+  --color-bg-active: #475569;
+
+  /* Brand Colors */
+  --color-primary: #6366F1;
+  --color-primary-hover: #818CF8;
+  --color-primary-active: #4F46E5;
+  --color-secondary: #818CF8;
+
+  /* Semantic Colors */
+  --color-success: #22C55E;
+  --color-success-hover: #16A34A;
+  --color-warning: #F59E0B;
+  --color-warning-hover: #D97706;
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-info: #3B82F6;
+  --color-info-hover: #2563EB;
+
+  /* Text Colors */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #0F172A;
+
+  /* Border Colors */
+  --color-border: #334155;
+  --color-border-hover: #475569;
+  --color-border-focus: #6366F1;
+
+  /* Node Colors */
+  --node-trigger: #22C55E;
+  --node-action: #3B82F6;
+  --node-condition: #F59E0B;
+  --node-loop: #A855F7;
+  --node-code: #14B8A6;
+  --node-http: #6366F1;
+  --node-agent: #EC4899;
+  --node-ai: #8B5CF6;
+  --node-output: #EF4444;
+  --node-wait: #F97316;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body, #root {
+html {
   height: 100%;
   width: 100%;
+  background-color: #020617 !important;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: #020617 !important;
+  color: #F8FAFC !important;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  background-color: #020617;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-hover);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-active);
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Code */
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* Ant Design Dark Theme Overrides */
+.ant-layout {
+  background: var(--color-bg-primary) !important;
+}
+
+.ant-layout-sider {
+  background: var(--color-bg-secondary) !important;
+  border-right: 1px solid var(--color-border) !important;
+}
+
+.ant-layout-sider-trigger {
+  background: var(--color-bg-elevated) !important;
+  border-top: 1px solid var(--color-border) !important;
+}
+
+.ant-layout-header {
+  background: var(--color-bg-secondary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-menu {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+.ant-menu-item {
+  color: var(--color-text-secondary) !important;
+  margin: 4px 8px !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-menu-item-selected {
+  background: var(--color-primary) !important;
+  color: white !important;
+}
+
+.ant-menu-item-selected:hover {
+  background: var(--color-primary-hover) !important;
+}
+
+/* Menu Item Group styling */
+.ant-menu-item-group-title {
+  color: var(--color-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 12px 16px 4px !important;
+  margin-top: 8px !important;
+}
+
+.ant-menu-item-group:first-child .ant-menu-item-group-title {
+  margin-top: 0 !important;
+}
+
+.ant-menu-item-group-list .ant-menu-item {
+  margin: 2px 8px !important;
+}
+
+.ant-menu-submenu-title {
+  color: var(--color-text-secondary) !important;
+  margin: 4px 8px !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-menu-submenu-title:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-menu-sub {
+  background: transparent !important;
+}
+
+/* Cards */
+.ant-card {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-card-body {
+  color: var(--color-text-primary) !important;
+}
+
+/* Tables */
+.ant-table {
+  background: var(--color-bg-elevated) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  font-weight: 600;
+}
+
+.ant-table-tbody > tr > td {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--color-bg-hover) !important;
+}
+
+.ant-table-wrapper .ant-pagination {
+  margin-top: var(--space-4);
+}
+
+/* Buttons */
+.ant-btn {
+  border-radius: var(--radius-md) !important;
+  font-weight: 500;
+  transition: all var(--transition-fast) !important;
+}
+
+.ant-btn-primary {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.ant-btn-primary:hover {
+  background: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+.ant-btn-default {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-btn-default:hover {
+  background: var(--color-bg-hover) !important;
+  border-color: var(--color-border-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-btn-dangerous {
+  background: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+}
+
+.ant-btn-dangerous:hover {
+  background: var(--color-danger-hover) !important;
+  border-color: var(--color-danger-hover) !important;
+}
+
+/* Inputs */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--color-border-hover) !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+/* Select Dropdown */
+.ant-select-dropdown {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-select-item {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-select-item-option-active {
+  background: var(--color-bg-hover) !important;
+}
+
+.ant-select-item-option-selected {
+  background: var(--color-primary) !important;
+  color: white !important;
+}
+
+/* Modals */
+.ant-modal-content {
+  background: var(--color-bg-elevated) !important;
+  border-radius: var(--radius-xl) !important;
+}
+
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-modal-title {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-modal-close {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-modal-close:hover {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid var(--color-border) !important;
+}
+
+/* Drawers */
+.ant-drawer-content {
+  background: var(--color-bg-secondary) !important;
+}
+
+.ant-drawer-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-drawer-title {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-drawer-close {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Tags */
+.ant-tag {
+  border-radius: var(--radius-md) !important;
+  border: none !important;
+}
+
+.ant-tag-green {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: var(--color-success) !important;
+}
+
+.ant-tag-blue {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: var(--color-info) !important;
+}
+
+.ant-tag-purple {
+  background: rgba(168, 85, 247, 0.2) !important;
+  color: #A855F7 !important;
+}
+
+.ant-tag-default {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+/* Tabs */
+.ant-tabs-tab {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-tabs-tab:hover {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-primary) !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--color-primary) !important;
+}
+
+/* Form */
+.ant-form-item-label > label {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Dropdown */
+.ant-dropdown-menu {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-dropdown-menu-item {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: var(--color-bg-hover) !important;
+}
+
+/* Popover */
+.ant-popover-inner {
+  background: var(--color-bg-elevated) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-popover-title {
+  color: var(--color-text-primary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+/* Tooltip */
+.ant-tooltip-inner {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Message */
+.ant-message-notice-content {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Spin */
+.ant-spin-dot-item {
+  background-color: var(--color-primary) !important;
+}
+
+/* Divider */
+.ant-divider {
+  border-color: var(--color-border) !important;
+}
+
+/* Avatar */
+.ant-avatar {
+  background: var(--color-bg-hover) !important;
+}
+
+/* Badge */
+.ant-badge-count {
+  background: var(--color-danger) !important;
+}
+
+/* Alert */
+.ant-alert {
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-alert-info {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+.ant-alert-success {
+  background: rgba(34, 197, 94, 0.1) !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.ant-alert-warning {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.ant-alert-error {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Switch */
+.ant-switch {
+  background: var(--color-bg-hover) !important;
+}
+
+.ant-switch-checked {
+  background: var(--color-primary) !important;
+}
+
+/* Pagination */
+.ant-pagination-item {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+}
+
+.ant-pagination-item a {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-pagination-item:hover {
+  border-color: var(--color-primary) !important;
+}
+
+.ant-pagination-item-active {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.ant-pagination-item-active a {
+  color: white !important;
+}
+
+.ant-pagination-prev .ant-pagination-item-link,
+.ant-pagination-next .ant-pagination-item-link {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Empty */
+.ant-empty-description {
+  color: var(--color-text-muted) !important;
+}
+
+/* React Flow Overrides */
+.react-flow {
+  background: var(--color-bg-primary) !important;
+}
+
+.react-flow__background {
+  background: var(--color-bg-primary) !important;
+}
+
+.react-flow__minimap {
+  background: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.react-flow__controls {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--color-bg-hover) !important;
+}
+
+/* Utility Classes */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-elevated {
+  background-color: var(--color-bg-elevated);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
 }

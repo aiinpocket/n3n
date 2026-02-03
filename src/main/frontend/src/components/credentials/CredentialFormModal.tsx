@@ -211,7 +211,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
         </Form.Item>
 
         {selectedType && (
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 16, marginTop: 16 }}>
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: 16 }}>
             <div style={{ fontWeight: 500, marginBottom: 12 }}>
               {selectedType.displayName} 設定
             </div>

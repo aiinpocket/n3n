@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Spin, ConfigProvider } from 'antd'
+import { Spin, ConfigProvider, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
 import zhTW from 'antd/locale/zh_TW'
 import enUS from 'antd/locale/en_US'
@@ -85,7 +85,63 @@ function App() {
   const currentLocale = antdLocales[i18n.language as keyof typeof antdLocales] || enUS
 
   return (
-    <ConfigProvider locale={currentLocale}>
+    <ConfigProvider
+      locale={currentLocale}
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: '#6366F1',
+          colorSuccess: '#22C55E',
+          colorWarning: '#F59E0B',
+          colorError: '#EF4444',
+          colorInfo: '#6366F1',
+          colorBgBase: '#020617',
+          colorBgContainer: '#0F172A',
+          colorBgElevated: '#1E293B',
+          colorBgLayout: '#020617',
+          colorBorder: '#334155',
+          colorBorderSecondary: '#1E293B',
+          colorText: '#F8FAFC',
+          colorTextSecondary: '#94A3B8',
+          colorTextTertiary: '#64748B',
+          fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontFamilyCode: "'JetBrains Mono', 'Fira Code', monospace",
+          borderRadius: 8,
+          borderRadiusLG: 12,
+          borderRadiusSM: 6,
+        },
+        components: {
+          Button: {
+            primaryShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.4)',
+          },
+          Card: {
+            colorBgContainer: '#0F172A',
+          },
+          Table: {
+            colorBgContainer: '#0F172A',
+            headerBg: '#1E293B',
+            rowHoverBg: 'rgba(99, 102, 241, 0.08)',
+          },
+          Menu: {
+            darkItemBg: '#0F172A',
+            darkSubMenuItemBg: '#020617',
+            darkItemSelectedBg: 'rgba(99, 102, 241, 0.15)',
+          },
+          Input: {
+            colorBgContainer: '#1E293B',
+          },
+          Select: {
+            colorBgContainer: '#1E293B',
+          },
+          Modal: {
+            colorBgElevated: '#1E293B',
+          },
+          Drawer: {
+            colorBgElevated: '#1E293B',
+          },
+        },
+      }}
+    >
       <BrowserRouter>
         <SetupCheck>
           <Routes>

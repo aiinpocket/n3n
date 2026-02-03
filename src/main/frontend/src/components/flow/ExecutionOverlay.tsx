@@ -183,12 +183,12 @@ export default function ExecutionOverlay({
         {execution?.error && (
           <div
             style={{
-              background: '#fff2f0',
-              border: '1px solid #ffccc7',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid var(--color-error)',
               borderRadius: 4,
               padding: 8,
               fontSize: 12,
-              color: '#cf1322',
+              color: 'var(--color-error)',
             }}
           >
             {execution.error}

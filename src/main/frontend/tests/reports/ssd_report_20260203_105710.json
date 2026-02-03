@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-02-03T10:57:10.016104",
+  "total": 9,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "baseline": 9,
+  "results": [
+    {
+      "test_id": "login-001",
+      "name": "登入頁面視覺",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/login-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 2487
+    },
+    {
+      "test_id": "layout-001",
+      "name": "側邊欄視覺",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/layout-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 6423
+    },
+    {
+      "test_id": "layout-002",
+      "name": "側邊欄收合功能",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/layout-002.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": true
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 2797
+    },
+    {
+      "test_id": "flowlist-001",
+      "name": "流程列表頁面",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/flowlist-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 2385
+    },
+    {
+      "test_id": "editor-001",
+      "name": "流程編輯器整體",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 4072
+    },
+    {
+      "test_id": "editor-002",
+      "name": "節點視覺樣式",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-002.png",
+      "error": "Check failed",
+      "checks": [
+        {
+          "type": "element",
+          "passed": false,
+          "actual": "not visible"
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 4075
+    },
+    {
+      "test_id": "editor-003",
+      "name": "節點選中狀態",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-003.png",
+      "error": "Check failed",
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": false
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 4060
+    },
+    {
+      "test_id": "editor-004",
+      "name": "配置面板",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-004.png",
+      "error": "Check failed",
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": false
+        },
+        {
+          "type": "element",
+          "passed": false,
+          "actual": "not visible"
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 4055
+    },
+    {
+      "test_id": "interaction-001",
+      "name": "按鈕 Hover 效果",
+      "status": "baseline",
+      "screenshot_path": null,
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/interaction-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": true
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 2801
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-02-03T11:04:25.193723",
+  "total": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "baseline": 0,
+  "results": [
+    {
+      "test_id": "login-001",
+      "name": "登入頁面視覺",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/login-001_20260203_110425.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/login-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 2453
+    }
+  ]
+}

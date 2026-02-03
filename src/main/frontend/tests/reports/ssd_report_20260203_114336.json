@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-02-03T11:43:36.985672",
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "skipped": 0,
+  "baseline": 0,
+  "results": [
+    {
+      "test_id": "login-001",
+      "name": "登入頁面視覺",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/login-001_20260203_114301.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/login-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 2454
+    },
+    {
+      "test_id": "layout-001",
+      "name": "側邊欄視覺",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/layout-001_20260203_114307.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/layout-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 6437
+    },
+    {
+      "test_id": "layout-002",
+      "name": "側邊欄收合功能",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/layout-002_20260203_114310.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/layout-002.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": true
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 2814
+    },
+    {
+      "test_id": "flowlist-001",
+      "name": "流程列表頁面",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/flowlist-001_20260203_114312.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/flowlist-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 2371
+    },
+    {
+      "test_id": "editor-001",
+      "name": "流程編輯器整體",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/editor-001_20260203_114317.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "screenshot",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        }
+      ],
+      "duration_ms": 4092
+    },
+    {
+      "test_id": "editor-002",
+      "name": "節點視覺樣式",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/editor-002_20260203_114322.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-002.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 5314
+    },
+    {
+      "test_id": "editor-003",
+      "name": "節點選中狀態",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/editor-003_20260203_114328.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-003.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": true
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 5785
+    },
+    {
+      "test_id": "editor-004",
+      "name": "配置面板",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/editor-004_20260203_114334.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/editor-004.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "click",
+          "passed": true
+        },
+        {
+          "type": "element",
+          "passed": true,
+          "actual": "visible"
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 6017
+    },
+    {
+      "test_id": "interaction-001",
+      "name": "按鈕 Hover 效果",
+      "status": "passed",
+      "screenshot_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/screenshots/interaction-001_20260203_114336.png",
+      "baseline_path": "/Users/aiinpocket/IdeaProjects/n3n_group/n3n/src/main/frontend/tests/baseline/interaction-001.png",
+      "error": null,
+      "checks": [
+        {
+          "type": "interaction",
+          "passed": true
+        },
+        {
+          "type": "screenshot",
+          "passed": true
+        }
+      ],
+      "duration_ms": 2800
+    }
+  ]
+}

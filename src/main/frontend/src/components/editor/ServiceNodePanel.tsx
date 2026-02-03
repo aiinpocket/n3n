@@ -153,7 +153,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
         />
       )}
 
-      <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
+      <div style={{ marginTop: 16, padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
         <Text type="secondary">
           點擊端點即可將其加入流程中作為節點使用。
         </Text>

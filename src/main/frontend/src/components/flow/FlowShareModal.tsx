@@ -168,7 +168,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       width={700}
     >
       {/* Add new share form */}
-      <div style={{ marginBottom: 24, padding: 16, background: '#fafafa', borderRadius: 8 }}>
+      <div style={{ marginBottom: 24, padding: 16, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
         <Form
           form={form}
           layout="inline"

@@ -182,9 +182,9 @@ const CredentialListPage: React.FC = () => {
           </Button>
         </div>
 
-        <div style={{ marginBottom: 16, padding: 12, background: '#fffbe6', borderRadius: 4 }}>
-          <ExclamationCircleOutlined style={{ color: '#faad14', marginRight: 8 }} />
-          <span style={{ color: '#666' }}>
+        <div style={{ marginBottom: 16, padding: 12, background: 'rgba(245, 158, 11, 0.15)', borderRadius: 4, border: '1px solid var(--color-warning)' }}>
+          <ExclamationCircleOutlined style={{ color: 'var(--color-warning)', marginRight: 8 }} />
+          <span style={{ color: 'var(--color-text-secondary)' }}>
             {t('credential.securityInfo')}
           </span>
         </div>

@@ -83,9 +83,9 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
                   display: 'flex',
                   alignItems: 'center',
                   padding: '12px 16px',
-                  background: '#f5f5f5',
+                  background: 'var(--color-bg-elevated)',
                   borderRadius: 8,
-                  border: '1px solid #d9d9d9',
+                  border: '1px solid var(--color-border)',
                 }}
               >
                 <span style={{
@@ -94,7 +94,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: '#1890ff',
+                  background: 'var(--color-primary)',
                   color: 'white',
                   borderRadius: '50%',
                   fontSize: 12,

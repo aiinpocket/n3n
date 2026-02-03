@@ -29,16 +29,21 @@ export default function RegisterPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f0f2f5',
+      background: 'var(--color-bg-primary)',
     }}>
-      <Card style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+      <Card style={{
+        width: 400,
+        background: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
             </div>
-            <Title level={2} style={{ margin: 0 }}>{t('auth.register')}</Title>
-            <Text type="secondary">N3N Flow Platform</Text>
+            <Title level={2} style={{ margin: 0, color: 'var(--color-text-primary)' }}>{t('auth.register')}</Title>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>N3N Flow Platform</Text>
           </div>
 
           {error && (
@@ -135,8 +140,8 @@ export default function RegisterPage() {
           </Form>
 
           <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">
-              {t('auth.hasAccount')} <Link to="/login">{t('auth.login')}</Link>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>
+              {t('auth.hasAccount')} <Link to="/login" style={{ color: 'var(--color-primary)' }}>{t('auth.login')}</Link>
             </Text>
           </div>
         </Space>

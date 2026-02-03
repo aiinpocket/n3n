@@ -11,25 +11,30 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   ApiOutlined,
+  CloudServerOutlined,
+  DesktopOutlined,
 } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 
 const nodeColors: Record<string, string> = {
-  trigger: '#52c41a',
-  scheduleTrigger: '#52c41a',
-  action: '#1890ff',
-  condition: '#faad14',
-  loop: '#722ed1',
-  output: '#f5222d',
-  code: '#13c2c2',
-  httpRequest: '#2f54eb',
-  wait: '#fa8c16',
-  externalService: '#eb2f96',
+  trigger: '#22C55E',        // success green
+  scheduleTrigger: '#22C55E',
+  webhookTrigger: '#22C55E',
+  action: '#6366F1',         // primary indigo
+  condition: '#F59E0B',      // warning amber
+  loop: '#8B5CF6',           // purple
+  output: '#EF4444',         // danger red
+  code: '#06B6D4',           // cyan
+  httpRequest: '#3B82F6',    // blue
+  wait: '#F97316',           // orange
+  externalService: '#EC4899', // pink
+  agent: '#8B5CF6',          // purple
 }
 
 const nodeIcons: Record<string, React.ReactNode> = {
   trigger: <PlayCircleOutlined />,
   scheduleTrigger: <CalendarOutlined />,
+  webhookTrigger: <CloudServerOutlined />,
   action: <ThunderboltOutlined />,
   condition: <BranchesOutlined />,
   loop: <ReloadOutlined />,
@@ -38,6 +43,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   httpRequest: <GlobalOutlined />,
   wait: <ClockCircleOutlined />,
   externalService: <ApiOutlined />,
+  agent: <DesktopOutlined />,
 }
 
 interface CustomNodeData {
@@ -61,7 +67,7 @@ const BaseNode = memo(({ data, selected }: NodeProps) => {
           padding: '12px 20px',
           borderRadius: 8,
           background: color,
-          border: selected ? '2px solid #000' : '2px solid transparent',
+          border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
           color: '#fff',
           minWidth: 150,
           textAlign: 'center',
@@ -144,7 +150,7 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
         padding: '12px 20px',
         borderRadius: 8,
         background: color,
-        border: selected ? '2px solid #000' : '2px solid transparent',
+        border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
         color: '#fff',
         minWidth: 150,
         textAlign: 'center',
@@ -249,6 +255,18 @@ const WaitNode = memo((props: NodeProps) => {
 })
 WaitNode.displayName = 'WaitNode'
 
+// Webhook Trigger Node
+const WebhookTriggerNode = memo((props: NodeProps) => {
+  return <BaseNode {...props} data={{ ...props.data, nodeType: 'webhookTrigger' }} />
+})
+WebhookTriggerNode.displayName = 'WebhookTriggerNode'
+
+// Agent Node
+const AgentNode = memo((props: NodeProps) => {
+  return <BaseNode {...props} data={{ ...props.data, nodeType: 'agent' }} />
+})
+AgentNode.displayName = 'AgentNode'
+
 // External Service Node
 const ExternalServiceNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as CustomNodeData & {
@@ -265,7 +283,7 @@ const ExternalServiceNode = memo(({ data, selected }: NodeProps) => {
           padding: '12px 20px',
           borderRadius: 8,
           background: color,
-          border: selected ? '2px solid #000' : '2px solid transparent',
+          border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
           color: '#fff',
           minWidth: 180,
           textAlign: 'center',
@@ -331,6 +349,7 @@ ExternalServiceNode.displayName = 'ExternalServiceNode'
 export const customNodeTypes = {
   trigger: TriggerNode,
   scheduleTrigger: ScheduleTriggerNode,
+  webhookTrigger: WebhookTriggerNode,
   action: ActionNode,
   condition: ConditionNode,
   loop: LoopNode,
@@ -339,6 +358,7 @@ export const customNodeTypes = {
   httpRequest: HttpRequestNode,
   wait: WaitNode,
   externalService: ExternalServiceNode,
+  agent: AgentNode,
   // Default fallback
   default: ActionNode,
 }
@@ -347,6 +367,7 @@ export {
   BaseNode,
   TriggerNode,
   ScheduleTriggerNode,
+  WebhookTriggerNode,
   ActionNode,
   ConditionNode,
   LoopNode,
@@ -355,4 +376,5 @@ export {
   HttpRequestNode,
   WaitNode,
   ExternalServiceNode,
+  AgentNode,
 }

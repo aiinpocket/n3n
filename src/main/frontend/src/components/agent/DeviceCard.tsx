@@ -94,7 +94,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
               width: 48,
               height: 48,
               borderRadius: 8,
-              backgroundColor: '#f0f0f0',
+              backgroundColor: 'var(--color-bg-elevated)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
