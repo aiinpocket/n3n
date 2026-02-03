@@ -13,6 +13,7 @@ import {
   ApiOutlined,
   PauseCircleOutlined,
   EyeOutlined,
+  RocketOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -36,6 +37,7 @@ import { customNodeTypes } from '../components/nodes/CustomNodes'
 import { executionAwareNodeTypes } from '../components/nodes/ExecutionAwareNodes'
 import { useFlowExecution } from '../hooks/useFlowExecution'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
+import OptimizationPanel from '../components/flow/OptimizationPanel'
 import type { ExternalService, ServiceEndpoint } from '../types'
 
 const { Text } = Typography
@@ -121,6 +123,7 @@ export default function FlowEditorPage() {
 
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [servicePanelOpen, setServicePanelOpen] = useState(false)
+  const [optimizationPanelOpen, setOptimizationPanelOpen] = useState(false)
   const [saveForm] = Form.useForm()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -264,6 +267,18 @@ export default function FlowEditorPage() {
     [updateNodeData]
   )
 
+  const handleNodeDelete = useCallback(
+    (nodeId: string) => {
+      // Remove the node
+      setNodes(nodes.filter((n) => n.id !== nodeId))
+      // Remove connected edges
+      setEdges(edges.filter((e) => e.source !== nodeId && e.target !== nodeId))
+      // Clear selection
+      setSelectedNodeId(null)
+    },
+    [nodes, edges, setNodes, setEdges, setSelectedNodeId]
+  )
+
   const selectedNode = useMemo(
     () => nodes.find((n) => n.id === selectedNodeId) || null,
     [nodes, selectedNodeId]
@@ -385,6 +400,15 @@ export default function FlowEditorPage() {
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
               外部服務
             </Button>
+            <Tooltip title="使用 AI 分析流程，找出可優化的地方">
+              <Button
+                icon={<RocketOutlined />}
+                onClick={() => setOptimizationPanelOpen(true)}
+                disabled={nodes.length === 0}
+              >
+                AI 優化
+              </Button>
+            </Tooltip>
             <Dropdown menu={versionMenu} placement="bottomRight" disabled={versions.length === 0}>
               <Button icon={<HistoryOutlined />}>
                 版本記錄 ({versions.length})
@@ -506,8 +530,11 @@ export default function FlowEditorPage() {
 
       <NodeConfigPanel
         node={selectedNode}
+        flowId={id}
+        flowVersion={currentVersion?.version}
         onClose={() => setSelectedNodeId(null)}
         onUpdate={handleNodeConfigUpdate}
+        onDelete={handleNodeDelete}
       />
 
       <ServiceNodePanel
@@ -549,6 +576,30 @@ export default function FlowEditorPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+      <OptimizationPanel
+        visible={optimizationPanelOpen}
+        onClose={() => setOptimizationPanelOpen(false)}
+        flowDefinition={nodes.length > 0 ? {
+          nodes: nodes.map(n => ({
+            id: n.id,
+            type: n.type || 'unknown',
+            position: n.position,
+            data: n.data as Record<string, unknown>,
+          })),
+          edges: edges.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+          })),
+        } : null}
+        onHighlightNodes={(nodeIds) => {
+          // Highlight the selected nodes by selecting the first one
+          if (nodeIds.length > 0) {
+            setSelectedNodeId(nodeIds[0])
+          }
+        }}
+      />
     </>
   )
 }

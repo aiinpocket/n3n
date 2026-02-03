@@ -551,7 +551,7 @@ export default function MarketplacePage() {
         sortBy,
       })
       setPlugins(result.plugins)
-    } catch (error) {
+    } catch {
       // Keep current data on error
     }
   }
@@ -562,7 +562,7 @@ export default function MarketplacePage() {
       await installPlugin(id)
       message.success(t('marketplace.installSuccess'))
       loadData()
-    } catch (error) {
+    } catch {
       message.error(t('marketplace.installFailed'))
     } finally {
       setActionLoading(null)
@@ -582,7 +582,7 @@ export default function MarketplacePage() {
           await uninstallPlugin(id)
           message.success(t('marketplace.uninstallSuccess'))
           loadData()
-        } catch (error) {
+        } catch {
           message.error(t('marketplace.uninstallFailed'))
         } finally {
           setActionLoading(null)
@@ -597,7 +597,7 @@ export default function MarketplacePage() {
       await updatePlugin(id)
       message.success(t('marketplace.updateSuccess'))
       loadData()
-    } catch (error) {
+    } catch {
       message.error(t('marketplace.updateFailed'))
     } finally {
       setActionLoading(null)
@@ -608,7 +608,7 @@ export default function MarketplacePage() {
     try {
       const detail = await getPluginDetail(id)
       setDetailModal({ visible: true, plugin: detail })
-    } catch (error) {
+    } catch {
       // Use mock detail
       const plugin = plugins.find(p => p.id === id)
       if (plugin) {

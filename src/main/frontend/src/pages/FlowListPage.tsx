@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Button, Card, Table, Space, Modal, Form, Input, message, Popconfirm, Tag } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown } from 'antd'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowStore } from '../stores/flowStore'
 import type { Flow } from '../api/flow'
+import FlowExportModal from '../components/flow/FlowExportModal'
+import FlowImportModal from '../components/flow/FlowImportModal'
 
 export default function FlowListPage() {
   const navigate = useNavigate()
@@ -14,6 +16,8 @@ export default function FlowListPage() {
   const [form] = Form.useForm()
   const [creating, setCreating] = useState(false)
   const [searchValue, setSearchValue] = useState(searchQuery)
+  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [exportFlow, setExportFlow] = useState<{ id: string; name: string; version: string } | null>(null)
 
   useEffect(() => {
     fetchFlows()
@@ -95,7 +99,7 @@ export default function FlowListPage() {
     {
       title: t('common.actions'),
       key: 'action',
-      width: 200,
+      width: 280,
       render: (_: unknown, record: Flow) => (
         <Space>
           <Button
@@ -115,16 +119,35 @@ export default function FlowListPage() {
           >
             {t('flow.trigger')}
           </Button>
-          <Popconfirm
-            title={t('flow.deleteConfirm')}
-            onConfirm={() => handleDelete(record.id)}
-            okText={t('common.confirm')}
-            cancelText={t('common.cancel')}
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'export',
+                  icon: <ExportOutlined />,
+                  label: t('flow.export'),
+                  disabled: !record.latestVersion,
+                  onClick: () => setExportFlow({
+                    id: record.id,
+                    name: record.name,
+                    version: record.latestVersion || '1',
+                  }),
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: 'delete',
+                  icon: <DeleteOutlined />,
+                  label: t('common.delete'),
+                  danger: true,
+                  onClick: () => handleDelete(record.id),
+                },
+              ],
+            }}
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              {t('common.delete')}
-            </Button>
-          </Popconfirm>
+            <Button type="link" size="small" icon={<MoreOutlined />} />
+          </Dropdown>
         </Space>
       ),
     },
@@ -145,6 +168,12 @@ export default function FlowListPage() {
               style={{ width: 250 }}
               enterButton={<SearchOutlined />}
             />
+            <Button
+              icon={<UploadOutlined />}
+              onClick={() => setImportModalOpen(true)}
+            >
+              {t('flow.import')}
+            </Button>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -213,6 +242,24 @@ export default function FlowListPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Import Modal */}
+      <FlowImportModal
+        visible={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onSuccess={() => fetchFlows()}
+      />
+
+      {/* Export Modal */}
+      {exportFlow && (
+        <FlowExportModal
+          visible={!!exportFlow}
+          flowId={exportFlow.id}
+          flowName={exportFlow.name}
+          version={exportFlow.version}
+          onClose={() => setExportFlow(null)}
+        />
+      )}
     </>
   )
 }

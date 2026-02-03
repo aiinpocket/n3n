@@ -67,6 +67,21 @@ export interface PageResponse<T> {
   number: number
 }
 
+export interface UpstreamNodeOutput {
+  nodeId: string
+  nodeLabel: string
+  nodeType: string
+  outputSchema: Record<string, unknown>
+  flattenedFields: OutputField[]
+}
+
+export interface OutputField {
+  path: string
+  type: string
+  description?: string
+  expression: string
+}
+
 export const flowApi = {
   listFlows: async (page = 0, size = 20, search?: string): Promise<PageResponse<Flow>> => {
     const params: Record<string, unknown> = { page, size }
@@ -118,4 +133,72 @@ export const flowApi = {
     const response = await apiClient.post(`/flows/${flowId}/versions/${version}/publish`)
     return response.data
   },
+
+  /**
+   * Get upstream node outputs for input mapping in the flow editor.
+   */
+  getUpstreamOutputs: async (
+    flowId: string,
+    version: string,
+    nodeId: string
+  ): Promise<UpstreamNodeOutput[]> => {
+    const response = await apiClient.get(
+      `/flows/${flowId}/versions/${version}/nodes/${nodeId}/upstream-outputs`
+    )
+    return response.data
+  },
+
+  /**
+   * Export a flow version to JSON format
+   */
+  exportFlow: async (flowId: string, version: string): Promise<FlowExportData> => {
+    const response = await apiClient.get(`/flows/${flowId}/versions/${version}/export`)
+    return response.data
+  },
+
+  /**
+   * Preview an import without creating the flow
+   */
+  previewImport: async (data: FlowExportData): Promise<FlowImportPreview> => {
+    const response = await apiClient.post('/flows/import/preview', data)
+    return response.data
+  },
+
+  /**
+   * Import a flow from exported data
+   */
+  importFlow: async (data: FlowExportData): Promise<Flow> => {
+    const response = await apiClient.post('/flows/import', data)
+    return response.data
+  },
+}
+
+export interface FlowExportData {
+  exportVersion: string
+  exportedAt: string
+  flow: {
+    name: string
+    description: string | null
+  }
+  version: {
+    version: string
+    definition: FlowDefinition
+    settings: Record<string, unknown>
+  }
+  metadata?: {
+    originalFlowId?: string
+    exportedBy?: string
+  }
+}
+
+export interface FlowImportPreview {
+  valid: boolean
+  warnings: string[]
+  errors: string[]
+  flow: {
+    name: string
+    description: string | null
+    nodeCount: number
+    edgeCount: number
+  }
 }
