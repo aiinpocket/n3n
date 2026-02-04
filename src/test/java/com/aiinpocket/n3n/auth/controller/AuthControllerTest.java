@@ -176,8 +176,8 @@ class AuthControllerTest {
         var request = new com.aiinpocket.n3n.auth.dto.request.RefreshTokenRequest();
         request.setRefreshToken("test-refresh-token");
 
-        // When
-        ResponseEntity<Void> result = authController.logout(request);
+        // When - logout requires UserDetails parameter (can be null for unauthenticated logout)
+        ResponseEntity<Void> result = authController.logout(request, null);
 
         // Then
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -186,8 +186,8 @@ class AuthControllerTest {
 
     @Test
     void logout_withoutRefreshToken_completesSuccessfully() {
-        // When
-        ResponseEntity<Void> result = authController.logout(null);
+        // When - logout requires UserDetails parameter (can be null)
+        ResponseEntity<Void> result = authController.logout(null, null);
 
         // Then
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

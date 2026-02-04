@@ -3,17 +3,22 @@ package com.aiinpocket.n3n.credential.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Base64;
+
 import static org.assertj.core.api.Assertions.*;
 
 class EncryptionServiceTest {
 
     private EncryptionService encryptionService;
+    // Use a fixed test salt (Base64 encoded 32 bytes)
+    private static final String TEST_INSTANCE_SALT = Base64.getEncoder().encodeToString(
+        "test-instance-salt-for-testing32".getBytes());
 
     @BeforeEach
     void setUp() {
-        // Use a test encryption key (32 bytes for AES-256)
+        // Use a test encryption key (will be derived using PBKDF2)
         String testKey = "test-encryption-key-for-testing-32b";
-        encryptionService = new EncryptionService(testKey);
+        encryptionService = new EncryptionService(testKey, TEST_INSTANCE_SALT);
     }
 
     // ========== Basic Encryption Tests ==========
@@ -188,15 +193,30 @@ class EncryptionServiceTest {
         assertThat(decrypted).isEqualTo(plaintext);
     }
 
-    // ========== Key Length Tests ==========
+    // ========== Key Derivation Tests ==========
 
     @Test
-    void constructor_shortKey_padsToCorrectLength() {
-        // Given
+    void constructor_shortKey_derivesSecureKey() {
+        // Given - Short key will be derived using PBKDF2 to proper length
         String shortKey = "short";
 
         // When
-        EncryptionService service = new EncryptionService(shortKey);
+        EncryptionService service = new EncryptionService(shortKey, TEST_INSTANCE_SALT);
+        String plaintext = "test";
+        String encrypted = service.encryptToBase64(plaintext);
+        String decrypted = service.decryptFromBase64(encrypted);
+
+        // Then - PBKDF2 derives a secure key regardless of input length
+        assertThat(decrypted).isEqualTo(plaintext);
+    }
+
+    @Test
+    void constructor_longKey_derivesSecureKey() {
+        // Given - Long key will also be derived using PBKDF2
+        String longKey = "this-is-a-very-long-key-that-exceeds-32-bytes-in-length";
+
+        // When
+        EncryptionService service = new EncryptionService(longKey, TEST_INSTANCE_SALT);
         String plaintext = "test";
         String encrypted = service.encryptToBase64(plaintext);
         String decrypted = service.decryptFromBase64(encrypted);
@@ -206,12 +226,31 @@ class EncryptionServiceTest {
     }
 
     @Test
-    void constructor_longKey_truncatesToCorrectLength() {
+    void constructor_differentSalt_producesDifferentKeys() {
         // Given
-        String longKey = "this-is-a-very-long-key-that-exceeds-32-bytes-in-length";
+        String key = "same-key";
+        String salt1 = Base64.getEncoder().encodeToString("salt-one-32-bytes-for-testing!!".getBytes());
+        String salt2 = Base64.getEncoder().encodeToString("salt-two-32-bytes-for-testing!!".getBytes());
 
         // When
-        EncryptionService service = new EncryptionService(longKey);
+        EncryptionService service1 = new EncryptionService(key, salt1);
+        EncryptionService service2 = new EncryptionService(key, salt2);
+
+        String plaintext = "test data";
+        String encrypted1 = service1.encryptToBase64(plaintext);
+
+        // Then - Cannot decrypt with different salt-derived key
+        assertThatThrownBy(() -> service2.decryptFromBase64(encrypted1))
+            .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void constructor_nullSalt_generatesRandomSalt() {
+        // Given - null salt should generate a random one
+        String key = "test-key";
+
+        // When
+        EncryptionService service = new EncryptionService(key, null);
         String plaintext = "test";
         String encrypted = service.encryptToBase64(plaintext);
         String decrypted = service.decryptFromBase64(encrypted);

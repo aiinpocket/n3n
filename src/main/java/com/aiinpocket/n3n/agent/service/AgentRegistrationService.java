@@ -355,11 +355,10 @@ public class AgentRegistrationService {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
+            StringBuilder hexString = new StringBuilder(hash.length * 2);
             for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
+                // Use String.format for consistent hex conversion (preserves leading zeros)
+                hexString.append(String.format("%02x", b));
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {

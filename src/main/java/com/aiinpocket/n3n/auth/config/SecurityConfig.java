@@ -43,10 +43,24 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> headers
-                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:;"))
+                // Enhanced CSP - removed unsafe-inline where possible, added strict directives
+                // Note: Some React frameworks may require 'unsafe-inline' for styles during development
+                // For production, consider using nonce-based CSP
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; " +
+                    "script-src 'self'; " +  // Removed 'unsafe-inline' - use proper bundling
+                    "style-src 'self' 'unsafe-inline'; " +  // Keep for React inline styles
+                    "img-src 'self' data: https:; " +  // Allow HTTPS images
+                    "font-src 'self' data:; " +  // Allow fonts
+                    "connect-src 'self' wss: https:; " +  // Removed insecure ws:, only allow wss:
+                    "frame-ancestors 'none'; " +  // Prevent clickjacking
+                    "form-action 'self'; " +  // Restrict form submissions
+                    "base-uri 'self'; " +  // Prevent base tag injection
+                    "object-src 'none';"  // Disable plugins
+                ))
                 .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                 .frameOptions(frame -> frame.deny())
-                .permissionsPolicy(permissions -> permissions.policy("geolocation=(), microphone=(), camera=()"))
+                .permissionsPolicy(permissions -> permissions.policy("geolocation=(), microphone=(), camera=(), payment=(), usb=()"))
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
