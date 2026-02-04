@@ -1,24 +1,41 @@
 package com.aiinpocket.n3n.credential.service;
 
+import com.aiinpocket.n3n.credential.dto.RecoveryKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.Base64;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.SecureRandom;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class EncryptionServiceTest {
 
     private EncryptionService encryptionService;
-    // Use a fixed test salt (Base64 encoded 32 bytes)
-    private static final String TEST_INSTANCE_SALT = Base64.getEncoder().encodeToString(
-        "test-instance-salt-for-testing32".getBytes());
+
+    @Mock
+    private MasterKeyProvider masterKeyProvider;
+
+    private SecretKey testKey;
 
     @BeforeEach
     void setUp() {
-        // Use a test encryption key (will be derived using PBKDF2)
-        String testKey = "test-encryption-key-for-testing-32b";
-        encryptionService = new EncryptionService(testKey, TEST_INSTANCE_SALT);
+        MockitoAnnotations.openMocks(this);
+
+        // Generate a test AES-256 key
+        byte[] keyBytes = new byte[32];
+        new SecureRandom().nextBytes(keyBytes);
+        testKey = new SecretKeySpec(keyBytes, "AES");
+
+        when(masterKeyProvider.getMasterKey()).thenReturn(testKey);
+        when(masterKeyProvider.getKeySource()).thenReturn("test");
+        when(masterKeyProvider.needsRecoveryKeySetup()).thenReturn(false);
+
+        encryptionService = new EncryptionService(masterKeyProvider);
     }
 
     // ========== Basic Encryption Tests ==========
@@ -193,69 +210,60 @@ class EncryptionServiceTest {
         assertThat(decrypted).isEqualTo(plaintext);
     }
 
-    // ========== Key Derivation Tests ==========
+    // ========== Recovery Key Integration Tests ==========
 
     @Test
-    void constructor_shortKey_derivesSecureKey() {
-        // Given - Short key will be derived using PBKDF2 to proper length
-        String shortKey = "short";
-
-        // When
-        EncryptionService service = new EncryptionService(shortKey, TEST_INSTANCE_SALT);
-        String plaintext = "test";
-        String encrypted = service.encryptToBase64(plaintext);
-        String decrypted = service.decryptFromBase64(encrypted);
-
-        // Then - PBKDF2 derives a secure key regardless of input length
-        assertThat(decrypted).isEqualTo(plaintext);
-    }
-
-    @Test
-    void constructor_longKey_derivesSecureKey() {
-        // Given - Long key will also be derived using PBKDF2
-        String longKey = "this-is-a-very-long-key-that-exceeds-32-bytes-in-length";
-
-        // When
-        EncryptionService service = new EncryptionService(longKey, TEST_INSTANCE_SALT);
-        String plaintext = "test";
-        String encrypted = service.encryptToBase64(plaintext);
-        String decrypted = service.decryptFromBase64(encrypted);
-
-        // Then
-        assertThat(decrypted).isEqualTo(plaintext);
-    }
-
-    @Test
-    void constructor_differentSalt_producesDifferentKeys() {
+    void needsRecoveryKeySetup_delegatesToMasterKeyProvider() {
         // Given
-        String key = "same-key";
-        String salt1 = Base64.getEncoder().encodeToString("salt-one-32-bytes-for-testing!!".getBytes());
-        String salt2 = Base64.getEncoder().encodeToString("salt-two-32-bytes-for-testing!!".getBytes());
+        when(masterKeyProvider.needsRecoveryKeySetup()).thenReturn(true);
 
         // When
-        EncryptionService service1 = new EncryptionService(key, salt1);
-        EncryptionService service2 = new EncryptionService(key, salt2);
+        boolean result = encryptionService.needsRecoveryKeySetup();
 
-        String plaintext = "test data";
-        String encrypted1 = service1.encryptToBase64(plaintext);
-
-        // Then - Cannot decrypt with different salt-derived key
-        assertThatThrownBy(() -> service2.decryptFromBase64(encrypted1))
-            .isInstanceOf(RuntimeException.class);
+        // Then
+        assertThat(result).isTrue();
+        verify(masterKeyProvider).needsRecoveryKeySetup();
     }
 
     @Test
-    void constructor_nullSalt_generatesRandomSalt() {
-        // Given - null salt should generate a random one
-        String key = "test-key";
+    void getPendingRecoveryKey_delegatesToMasterKeyProvider() {
+        // Given
+        RecoveryKey mockKey = RecoveryKey.builder()
+                .words(java.util.List.of("apple", "banana", "cherry", "date", "elder", "fig", "grape", "honey"))
+                .build();
+        when(masterKeyProvider.getPendingRecoveryKey()).thenReturn(mockKey);
 
         // When
-        EncryptionService service = new EncryptionService(key, null);
-        String plaintext = "test";
-        String encrypted = service.encryptToBase64(plaintext);
-        String decrypted = service.decryptFromBase64(encrypted);
+        RecoveryKey result = encryptionService.getPendingRecoveryKey();
 
         // Then
-        assertThat(decrypted).isEqualTo(plaintext);
+        assertThat(result).isEqualTo(mockKey);
+        verify(masterKeyProvider).getPendingRecoveryKey();
+    }
+
+    // ========== Different Keys Produce Different Ciphertext ==========
+
+    @Test
+    void encrypt_withDifferentKey_producesDifferentCiphertext() {
+        // Given
+        String plaintext = "test data";
+        String encrypted1 = encryptionService.encryptToBase64(plaintext);
+
+        // Create new key
+        byte[] newKeyBytes = new byte[32];
+        new SecureRandom().nextBytes(newKeyBytes);
+        SecretKey newKey = new SecretKeySpec(newKeyBytes, "AES");
+        when(masterKeyProvider.getMasterKey()).thenReturn(newKey);
+
+        // Recreate service with new key
+        EncryptionService newService = new EncryptionService(masterKeyProvider);
+        String encrypted2 = newService.encryptToBase64(plaintext);
+
+        // Then - Different keys produce different ciphertext
+        assertThat(encrypted1).isNotEqualTo(encrypted2);
+
+        // And cannot decrypt with wrong key
+        assertThatThrownBy(() -> newService.decryptFromBase64(encrypted1))
+                .isInstanceOf(RuntimeException.class);
     }
 }

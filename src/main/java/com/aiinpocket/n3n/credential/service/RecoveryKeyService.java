@@ -114,12 +114,60 @@ public class RecoveryKeyService {
      * 從 Recovery Key 衍生 Master Key
      *
      * 使用 PBKDF2-HMAC-SHA256 進行金鑰衍生。
-     * Instance Salt 確保同一 Recovery Key 在不同環境產生不同的 Master Key。
+     * Salt 從助記詞的最後一個單字衍生，確保：
+     * - 不需要額外儲存 Salt
+     * - 使用者只需備份助記詞即可完全恢復
+     * - Salt 與助記詞綁定但使用不同部分
+     *
+     * @param phrase Recovery Key 字串（8 個單詞）
+     * @return 256-bit Master Key
+     */
+    public byte[] deriveMasterKey(String phrase) {
+        if (!validate(phrase)) {
+            throw new IllegalArgumentException("Invalid Recovery Key format");
+        }
+
+        try {
+            String normalizedPhrase = normalizePhrase(phrase);
+            String[] words = normalizedPhrase.split(" ");
+
+            // 使用最後一個單字衍生 Salt
+            String lastWord = words[words.length - 1];
+            byte[] salt = deriveSaltFromWord(lastWord);
+
+            // 使用前 7 個單字作為密碼
+            String passwordPart = String.join(" ", java.util.Arrays.copyOf(words, words.length - 1));
+
+            PBEKeySpec spec = new PBEKeySpec(
+                    passwordPart.toCharArray(),
+                    salt,
+                    PBKDF2_ITERATIONS,
+                    DERIVED_KEY_LENGTH
+            );
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] derivedKey = factory.generateSecret(spec).getEncoded();
+
+            // 清除敏感資料
+            spec.clearPassword();
+
+            log.debug("Master key derived successfully from recovery key");
+            return derivedKey;
+
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException("Master key derivation failed", e);
+        }
+    }
+
+    /**
+     * 從 Recovery Key 衍生 Master Key（舊版相容，帶外部 Salt）
      *
      * @param phrase Recovery Key 字串
      * @param instanceSalt 實例 Salt（環境特定）
      * @return 256-bit Master Key
+     * @deprecated 使用 {@link #deriveMasterKey(String)} 代替，Salt 從助記詞最後一個單字衍生
      */
+    @Deprecated
     public byte[] deriveMasterKey(String phrase, byte[] instanceSalt) {
         if (!validate(phrase)) {
             throw new IllegalArgumentException("Invalid Recovery Key format");
@@ -130,7 +178,6 @@ public class RecoveryKeyService {
         }
 
         try {
-            // 正規化 phrase
             String normalizedPhrase = normalizePhrase(phrase);
 
             PBEKeySpec spec = new PBEKeySpec(
@@ -143,7 +190,7 @@ public class RecoveryKeyService {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             byte[] derivedKey = factory.generateSecret(spec).getEncoded();
 
-            log.debug("Master key derived successfully (salt length: {})", instanceSalt.length);
+            log.debug("Master key derived successfully (legacy mode with external salt)");
             return derivedKey;
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -152,14 +199,36 @@ public class RecoveryKeyService {
     }
 
     /**
-     * 產生 Instance Salt
+     * 從單字衍生 Salt
+     *
+     * 使用 SHA-256 hash 單字得到 32 bytes 的 Salt。
+     * 這樣 Salt 就與助記詞綁定，不需要額外儲存。
+     *
+     * @param word 單字（助記詞的最後一個）
+     * @return 32 bytes Salt
+     */
+    private byte[] deriveSaltFromWord(String word) {
+        try {
+            // 添加固定前綴避免彩虹表攻擊
+            String saltInput = "N3N-SALT-" + word.toLowerCase();
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(saltInput.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        }
+    }
+
+    /**
+     * 產生 Instance Salt（舊版相容）
      *
      * @return 32 bytes 的隨機 Salt
+     * @deprecated Salt 現在從助記詞最後一個單字衍生，不再需要獨立的 Instance Salt
      */
+    @Deprecated
     public byte[] generateInstanceSalt() {
         byte[] salt = new byte[32];
         new SecureRandom().nextBytes(salt);
-        log.info("Generated new Instance Salt");
+        log.info("Generated new Instance Salt (deprecated, use deriveMasterKey(phrase) instead)");
         return salt;
     }
 

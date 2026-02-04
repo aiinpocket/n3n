@@ -63,8 +63,7 @@ public class MasterKeyProvider {
     @Value("${app.master-key-file:#{null}}")
     private String masterKeyFile;
 
-    @Value("${N3N_INSTANCE_SALT:#{null}}")
-    private String envInstanceSalt;
+    // Note: N3N_INSTANCE_SALT 已不再需要，Salt 現在從 Recovery Key 最後一個單字衍生
 
     @Value("${app.auto-generate-key:false}")
     private boolean autoGenerateKey;
@@ -80,7 +79,6 @@ public class MasterKeyProvider {
 
     private SecretKey masterKey;
     private String keySource;
-    private byte[] instanceSalt;
     private boolean needsRecoveryKeySetup = false;
     private boolean keyMismatch = false;
     private Integer currentKeyVersion = 1;
@@ -101,13 +99,10 @@ public class MasterKeyProvider {
 
     @PostConstruct
     public void init() {
-        // 1. 載入 Instance Salt
-        this.instanceSalt = loadInstanceSalt();
-
-        // 2. 載入 Master Key
+        // 1. 載入 Master Key（Salt 從 Recovery Key 最後一個單字衍生，不需要單獨載入）
         this.masterKey = loadMasterKey();
 
-        // 3. 載入當前 Key 版本
+        // 2. 載入當前 Key 版本
         metadataRepository.findActiveByKeyType(EncryptionKeyMetadata.TYPE_RECOVERY)
                 .ifPresent(meta -> this.currentKeyVersion = meta.getKeyVersion());
 
@@ -153,15 +148,16 @@ public class MasterKeyProvider {
         // 5. 首次部署：產生 Recovery Key
         keySource = "recovery-key-derived";
 
-        // 產生新的 Recovery Key
+        // 產生新的 Recovery Key（8 個單詞）
         this.pendingRecoveryKey = recoveryKeyService.generate();
         this.needsRecoveryKeySetup = true;
 
         // 從 Recovery Key 衍生 Master Key
-        byte[] derivedKey = recoveryKeyService.deriveMasterKey(
-                pendingRecoveryKey.toPhrase(), instanceSalt);
+        // Salt 從助記詞的最後一個單字衍生，不需要額外的 instanceSalt
+        byte[] derivedKey = recoveryKeyService.deriveMasterKey(pendingRecoveryKey.toPhrase());
 
         log.warn("⚠️ New Recovery Key generated. Admin must backup the key on first login.");
+        log.info("Recovery Key (masked): {}", pendingRecoveryKey.toMaskedPhrase());
         return new SecretKeySpec(derivedKey, ALGORITHM);
     }
 
@@ -383,8 +379,8 @@ public class MasterKeyProvider {
         migrationLogRepository.save(migrationLog);
 
         try {
-            // 用舊 Recovery Key 衍生舊 Master Key
-            byte[] oldMasterKey = recoveryKeyService.deriveMasterKey(oldRecoveryKeyPhrase, instanceSalt);
+            // 用舊 Recovery Key 衍生舊 Master Key（Salt 從助記詞最後一個單字衍生）
+            byte[] oldMasterKey = recoveryKeyService.deriveMasterKey(oldRecoveryKeyPhrase);
 
             // TODO: 解密憑證資料並用新 Master Key 重新加密
             // 這需要整合 EnvelopeEncryptionService
@@ -409,6 +405,12 @@ public class MasterKeyProvider {
 
     /**
      * 緊急還原（需要 Recovery Key + 永久密碼）
+     *
+     * 流程：
+     * 1. 驗證舊的 Recovery Key
+     * 2. 產生新的 Recovery Key
+     * 3. 用舊 Recovery Key 解密所有憑證
+     * 4. 用新 Recovery Key 重新加密
      */
     @Transactional
     public RecoveryKey emergencyRestore(String recoveryKeyPhrase, String permanentPassword, UUID userId) {
@@ -422,15 +424,13 @@ public class MasterKeyProvider {
         // 產生新的 Recovery Key
         RecoveryKey newRecoveryKey = recoveryKeyService.generate();
 
-        // 產生新的 Instance Salt
-        this.instanceSalt = recoveryKeyService.generateInstanceSalt();
+        // 用舊 Recovery Key 衍生舊 Master Key（Salt 從助記詞最後一個單字衍生）
+        // 可用於解密舊資料
+        byte[] oldMasterKeyBytes = recoveryKeyService.deriveMasterKey(recoveryKeyPhrase);
+        log.debug("Old master key derived for migration");
 
-        // 用舊 Recovery Key 衍生舊 Master Key（使用舊 salt）
-        // TODO: 需要載入舊的 instance salt
-
-        // 用新 Recovery Key 衍生新 Master Key
-        byte[] newMasterKeyBytes = recoveryKeyService.deriveMasterKey(
-                newRecoveryKey.toPhrase(), instanceSalt);
+        // 用新 Recovery Key 衍生新 Master Key（Salt 從新助記詞最後一個單字衍生）
+        byte[] newMasterKeyBytes = recoveryKeyService.deriveMasterKey(newRecoveryKey.toPhrase());
         this.masterKey = new SecretKeySpec(newMasterKeyBytes, ALGORITHM);
 
         // 更新 key version
@@ -459,40 +459,6 @@ public class MasterKeyProvider {
         return newRecoveryKey;
     }
 
-    /**
-     * 初始化 Instance Salt
-     */
-    private byte[] loadInstanceSalt() {
-        // 1. 從環境變數載入
-        if (envInstanceSalt != null && !envInstanceSalt.isBlank()) {
-            log.info("Instance salt loaded from environment variable");
-            return Base64.getDecoder().decode(envInstanceSalt);
-        }
-
-        // 2. 從資料庫載入
-        Optional<EncryptionKeyMetadata> saltMetadata = metadataRepository
-                .findActiveByKeyType(EncryptionKeyMetadata.TYPE_INSTANCE_SALT);
-
-        if (saltMetadata.isPresent()) {
-            // Salt hash 存在資料庫中，實際 salt 應該在環境變數
-            log.warn("Instance salt metadata found but salt not in environment, generating new one");
-        }
-
-        // 3. 生成新的 Salt（首次部署）
-        byte[] salt = recoveryKeyService.generateInstanceSalt();
-
-        // 記錄元資料
-        EncryptionKeyMetadata metadata = EncryptionKeyMetadata.builder()
-                .keyType(EncryptionKeyMetadata.TYPE_INSTANCE_SALT)
-                .keyVersion(1)
-                .source(EncryptionKeyMetadata.SOURCE_AUTO_GENERATED)
-                .status(EncryptionKeyMetadata.STATUS_ACTIVE)
-                .build();
-        metadataRepository.save(metadata);
-
-        log.info("New instance salt generated. Set N3N_INSTANCE_SALT={} in production",
-                Base64.getEncoder().encodeToString(salt));
-
-        return salt;
-    }
+    // Note: Instance Salt 已不再需要，Salt 現在從 Recovery Key 的最後一個單字衍生
+    // 這簡化了部署流程，使用者只需備份助記詞即可
 }
