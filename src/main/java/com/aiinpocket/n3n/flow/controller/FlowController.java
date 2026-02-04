@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.flow.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.service.FlowService;
 import com.aiinpocket.n3n.flow.service.FlowShareService;
@@ -24,6 +25,7 @@ public class FlowController {
 
     private final FlowService flowService;
     private final FlowShareService flowShareService;
+    private final ActivityService activityService;
 
     @GetMapping
     public ResponseEntity<Page<FlowResponse>> listFlows(
@@ -45,20 +47,31 @@ public class FlowController {
             @Valid @RequestBody CreateFlowRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(flowService.createFlow(request, userId));
+        FlowResponse response = flowService.createFlow(request, userId);
+        activityService.logFlowCreate(userId, response.getId(), response.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FlowResponse> updateFlow(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateFlowRequest request) {
-        return ResponseEntity.ok(flowService.updateFlow(id, request));
+            @Valid @RequestBody UpdateFlowRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FlowResponse response = flowService.updateFlow(id, request);
+        activityService.logFlowUpdate(userId, response.getId(), response.getName(), null);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFlow(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteFlow(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        // Get flow info before deleting for audit log
+        FlowResponse flow = flowService.getFlow(id);
         flowService.deleteFlow(id);
+        activityService.logFlowDelete(userId, id, flow.getName());
         return ResponseEntity.noContent().build();
     }
 
@@ -87,14 +100,30 @@ public class FlowController {
             @Valid @RequestBody SaveVersionRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(flowService.saveVersion(flowId, request, userId));
+        FlowResponse flow = flowService.getFlow(flowId);
+        FlowVersionResponse response = flowService.saveVersion(flowId, request, userId);
+        activityService.logVersionCreate(userId, flowId, flow.getName(), response.getVersion());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{flowId}/versions/{version}/publish")
     public ResponseEntity<FlowVersionResponse> publishVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version) {
-        return ResponseEntity.ok(flowService.publishVersion(flowId, version));
+            @PathVariable String version,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FlowResponse flow = flowService.getFlow(flowId);
+        // Get current published version for audit log
+        String previousVersion = null;
+        try {
+            FlowVersionResponse currentPublished = flowService.getPublishedVersion(flowId);
+            previousVersion = currentPublished.getVersion();
+        } catch (Exception e) {
+            // No previous published version
+        }
+        FlowVersionResponse response = flowService.publishVersion(flowId, version);
+        activityService.logVersionPublish(userId, flowId, flow.getName(), version, previousVersion);
+        return ResponseEntity.ok(response);
     }
 
     // Validation endpoints
@@ -128,8 +157,11 @@ public class FlowController {
             @Valid @RequestBody FlowShareRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(flowShareService.shareFlow(flowId, request, userId));
+        FlowResponse flow = flowService.getFlow(flowId);
+        FlowShareResponse response = flowShareService.shareFlow(flowId, request, userId);
+        String sharedWithEmail = response.getInvitedEmail() != null ? response.getInvitedEmail() : response.getUserEmail();
+        activityService.logFlowShare(userId, flowId, flow.getName(), sharedWithEmail, response.getPermission());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{flowId}/shares/{shareId}")
@@ -139,7 +171,11 @@ public class FlowController {
             @RequestParam String permission,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(flowShareService.updateSharePermission(flowId, shareId, permission, userId));
+        FlowResponse flow = flowService.getFlow(flowId);
+        FlowShareResponse response = flowShareService.updateSharePermission(flowId, shareId, permission, userId);
+        String sharedWithEmail = response.getInvitedEmail() != null ? response.getInvitedEmail() : response.getUserEmail();
+        activityService.logFlowShareUpdate(userId, flowId, flow.getName(), sharedWithEmail, null, permission);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{flowId}/shares/{shareId}")
@@ -148,7 +184,16 @@ public class FlowController {
             @PathVariable UUID shareId,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        FlowResponse flow = flowService.getFlow(flowId);
+        // Get share info before removing for audit log
+        List<FlowShareResponse> shares = flowShareService.getFlowShares(flowId, userId);
+        String revokedEmail = shares.stream()
+            .filter(s -> s.getId().equals(shareId))
+            .findFirst()
+            .map(s -> s.getInvitedEmail() != null ? s.getInvitedEmail() : s.getUserEmail())
+            .orElse("unknown");
         flowShareService.removeShare(flowId, shareId, userId);
+        activityService.logFlowShareRevoke(userId, flowId, flow.getName(), revokedEmail);
         return ResponseEntity.noContent().build();
     }
 
@@ -170,5 +215,41 @@ public class FlowController {
             @PathVariable String version,
             @PathVariable String nodeId) {
         return ResponseEntity.ok(flowService.getUpstreamOutputs(flowId, version, nodeId));
+    }
+
+    // ========== Data Pinning endpoints ==========
+
+    /**
+     * Get all pinned data for a flow version.
+     */
+    @GetMapping("/{flowId}/versions/{version}/pinned-data")
+    public ResponseEntity<java.util.Map<String, Object>> getPinnedData(
+            @PathVariable UUID flowId,
+            @PathVariable String version) {
+        return ResponseEntity.ok(flowService.getPinnedData(flowId, version));
+    }
+
+    /**
+     * Pin data to a specific node.
+     */
+    @PostMapping("/{flowId}/versions/{version}/pin")
+    public ResponseEntity<Void> pinNodeData(
+            @PathVariable UUID flowId,
+            @PathVariable String version,
+            @Valid @RequestBody PinDataRequest request) {
+        flowService.pinNodeData(flowId, version, request);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Unpin data from a specific node.
+     */
+    @DeleteMapping("/{flowId}/versions/{version}/pin/{nodeId}")
+    public ResponseEntity<Void> unpinNodeData(
+            @PathVariable UUID flowId,
+            @PathVariable String version,
+            @PathVariable String nodeId) {
+        flowService.unpinNodeData(flowId, version, nodeId);
+        return ResponseEntity.noContent().build();
     }
 }

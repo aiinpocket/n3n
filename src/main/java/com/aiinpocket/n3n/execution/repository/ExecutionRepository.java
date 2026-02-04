@@ -29,4 +29,17 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
         @Param("cutoff") Instant cutoff,
         @Param("statuses") Collection<String> statuses,
         @Param("limit") int limit);
+
+    /**
+     * Find executions by status and started before date (for housekeeping).
+     */
+    Page<Execution> findByStatusInAndStartedAtBefore(
+        Collection<String> statuses,
+        Instant startedBefore,
+        Pageable pageable);
+
+    /**
+     * Count running executions for a flow version.
+     */
+    long countByFlowVersionIdAndStatus(UUID flowVersionId, String status);
 }

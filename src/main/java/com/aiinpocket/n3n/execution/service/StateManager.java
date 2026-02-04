@@ -87,6 +87,111 @@ public class StateManager {
         log.debug("Node failed: execution={}, node={}, error={}", executionId, nodeId, errorMessage);
     }
 
+    /**
+     * Mark a node as waiting (paused for external input).
+     */
+    public void markNodeWaiting(UUID executionId, String nodeId, String pauseReason) {
+        String execKey = EXECUTION_PREFIX + executionId;
+        redisTemplate.opsForHash().delete(execKey + ":current_nodes", nodeId);
+        redisTemplate.opsForHash().put(execKey + ":waiting_nodes", nodeId, pauseReason);
+        log.debug("Node waiting: execution={}, node={}, reason={}", executionId, nodeId, pauseReason);
+    }
+
+    /**
+     * Get list of completed node IDs for an execution.
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.Set<String> getCompletedNodes(UUID executionId) {
+        String key = EXECUTION_PREFIX + executionId + ":completed_nodes";
+        java.util.Set<Object> keys = redisTemplate.opsForHash().keys(key);
+        java.util.Set<String> nodeIds = new java.util.HashSet<>();
+        if (keys != null) {
+            keys.forEach(k -> nodeIds.add(k.toString()));
+        }
+        return nodeIds;
+    }
+
+    /**
+     * Get the waiting node ID for an execution, if any.
+     */
+    @SuppressWarnings("unchecked")
+    public String getWaitingNodeId(UUID executionId) {
+        String key = EXECUTION_PREFIX + executionId + ":waiting_nodes";
+        java.util.Set<Object> keys = redisTemplate.opsForHash().keys(key);
+        if (keys != null && !keys.isEmpty()) {
+            return keys.iterator().next().toString();
+        }
+        return null;
+    }
+
+    /**
+     * Clear waiting status for a node (when resuming).
+     */
+    public void clearNodeWaiting(UUID executionId, String nodeId) {
+        String execKey = EXECUTION_PREFIX + executionId;
+        redisTemplate.opsForHash().delete(execKey + ":waiting_nodes", nodeId);
+        log.debug("Cleared waiting status: execution={}, node={}", executionId, nodeId);
+    }
+
+    // Resume data management
+
+    private static final String RESUME_DATA_PREFIX = "resume_data:";
+
+    /**
+     * Store resume data for a paused execution.
+     */
+    public void setResumeData(UUID executionId, String nodeId, Map<String, Object> resumeData) {
+        String key = RESUME_DATA_PREFIX + executionId + ":" + nodeId;
+        redisTemplate.opsForHash().putAll(key, resumeData);
+        redisTemplate.expire(key, STATE_TTL);
+        log.debug("Stored resume data: execution={}, node={}", executionId, nodeId);
+    }
+
+    /**
+     * Retrieve resume data for a paused execution.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getResumeData(UUID executionId, String nodeId) {
+        String key = RESUME_DATA_PREFIX + executionId + ":" + nodeId;
+        Map<Object, Object> rawData = redisTemplate.opsForHash().entries(key);
+        Map<String, Object> data = new HashMap<>();
+        rawData.forEach((k, v) -> data.put(k.toString(), v));
+        return data;
+    }
+
+    /**
+     * Clear resume data after successful resume.
+     */
+    public void clearResumeData(UUID executionId, String nodeId) {
+        String key = RESUME_DATA_PREFIX + executionId + ":" + nodeId;
+        redisTemplate.delete(key);
+        log.debug("Cleared resume data: execution={}, node={}", executionId, nodeId);
+    }
+
+    /**
+     * Store partial node outputs when pausing (to restore context on resume).
+     */
+    public void setPartialNodeOutputs(UUID executionId, Map<String, Object> nodeOutputs) {
+        String key = EXECUTION_PREFIX + executionId + ":partial_outputs";
+        if (nodeOutputs != null && !nodeOutputs.isEmpty()) {
+            redisTemplate.opsForHash().putAll(key, nodeOutputs);
+            redisTemplate.expire(key, STATE_TTL);
+        }
+        log.debug("Stored partial outputs: execution={}, nodeCount={}", executionId, nodeOutputs != null ? nodeOutputs.size() : 0);
+    }
+
+    /**
+     * Retrieve partial node outputs for resume.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getPartialNodeOutputs(UUID executionId) {
+        String key = EXECUTION_PREFIX + executionId + ":partial_outputs";
+        Map<Object, Object> rawOutputs = redisTemplate.opsForHash().entries(key);
+        Map<String, Object> outputs = new HashMap<>();
+        rawOutputs.forEach((k, v) -> outputs.put(k.toString(), v));
+        return outputs;
+    }
+
     // Node output management
 
     public void setNodeOutput(UUID executionId, String nodeId, Map<String, Object> output) {

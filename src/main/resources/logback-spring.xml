@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Include Spring Boot defaults -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Properties from application.properties -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="n3n"/>
+    <springProperty scope="context" name="LOG_FORMAT" source="logging.format" defaultValue="console"/>
+
+    <!-- Console Appender (for development) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [%X{traceId:-}] [%X{executionId:-}] [%X{nodeId:-}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- JSON Appender for ELK (Elasticsearch, Logstash, Kibana) -->
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Include all context fields in JSON -->
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+            <includeMdcKeyName>true</includeMdcKeyName>
+            <includeCallerData>false</includeCallerData>
+
+            <!-- Custom fields -->
+            <customFields>{"service":"${APP_NAME}","environment":"${ENVIRONMENT:-development}"}</customFields>
+
+            <!-- Timestamp format (ISO8601) -->
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+
+            <!-- Field names mapping -->
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+                <message>message</message>
+                <logger>logger</logger>
+                <thread>thread</thread>
+                <level>level</level>
+                <levelValue>[ignore]</levelValue>
+                <stackTrace>stackTrace</stackTrace>
+            </fieldNames>
+
+            <!-- Providers for additional fields -->
+            <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                <pattern>
+                    {
+                        "traceId": "%X{traceId:-}",
+                        "executionId": "%X{executionId:-}",
+                        "flowId": "%X{flowId:-}",
+                        "nodeId": "%X{nodeId:-}",
+                        "userId": "%X{userId:-}",
+                        "requestId": "%X{requestId:-}"
+                    }
+                </pattern>
+            </provider>
+        </encoder>
+    </appender>
+
+    <!-- JSON File Appender with Rolling (for local file logging) -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/n3n.json.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/n3n.%d{yyyy-MM-dd}.%i.json.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
+            <customFields>{"service":"${APP_NAME}","environment":"${ENVIRONMENT:-development}"}</customFields>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+        </encoder>
+    </appender>
+
+    <!-- Async wrapper for performance -->
+    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="JSON"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- Profile: development (console output) -->
+    <springProfile name="default,dev,development">
+        <root level="${LOG_LEVEL_ROOT:-INFO}">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- Application specific loggers -->
+        <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-DEBUG}" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Execution logging -->
+        <logger name="com.aiinpocket.n3n.execution" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
+
+    <!-- Profile: production (JSON output for ELK) -->
+    <springProfile name="prod,production">
+        <root level="${LOG_LEVEL_ROOT:-INFO}">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+
+        <!-- Application specific loggers -->
+        <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-INFO}" additivity="false">
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+
+        <!-- Reduce noisy loggers -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+    </springProfile>
+
+    <!-- Profile: staging (JSON to console + file) -->
+    <springProfile name="staging">
+        <root level="${LOG_LEVEL_ROOT:-INFO}">
+            <appender-ref ref="JSON"/>
+            <appender-ref ref="JSON_FILE"/>
+        </root>
+
+        <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-INFO}" additivity="false">
+            <appender-ref ref="JSON"/>
+            <appender-ref ref="JSON_FILE"/>
+        </logger>
+    </springProfile>
+</configuration>

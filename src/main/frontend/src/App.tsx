@@ -6,6 +6,7 @@ import zhTW from 'antd/locale/zh_TW'
 import enUS from 'antd/locale/en_US'
 import jaJP from 'antd/locale/ja_JP'
 import { useAuthStore } from './stores/authStore'
+import { ErrorBoundary } from './components/error'
 import MainLayout from './components/MainLayout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -142,9 +143,10 @@ function App() {
         },
       }}
     >
-      <BrowserRouter>
-        <SetupCheck>
-          <Routes>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <SetupCheck>
+            <Routes>
             {/* Setup route (first time only) */}
             <Route path="/setup" element={<SetupPage />} />
 
@@ -181,9 +183,10 @@ function App() {
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
           </Route>
-          </Routes>
-        </SetupCheck>
-      </BrowserRouter>
+            </Routes>
+          </SetupCheck>
+        </BrowserRouter>
+      </ErrorBoundary>
     </ConfigProvider>
   )
 }

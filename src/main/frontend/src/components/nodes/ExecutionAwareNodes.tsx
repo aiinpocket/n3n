@@ -19,69 +19,117 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   ToolOutlined,
+  FormOutlined,
+  ForkOutlined,
+  CodeSandboxOutlined,
+  FileTextOutlined,
+  PauseCircleOutlined,
 } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 
 // Execution status type
-export type NodeExecutionStatus = 'pending' | 'running' | 'completed' | 'failed' | undefined
+export type NodeExecutionStatus = 'pending' | 'running' | 'waiting' | 'completed' | 'failed' | undefined
 
+// Color palette with WCAG AA compliant contrast (4.5:1 minimum for white text)
 const nodeColors: Record<string, string> = {
-  trigger: '#52c41a',
-  scheduleTrigger: '#52c41a',
-  action: '#1890ff',
-  condition: '#faad14',
-  loop: '#722ed1',
-  output: '#f5222d',
-  code: '#13c2c2',
-  httpRequest: '#2f54eb',
-  wait: '#fa8c16',
-  externalService: '#eb2f96',
-  skill: '#722ed1',
+  trigger: '#16A34A',        // green-600 (contrast 4.5:1)
+  scheduleTrigger: '#16A34A',
+  webhookTrigger: '#16A34A',
+  formTrigger: '#16A34A',
+  action: '#4F46E5',         // indigo-600 (contrast 4.6:1)
+  condition: '#D97706',      // amber-600 (contrast 4.5:1)
+  switch: '#D97706',
+  loop: '#7C3AED',           // violet-600 (contrast 4.6:1)
+  output: '#DC2626',         // red-600 (contrast 4.5:1)
+  code: '#0891B2',           // cyan-600 (contrast 4.5:1)
+  httpRequest: '#2563EB',    // blue-600 (contrast 4.6:1)
+  wait: '#EA580C',           // orange-600 (contrast 4.5:1)
+  form: '#0891B2',
+  approval: '#EA580C',
+  ssh: '#7C3AED',
+  externalService: '#DB2777', // pink-600 (contrast 4.5:1)
+  skill: '#7C3AED',
 }
 
 const nodeIcons: Record<string, React.ReactNode> = {
   trigger: <PlayCircleOutlined />,
   scheduleTrigger: <CalendarOutlined />,
+  webhookTrigger: <ApiOutlined />,
+  formTrigger: <FileTextOutlined />,
   action: <ThunderboltOutlined />,
   condition: <BranchesOutlined />,
+  switch: <ForkOutlined />,
   loop: <ReloadOutlined />,
   output: <FlagOutlined />,
   code: <CodeOutlined />,
   httpRequest: <GlobalOutlined />,
   wait: <ClockCircleOutlined />,
+  form: <FormOutlined />,
+  approval: <CheckCircleOutlined />,
+  ssh: <CodeSandboxOutlined />,
   externalService: <ApiOutlined />,
   skill: <ToolOutlined />,
 }
 
 // CSS animations as inline keyframes (injected once)
+// Uses prefers-reduced-motion to respect accessibility settings
 const ANIMATION_STYLES = `
 @keyframes executionPulse {
   0%, 100% {
-    box-shadow: 0 0 8px 2px rgba(24, 144, 255, 0.4);
-    transform: scale(1);
+    box-shadow: 0 0 8px 2px rgba(37, 99, 235, 0.4);
   }
   50% {
-    box-shadow: 0 0 20px 6px rgba(24, 144, 255, 0.7);
-    transform: scale(1.02);
+    box-shadow: 0 0 16px 4px rgba(37, 99, 235, 0.7);
   }
 }
 
 @keyframes executionSuccess {
   0% {
-    box-shadow: 0 0 20px 8px rgba(82, 196, 26, 0.8);
+    box-shadow: 0 0 16px 6px rgba(22, 163, 74, 0.8);
   }
   100% {
-    box-shadow: 0 0 8px 2px rgba(82, 196, 26, 0.3);
+    box-shadow: 0 0 6px 2px rgba(22, 163, 74, 0.3);
   }
 }
 
 @keyframes executionFailed {
   0%, 100% {
-    box-shadow: 0 0 8px 2px rgba(245, 34, 45, 0.5);
+    box-shadow: 0 0 8px 2px rgba(220, 38, 38, 0.5);
   }
   50% {
-    box-shadow: 0 0 15px 5px rgba(245, 34, 45, 0.8);
+    box-shadow: 0 0 12px 4px rgba(220, 38, 38, 0.8);
   }
+}
+
+@keyframes executionWaiting {
+  0%, 100% {
+    box-shadow: 0 0 8px 2px rgba(234, 88, 12, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(234, 88, 12, 0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .n3n-exec-node, .n3n-exec-node * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.n3n-exec-node:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+.n3n-exec-handle {
+  cursor: crosshair;
+  transition: transform 0.15s ease-out;
+}
+
+.n3n-exec-handle:hover {
+  transform: scale(1.3);
 }
 `
 
@@ -115,6 +163,12 @@ function getExecutionStyle(status: NodeExecutionStatus, selected: boolean): Reac
         animation: 'executionPulse 1.5s ease-in-out infinite',
         border: '3px solid #1890ff',
       }
+    case 'waiting':
+      return {
+        ...baseStyle,
+        animation: 'executionWaiting 2s ease-in-out infinite',
+        border: '3px solid #fa8c16',
+      }
     case 'completed':
       return {
         ...baseStyle,
@@ -139,6 +193,8 @@ function getStatusIcon(status: NodeExecutionStatus): React.ReactNode {
   switch (status) {
     case 'running':
       return <LoadingOutlined spin style={{ color: '#1890ff', marginLeft: 4 }} />
+    case 'waiting':
+      return <PauseCircleOutlined style={{ color: '#fa8c16', marginLeft: 4 }} />
     case 'completed':
       return <CheckCircleOutlined style={{ color: '#52c41a', marginLeft: 4 }} />
     case 'failed':
@@ -153,7 +209,7 @@ const ExecutionAwareBaseNode = memo(({ data, selected }: NodeProps) => {
   const nodeType = nodeData.nodeType || 'action'
   const color = nodeColors[nodeType] || '#1890ff'
   const icon = nodeIcons[nodeType] || <ThunderboltOutlined />
-  const isTrigger = nodeType === 'trigger' || nodeType === 'scheduleTrigger'
+  const isTrigger = nodeType === 'trigger' || nodeType === 'scheduleTrigger' || nodeType === 'webhookTrigger' || nodeType === 'formTrigger'
   const isOutput = nodeType === 'output'
   const executionStatus = nodeData.executionStatus
 
@@ -478,17 +534,202 @@ const ExecutionAwareSkillNode = memo(({ data, selected }: NodeProps) => {
 })
 ExecutionAwareSkillNode.displayName = 'ExecutionAwareSkillNode'
 
+// Approval Node with execution awareness
+const ExecutionAwareApprovalNode = memo(({ data, selected }: NodeProps) => {
+  const nodeData = data as ExecutionAwareNodeData
+  const color = nodeColors.approval
+  const executionStatus = nodeData.executionStatus
+  const executionStyle = useMemo(
+    () => getExecutionStyle(executionStatus, selected || false),
+    [executionStatus, selected]
+  )
+
+  // Show waiting icon when status is 'running' or 'waiting' for approval nodes
+  const statusIcon = (executionStatus === 'running' || executionStatus === 'waiting')
+    ? <PauseCircleOutlined style={{ color: '#fa8c16', marginLeft: 4 }} />
+    : getStatusIcon(executionStatus)
+
+  return (
+    <div
+      style={{
+        padding: '12px 20px',
+        borderRadius: 8,
+        background: color,
+        color: '#fff',
+        minWidth: 150,
+        textAlign: 'center',
+        boxShadow: selected
+          ? '0 4px 12px rgba(0,0,0,0.3)'
+          : '0 2px 8px rgba(0,0,0,0.15)',
+        ...executionStyle,
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{
+          background: '#fff',
+          border: `2px solid ${color}`,
+          width: 10,
+          height: 10,
+        }}
+      />
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
+      >
+        <CheckCircleOutlined style={{ fontSize: 16 }} />
+        <span style={{ fontWeight: 500 }}>{nodeData.label || 'Approval'}</span>
+        {statusIcon}
+      </div>
+
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="approved"
+        style={{
+          left: '30%',
+          background: '#52c41a',
+          border: '2px solid #fff',
+          width: 10,
+          height: 10,
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="rejected"
+        style={{
+          left: '70%',
+          background: '#f5222d',
+          border: '2px solid #fff',
+          width: 10,
+          height: 10,
+        }}
+      />
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 10,
+          marginTop: 4,
+        }}
+      >
+        <span>Approved</span>
+        <span>Rejected</span>
+      </div>
+    </div>
+  )
+})
+ExecutionAwareApprovalNode.displayName = 'ExecutionAwareApprovalNode'
+
+// Switch Node with execution awareness
+const ExecutionAwareSwitchNode = memo(({ data, selected }: NodeProps) => {
+  const nodeData = data as ExecutionAwareNodeData & { cases?: Array<{ branch: string }> }
+  const color = nodeColors.switch
+  const executionStatus = nodeData.executionStatus
+  const executionStyle = useMemo(
+    () => getExecutionStyle(executionStatus, selected || false),
+    [executionStatus, selected]
+  )
+  const cases = nodeData.cases || [{ branch: 'case_0' }, { branch: 'case_1' }, { branch: 'default' }]
+
+  return (
+    <div
+      style={{
+        padding: '12px 20px',
+        borderRadius: 8,
+        background: color,
+        color: '#fff',
+        minWidth: 180,
+        textAlign: 'center',
+        boxShadow: selected
+          ? '0 4px 12px rgba(0,0,0,0.3)'
+          : '0 2px 8px rgba(0,0,0,0.15)',
+        ...executionStyle,
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{
+          background: '#fff',
+          border: `2px solid ${color}`,
+          width: 10,
+          height: 10,
+        }}
+      />
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
+      >
+        <ForkOutlined style={{ fontSize: 16 }} />
+        <span style={{ fontWeight: 500 }}>{nodeData.label || 'Switch'}</span>
+        {getStatusIcon(executionStatus)}
+      </div>
+
+      {cases.slice(0, 4).map((c, idx) => (
+        <Handle
+          key={c.branch}
+          type="source"
+          position={Position.Bottom}
+          id={c.branch}
+          style={{
+            left: `${((idx + 1) * 100) / (Math.min(cases.length, 4) + 1)}%`,
+            background: idx === cases.length - 1 ? '#9ca3af' : '#3b82f6',
+            border: '2px solid #fff',
+            width: 8,
+            height: 8,
+          }}
+        />
+      ))}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          fontSize: 9,
+          marginTop: 4,
+          opacity: 0.9,
+        }}
+      >
+        {cases.slice(0, 4).map((c) => (
+          <span key={c.branch}>{c.branch.length > 8 ? c.branch.slice(0, 6) + '..' : c.branch}</span>
+        ))}
+      </div>
+    </div>
+  )
+})
+ExecutionAwareSwitchNode.displayName = 'ExecutionAwareSwitchNode'
+
 // Export all execution-aware node types
 export const executionAwareNodeTypes = {
   trigger: createExecutionAwareNode('trigger'),
   scheduleTrigger: createExecutionAwareNode('scheduleTrigger'),
+  webhookTrigger: createExecutionAwareNode('webhookTrigger'),
+  formTrigger: createExecutionAwareNode('formTrigger'),
   action: createExecutionAwareNode('action'),
   condition: ExecutionAwareConditionNode,
+  switch: ExecutionAwareSwitchNode,
   loop: createExecutionAwareNode('loop'),
   output: createExecutionAwareNode('output'),
   code: createExecutionAwareNode('code'),
   httpRequest: createExecutionAwareNode('httpRequest'),
   wait: createExecutionAwareNode('wait'),
+  form: createExecutionAwareNode('form'),
+  approval: ExecutionAwareApprovalNode,
+  ssh: createExecutionAwareNode('ssh'),
   externalService: ExecutionAwareExternalServiceNode,
   skill: ExecutionAwareSkillNode,
   default: createExecutionAwareNode('action'),
@@ -497,6 +738,8 @@ export const executionAwareNodeTypes = {
 export {
   ExecutionAwareBaseNode,
   ExecutionAwareConditionNode,
+  ExecutionAwareSwitchNode,
+  ExecutionAwareApprovalNode,
   ExecutionAwareExternalServiceNode,
   ExecutionAwareSkillNode,
 }

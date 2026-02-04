@@ -17,9 +17,15 @@ export interface FlowVersion {
   version: string
   definition: FlowDefinition
   settings: Record<string, unknown>
+  pinnedData: Record<string, unknown>
   status: 'draft' | 'published' | 'deprecated'
   createdAt: string
   createdBy: string
+}
+
+export interface PinDataRequest {
+  nodeId: string
+  data: Record<string, unknown>
 }
 
 export interface FlowDefinition {
@@ -170,6 +176,30 @@ export const flowApi = {
   importFlow: async (data: FlowExportData): Promise<Flow> => {
     const response = await apiClient.post('/flows/import', data)
     return response.data
+  },
+
+  // ========== Data Pinning APIs ==========
+
+  /**
+   * Get all pinned data for a flow version
+   */
+  getPinnedData: async (flowId: string, version: string): Promise<Record<string, unknown>> => {
+    const response = await apiClient.get(`/flows/${flowId}/versions/${version}/pinned-data`)
+    return response.data
+  },
+
+  /**
+   * Pin data to a specific node
+   */
+  pinNodeData: async (flowId: string, version: string, request: PinDataRequest): Promise<void> => {
+    await apiClient.post(`/flows/${flowId}/versions/${version}/pin`, request)
+  },
+
+  /**
+   * Unpin data from a specific node
+   */
+  unpinNodeData: async (flowId: string, version: string, nodeId: string): Promise<void> => {
+    await apiClient.delete(`/flows/${flowId}/versions/${version}/pin/${nodeId}`)
   },
 }
 

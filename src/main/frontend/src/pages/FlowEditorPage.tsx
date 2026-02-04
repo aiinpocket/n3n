@@ -16,6 +16,9 @@ import {
   RocketOutlined,
   BulbOutlined,
   ThunderboltOutlined,
+  UndoOutlined,
+  RedoOutlined,
+  CopyOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -43,23 +46,13 @@ import OptimizationPanel from '../components/flow/OptimizationPanel'
 import PublishFlowModal from '../components/ai/PublishFlowModal'
 import NodeRecommendationDrawer from '../components/ai/NodeRecommendationDrawer'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
+import { CommandPalette } from '../components/command'
+import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import type { ExternalService, ServiceEndpoint } from '../types'
 
 const { Text } = Typography
 
 const AUTO_SAVE_DELAY = 5000 // 5 seconds
-
-const nodeTypeOptions = [
-  { value: 'trigger', label: '觸發器', color: '#52c41a' },
-  { value: 'scheduleTrigger', label: '排程觸發', color: '#52c41a' },
-  { value: 'action', label: '動作', color: '#1890ff' },
-  { value: 'code', label: '代碼', color: '#13c2c2' },
-  { value: 'httpRequest', label: 'HTTP 請求', color: '#2f54eb' },
-  { value: 'condition', label: '條件', color: '#faad14' },
-  { value: 'loop', label: '迴圈', color: '#722ed1' },
-  { value: 'wait', label: '等待', color: '#fa8c16' },
-  { value: 'output', label: '輸出', color: '#f5222d' },
-]
 
 export default function FlowEditorPage() {
   const { id } = useParams<{ id: string }>()
@@ -72,6 +65,7 @@ export default function FlowEditorPage() {
     nodes,
     edges,
     selectedNodeId,
+    selectedNodeIds,
     isDirty,
     loading,
     saving,
@@ -81,11 +75,24 @@ export default function FlowEditorPage() {
     setNodes,
     setEdges,
     setSelectedNodeId,
+    selectAllNodes,
     updateNodeData,
     saveVersion,
     autoSaveDraft,
     publishVersion,
     clearEditor,
+    // Clipboard
+    copySelectedNodes,
+    cutSelectedNodes,
+    pasteNodes,
+    duplicateSelectedNodes,
+    removeSelectedNodes,
+    // History
+    pushHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useFlowStore()
 
   // Execution mode state
@@ -132,6 +139,7 @@ export default function FlowEditorPage() {
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [nodeRecommendationOpen, setNodeRecommendationOpen] = useState(false)
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [saveForm] = Form.useForm()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -167,6 +175,13 @@ export default function FlowEditorPage() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if in execution mode or if target is an input/textarea
+      if (executionMode) return
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return
+      }
+
       // Ctrl+S or Cmd+S to save
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
@@ -184,10 +199,76 @@ export default function FlowEditorPage() {
           handlePublish()
         }
       }
+      // Ctrl+C or Cmd+C to copy
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault()
+        copySelectedNodes()
+        message.info('已複製節點')
+      }
+      // Ctrl+X or Cmd+X to cut
+      if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+        e.preventDefault()
+        cutSelectedNodes()
+        message.info('已剪切節點')
+      }
+      // Ctrl+V or Cmd+V to paste
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault()
+        pasteNodes()
+        message.info('已貼上節點')
+      }
+      // Ctrl+D or Cmd+D to duplicate
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault()
+        duplicateSelectedNodes()
+        message.info('已複製節點')
+      }
+      // Ctrl+A or Cmd+A to select all
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault()
+        selectAllNodes()
+      }
+      // Ctrl+Z or Cmd+Z to undo
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+        e.preventDefault()
+        if (canUndo()) {
+          undo()
+          message.info('已復原')
+        }
+      }
+      // Ctrl+Shift+Z or Cmd+Shift+Z to redo
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+        e.preventDefault()
+        if (canRedo()) {
+          redo()
+          message.info('已重做')
+        }
+      }
+      // Ctrl+Y or Cmd+Y to redo (alternative)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault()
+        if (canRedo()) {
+          redo()
+          message.info('已重做')
+        }
+      }
+      // Delete or Backspace to delete selected nodes
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault()
+        if (selectedNodeIds.length > 0) {
+          removeSelectedNodes()
+          message.info('已刪除節點')
+        }
+      }
+      // Ctrl+K or Cmd+K to open command palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setCommandPaletteOpen(true)
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isDirty, currentVersion, saveForm])
+  }, [isDirty, currentVersion, saveForm, executionMode, selectedNodeIds, copySelectedNodes, cutSelectedNodes, pasteNodes, duplicateSelectedNodes, selectAllNodes, undo, redo, canUndo, canRedo, removeSelectedNodes])
 
   // Format last saved time
   const formatLastSaved = () => {
@@ -217,26 +298,30 @@ export default function FlowEditorPage() {
 
   const onConnect = useCallback(
     (params: Connection) => {
+      pushHistory()
       setEdges(addEdge(params, edges))
     },
-    [edges, setEdges]
+    [edges, setEdges, pushHistory]
   )
 
   const handleAddNode = (type: string) => {
-    const nodeOption = nodeTypeOptions.find((n) => n.value === type)
+    pushHistory()
+    const nodeConfig = getNodeConfig(type)
     const newNode: Node = {
       id: `node-${Date.now()}`,
       type: type, // Use the actual type for custom node rendering
       position: { x: 250, y: nodes.length * 100 + 50 },
       data: {
-        label: nodeOption?.label || type,
+        label: nodeConfig?.label || type,
         nodeType: type,
+        description: nodeConfig?.description || '',
       },
     }
     setNodes([...nodes, newNode])
   }
 
   const handleAddServiceNode = (service: ExternalService, endpoint: ServiceEndpoint) => {
+    pushHistory()
     const newNode: Node = {
       id: `node-${Date.now()}`,
       type: 'externalService',
@@ -277,6 +362,7 @@ export default function FlowEditorPage() {
 
   const handleNodeDelete = useCallback(
     (nodeId: string) => {
+      pushHistory()
       // Remove the node
       setNodes(nodes.filter((n) => n.id !== nodeId))
       // Remove connected edges
@@ -284,7 +370,7 @@ export default function FlowEditorPage() {
       // Clear selection
       setSelectedNodeId(null)
     },
-    [nodes, edges, setNodes, setEdges, setSelectedNodeId]
+    [nodes, edges, setNodes, setEdges, setSelectedNodeId, pushHistory]
   )
 
   const selectedNode = useMemo(
@@ -334,9 +420,11 @@ export default function FlowEditorPage() {
     )
   }
 
+  // Build grouped node menu with categories
+  const groupedNodes = getGroupedNodes()
   const addNodeMenu = {
-    items: nodeTypeOptions.map((type) => ({
-      key: type.value,
+    items: groupedNodes.map((group) => ({
+      key: group.category.key,
       label: (
         <Space>
           <span
@@ -345,13 +433,33 @@ export default function FlowEditorPage() {
               width: 12,
               height: 12,
               borderRadius: 2,
-              background: type.color,
+              background: group.category.color,
             }}
           />
-          {type.label}
+          <strong>{group.category.label}</strong>
         </Space>
       ),
-      onClick: () => handleAddNode(type.value),
+      children: group.nodes.map((node) => ({
+        key: node.value,
+        label: (
+          <Space>
+            <span
+              style={{
+                display: 'inline-block',
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: node.color,
+              }}
+            />
+            {node.label}
+            <span style={{ color: '#999', fontSize: 11 }}>
+              {node.labelEn}
+            </span>
+          </Space>
+        ),
+        onClick: () => handleAddNode(node.value),
+      })),
     })),
   }
 
@@ -402,6 +510,27 @@ export default function FlowEditorPage() {
         }
         extra={
           <Space>
+            <Tooltip title="復原 (Ctrl+Z)">
+              <Button
+                icon={<UndoOutlined />}
+                onClick={() => { undo(); message.info('已復原') }}
+                disabled={!canUndo()}
+              />
+            </Tooltip>
+            <Tooltip title="重做 (Ctrl+Shift+Z)">
+              <Button
+                icon={<RedoOutlined />}
+                onClick={() => { redo(); message.info('已重做') }}
+                disabled={!canRedo()}
+              />
+            </Tooltip>
+            <Tooltip title="複製 (Ctrl+C)">
+              <Button
+                icon={<CopyOutlined />}
+                onClick={() => { copySelectedNodes(); message.info('已複製節點') }}
+                disabled={selectedNodeIds.length === 0}
+              />
+            </Tooltip>
             <Dropdown menu={addNodeMenu} placement="bottomRight">
               <Button icon={<PlusOutlined />}>新增節點</Button>
             </Dropdown>
@@ -698,6 +827,37 @@ export default function FlowEditorPage() {
             })))
             message.success('流程已建立，您可以進一步調整')
           }
+        }}
+      />
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onSave={() => {
+          if (currentVersion?.status === 'draft') {
+            saveForm.setFieldsValue({ version: currentVersion.version })
+          }
+          setSaveModalOpen(true)
+        }}
+        onPublish={() => {
+          if (currentVersion && currentVersion.status !== 'published') {
+            setPublishModalOpen(true)
+          }
+        }}
+        onExecute={async () => {
+          if (currentFlow?.publishedVersion) {
+            setExecutionMode(true)
+            try {
+              await startExecution()
+            } catch {
+              message.error('執行失敗')
+              setExecutionMode(false)
+            }
+          }
+        }}
+        onAddNode={() => {
+          // Open the add node dropdown - we'll just add a trigger node for now
+          handleAddNode('trigger')
         }}
       />
     </>

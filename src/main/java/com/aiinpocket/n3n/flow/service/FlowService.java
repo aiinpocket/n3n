@@ -464,4 +464,62 @@ public class FlowService {
             }
         }
     }
+
+    // ========== Data Pinning Methods ==========
+
+    /**
+     * Get all pinned data for a flow version.
+     */
+    public Map<String, Object> getPinnedData(UUID flowId, String version) {
+        FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
+            .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
+        return v.getPinnedData() != null ? v.getPinnedData() : Map.of();
+    }
+
+    /**
+     * Pin data to a specific node.
+     */
+    @Transactional
+    public void pinNodeData(UUID flowId, String version, PinDataRequest request) {
+        FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
+            .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
+
+        Map<String, Object> pinnedData = v.getPinnedData();
+        if (pinnedData == null || pinnedData.isEmpty()) {
+            pinnedData = new HashMap<>();
+        } else {
+            // Create a mutable copy if the map is immutable
+            pinnedData = new HashMap<>(pinnedData);
+        }
+
+        pinnedData.put(request.getNodeId(), request.getData());
+        v.setPinnedData(pinnedData);
+        flowVersionRepository.save(v);
+
+        log.info("Data pinned to node: flowId={}, version={}, nodeId={}",
+            flowId, version, request.getNodeId());
+    }
+
+    /**
+     * Unpin data from a specific node.
+     */
+    @Transactional
+    public void unpinNodeData(UUID flowId, String version, String nodeId) {
+        FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
+            .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
+
+        Map<String, Object> pinnedData = v.getPinnedData();
+        if (pinnedData == null || pinnedData.isEmpty()) {
+            return; // Nothing to unpin
+        }
+
+        // Create a mutable copy
+        pinnedData = new HashMap<>(pinnedData);
+        pinnedData.remove(nodeId);
+        v.setPinnedData(pinnedData);
+        flowVersionRepository.save(v);
+
+        log.info("Data unpinned from node: flowId={}, version={}, nodeId={}",
+            flowId, version, nodeId);
+    }
 }

@@ -16,6 +16,7 @@ public class FlowVersionResponse {
     private String version;
     private Map<String, Object> definition;
     private Map<String, Object> settings;
+    private Map<String, Object> pinnedData;
     private String status;
     private Instant createdAt;
     private UUID createdBy;
@@ -27,6 +28,7 @@ public class FlowVersionResponse {
             .version(v.getVersion())
             .definition(v.getDefinition())
             .settings(v.getSettings())
+            .pinnedData(v.getPinnedData())
             .status(v.getStatus())
             .createdAt(v.getCreatedAt())
             .createdBy(v.getCreatedBy())

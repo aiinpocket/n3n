@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.auth.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.auth.dto.request.LoginRequest;
 import com.aiinpocket.n3n.auth.dto.request.RefreshTokenRequest;
 import com.aiinpocket.n3n.auth.dto.request.RegisterRequest;
@@ -17,6 +18,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final LoginRateLimiter loginRateLimiter;
+    private final ActivityService activityService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
@@ -40,10 +44,19 @@ public class AuthController {
             AuthResponse response = authService.login(request, ipAddress, userAgent);
             // 登入成功，清除失敗計數
             loginRateLimiter.recordLoginSuccess(request.getEmail());
+
+            // 記錄登入成功審計日誌
+            UUID userId = response.getUser() != null ? response.getUser().getId() : null;
+            activityService.logLogin(userId, request.getEmail());
+
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
             // 登入失敗，記錄失敗嘗試
             loginRateLimiter.recordLoginFailure(ipAddress, request.getEmail());
+
+            // 記錄登入失敗審計日誌
+            activityService.logLoginFailed(request.getEmail(), "Invalid credentials");
+
             throw e;
         }
     }
@@ -63,8 +76,19 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshTokenRequest request) {
+    public ResponseEntity<Void> logout(
+            @RequestBody(required = false) RefreshTokenRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
         String refreshToken = request != null ? request.getRefreshToken() : null;
+
+        // 記錄登出審計日誌
+        if (userDetails != null) {
+            UserResponse user = authService.getCurrentUser(userDetails.getUsername());
+            if (user != null) {
+                activityService.logLogout(user.getId(), user.getEmail());
+            }
+        }
+
         authService.logout(refreshToken);
         return ResponseEntity.ok().build();
     }

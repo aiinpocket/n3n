@@ -38,6 +38,29 @@
     "copied": "已複製到剪貼簿",
     "details": "詳情"
   },
+  "error": {
+    "title": "發生錯誤",
+    "subtitle": "抱歉，頁面發生了錯誤。請嘗試重新整理頁面或返回首頁。",
+    "retry": "重試",
+    "reload": "重新整理",
+    "goHome": "返回首頁",
+    "details": "錯誤詳情",
+    "stackTrace": "堆疊追蹤"
+  },
+  "command": {
+    "placeholder": "輸入命令...",
+    "noResults": "找不到相關命令",
+    "goToFlows": "前往流程列表頁面",
+    "goToExecutions": "前往執行記錄頁面",
+    "goToServices": "前往外部服務頁面",
+    "goToCredentials": "前往認證管理頁面",
+    "goToAI": "前往 AI 助手頁面",
+    "goToAISettings": "前往 AI 設定頁面",
+    "saveFlow": "儲存當前流程",
+    "publishFlow": "發布當前流程版本",
+    "addNode": "新增一個新節點",
+    "executeFlow": "執行當前流程"
+  },
   "nav": {
     "home": "首頁",
     "flows": "流程",
@@ -192,6 +215,27 @@
       "reorder": "重新排序"
     }
   },
+  "node": {
+    "trigger": "觸發器",
+    "scheduleTrigger": "排程觸發",
+    "formTrigger": "表單觸發",
+    "http": "HTTP 請求",
+    "code": "程式碼",
+    "transform": "資料轉換",
+    "condition": "條件判斷",
+    "switch": "多路分支",
+    "loop": "迴圈",
+    "form": "表單",
+    "approval": "等待審批",
+    "ssh": "SSH 命令",
+    "delay": "延遲",
+    "mongodb": "MongoDB",
+    "redis": "Redis",
+    "aggregate": "聚合",
+    "email": "電子郵件",
+    "slack": "Slack",
+    "discord": "Discord"
+  },
   "execution": {
     "title": "執行記錄",
     "running": "執行中",
@@ -199,6 +243,7 @@
     "failed": "失敗",
     "cancelled": "已取消",
     "pending": "等待中",
+    "waiting": "等待審批",
     "startTime": "開始時間",
     "endTime": "結束時間",
     "duration": "執行時間",
@@ -388,7 +433,13 @@
     "statusWarning": "只能將狀態設為 active 或 deprecated",
     "statusUpdated": "狀態更新成功",
     "statusUpdateFailed": "狀態更新失敗",
-    "loadVersionsFailed": "載入版本失敗"
+    "loadVersionsFailed": "載入版本失敗",
+    "noVersions": "尚無版本",
+    "noVersionsDesc": "請新增一個版本來啟用此元件",
+    "versionFormatError": "版本號格式錯誤，建議使用語意化版本如 1.0.0",
+    "versionFormatHint": "建議使用語意化版本號，例如 1.0.0、2.1.0",
+    "imageFormatError": "Docker Image 格式錯誤",
+    "imageFormatHint": "格式: registry/repo:tag 或 repo:tag"
   },
   "ai": {
     "title": "AI 設定",
@@ -545,6 +596,38 @@
     "zhTW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "approval": {
+    "title": "審批請求",
+    "approve": "核准",
+    "reject": "拒絕",
+    "approved": "已核准",
+    "rejected": "已拒絕",
+    "pending": "待審批",
+    "expired": "已過期",
+    "message": "審批訊息",
+    "comment": "審批意見",
+    "commentPlaceholder": "輸入審批意見（選填）",
+    "approvedBy": "由 {{name}} 核准",
+    "rejectedBy": "由 {{name}} 拒絕",
+    "waitingFor": "等待 {{count}} 人審批",
+    "approvedCount": "{{count}} 人已核准",
+    "rejectedCount": "{{count}} 人已拒絕",
+    "mode": {
+      "any": "任一人",
+      "all": "全部",
+      "majority": "多數決"
+    }
+  },
+  "form": {
+    "title": "表單",
+    "submit": "提交",
+    "submitted": "已提交",
+    "submitSuccess": "表單提交成功",
+    "submitFailed": "表單提交失敗",
+    "fieldRequired": "此欄位為必填",
+    "formExpired": "表單連結已過期",
+    "formNotFound": "找不到表單"
   },
   "marketplace": {
     "title": "插件市場",

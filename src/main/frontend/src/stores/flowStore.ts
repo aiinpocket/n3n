@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { Node, Edge } from '@xyflow/react'
 import { Flow, FlowVersion, flowApi, FlowDefinition } from '../api/flow'
 import { logger } from '../utils/logger'
+import { ClipboardData, FlowSnapshot } from '../types'
 
 interface FlowListState {
   flows: Flow[]
@@ -24,9 +25,19 @@ interface FlowEditorState {
   nodes: Node[]
   edges: Edge[]
   selectedNodeId: string | null
+  selectedNodeIds: string[]
   isDirty: boolean
   saving: boolean
   lastSavedAt: Date | null
+  // Clipboard
+  clipboard: ClipboardData | null
+  // History (Undo/Redo)
+  history: FlowSnapshot[]
+  historyIndex: number
+  maxHistory: number
+  // Pinned Data
+  pinnedData: Record<string, unknown>
+  // Actions
   loadFlow: (flowId: string, version?: string) => Promise<void>
   loadVersions: (flowId: string) => Promise<void>
   setNodes: (nodes: Node[]) => void
@@ -34,14 +45,33 @@ interface FlowEditorState {
   onNodesChange: (changes: Node[]) => void
   onEdgesChange: (changes: Edge[]) => void
   setSelectedNodeId: (id: string | null) => void
+  setSelectedNodeIds: (ids: string[]) => void
+  selectAllNodes: () => void
   addNode: (node: Node) => void
   updateNode: (id: string, data: Partial<Node>) => void
   updateNodeData: (id: string, data: Record<string, unknown>) => void
   removeNode: (id: string) => void
+  removeSelectedNodes: () => void
   saveVersion: (version: string, settings?: Record<string, unknown>) => Promise<FlowVersion>
   autoSaveDraft: () => Promise<FlowVersion | null>
   publishVersion: (version: string) => Promise<FlowVersion>
   clearEditor: () => void
+  // Clipboard actions
+  copySelectedNodes: () => void
+  cutSelectedNodes: () => void
+  pasteNodes: (offsetX?: number, offsetY?: number) => void
+  duplicateSelectedNodes: () => void
+  // History actions
+  pushHistory: () => void
+  undo: () => void
+  redo: () => void
+  canUndo: () => boolean
+  canRedo: () => boolean
+  // Data Pinning actions
+  pinNodeData: (nodeId: string, data: Record<string, unknown>) => Promise<void>
+  unpinNodeData: (nodeId: string) => Promise<void>
+  isNodePinned: (nodeId: string) => boolean
+  getNodePinnedData: (nodeId: string) => Record<string, unknown> | null
 }
 
 type FlowState = FlowListState & FlowEditorState
@@ -62,9 +92,18 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
+  selectedNodeIds: [],
   isDirty: false,
   saving: false,
   lastSavedAt: null,
+  // Clipboard
+  clipboard: null,
+  // History
+  history: [],
+  historyIndex: -1,
+  maxHistory: 50,
+  // Pinned Data
+  pinnedData: {},
 
   // List actions
   fetchFlows: async (page = 0, size = 20, search?: string) => {
@@ -130,6 +169,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
             data: n.data || {},
           })) as Node[],
           edges: definition.edges as Edge[],
+          pinnedData: flowVersion.pinnedData || {},
           isDirty: false,
         })
       } else {
@@ -137,6 +177,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
           currentVersion: null,
           nodes: [],
           edges: [],
+          pinnedData: {},
           isDirty: false,
         })
       }
@@ -154,7 +195,20 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   setEdges: (edges) => set({ edges, isDirty: true }),
   onNodesChange: (nodes) => set({ nodes, isDirty: true }),
   onEdgesChange: (edges) => set({ edges, isDirty: true }),
-  setSelectedNodeId: (selectedNodeId) => set({ selectedNodeId }),
+  setSelectedNodeId: (selectedNodeId) => set({ selectedNodeId, selectedNodeIds: selectedNodeId ? [selectedNodeId] : [] }),
+
+  setSelectedNodeIds: (selectedNodeIds) => set({
+    selectedNodeIds,
+    selectedNodeId: selectedNodeIds.length > 0 ? selectedNodeIds[0] : null
+  }),
+
+  selectAllNodes: () => {
+    const { nodes } = get()
+    set({
+      selectedNodeIds: nodes.map(n => n.id),
+      selectedNodeId: nodes.length > 0 ? nodes[0].id : null
+    })
+  },
 
   addNode: (node) =>
     set((state) => ({
@@ -184,6 +238,189 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       edges: state.edges.filter((e) => e.source !== id && e.target !== id),
       isDirty: true,
     })),
+
+  removeSelectedNodes: () => {
+    const { selectedNodeIds, nodes, edges } = get()
+    if (selectedNodeIds.length === 0) return
+
+    get().pushHistory()
+    set({
+      nodes: nodes.filter((n) => !selectedNodeIds.includes(n.id)),
+      edges: edges.filter((e) => !selectedNodeIds.includes(e.source) && !selectedNodeIds.includes(e.target)),
+      selectedNodeIds: [],
+      selectedNodeId: null,
+      isDirty: true,
+    })
+  },
+
+  // Clipboard actions
+  copySelectedNodes: () => {
+    const { selectedNodeIds, nodes, edges } = get()
+    if (selectedNodeIds.length === 0) return
+
+    const selectedNodes = nodes.filter((n) => selectedNodeIds.includes(n.id))
+    const selectedEdges = edges.filter(
+      (e) => selectedNodeIds.includes(e.source) && selectedNodeIds.includes(e.target)
+    )
+
+    set({
+      clipboard: {
+        nodes: selectedNodes.map((n) => ({
+          id: n.id,
+          type: n.type || 'default',
+          position: n.position,
+          data: n.data as Record<string, unknown>,
+        })),
+        edges: selectedEdges.map((e) => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          sourceHandle: e.sourceHandle || undefined,
+          targetHandle: e.targetHandle || undefined,
+        })),
+        timestamp: Date.now(),
+      },
+    })
+  },
+
+  cutSelectedNodes: () => {
+    const { copySelectedNodes, removeSelectedNodes } = get()
+    copySelectedNodes()
+    removeSelectedNodes()
+  },
+
+  pasteNodes: (offsetX = 50, offsetY = 50) => {
+    const { clipboard, nodes, edges } = get()
+    if (!clipboard || clipboard.nodes.length === 0) return
+
+    get().pushHistory()
+
+    // Create ID mapping for new nodes
+    const idMap: Record<string, string> = {}
+    const newNodes: Node[] = clipboard.nodes.map((n) => {
+      const newId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      idMap[n.id] = newId
+      return {
+        id: newId,
+        type: n.type,
+        position: { x: n.position.x + offsetX, y: n.position.y + offsetY },
+        data: { ...n.data },
+      }
+    })
+
+    // Create new edges with updated IDs
+    const newEdges: Edge[] = clipboard.edges
+      .filter((e) => idMap[e.source] && idMap[e.target])
+      .map((e) => ({
+        id: `edge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: idMap[e.source],
+        target: idMap[e.target],
+        sourceHandle: e.sourceHandle,
+        targetHandle: e.targetHandle,
+      }))
+
+    set({
+      nodes: [...nodes, ...newNodes],
+      edges: [...edges, ...newEdges],
+      selectedNodeIds: newNodes.map((n) => n.id),
+      selectedNodeId: newNodes.length > 0 ? newNodes[0].id : null,
+      isDirty: true,
+    })
+  },
+
+  duplicateSelectedNodes: () => {
+    const { copySelectedNodes, pasteNodes } = get()
+    copySelectedNodes()
+    pasteNodes(30, 30)
+  },
+
+  // History actions
+  pushHistory: () => {
+    const { nodes, edges, history, historyIndex, maxHistory } = get()
+    const snapshot: FlowSnapshot = {
+      nodes: nodes.map((n) => ({
+        id: n.id,
+        type: n.type || 'default',
+        position: n.position,
+        data: n.data as Record<string, unknown>,
+      })),
+      edges: edges.map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        sourceHandle: e.sourceHandle || undefined,
+        targetHandle: e.targetHandle || undefined,
+      })),
+      timestamp: Date.now(),
+    }
+
+    // Remove any future history if we're not at the end
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(snapshot)
+
+    // Limit history size
+    if (newHistory.length > maxHistory) {
+      newHistory.shift()
+    }
+
+    set({
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    })
+  },
+
+  undo: () => {
+    const { history, historyIndex, nodes, edges } = get()
+    if (historyIndex < 0) return
+
+    // Save current state if at the end
+    if (historyIndex === history.length - 1) {
+      const currentSnapshot: FlowSnapshot = {
+        nodes: nodes.map((n) => ({
+          id: n.id,
+          type: n.type || 'default',
+          position: n.position,
+          data: n.data as Record<string, unknown>,
+        })),
+        edges: edges.map((e) => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          sourceHandle: e.sourceHandle || undefined,
+          targetHandle: e.targetHandle || undefined,
+        })),
+        timestamp: Date.now(),
+      }
+      const newHistory = [...history, currentSnapshot]
+      set({ history: newHistory })
+    }
+
+    const snapshot = history[historyIndex]
+    set({
+      nodes: snapshot.nodes as Node[],
+      edges: snapshot.edges as Edge[],
+      historyIndex: historyIndex - 1,
+      isDirty: true,
+    })
+  },
+
+  redo: () => {
+    const { history, historyIndex } = get()
+    if (historyIndex >= history.length - 1) return
+
+    const snapshot = history[historyIndex + 2] || history[historyIndex + 1]
+    if (!snapshot) return
+
+    set({
+      nodes: snapshot.nodes as Node[],
+      edges: snapshot.edges as Edge[],
+      historyIndex: historyIndex + 1,
+      isDirty: true,
+    })
+  },
+
+  canUndo: () => get().historyIndex >= 0,
+  canRedo: () => get().historyIndex < get().history.length - 1,
 
   saveVersion: async (version: string, settings?: Record<string, unknown>) => {
     const { currentFlow, nodes, edges } = get()
@@ -299,6 +536,49 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       nodes: [],
       edges: [],
       selectedNodeId: null,
+      selectedNodeIds: [],
       isDirty: false,
+      history: [],
+      historyIndex: -1,
+      pinnedData: {},
     }),
+
+  // Data Pinning actions
+  pinNodeData: async (nodeId: string, data: Record<string, unknown>) => {
+    const { currentFlow, currentVersion } = get()
+    if (!currentFlow || !currentVersion) {
+      throw new Error('No flow or version loaded')
+    }
+
+    await flowApi.pinNodeData(currentFlow.id, currentVersion.version, { nodeId, data })
+
+    set((state) => ({
+      pinnedData: { ...state.pinnedData, [nodeId]: data },
+    }))
+  },
+
+  unpinNodeData: async (nodeId: string) => {
+    const { currentFlow, currentVersion } = get()
+    if (!currentFlow || !currentVersion) {
+      throw new Error('No flow or version loaded')
+    }
+
+    await flowApi.unpinNodeData(currentFlow.id, currentVersion.version, nodeId)
+
+    set((state) => {
+      const newPinnedData = { ...state.pinnedData }
+      delete newPinnedData[nodeId]
+      return { pinnedData: newPinnedData }
+    })
+  },
+
+  isNodePinned: (nodeId: string) => {
+    const { pinnedData } = get()
+    return nodeId in pinnedData
+  },
+
+  getNodePinnedData: (nodeId: string) => {
+    const { pinnedData } = get()
+    return (pinnedData[nodeId] as Record<string, unknown>) || null
+  },
 }))

@@ -51,6 +51,28 @@ public class NodeExecutionResult {
      */
     private Map<String, Object> metadata;
 
+    // ===== Pause/Resume Support =====
+
+    /**
+     * Whether the node requests to pause execution.
+     * When true, the execution engine will pause and wait for external resume.
+     */
+    private boolean pauseRequested;
+
+    /**
+     * Reason for pausing (displayed to users).
+     * Examples: "Waiting for approval", "Waiting for form submission"
+     */
+    private String pauseReason;
+
+    /**
+     * Conditions required to resume execution.
+     * Examples:
+     * - For approval: {"type": "approval", "approvalId": "uuid"}
+     * - For form: {"type": "form", "formSchema": {...}}
+     */
+    private Map<String, Object> resumeCondition;
+
     /**
      * Create a successful result with output.
      */
@@ -113,6 +135,49 @@ public class NodeExecutionResult {
             .output(output)
             .branchesToFollow(branches)
             .build();
+    }
+
+    /**
+     * Create a pause result to suspend execution and wait for external event.
+     * The execution will be marked as 'waiting' until resumed.
+     *
+     * @param reason Human-readable reason for the pause
+     * @param resumeCondition Conditions that define how/when to resume
+     * @return NodeExecutionResult configured to pause execution
+     */
+    public static NodeExecutionResult pause(String reason, Map<String, Object> resumeCondition) {
+        return NodeExecutionResult.builder()
+            .success(true)
+            .pauseRequested(true)
+            .pauseReason(reason)
+            .resumeCondition(resumeCondition)
+            .build();
+    }
+
+    /**
+     * Create a pause result with output data preserved.
+     * Useful when partial results should be available after resume.
+     *
+     * @param reason Human-readable reason for the pause
+     * @param resumeCondition Conditions that define how/when to resume
+     * @param partialOutput Output data generated before pause
+     * @return NodeExecutionResult configured to pause execution with partial output
+     */
+    public static NodeExecutionResult pause(String reason, Map<String, Object> resumeCondition, Map<String, Object> partialOutput) {
+        return NodeExecutionResult.builder()
+            .success(true)
+            .pauseRequested(true)
+            .pauseReason(reason)
+            .resumeCondition(resumeCondition)
+            .output(partialOutput)
+            .build();
+    }
+
+    /**
+     * Check if this result requests execution pause.
+     */
+    public boolean isPauseRequested() {
+        return pauseRequested;
     }
 
     private static String getStackTraceAsString(Throwable throwable) {

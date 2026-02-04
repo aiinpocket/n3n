@@ -73,6 +73,7 @@ export interface Execution {
 export type ExecutionStatus =
   | 'pending'
   | 'running'
+  | 'waiting'
   | 'completed'
   | 'failed'
   | 'cancelled'
@@ -93,6 +94,7 @@ export interface NodeExecution {
 export type NodeStatus =
   | 'pending'
   | 'running'
+  | 'waiting'
   | 'completed'
   | 'failed'
   | 'cancelled'
@@ -272,4 +274,39 @@ export interface OutputField {
   type: string
   description?: string
   expression: string
+}
+
+// Editor types (for copy/paste and undo/redo)
+export interface ClipboardData {
+  nodes: Array<{
+    id: string
+    type: string
+    position: { x: number; y: number }
+    data: Record<string, unknown>
+  }>
+  edges: Array<{
+    id: string
+    source: string
+    target: string
+    sourceHandle?: string
+    targetHandle?: string
+  }>
+  timestamp: number
+}
+
+export interface FlowSnapshot {
+  nodes: Array<{
+    id: string
+    type: string
+    position: { x: number; y: number }
+    data: Record<string, unknown>
+  }>
+  edges: Array<{
+    id: string
+    source: string
+    target: string
+    sourceHandle?: string
+    targetHandle?: string
+  }>
+  timestamp: number
 }

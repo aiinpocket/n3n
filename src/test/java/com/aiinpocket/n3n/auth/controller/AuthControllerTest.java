@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.auth.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.auth.dto.request.LoginRequest;
 import com.aiinpocket.n3n.auth.dto.request.RegisterRequest;
 import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
@@ -41,6 +42,9 @@ class AuthControllerTest {
 
     @Mock
     private LoginRateLimiter loginRateLimiter;
+
+    @Mock
+    private ActivityService activityService;
 
     @InjectMocks
     private AuthController authController;

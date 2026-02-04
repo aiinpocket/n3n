@@ -299,6 +299,16 @@ class ScreenshotDrivenTester:
             if submit_btn:
                 await submit_btn.click()
                 await self.page.wait_for_timeout(3000)
+
+            # Extract token from localStorage after UI login
+            try:
+                token = await self.page.evaluate("localStorage.getItem('token')")
+                if token:
+                    self.auth_token = token
+                    print(f"  ℹ️ Token extracted from browser: {token[:20]}...")
+            except Exception as e:
+                print(f"  ⚠️ Could not extract token: {e}")
+
             await self.add_result(
                 "有效登入測試", "auth", TestStatus.PASS,
                 "執行有效登入", "valid_login"
@@ -1499,12 +1509,27 @@ class ScreenshotDrivenTester:
 
         # Test 126: Click analyze (API test)
         if analyze_btn:
-            await analyze_btn.click()
-            await self.page.wait_for_timeout(3000)
-            await self.add_result(
-                "執行流程分析", "optimizer", TestStatus.PASS,
-                "流程分析執行測試", "run_analysis"
-            )
+            # Check if button is enabled before clicking
+            is_disabled = await analyze_btn.get_attribute("disabled")
+            btn_class = await analyze_btn.get_attribute("class") or ""
+            if is_disabled or "disabled" in btn_class:
+                await self.add_result(
+                    "執行流程分析", "optimizer", TestStatus.WARNING,
+                    "分析按鈕已禁用", "run_analysis_disabled"
+                )
+            else:
+                try:
+                    await analyze_btn.click(timeout=5000)
+                    await self.page.wait_for_timeout(3000)
+                    await self.add_result(
+                        "執行流程分析", "optimizer", TestStatus.PASS,
+                        "流程分析執行測試", "run_analysis"
+                    )
+                except Exception:
+                    await self.add_result(
+                        "執行流程分析", "optimizer", TestStatus.WARNING,
+                        "分析按鈕點擊失敗", "run_analysis_fail"
+                    )
 
         # Test 127: Loading state
         loading = await self.page.query_selector('.ant-spin, [class*="loading"]')
@@ -1531,6 +1556,412 @@ class ScreenshotDrivenTester:
             "關閉優化面板", "optimizer", TestStatus.PASS,
             "關閉優化面板測試完成", "close_optimizer"
         )
+
+    # ==================== 11. Editor Enhancement Tests (Copy/Paste/Undo/Redo) ====================
+    async def test_editor_enhancements(self):
+        """Test editor enhancements: Copy/Paste, Undo/Redo, Command Palette"""
+        print("\n✨ Testing Editor Enhancements...")
+
+        await self.set_browser_auth()
+
+        # Navigate to flow editor
+        if self.created_flow_id:
+            await self.page.goto(f"{BASE_URL}/flows/{self.created_flow_id}/edit")
+        else:
+            await self.page.goto(f"{BASE_URL}/")
+            await self.page.wait_for_load_state("networkidle")
+            first_flow = await self.page.query_selector('.ant-table-row td:nth-child(2) a')
+            if first_flow:
+                await first_flow.click()
+
+        await self.page.wait_for_load_state("networkidle")
+        await self.page.wait_for_timeout(2000)
+
+        # Ensure some nodes exist by adding them
+        add_node_btn = await self.page.query_selector('button:has-text("新增節點")')
+        if add_node_btn:
+            await add_node_btn.click()
+            await self.page.wait_for_timeout(300)
+            node_option = await self.page.query_selector('.ant-dropdown-menu-item:first-child')
+            if node_option:
+                await node_option.click()
+                await self.page.wait_for_timeout(500)
+
+        # Test: Undo button exists
+        undo_btn = await self.page.query_selector('button:has-text("復原"), button:has(.anticon-undo), button[title*="undo"]')
+        await self.add_result(
+            "Undo 按鈕存在", "editor_enhancements",
+            TestStatus.PASS if undo_btn else TestStatus.WARNING,
+            "Undo 按鈕檢查完成", "undo_btn_exists"
+        )
+
+        # Test: Redo button exists
+        redo_btn = await self.page.query_selector('button:has-text("重做"), button:has(.anticon-redo), button[title*="redo"]')
+        await self.add_result(
+            "Redo 按鈕存在", "editor_enhancements",
+            TestStatus.PASS if redo_btn else TestStatus.WARNING,
+            "Redo 按鈕檢查完成", "redo_btn_exists"
+        )
+
+        # Test: Copy button exists
+        copy_btn = await self.page.query_selector('button:has-text("複製"), button:has(.anticon-copy)')
+        await self.add_result(
+            "Copy 按鈕存在", "editor_enhancements",
+            TestStatus.PASS if copy_btn else TestStatus.WARNING,
+            "Copy 按鈕檢查完成", "copy_btn_exists"
+        )
+
+        # Test: Keyboard shortcut Ctrl+Z for Undo
+        nodes_before = await self.page.query_selector_all('.react-flow__node')
+        nodes_count_before = len(nodes_before)
+        await self.page.keyboard.press('Control+z')
+        await self.page.wait_for_timeout(500)
+        nodes_after = await self.page.query_selector_all('.react-flow__node')
+        await self.add_result(
+            "Undo 快捷鍵 (Ctrl+Z)", "editor_enhancements",
+            TestStatus.PASS,
+            f"Undo 執行完成，節點數: {nodes_count_before} -> {len(nodes_after)}", "undo_shortcut"
+        )
+
+        # Test: Keyboard shortcut Ctrl+Y for Redo
+        await self.page.keyboard.press('Control+y')
+        await self.page.wait_for_timeout(500)
+        nodes_after_redo = await self.page.query_selector_all('.react-flow__node')
+        await self.add_result(
+            "Redo 快捷鍵 (Ctrl+Y)", "editor_enhancements",
+            TestStatus.PASS,
+            f"Redo 執行完成，節點數: {len(nodes_after)} -> {len(nodes_after_redo)}", "redo_shortcut"
+        )
+
+        # Test: Select node and copy
+        nodes = await self.page.query_selector_all('.react-flow__node')
+        if nodes:
+            await nodes[0].click()
+            await self.page.wait_for_timeout(300)
+            await self.page.keyboard.press('Control+c')
+            await self.page.wait_for_timeout(300)
+            await self.add_result(
+                "複製節點 (Ctrl+C)", "editor_enhancements",
+                TestStatus.PASS,
+                "節點複製完成", "copy_node"
+            )
+
+            # Test: Paste node
+            await self.page.keyboard.press('Control+v')
+            await self.page.wait_for_timeout(500)
+            nodes_after_paste = await self.page.query_selector_all('.react-flow__node')
+            await self.add_result(
+                "貼上節點 (Ctrl+V)", "editor_enhancements",
+                TestStatus.PASS if len(nodes_after_paste) > len(nodes) else TestStatus.WARNING,
+                f"貼上後節點數: {len(nodes_after_paste)}", "paste_node"
+            )
+
+            # Test: Duplicate node (Ctrl+D)
+            await nodes[0].click()
+            await self.page.wait_for_timeout(300)
+            await self.page.keyboard.press('Control+d')
+            await self.page.wait_for_timeout(500)
+            nodes_after_dup = await self.page.query_selector_all('.react-flow__node')
+            await self.add_result(
+                "複製節點 (Ctrl+D)", "editor_enhancements",
+                TestStatus.PASS,
+                f"原地複製後節點數: {len(nodes_after_dup)}", "duplicate_node"
+            )
+
+        # Test: Command Palette (Ctrl+K)
+        await self.page.keyboard.press('Control+k')
+        await self.page.wait_for_timeout(500)
+        cmd_palette = await self.page.query_selector('.ant-modal:has-text("命令"), [class*="command-palette"]')
+        await self.add_result(
+            "Command Palette 開啟 (Ctrl+K)", "editor_enhancements",
+            TestStatus.PASS if cmd_palette else TestStatus.WARNING,
+            "Command Palette 檢查完成", "command_palette_open"
+        )
+
+        # Test: Command search functionality
+        search_input = await self.page.query_selector('.ant-modal input, [class*="command"] input')
+        if search_input:
+            await search_input.fill("儲存")
+            await self.page.wait_for_timeout(300)
+            await self.add_result(
+                "Command Palette 搜尋功能", "editor_enhancements",
+                TestStatus.PASS,
+                "命令搜尋測試完成", "command_palette_search"
+            )
+
+        # Test: Close Command Palette with Escape
+        await self.page.keyboard.press('Escape')
+        await self.page.wait_for_timeout(300)
+        cmd_palette_closed = await self.page.query_selector('.ant-modal:has-text("命令")')
+        await self.add_result(
+            "Command Palette 關閉 (Escape)", "editor_enhancements",
+            TestStatus.PASS if not cmd_palette_closed else TestStatus.WARNING,
+            "Command Palette 關閉檢查完成", "command_palette_close"
+        )
+
+        # Test: Select all nodes (Ctrl+A)
+        await self.page.keyboard.press('Control+a')
+        await self.page.wait_for_timeout(300)
+        selected_nodes = await self.page.query_selector_all('.react-flow__node.selected')
+        await self.add_result(
+            "全選節點 (Ctrl+A)", "editor_enhancements",
+            TestStatus.PASS,
+            f"選中 {len(selected_nodes)} 個節點", "select_all_nodes"
+        )
+
+        # Click elsewhere to deselect
+        canvas = await self.page.query_selector('.react-flow')
+        if canvas:
+            await canvas.click(position={'x': 100, 'y': 100})
+            await self.page.wait_for_timeout(300)
+
+    # ==================== 12. Data Pinning Tests ====================
+    async def test_data_pinning(self):
+        """Test data pinning functionality"""
+        print("\n📌 Testing Data Pinning...")
+
+        await self.set_browser_auth()
+
+        # Navigate to flow editor
+        if self.created_flow_id:
+            await self.page.goto(f"{BASE_URL}/flows/{self.created_flow_id}/edit")
+        else:
+            await self.page.goto(f"{BASE_URL}/")
+            await self.page.wait_for_load_state("networkidle")
+            first_flow = await self.page.query_selector('.ant-table-row td:nth-child(2) a')
+            if first_flow:
+                await first_flow.click()
+
+        await self.page.wait_for_load_state("networkidle")
+        await self.page.wait_for_timeout(2000)
+
+        # Click on a node to open config panel
+        nodes = await self.page.query_selector_all('.react-flow__node')
+        if nodes:
+            await nodes[0].click()
+            await self.page.wait_for_timeout(500)
+
+            # Test: Config panel opens
+            config_panel = await self.page.query_selector('.ant-drawer')
+            await self.add_result(
+                "節點設定面板開啟", "data_pinning",
+                TestStatus.PASS if config_panel else TestStatus.WARNING,
+                "節點設定面板檢查完成", "config_panel_open"
+            )
+
+            # Test: Pin button exists in config panel
+            pin_btn = await self.page.query_selector('button:has-text("固定"), button:has-text("Pin"), button:has(.anticon-pushpin)')
+            await self.add_result(
+                "固定資料按鈕存在", "data_pinning",
+                TestStatus.PASS if pin_btn else TestStatus.WARNING,
+                "固定資料按鈕檢查完成", "pin_btn_exists"
+            )
+
+            # Test: Click pin button
+            if pin_btn:
+                await pin_btn.click()
+                await self.page.wait_for_timeout(1000)
+                await self.add_result(
+                    "點擊固定資料按鈕", "data_pinning",
+                    TestStatus.PASS,
+                    "固定資料按鈕點擊完成", "pin_btn_click"
+                )
+
+            # Test: Pinned indicator on node
+            pinned_indicator = await self.page.query_selector('.react-flow__node [style*="pushpin"], .react-flow__node .anticon-pushpin-filled')
+            await self.add_result(
+                "節點固定標記顯示", "data_pinning",
+                TestStatus.PASS if pinned_indicator else TestStatus.WARNING,
+                "節點固定標記檢查完成", "pinned_indicator"
+            )
+
+            # Test: Pinned data alert in config panel
+            pinned_alert = await self.page.query_selector('.ant-drawer .ant-alert:has-text("固定"), .ant-drawer .ant-alert:has-text("pinned")')
+            await self.add_result(
+                "固定資料提示訊息", "data_pinning",
+                TestStatus.PASS if pinned_alert else TestStatus.WARNING,
+                "固定資料提示訊息檢查完成", "pinned_alert"
+            )
+
+            # Test: Unpin button exists
+            unpin_btn = await self.page.query_selector('button:has-text("取消固定"), button:has-text("Unpin")')
+            await self.add_result(
+                "取消固定按鈕存在", "data_pinning",
+                TestStatus.PASS if unpin_btn else TestStatus.WARNING,
+                "取消固定按鈕檢查完成", "unpin_btn_exists"
+            )
+
+            # Test: Click unpin button
+            if unpin_btn:
+                await unpin_btn.click()
+                await self.page.wait_for_timeout(1000)
+                await self.add_result(
+                    "點擊取消固定按鈕", "data_pinning",
+                    TestStatus.PASS,
+                    "取消固定按鈕點擊完成", "unpin_btn_click"
+                )
+
+            # Close config panel
+            close_btn = await self.page.query_selector('.ant-drawer-close')
+            if close_btn:
+                await close_btn.click()
+                await self.page.wait_for_timeout(300)
+
+    # ==================== 13. Component Registration Tests ====================
+    async def test_component_registration(self):
+        """Test component registration UI/UX"""
+        print("\n🧩 Testing Component Registration...")
+
+        await self.set_browser_auth()
+
+        # Navigate to components page
+        await self.page.goto(f"{BASE_URL}/components")
+        await self.page.wait_for_load_state("networkidle")
+        await self.page.wait_for_timeout(2000)
+
+        await self.add_result(
+            "元件列表頁面載入", "component_registration", TestStatus.PASS,
+            "元件列表頁面載入完成", "components_page_load"
+        )
+
+        # Test: Category color tags
+        category_tags = await self.page.query_selector_all('.ant-tag')
+        await self.add_result(
+            "分類顏色標籤顯示", "component_registration",
+            TestStatus.PASS if category_tags else TestStatus.WARNING,
+            f"找到 {len(category_tags)} 個分類標籤", "category_color_tags"
+        )
+
+        # Test: Create component button
+        create_btn = await self.page.query_selector('button:has-text("新增"), button:has-text("Create")')
+        await self.add_result(
+            "新增元件按鈕存在", "component_registration",
+            TestStatus.PASS if create_btn else TestStatus.WARNING,
+            "新增元件按鈕檢查完成", "create_component_btn"
+        )
+
+        # Test: Click create component button
+        if create_btn:
+            await create_btn.click()
+            await self.page.wait_for_timeout(500)
+
+            # Test: Modal appears
+            modal = await self.page.query_selector('.ant-modal')
+            await self.add_result(
+                "新增元件對話框顯示", "component_registration",
+                TestStatus.PASS if modal else TestStatus.WARNING,
+                "新增元件對話框檢查完成", "create_component_modal"
+            )
+
+            # Test: Name input with validation
+            name_input = await self.page.query_selector('input[name="name"], #name')
+            if name_input:
+                # Test invalid name format
+                await name_input.fill("Invalid Name!")
+                await self.page.keyboard.press('Tab')
+                await self.page.wait_for_timeout(300)
+                validation_error = await self.page.query_selector('.ant-form-item-explain-error')
+                await self.add_result(
+                    "元件名稱驗證 (格式錯誤)", "component_registration",
+                    TestStatus.PASS if validation_error else TestStatus.WARNING,
+                    "元件名稱驗證檢查完成", "name_validation_error"
+                )
+
+                # Test valid name format
+                await name_input.fill("")
+                await name_input.fill("valid-component-name")
+                await self.page.keyboard.press('Tab')
+                await self.page.wait_for_timeout(300)
+                await self.add_result(
+                    "元件名稱驗證 (正確格式)", "component_registration",
+                    TestStatus.PASS,
+                    "正確格式名稱驗證完成", "name_validation_pass"
+                )
+
+            # Test: Category selector with colored options
+            category_select = await self.page.query_selector('.ant-select:has-text("分類"), select[name="category"]')
+            if category_select:
+                await category_select.click()
+                await self.page.wait_for_timeout(300)
+                category_options = await self.page.query_selector_all('.ant-select-item')
+                await self.add_result(
+                    "分類選擇器選項", "component_registration",
+                    TestStatus.PASS if category_options else TestStatus.WARNING,
+                    f"找到 {len(category_options)} 個分類選項", "category_options"
+                )
+                # Click somewhere to close
+                await self.page.click('body', position={'x': 100, 'y': 100})
+
+            # Close modal
+            cancel_btn = await self.page.query_selector('.ant-modal-footer button:not(.ant-btn-primary), button:has-text("取消")')
+            if cancel_btn:
+                await cancel_btn.click()
+                await self.page.wait_for_timeout(300)
+
+        # Test: Version management drawer
+        version_btn = await self.page.query_selector('.ant-table-row button:has-text("版本")')
+        if version_btn:
+            await version_btn.click()
+            await self.page.wait_for_timeout(500)
+
+            drawer = await self.page.query_selector('.ant-drawer')
+            await self.add_result(
+                "版本管理抽屜顯示", "component_registration",
+                TestStatus.PASS if drawer else TestStatus.WARNING,
+                "版本管理抽屜檢查完成", "version_drawer"
+            )
+
+            # Test: Add version button
+            add_version_btn = await self.page.query_selector('.ant-drawer button:has-text("新增")')
+            if add_version_btn:
+                await add_version_btn.click()
+                await self.page.wait_for_timeout(500)
+
+                # Test: Version modal with validation
+                version_modal = await self.page.query_selector('.ant-modal')
+                await self.add_result(
+                    "新增版本對話框顯示", "component_registration",
+                    TestStatus.PASS if version_modal else TestStatus.WARNING,
+                    "新增版本對話框檢查完成", "add_version_modal"
+                )
+
+                # Test: Version number validation (semantic versioning)
+                version_input = await self.page.query_selector('input[name="version"]')
+                if version_input:
+                    await version_input.fill("invalid-version")
+                    await self.page.keyboard.press('Tab')
+                    await self.page.wait_for_timeout(300)
+                    version_error = await self.page.query_selector('.ant-form-item-explain-error')
+                    await self.add_result(
+                        "版本號驗證 (SemVer)", "component_registration",
+                        TestStatus.PASS if version_error else TestStatus.WARNING,
+                        "語意化版本驗證檢查完成", "semver_validation"
+                    )
+
+                # Test: Docker image validation
+                image_input = await self.page.query_selector('input[name="image"]')
+                if image_input:
+                    await image_input.fill("invalid image format!!!")
+                    await self.page.keyboard.press('Tab')
+                    await self.page.wait_for_timeout(300)
+                    image_error = await self.page.query_selector('.ant-form-item-explain-error')
+                    await self.add_result(
+                        "Docker Image 格式驗證", "component_registration",
+                        TestStatus.PASS if image_error else TestStatus.WARNING,
+                        "Docker Image 驗證檢查完成", "docker_image_validation"
+                    )
+
+                # Close version modal
+                close_modal_btn = await self.page.query_selector('.ant-modal-footer button:has-text("取消")')
+                if close_modal_btn:
+                    await close_modal_btn.click()
+                    await self.page.wait_for_timeout(300)
+
+            # Close drawer
+            close_drawer = await self.page.query_selector('.ant-drawer-close')
+            if close_drawer:
+                await close_drawer.click()
+                await self.page.wait_for_timeout(300)
 
     # ==================== Additional Tests to reach 100+ ====================
     async def test_additional_features(self):

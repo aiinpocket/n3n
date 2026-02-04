@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.webhook.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.service.WebhookService;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class WebhookController {
 
     private final WebhookService webhookService;
+    private final ActivityService activityService;
 
     @GetMapping
     public ResponseEntity<List<WebhookResponse>> listWebhooks(
@@ -43,8 +45,9 @@ public class WebhookController {
             @Valid @RequestBody CreateWebhookRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(webhookService.createWebhook(request, userId));
+        WebhookResponse response = webhookService.createWebhook(request, userId);
+        activityService.logWebhookCreate(userId, response.getId(), response.getPath(), response.getFlowId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{id}/activate")
@@ -58,8 +61,14 @@ public class WebhookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWebhook(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteWebhook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        // Get webhook info before deleting for audit log
+        WebhookResponse webhook = webhookService.getWebhook(id);
         webhookService.deleteWebhook(id);
+        activityService.logActivity(userId, ActivityService.WEBHOOK_DELETE, "webhook", id, webhook.getPath(), null);
         return ResponseEntity.noContent().build();
     }
 }

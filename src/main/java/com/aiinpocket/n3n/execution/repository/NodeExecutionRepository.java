@@ -14,6 +14,8 @@ public interface NodeExecutionRepository extends JpaRepository<NodeExecution, UU
 
     List<NodeExecution> findByExecutionIdOrderByStartedAtAsc(UUID executionId);
 
+    List<NodeExecution> findByExecutionId(UUID executionId);
+
     Optional<NodeExecution> findByExecutionIdAndNodeId(UUID executionId, String nodeId);
 
     @Modifying

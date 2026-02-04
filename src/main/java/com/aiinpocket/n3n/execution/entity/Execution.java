@@ -59,6 +59,20 @@ public class Execution {
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
+    // Pause/Wait related fields
+    @Column(name = "paused_at")
+    private Instant pausedAt;
+
+    @Column(name = "waiting_node_id")
+    private String waitingNodeId;
+
+    @Column(name = "pause_reason")
+    private String pauseReason;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "resume_condition", columnDefinition = "jsonb")
+    private Map<String, Object> resumeCondition;
+
     @Column(name = "retry_of")
     private UUID retryOf;
 

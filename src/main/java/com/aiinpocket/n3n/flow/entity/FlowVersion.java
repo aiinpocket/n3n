@@ -37,6 +37,16 @@ public class FlowVersion {
     @Builder.Default
     private Map<String, Object> settings = Map.of();
 
+    /**
+     * Pinned data for nodes - allows users to pin test data to nodes
+     * so it can be reused across executions without re-running upstream nodes.
+     * Key: nodeId, Value: pinned output data
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "pinned_data", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, Object> pinnedData = Map.of();
+
     @Column(nullable = false)
     @Builder.Default
     private String status = "draft";

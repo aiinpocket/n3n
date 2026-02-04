@@ -15,6 +15,8 @@ import {
   Drawer,
   List,
   Descriptions,
+  Tooltip,
+  Alert,
 } from 'antd'
 import {
   PlusOutlined,
@@ -41,7 +43,23 @@ const statusColors: Record<string, string> = {
   disabled: 'default',
 }
 
+// Category colors for visual distinction
+const categoryColors: Record<string, string> = {
+  trigger: '#52c41a',
+  action: '#1890ff',
+  condition: '#faad14',
+  transform: '#13c2c2',
+  output: '#f5222d',
+  utility: '#722ed1',
+}
+
 const categories = ['trigger', 'action', 'condition', 'transform', 'output', 'utility']
+
+// Docker image format validation
+const dockerImagePattern = /^(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?::[0-9]+)?\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*(?:\/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?::[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127})?(?:@sha256:[a-f0-9]{64})?$/
+
+// Semantic versioning pattern
+const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/
 
 export default function ComponentListPage() {
   const { t, i18n } = useTranslation()
@@ -214,13 +232,29 @@ export default function ComponentListPage() {
       key: 'description',
       width: 200,
       ellipsis: true,
-      render: (desc: string) => desc || '-',
+      render: (desc: string) => (
+        desc ? (
+          <Tooltip title={desc} placement="topLeft">
+            <span>{desc}</span>
+          </Tooltip>
+        ) : '-'
+      ),
     },
     {
       title: t('component.category'),
       dataIndex: 'category',
       key: 'category',
-      render: (category: string) => <Tag>{category || '-'}</Tag>,
+      render: (category: string) => (
+        <Tag
+          style={{
+            backgroundColor: categoryColors[category] || '#666',
+            color: '#fff',
+            border: 'none',
+          }}
+        >
+          {category || '-'}
+        </Tag>
+      ),
     },
     {
       title: t('component.latestVersion'),
@@ -327,6 +361,15 @@ export default function ComponentListPage() {
           </Button>
         }
       >
+        {versions.length === 0 && !loadingVersions && (
+          <Alert
+            message={t('component.noVersions', '尚無版本')}
+            description={t('component.noVersionsDesc', '請新增一個版本來啟用此元件')}
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <List
           loading={loadingVersions}
           dataSource={versions}
@@ -367,10 +410,32 @@ export default function ComponentListPage() {
       {/* Add Version Modal */}
       <Modal title={t('component.addVersion')} open={addVersionModalOpen} onCancel={() => setAddVersionModalOpen(false)} footer={null} width={600} destroyOnClose>
         <Form form={versionForm} layout="vertical" onFinish={handleAddVersion}>
-          <Form.Item name="version" label={t('component.versionNumber')} rules={[{ required: true, message: t('component.versionRequired') }]}>
+          <Form.Item
+            name="version"
+            label={t('component.versionNumber')}
+            rules={[
+              { required: true, message: t('component.versionRequired') },
+              {
+                pattern: semverPattern,
+                message: t('component.versionFormatError', '版本號格式錯誤，建議使用語意化版本如 1.0.0'),
+              },
+            ]}
+            extra={t('component.versionFormatHint', '建議使用語意化版本號，例如 1.0.0、2.1.0')}
+          >
             <Input placeholder={t('component.versionPlaceholder')} />
           </Form.Item>
-          <Form.Item name="image" label="Docker Image" rules={[{ required: true, message: t('component.imageRequired') }]}>
+          <Form.Item
+            name="image"
+            label="Docker Image"
+            rules={[
+              { required: true, message: t('component.imageRequired') },
+              {
+                pattern: dockerImagePattern,
+                message: t('component.imageFormatError', 'Docker Image 格式錯誤'),
+              },
+            ]}
+            extra={t('component.imageFormatHint', '格式: registry/repo:tag 或 repo:tag')}
+          >
             <Input placeholder={t('component.imagePlaceholder')} />
           </Form.Item>
           <Form.Item

@@ -27,6 +27,8 @@ import {
   DatabaseOutlined,
   ApiOutlined,
   DeleteOutlined,
+  PushpinOutlined,
+  PushpinFilled,
 } from '@ant-design/icons'
 import { Node } from '@xyflow/react'
 import Editor from '@monaco-editor/react'
@@ -36,6 +38,7 @@ import { flowApi, UpstreamNodeOutput } from '../../api/flow'
 import MultiOperationConfig from './MultiOperationConfig'
 import DataMappingEditor from './DataMappingEditor'
 import OutputSchemaPreview from './OutputSchemaPreview'
+import { useFlowStore } from '../../stores/flowStore'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
 const { Text, Title } = Typography
@@ -89,6 +92,12 @@ export default function NodeConfigPanel({
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('config')
+  const [pinning, setPinning] = useState(false)
+
+  // Data Pinning
+  const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowStore()
+  const isPinned = node?.id ? isNodePinned(node.id) : false
+  const pinnedData = node?.id ? getNodePinnedData(node.id) : null
 
   const nodeData = node?.data as Record<string, unknown> | undefined
   // Get nodeType from data.nodeType or fallback to node.type
@@ -172,6 +181,25 @@ export default function NodeConfigPanel({
     },
     [node, onUpdate]
   )
+
+  const handleTogglePin = useCallback(async () => {
+    if (!node?.id) return
+
+    setPinning(true)
+    try {
+      if (isPinned) {
+        await unpinNodeData(node.id)
+      } else {
+        // Pin with sample data - in a real scenario, this would use execution output
+        const sampleData = { pinned: true, pinnedAt: new Date().toISOString() }
+        await pinNodeData(node.id, sampleData)
+      }
+    } catch (error) {
+      console.error('Failed to toggle pin:', error)
+    } finally {
+      setPinning(false)
+    }
+  }, [node?.id, isPinned, pinNodeData, unpinNodeData])
 
   const renderField = (key: string, property: SchemaProperty) => {
     // Code editor for code fields
@@ -587,6 +615,24 @@ export default function NodeConfigPanel({
             {renderNodeTabs()}
           </Form>
 
+          {/* Pinned data indicator */}
+          {isPinned && pinnedData && (
+            <Alert
+              type="success"
+              message="已固定資料"
+              description={
+                <div>
+                  <Text type="secondary">此節點已固定測試資料，執行時將優先使用固定資料。</Text>
+                  <pre style={{ marginTop: 8, fontSize: 11, maxHeight: 100, overflow: 'auto' }}>
+                    {JSON.stringify(pinnedData, null, 2)}
+                  </pre>
+                </div>
+              }
+              icon={<PushpinFilled />}
+              style={{ marginTop: 16 }}
+            />
+          )}
+
           {/* Action buttons - always show delete button */}
           <div style={{ marginTop: 24 }}>
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -600,6 +646,15 @@ export default function NodeConfigPanel({
                   測試節點
                 </Button>
               )}
+              <Button
+                icon={isPinned ? <PushpinFilled /> : <PushpinOutlined />}
+                onClick={handleTogglePin}
+                loading={pinning}
+                type={isPinned ? 'primary' : 'default'}
+                block
+              >
+                {isPinned ? '取消固定資料' : '固定測試資料'}
+              </Button>
               {onDelete && (
                 <Button
                   danger

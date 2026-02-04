@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
@@ -29,6 +30,7 @@ public class CredentialController {
 
     private final CredentialService credentialService;
     private final ConnectionTestService connectionTestService;
+    private final ActivityService activityService;
 
     @GetMapping
     public ResponseEntity<Page<CredentialResponse>> listCredentials(
@@ -63,8 +65,9 @@ public class CredentialController {
             @Valid @RequestBody CreateCredentialRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(credentialService.createCredential(request, userId));
+        CredentialResponse response = credentialService.createCredential(request, userId);
+        activityService.logCredentialCreate(userId, response.getId(), response.getName(), response.getType());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
@@ -72,7 +75,10 @@ public class CredentialController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        // Get credential info before deleting for audit log
+        CredentialResponse credential = credentialService.getCredential(id, userId);
         credentialService.deleteCredential(id, userId);
+        activityService.logCredentialDelete(userId, id, credential.getName());
         return ResponseEntity.noContent().build();
     }
 
@@ -81,7 +87,11 @@ public class CredentialController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(credentialService.getDecryptedData(id, userId));
+        // Get credential info for audit log
+        CredentialResponse credential = credentialService.getCredential(id, userId);
+        Map<String, Object> data = credentialService.getDecryptedData(id, userId);
+        activityService.logCredentialAccess(userId, id, credential.getName(), "api");
+        return ResponseEntity.ok(data);
     }
 
     @GetMapping("/types")

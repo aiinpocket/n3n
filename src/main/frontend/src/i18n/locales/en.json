@@ -38,6 +38,29 @@
     "copied": "Copied to clipboard",
     "details": "Details"
   },
+  "error": {
+    "title": "Something went wrong",
+    "subtitle": "Sorry, an error occurred. Please try refreshing the page or go back to home.",
+    "retry": "Retry",
+    "reload": "Refresh",
+    "goHome": "Go Home",
+    "details": "Error Details",
+    "stackTrace": "Stack Trace"
+  },
+  "command": {
+    "placeholder": "Type a command...",
+    "noResults": "No commands found",
+    "goToFlows": "Go to flow list page",
+    "goToExecutions": "Go to execution history page",
+    "goToServices": "Go to external services page",
+    "goToCredentials": "Go to credentials page",
+    "goToAI": "Go to AI assistant page",
+    "goToAISettings": "Go to AI settings page",
+    "saveFlow": "Save current flow",
+    "publishFlow": "Publish current flow version",
+    "addNode": "Add a new node",
+    "executeFlow": "Execute current flow"
+  },
   "nav": {
     "home": "Home",
     "flows": "Flows",
@@ -192,6 +215,27 @@
       "reorder": "Reorder"
     }
   },
+  "node": {
+    "trigger": "Trigger",
+    "scheduleTrigger": "Schedule Trigger",
+    "formTrigger": "Form Trigger",
+    "http": "HTTP Request",
+    "code": "Code",
+    "transform": "Transform",
+    "condition": "Condition",
+    "switch": "Switch",
+    "loop": "Loop",
+    "form": "Form",
+    "approval": "Wait for Approval",
+    "ssh": "SSH Command",
+    "delay": "Delay",
+    "mongodb": "MongoDB",
+    "redis": "Redis",
+    "aggregate": "Aggregate",
+    "email": "Email",
+    "slack": "Slack",
+    "discord": "Discord"
+  },
   "execution": {
     "title": "Execution History",
     "running": "Running",
@@ -199,6 +243,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled",
     "pending": "Pending",
+    "waiting": "Waiting for Approval",
     "startTime": "Start Time",
     "endTime": "End Time",
     "duration": "Duration",
@@ -545,6 +590,38 @@
     "zhTW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "approval": {
+    "title": "Approval Request",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "expired": "Expired",
+    "message": "Approval Message",
+    "comment": "Comment",
+    "commentPlaceholder": "Enter comment (optional)",
+    "approvedBy": "Approved by {{name}}",
+    "rejectedBy": "Rejected by {{name}}",
+    "waitingFor": "Waiting for {{count}} approver(s)",
+    "approvedCount": "{{count}} approved",
+    "rejectedCount": "{{count}} rejected",
+    "mode": {
+      "any": "Any",
+      "all": "All",
+      "majority": "Majority"
+    }
+  },
+  "form": {
+    "title": "Form",
+    "submit": "Submit",
+    "submitted": "Submitted",
+    "submitSuccess": "Form submitted successfully",
+    "submitFailed": "Failed to submit form",
+    "fieldRequired": "This field is required",
+    "formExpired": "Form link has expired",
+    "formNotFound": "Form not found"
   },
   "marketplace": {
     "title": "Plugin Marketplace",
