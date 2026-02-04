@@ -4,6 +4,7 @@ This document provides technical details for developers working on or integratin
 
 ## Table of Contents
 
+- [System Requirements](#system-requirements)
 - [Architecture Overview](#architecture-overview)
 - [Technology Stack](#technology-stack)
 - [Backend Modules](#backend-modules)
@@ -11,6 +12,38 @@ This document provides technical details for developers working on or integratin
 - [Database Schema](#database-schema)
 - [Development Guide](#development-guide)
 - [Testing](#testing)
+- [Deployment](#deployment)
+- [Configuration Reference](#configuration-reference)
+
+---
+
+## System Requirements
+
+### Hardware Requirements
+
+| Deployment Type | CPU | Memory | Storage | Notes |
+|-----------------|-----|--------|---------|-------|
+| **Development** | 2 cores | 4 GB | 10 GB SSD | Basic functionality only |
+| **Standard** | 4 cores | 8 GB | 20 GB SSD | Cloud AI integration |
+| **Production** | 8+ cores | 16-32 GB | 50 GB SSD | Local AI optimizer, high concurrency |
+
+### Resource Consumption by Service
+
+| Service | Memory | CPU | Description |
+|---------|--------|-----|-------------|
+| N3N Application | 512 MB - 1 GB | 0.5 - 2 cores | Spring Boot with Virtual Threads |
+| PostgreSQL | 256 MB - 1 GB | 0.5 - 1 core | Depends on data volume |
+| Redis | 128 MB - 512 MB | 0.25 - 0.5 core | State & cache |
+| Flow Optimizer | 2 - 4 GB | 2 - 4 cores | Local LLM (Phi-3 Mini) |
+
+### GPU Acceleration (Optional)
+
+For local AI features, GPU acceleration can significantly improve performance:
+
+| GPU | VRAM | Supported Features |
+|-----|------|-------------------|
+| NVIDIA (CUDA) | 8 GB+ | LLM inference acceleration |
+| Apple Silicon | 16 GB+ unified | Metal acceleration (native) |
 
 ---
 
@@ -120,8 +153,17 @@ com.aiinpocket.n3n/
 Authentication and authorization with JWT tokens.
 - `AuthController` - Login, register, refresh, logout endpoints
 - `JwtService` - JWT token generation and validation
+- `JwtSecretProvider` - Auto-generates JWT secret on first startup
 - `SecurityConfig` - Spring Security configuration
 - Rate limiting for login attempts
+
+**JWT Secret Management:**
+```
+Priority Order:
+1. Environment variable (JWT_SECRET) - for cluster deployments
+2. Database (persisted) - auto-loaded on restart
+3. Auto-generated (first startup) - 256-bit secure random key
+```
 
 #### flow/
 Flow management with version control.
@@ -899,14 +941,28 @@ class AuthControllerTest extends BaseControllerTest {
 
 ## Deployment
 
+### Zero-Configuration Design
+
+N3N is designed to work out-of-the-box with sensible defaults:
+
+| Feature | Default Behavior |
+|---------|-----------------|
+| **PostgreSQL** | Connects to `localhost:5432/n3n` |
+| **Redis** | Connects to `localhost:6379` |
+| **JWT Secret** | Auto-generated on first startup, persisted to database |
+| **Encryption Key** | Derived from Recovery Key (BIP39 mnemonic) |
+
 ### Docker
 
 ```bash
 # Build image
 docker build -t n3n:latest .
 
-# Run with compose
+# Run with compose (zero-config)
 docker compose up -d
+
+# Run with local AI optimizer
+docker compose --profile optimizer up -d
 ```
 
 ### Kubernetes
@@ -916,11 +972,82 @@ Kubernetes manifests are in `k8s/` directory (when available):
 - `k8s/overlays/dev/` - Development overlay
 - `k8s/overlays/prod/` - Production overlay
 
+---
+
+## Configuration Reference
+
 ### Environment Variables
 
-See [README.md](README.md#environment-variables) for complete list.
+All environment variables are **optional** with sensible defaults.
 
-**Critical for Production:**
-- `JWT_SECRET` - Must be changed from default
-- `DATABASE_PASSWORD` - Secure database password
-- `N3N_MASTER_KEY` - Encryption master key
+#### Database
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `jdbc:postgresql://localhost:5432/n3n` | PostgreSQL JDBC URL |
+| `DATABASE_USERNAME` | `n3n` | Database username |
+| `DATABASE_PASSWORD` | `n3n` | Database password |
+| `DB_POOL_SIZE` | `10` | HikariCP max pool size |
+| `DB_MIN_IDLE` | `2` | HikariCP minimum idle connections |
+
+#### Redis
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REDIS_HOST` | `localhost` | Redis host |
+| `REDIS_PORT` | `6379` | Redis port |
+| `REDIS_PASSWORD` | (empty) | Redis password |
+
+#### Security
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JWT_SECRET` | Auto-generated | Base64-encoded 256-bit key. Only set for cluster deployments to share secret across instances. |
+| `JWT_ACCESS_EXPIRATION` | `900000` (15 min) | Access token expiration in ms |
+| `JWT_REFRESH_EXPIRATION` | `604800000` (7 days) | Refresh token expiration in ms |
+| `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS allowed origins |
+| `MAX_LOGIN_ATTEMPTS` | `5` | Max failed login attempts before lockout |
+| `LOCK_DURATION_MINUTES` | `30` | Account lockout duration |
+
+#### AI Flow Optimizer (Optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FLOW_OPTIMIZER_ENABLED` | `false` | Enable local AI optimizer |
+| `FLOW_OPTIMIZER_URL` | `http://localhost:8081` | Optimizer service URL |
+| `FLOW_OPTIMIZER_TIMEOUT` | `30000` | Request timeout in ms |
+
+#### Execution Settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `EXECUTION_RETENTION_DAYS` | `30` | Days to keep execution history |
+| `EXECUTION_MAX_CONCURRENT` | `100` | Max concurrent executions |
+| `EXECUTION_TIMEOUT_MS` | `300000` (5 min) | Default execution timeout |
+
+#### Housekeeping
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOUSEKEEPING_ENABLED` | `true` | Enable automatic cleanup |
+| `HOUSEKEEPING_RETENTION_DAYS` | `30` | Days to retain execution history |
+| `HOUSEKEEPING_CRON` | `0 0 2 * * ?` | Cleanup schedule (2 AM daily) |
+
+#### Logging
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL_ROOT` | `INFO` | Root log level |
+| `LOG_LEVEL_APP` | `INFO` | Application log level |
+| `LOG_LEVEL_SECURITY` | `WARN` | Security log level |
+
+### Production Recommendations
+
+For production deployments:
+
+1. **Use external PostgreSQL and Redis** - Set `DATABASE_URL`, `REDIS_HOST` to point to managed services
+2. **Set JWT_SECRET for clusters** - All instances must share the same secret
+3. **Enable HTTPS** - Use a reverse proxy (nginx, Traefik) with TLS
+4. **Set strong passwords** - Change default database credentials
+5. **Configure CORS** - Set `ALLOWED_ORIGINS` to your domain
+6. **Backup Recovery Key** - The 8-word mnemonic is required to recover encrypted credentials
