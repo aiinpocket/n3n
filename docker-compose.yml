@@ -15,8 +15,8 @@ services:
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      # JWT Secret (change in production!)
-      JWT_SECRET: dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5z
+      # JWT Secret 自動產生，無需設定
+      # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
       # CORS
       ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
       # Flow Optimizer
