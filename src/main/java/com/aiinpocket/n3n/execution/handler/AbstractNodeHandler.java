@@ -114,6 +114,20 @@ public abstract class AbstractNodeHandler implements NodeHandler {
     }
 
     /**
+     * Helper to get a double config value.
+     */
+    protected double getDoubleConfig(NodeExecutionContext context, String key, double defaultValue) {
+        Object value = context.getNodeConfig().get(key);
+        if (value == null) return defaultValue;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
      * Helper to get a map config value.
      */
     @SuppressWarnings("unchecked")

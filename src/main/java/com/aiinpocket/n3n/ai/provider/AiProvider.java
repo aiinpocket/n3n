@@ -65,6 +65,19 @@ public interface AiProvider {
     CompletableFuture<Boolean> testConnection(String apiKey, String baseUrl);
 
     /**
+     * 生成文本嵌入向量
+     * @param request 嵌入請求
+     * @param settings 供應商設定
+     * @return 嵌入回應
+     */
+    default CompletableFuture<AiEmbeddingResponse> embed(AiEmbeddingRequest request, AiProviderSettings settings) {
+        // 預設實作 - 不支援 embedding 的供應商會拋出例外
+        return CompletableFuture.failedFuture(
+            new UnsupportedOperationException("Embedding not supported by this provider: " + getProviderId())
+        );
+    }
+
+    /**
      * 取得供應商特定設定 Schema（JSON Schema 格式）
      */
     Map<String, Object> getConfigSchema();

@@ -1,0 +1,139 @@
+.container {
+  padding: 24px;
+  text-align: center;
+}
+
+.mainArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #722ed1 0%, #eb2f96 100%);
+  border-radius: 50%;
+  box-shadow: 0 4px 20px rgba(114, 46, 209, 0.3);
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(114, 46, 209, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(114, 46, 209, 0.5);
+  }
+}
+
+.mainIcon {
+  font-size: 36px;
+  color: #fff;
+}
+
+.textArea {
+  text-align: center;
+}
+
+.stageLabel {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.description {
+  margin: 8px 0 0 0 !important;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.progressArea {
+  margin-bottom: 20px;
+}
+
+.stagesTags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stageTag {
+  margin: 0;
+}
+
+.thoughtsArea {
+  text-align: left;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.thoughtsTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.thoughtsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thoughtItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.thoughtIcon {
+  margin-top: 4px;
+  color: #722ed1;
+  flex-shrink: 0;
+}
+
+.cursor {
+  animation: blink 1s step-end infinite;
+  color: #722ed1;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Dark mode support */
+:global(.dark) .container {
+  background: transparent;
+}
+
+:global(.dark) .thoughtsArea {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global(.dark) .description {
+  color: rgba(255, 255, 255, 0.45);
+}

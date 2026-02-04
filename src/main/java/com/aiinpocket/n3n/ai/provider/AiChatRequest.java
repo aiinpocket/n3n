@@ -51,4 +51,10 @@ public class AiChatRequest {
      * 供應商特定選項
      */
     private Map<String, Object> providerOptions;
+
+    /**
+     * 可用工具定義（用於 function calling）
+     * 格式遵循 OpenAI/Claude 的工具定義格式
+     */
+    private List<Map<String, Object>> tools;
 }

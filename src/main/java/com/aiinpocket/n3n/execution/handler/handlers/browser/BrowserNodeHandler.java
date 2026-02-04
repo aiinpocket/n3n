@@ -859,17 +859,6 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
         return getIntConfig(context, key, defaultValue);
     }
 
-    private double getDoubleConfig(NodeExecutionContext context, String key, double defaultValue) {
-        Object value = context.getNodeConfig().get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number) return ((Number) value).doubleValue();
-        try {
-            return Double.parseDouble(value.toString());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
     @Override
     public Map<String, Object> getConfigSchema() {
         return Map.of(

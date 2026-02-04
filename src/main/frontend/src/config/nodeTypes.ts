@@ -15,6 +15,7 @@ export interface NodeTypeConfig {
 
 export type NodeCategory =
   | 'triggers'      // 觸發器
+  | 'ai'            // AI 智能
   | 'flow'          // 流程控制
   | 'transform'     // 數據轉換
   | 'communication' // 通訊
@@ -41,6 +42,14 @@ export const nodeCategories: NodeCategoryConfig[] = [
     icon: 'ThunderboltOutlined',
     color: '#52c41a',
     description: '啟動工作流程的觸發條件',
+  },
+  {
+    key: 'ai',
+    label: 'AI 智能',
+    labelEn: 'AI',
+    icon: 'RobotOutlined',
+    color: '#722ed1',
+    description: 'AI 對話、代理、記憶和向量搜尋',
   },
   {
     key: 'flow',
@@ -156,6 +165,62 @@ export const nodeTypes: NodeTypeConfig[] = [
     icon: 'WarningOutlined',
     description: '其他流程發生錯誤時觸發',
     category: 'triggers',
+  },
+
+  // ==================== AI 智能 ====================
+  {
+    value: 'aiChat',
+    label: 'AI 對話',
+    labelEn: 'AI Chat',
+    color: '#722ed1',
+    icon: 'MessageOutlined',
+    description: '與 AI 模型對話，支援 OpenAI、Claude、Gemini、Ollama',
+    category: 'ai',
+  },
+  {
+    value: 'aiAgent',
+    label: 'AI 代理',
+    labelEn: 'AI Agent',
+    color: '#722ed1',
+    icon: 'RobotOutlined',
+    description: '智能代理，可自動使用工具完成任務（ReAct 模式）',
+    category: 'ai',
+  },
+  {
+    value: 'aiChain',
+    label: 'AI 處理鏈',
+    labelEn: 'AI Chain',
+    color: '#722ed1',
+    icon: 'LinkOutlined',
+    description: 'RAG、Map-Reduce、摘要等 AI 處理流程',
+    category: 'ai',
+  },
+  {
+    value: 'aiMemory',
+    label: 'AI 記憶',
+    labelEn: 'AI Memory',
+    color: '#722ed1',
+    icon: 'DatabaseOutlined',
+    description: '管理對話記憶，支援儲存、檢索和摘要',
+    category: 'ai',
+  },
+  {
+    value: 'aiEmbedding',
+    label: 'AI 嵌入',
+    labelEn: 'AI Embedding',
+    color: '#722ed1',
+    icon: 'CodeOutlined',
+    description: '將文本轉換為向量嵌入',
+    category: 'ai',
+  },
+  {
+    value: 'aiVectorSearch',
+    label: '向量搜尋',
+    labelEn: 'Vector Search',
+    color: '#722ed1',
+    icon: 'SearchOutlined',
+    description: '向量相似度搜尋，用於語意檢索',
+    category: 'ai',
   },
 
   // ==================== 流程控制 ====================

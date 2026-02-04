@@ -8,7 +8,6 @@ import {
   Card,
   Tag,
   Alert,
-  Spin,
   Steps,
   Result,
   Progress,
@@ -24,6 +23,11 @@ import {
   LoadingOutlined,
   CheckOutlined,
   CloseOutlined,
+  EditOutlined,
+  SyncOutlined,
+  DislikeOutlined,
+  AudioOutlined,
+  AudioMutedOutlined,
 } from '@ant-design/icons'
 import { aiAssistantApi, GenerateFlowResponse } from '../../api/aiAssistant'
 import {
@@ -32,9 +36,12 @@ import {
   type PluginInstallTaskStatus,
 } from '../../api/aiAssistantStream'
 import MiniFlowPreview from './MiniFlowPreview'
+import AIThinkingIndicator, { DEFAULT_STAGES } from './AIThinkingIndicator'
+import SimilarFlowsPanel from './SimilarFlowsPanel'
+import useSpeechRecognition from '../../hooks/useSpeechRecognition'
 
 const { TextArea } = Input
-const { Text, Paragraph, Title } = Typography
+const { Text, Paragraph } = Typography
 
 interface Props {
   open: boolean
@@ -54,10 +61,39 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // AI thinking progress state
+  const [thinkingStage, setThinkingStage] = useState(0)
+  const [thinkingThoughts, setThinkingThoughts] = useState<string[]>([])
+
+  // AI understanding edit state
+  const [isEditingUnderstanding, setIsEditingUnderstanding] = useState(false)
+  const [editedUnderstanding, setEditedUnderstanding] = useState('')
+  const [feedbackText, setFeedbackText] = useState('')
+  const [isRegenerating, setIsRegenerating] = useState(false)
+
   // Plugin installation state
   const [isInstalling, setIsInstalling] = useState(false)
   const [installTasks, setInstallTasks] = useState<PluginInstallTaskStatus[]>([])
   const [installedNodes, setInstalledNodes] = useState<Set<string>>(new Set())
+
+  // Speech recognition
+  const {
+    isSupported: isSpeechSupported,
+    isListening,
+    startListening,
+    stopListening,
+  } = useSpeechRecognition({
+    lang: 'zh-TW',
+    continuous: true,
+    onResult: (text, isFinal) => {
+      if (isFinal) {
+        setUserInput((prev) => prev + text)
+      }
+    },
+    onError: (err) => {
+      message.error(err)
+    },
+  })
 
   // Poll for install task status
   useEffect(() => {
@@ -152,6 +188,42 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     setStep('generating')
     setError(null)
+    setThinkingStage(0)
+    setThinkingThoughts([])
+
+    // 模擬思考過程的進度更新
+    const simulateThinking = () => {
+      const thoughts = [
+        '解析用戶描述中的關鍵字和意圖...',
+        '識別需要的服務和觸發條件...',
+        '確定節點之間的資料流向...',
+        '最佳化節點配置和連接...',
+      ]
+
+      let stageIndex = 0
+      let thoughtIndex = 0
+
+      const stageInterval = setInterval(() => {
+        if (stageIndex < DEFAULT_STAGES.length - 1) {
+          stageIndex++
+          setThinkingStage(stageIndex)
+        }
+      }, 1500)
+
+      const thoughtInterval = setInterval(() => {
+        if (thoughtIndex < thoughts.length) {
+          setThinkingThoughts((prev) => [...prev, thoughts[thoughtIndex]])
+          thoughtIndex++
+        }
+      }, 1000)
+
+      return () => {
+        clearInterval(stageInterval)
+        clearInterval(thoughtInterval)
+      }
+    }
+
+    const clearSimulation = simulateThinking()
 
     try {
       const response = await aiAssistantApi.generateFlow({
@@ -159,6 +231,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         language: 'zh-TW',
       })
 
+      clearSimulation()
       setResult(response)
 
       if (!response.aiAvailable) {
@@ -171,6 +244,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         setStep('preview')
       }
     } catch (err) {
+      clearSimulation()
       setError(err instanceof Error ? err.message : '未知錯誤')
       setStep('error')
     }
@@ -183,19 +257,151 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     }
   }
 
+  // 開始編輯 AI 理解
+  const handleStartEditUnderstanding = () => {
+    setEditedUnderstanding(result?.understanding || '')
+    setIsEditingUnderstanding(true)
+  }
+
+  // 取消編輯
+  const handleCancelEditUnderstanding = () => {
+    setIsEditingUnderstanding(false)
+    setEditedUnderstanding('')
+    setFeedbackText('')
+  }
+
+  // 帶反饋重新生成
+  const handleRegenerateWithFeedback = async () => {
+    if (!feedbackText.trim() && !editedUnderstanding.trim()) return
+
+    setIsRegenerating(true)
+    setStep('generating')
+    setThinkingStage(0)
+    setThinkingThoughts([])
+
+    // 建構帶反饋的輸入
+    const feedbackInput = feedbackText.trim()
+      ? `原始需求：${userInput}\n\n用戶反饋：${feedbackText}\n\n修正後的理解：${editedUnderstanding || result?.understanding}`
+      : `原始需求：${userInput}\n\n修正後的理解：${editedUnderstanding}`
+
+    const simulateThinking = () => {
+      const thoughts = [
+        '根據您的反饋重新理解需求...',
+        '調整節點配置和連接邏輯...',
+        '優化流程設計...',
+      ]
+
+      let stageIndex = 0
+      let thoughtIndex = 0
+
+      const stageInterval = setInterval(() => {
+        if (stageIndex < DEFAULT_STAGES.length - 1) {
+          stageIndex++
+          setThinkingStage(stageIndex)
+        }
+      }, 1200)
+
+      const thoughtInterval = setInterval(() => {
+        if (thoughtIndex < thoughts.length) {
+          setThinkingThoughts((prev) => [...prev, thoughts[thoughtIndex]])
+          thoughtIndex++
+        }
+      }, 800)
+
+      return () => {
+        clearInterval(stageInterval)
+        clearInterval(thoughtInterval)
+      }
+    }
+
+    const clearSimulation = simulateThinking()
+
+    try {
+      const response = await aiAssistantApi.generateFlow({
+        userInput: feedbackInput,
+        language: 'zh-TW',
+      })
+
+      clearSimulation()
+      setResult(response)
+      setIsEditingUnderstanding(false)
+      setEditedUnderstanding('')
+      setFeedbackText('')
+
+      if (!response.aiAvailable || !response.success) {
+        setError(response.error || 'AI 服務暫時不可用')
+        setStep('error')
+      } else {
+        setStep('preview')
+      }
+    } catch (err) {
+      clearSimulation()
+      setError(err instanceof Error ? err.message : '未知錯誤')
+      setStep('error')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
+  const handleSelectSimilarFlow = (flowId: string) => {
+    // 導航到流程編輯頁面
+    window.open(`/flows/${flowId}`, '_blank')
+  }
+
+  const handleUseAsTemplate = async (flowId: string) => {
+    // 載入流程作為模板
+    message.info('正在載入流程作為模板...')
+    // TODO: 實作載入流程定義並填入當前生成器
+    handleSelectSimilarFlow(flowId)
+  }
+
   const renderInputStep = () => (
     <div>
       <Paragraph style={{ marginBottom: 16 }}>
         用口語化的方式描述您想要建立的工作流程，AI 會幫您生成對應的節點和連線。
       </Paragraph>
 
-      <TextArea
-        rows={6}
-        placeholder="例如：每天早上 9 點檢查 Gmail 是否有新郵件，如果有的話就發送通知到 Slack #general 頻道..."
-        value={userInput}
-        onChange={(e) => setUserInput(e.target.value)}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <TextArea
+          rows={6}
+          placeholder="例如：每天早上 9 點檢查 Gmail 是否有新郵件，如果有的話就發送通知到 Slack #general 頻道..."
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          style={{ paddingRight: isSpeechSupported ? 50 : undefined }}
+        />
+        {isSpeechSupported && (
+          <Button
+            type={isListening ? 'primary' : 'text'}
+            danger={isListening}
+            icon={isListening ? <AudioMutedOutlined /> : <AudioOutlined />}
+            onClick={isListening ? stopListening : startListening}
+            style={{
+              position: 'absolute',
+              right: 8,
+              bottom: 8,
+              zIndex: 1,
+            }}
+            title={isListening ? '停止語音輸入' : '開始語音輸入'}
+          />
+        )}
+        {isListening && (
+          <div
+            style={{
+              position: 'absolute',
+              right: 50,
+              bottom: 12,
+              color: '#ff4d4f',
+              fontSize: 12,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <span style={{ animation: 'pulse 1s infinite' }}>●</span>
+            錄音中...
+          </div>
+        )}
+      </div>
 
       <Alert
         type="info"
@@ -204,19 +410,26 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         message="提示"
         description="描述越詳細，生成的流程越準確。您可以提到時間、條件、要連接的服務等。"
       />
+
+      {/* 類似流程推薦 */}
+      <SimilarFlowsPanel
+        query={userInput}
+        onSelectFlow={handleSelectSimilarFlow}
+        onUseAsTemplate={handleUseAsTemplate}
+        minQueryLength={8}
+        maxResults={3}
+      />
     </div>
   )
 
   const renderGeneratingStep = () => (
-    <div style={{ textAlign: 'center', padding: 40 }}>
-      <Spin size="large" />
-      <Title level={4} style={{ marginTop: 24 }}>
-        AI 正在理解您的需求...
-      </Title>
-      <Paragraph type="secondary">
-        正在分析並生成最適合的工作流程
-      </Paragraph>
-    </div>
+    <AIThinkingIndicator
+      currentStage={thinkingStage}
+      thoughts={thinkingThoughts}
+      showProgress={true}
+      showThoughts={true}
+      animated={true}
+    />
   )
 
   const renderPreviewStep = () => {
@@ -227,12 +440,78 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     return (
       <div>
-        <Card style={{ marginBottom: 16 }} size="small">
+        {/* AI Understanding - Editable */}
+        <Card
+          style={{ marginBottom: 16 }}
+          size="small"
+          extra={
+            !isEditingUnderstanding ? (
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={handleStartEditUnderstanding}
+              >
+                修正理解
+              </Button>
+            ) : null
+          }
+        >
           <Space direction="vertical" style={{ width: '100%' }}>
             <Text type="secondary">
               <RobotOutlined /> AI 的理解：
             </Text>
-            <Paragraph style={{ margin: 0 }}>{understanding}</Paragraph>
+
+            {isEditingUnderstanding ? (
+              <div>
+                <TextArea
+                  value={editedUnderstanding}
+                  onChange={(e) => setEditedUnderstanding(e.target.value)}
+                  rows={3}
+                  placeholder="編輯 AI 的理解..."
+                  style={{ marginBottom: 8 }}
+                />
+                <TextArea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  rows={2}
+                  placeholder="這不是我要的，我想要的是... (選填反饋)"
+                  style={{ marginBottom: 8 }}
+                />
+                <Space>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<SyncOutlined spin={isRegenerating} />}
+                    loading={isRegenerating}
+                    onClick={handleRegenerateWithFeedback}
+                    disabled={!editedUnderstanding.trim() && !feedbackText.trim()}
+                  >
+                    重新生成
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={handleCancelEditUnderstanding}
+                    disabled={isRegenerating}
+                  >
+                    取消
+                  </Button>
+                </Space>
+              </div>
+            ) : (
+              <div>
+                <Paragraph style={{ margin: 0 }}>{understanding}</Paragraph>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DislikeOutlined />}
+                  style={{ padding: 0, marginTop: 8, height: 'auto' }}
+                  onClick={handleStartEditUnderstanding}
+                >
+                  這不是我要的
+                </Button>
+              </div>
+            )}
           </Space>
         </Card>
 

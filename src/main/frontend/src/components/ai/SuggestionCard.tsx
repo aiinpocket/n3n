@@ -1,5 +1,5 @@
-import React from 'react'
-import { Card, Tag, Space, Button, Typography, Tooltip } from 'antd'
+import React, { useState, useMemo } from 'react'
+import { Card, Tag, Space, Button, Typography, Tooltip, Popover } from 'antd'
 import {
   BranchesOutlined,
   MergeCellsOutlined,
@@ -8,10 +8,12 @@ import {
   EyeOutlined,
   CheckOutlined,
   CloseOutlined,
+  DiffOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type { OptimizationSuggestion } from '../../api/aiAssistant'
 import { getSuggestionTypeColor, getPriorityLabel } from '../../api/aiAssistant'
+import MiniFlowDiff, { generateDiffFromSuggestion } from './MiniFlowDiff'
 
 const { Text, Paragraph } = Typography
 
@@ -20,6 +22,8 @@ interface SuggestionCardProps {
   selected: boolean
   onToggle: () => void
   onViewNodes?: () => void
+  nodeLookup?: Record<string, { label?: string; type?: string }>
+  showDiffPreview?: boolean
 }
 
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
@@ -27,10 +31,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   selected,
   onToggle,
   onViewNodes,
+  nodeLookup,
+  showDiffPreview = true,
 }) => {
   const { t } = useTranslation()
+  const [diffVisible, setDiffVisible] = useState(false)
   const priorityInfo = getPriorityLabel(suggestion.priority)
   const typeColor = getSuggestionTypeColor(suggestion.type)
+
+  // 生成差異預覽
+  const diff = useMemo(() => {
+    return generateDiffFromSuggestion(
+      suggestion.type,
+      suggestion.affectedNodes,
+      nodeLookup
+    )
+  }, [suggestion.type, suggestion.affectedNodes, nodeLookup])
 
   const getTypeIcon = () => {
     const icons: Record<string, React.ReactNode> = {
@@ -130,7 +146,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
       )}
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <Button
           type={selected ? 'primary' : 'default'}
           size="small"
@@ -141,6 +157,32 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             ? t('aiAssistant.selected', '已選擇')
             : t('aiAssistant.applySuggestion', '套用此建議')}
         </Button>
+
+        {/* Diff Preview */}
+        {showDiffPreview && (
+          <Popover
+            content={
+              <div style={{ width: 320, maxHeight: 400, overflow: 'auto' }}>
+                <MiniFlowDiff diff={diff} maxChanges={6} />
+              </div>
+            }
+            title={
+              <Space>
+                <DiffOutlined />
+                <span>{t('aiAssistant.changePreview', '變更預覽')}</span>
+              </Space>
+            }
+            trigger="hover"
+            placement="right"
+            open={diffVisible}
+            onOpenChange={setDiffVisible}
+          >
+            <Tooltip title={t('aiAssistant.previewChanges', '預覽變更')}>
+              <Button size="small" icon={<DiffOutlined />} />
+            </Tooltip>
+          </Popover>
+        )}
+
         {onViewNodes && (
           <Tooltip title={t('aiAssistant.viewNodes', '檢視相關節點')}>
             <Button size="small" icon={<EyeOutlined />} onClick={onViewNodes} />
@@ -151,6 +193,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             {t('aiAssistant.deselect', '取消')}
           </Button>
         )}
+
+        {/* Compact Diff Summary */}
+        <MiniFlowDiff diff={diff} compact />
       </div>
     </Card>
   )

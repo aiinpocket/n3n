@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.ai.controller;
 
 import com.aiinpocket.n3n.ai.dto.*;
 import com.aiinpocket.n3n.ai.service.AIAssistantService;
+import com.aiinpocket.n3n.ai.service.SimilarFlowsService;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AIAssistantController {
 
     private final AIAssistantService aiAssistantService;
     private final AuthService authService;
+    private final SimilarFlowsService similarFlowsService;
 
     /**
      * AI 對話串流 API
@@ -147,6 +149,27 @@ public class AIAssistantController {
         UUID userId = getUserId(principal);
         GenerateFlowResponse response = aiAssistantService.generateFlow(request, userId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get similar flows based on natural language description
+     * GET /api/ai-assistant/similar-flows?query=xxx&limit=5
+     */
+    @GetMapping("/similar-flows")
+    public ResponseEntity<List<SimilarFlow>> getSimilarFlows(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "5") int limit,
+            Principal principal) {
+        log.info("Finding similar flows for query: {}",
+            query != null ? query.substring(0, Math.min(50, query.length())) + "..." : "null");
+
+        UUID userId = getUserId(principal);
+        if (userId == null) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<SimilarFlow> flows = similarFlowsService.findSimilarFlows(userId, query, limit);
+        return ResponseEntity.ok(flows);
     }
 
     private UUID getUserId(Principal principal) {

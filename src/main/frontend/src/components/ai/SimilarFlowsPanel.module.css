@@ -1,0 +1,134 @@
+.container {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.flowItem {
+  padding: 0 !important;
+  border: none !important;
+  margin-bottom: 8px;
+}
+
+.flowItem:last-child {
+  margin-bottom: 0;
+}
+
+.flowCard {
+  width: 100%;
+  border: 1px solid #f0f0f0;
+}
+
+.flowCard:hover {
+  border-color: #722ed1;
+}
+
+.flowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.flowName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.templateIcon {
+  color: #faad14;
+  flex-shrink: 0;
+}
+
+.flowDescription {
+  margin-bottom: 8px !important;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.flowMeta {
+  margin-bottom: 8px;
+}
+
+.metaItem {
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nodeTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.nodeTypeTag {
+  font-size: 11px;
+  padding: 0 6px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.matchedKeywords {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.matchLabel {
+  font-size: 11px;
+}
+
+.keywordTag {
+  font-size: 11px;
+  padding: 0 6px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.flowActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.flowActions button {
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+}
+
+/* Dark mode */
+:global(.dark) .container {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global(.dark) .flowCard {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark) .flowCard:hover {
+  border-color: #722ed1;
+}
+
+:global(.dark) .flowActions {
+  border-color: rgba(255, 255, 255, 0.1);
+}

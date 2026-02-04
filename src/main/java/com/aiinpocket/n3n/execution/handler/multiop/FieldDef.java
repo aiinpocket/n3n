@@ -223,6 +223,25 @@ public class FieldDef {
             .build();
     }
 
+    public static FieldDef json(String name, String displayName) {
+        return FieldDef.builder()
+            .name(name)
+            .displayName(displayName)
+            .type("object")
+            .format("json")
+            .build();
+    }
+
+    public static FieldDef multiSelect(String name, String displayName, List<String> options) {
+        return FieldDef.builder()
+            .name(name)
+            .displayName(displayName)
+            .type("array")
+            .format("multiselect")
+            .options(options)
+            .build();
+    }
+
     // ==================== Fluent Modifiers ====================
 
     public FieldDef required() {

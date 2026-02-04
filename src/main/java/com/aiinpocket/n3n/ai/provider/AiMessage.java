@@ -17,7 +17,7 @@ import java.util.List;
 public class AiMessage {
 
     /**
-     * 訊息角色: system, user, assistant
+     * 訊息角色: system, user, assistant, tool
      */
     private String role;
 
@@ -31,6 +31,16 @@ public class AiMessage {
      */
     private List<AiContent> multiContent;
 
+    /**
+     * 工具調用列表（assistant 訊息使用）
+     */
+    private List<AiToolCall> toolCalls;
+
+    /**
+     * 工具調用 ID（tool 角色訊息使用，對應 assistant 的工具調用）
+     */
+    private String toolCallId;
+
     public static AiMessage system(String content) {
         return AiMessage.builder().role("system").content(content).build();
     }
@@ -41,5 +51,21 @@ public class AiMessage {
 
     public static AiMessage assistant(String content) {
         return AiMessage.builder().role("assistant").content(content).build();
+    }
+
+    public static AiMessage assistant(String content, List<AiToolCall> toolCalls) {
+        return AiMessage.builder()
+            .role("assistant")
+            .content(content)
+            .toolCalls(toolCalls)
+            .build();
+    }
+
+    public static AiMessage toolResult(String toolCallId, String content) {
+        return AiMessage.builder()
+            .role("tool")
+            .toolCallId(toolCallId)
+            .content(content)
+            .build();
     }
 }

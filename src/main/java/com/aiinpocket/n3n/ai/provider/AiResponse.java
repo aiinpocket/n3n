@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * AI 聊天回應
  */
@@ -30,7 +32,7 @@ public class AiResponse {
     private String content;
 
     /**
-     * 停止原因: end_turn, max_tokens, stop_sequence
+     * 停止原因: end_turn, max_tokens, stop_sequence, tool_use
      */
     private String stopReason;
 
@@ -43,4 +45,9 @@ public class AiResponse {
      * 延遲（毫秒）
      */
     private long latencyMs;
+
+    /**
+     * 工具調用列表（當 AI 決定調用工具時）
+     */
+    private List<AiToolCall> toolCalls;
 }

@@ -448,17 +448,6 @@ public class DynamicPluginNodeHandler extends AbstractNodeHandler {
         return definitions;
     }
 
-    private double getDoubleConfig(NodeExecutionContext context, String key, double defaultValue) {
-        Object value = context.getNodeConfig().get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number) return ((Number) value).doubleValue();
-        try {
-            return Double.parseDouble(value.toString());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
     private String escapeJson(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")

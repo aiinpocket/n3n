@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * AI 串流回應片段
  */
@@ -39,6 +41,11 @@ public class AiStreamChunk {
      */
     private AiUsage usage;
 
+    /**
+     * 工具調用（串流中逐漸構建）
+     */
+    private List<AiToolCall> toolCalls;
+
     public static AiStreamChunk text(String delta) {
         return AiStreamChunk.builder()
                 .delta(delta)
@@ -51,6 +58,13 @@ public class AiStreamChunk {
                 .done(true)
                 .stopReason(stopReason)
                 .usage(usage)
+                .build();
+    }
+
+    public static AiStreamChunk toolCall(List<AiToolCall> toolCalls) {
+        return AiStreamChunk.builder()
+                .toolCalls(toolCalls)
+                .done(false)
                 .build();
     }
 }
