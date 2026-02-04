@@ -21,6 +21,8 @@ import {
   AppstoreOutlined,
   CheckCircleOutlined,
   InfoCircleOutlined,
+  StarFilled,
+  DownloadOutlined,
 } from '@ant-design/icons'
 import {
   aiAssistantApi,
@@ -170,6 +172,13 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
     </Card>
   )
 
+  const formatDownloads = (count?: number) => {
+    if (!count) return null
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
+    return count.toString()
+  }
+
   const renderRecommendation = (rec: NodeRecommendation) => (
     <Card
       key={rec.nodeType}
@@ -199,6 +208,29 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
         }
         description={
           <>
+            {/* Rating and Downloads */}
+            {(rec.rating || rec.downloads) && (
+              <Space size="small" style={{ marginBottom: 8 }}>
+                {rec.rating && (
+                  <Tag color="gold" style={{ margin: 0 }}>
+                    <StarFilled style={{ marginRight: 2 }} />
+                    {rec.rating.toFixed(1)}
+                  </Tag>
+                )}
+                {rec.downloads && (
+                  <Tag color="blue" style={{ margin: 0 }}>
+                    <DownloadOutlined style={{ marginRight: 2 }} />
+                    {formatDownloads(rec.downloads)}
+                  </Tag>
+                )}
+                {rec.source && rec.source !== 'builtin' && (
+                  <Tag style={{ margin: 0 }}>
+                    {rec.source === 'marketplace' ? '市場' : 'Docker'}
+                  </Tag>
+                )}
+              </Space>
+            )}
+
             <Paragraph
               type="secondary"
               ellipsis={{ rows: 2 }}

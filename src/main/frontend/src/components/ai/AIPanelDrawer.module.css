@@ -1,0 +1,281 @@
+.drawer :global(.ant-drawer-body) {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Messages Area */
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  display: flex;
+  gap: 12px;
+  max-width: 90%;
+}
+
+.userMessage {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.assistantMessage {
+  align-self: flex-start;
+}
+
+.messageAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userMessage .messageAvatar {
+  background: #1890ff;
+  color: white;
+}
+
+.assistantMessage .messageAvatar {
+  background: #722ed1;
+  color: white;
+}
+
+.messageContent {
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 12px;
+  word-break: break-word;
+}
+
+.userMessage .messageContent {
+  background: #e6f7ff;
+  border-bottom-right-radius: 4px;
+}
+
+.assistantMessage .messageContent {
+  background: #f9f0ff;
+  border-bottom-left-radius: 4px;
+}
+
+.messageContent h1,
+.messageContent h2,
+.messageContent h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+
+.messageContent h1 {
+  font-size: 1.2em;
+}
+
+.messageContent h2 {
+  font-size: 1.1em;
+}
+
+.messageContent h3 {
+  font-size: 1em;
+}
+
+.messageContent p {
+  margin: 0.5em 0;
+}
+
+.messageContent ul,
+.messageContent ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.messageContent code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.messageContent pre {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.messageContent pre code {
+  background: none;
+  padding: 0;
+}
+
+.timestamp {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.streamingStage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.flowPreview {
+  margin-top: 8px;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 20px;
+}
+
+.suggestions {
+  text-align: left;
+  margin: 16px 0;
+  padding-left: 20px;
+}
+
+.suggestions li {
+  margin: 4px 0;
+  color: #666;
+}
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* Pending Changes */
+.pendingChanges {
+  border-top: 1px solid #f0f0f0;
+  padding: 8px;
+  background: #fafafa;
+}
+
+/* Error Alert */
+.errorAlert {
+  margin: 8px;
+}
+
+/* Input Area */
+.inputArea {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px;
+  background: #fff;
+}
+
+.inputArea :global(.ant-input-textarea) {
+  margin-bottom: 8px;
+}
+
+.inputActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hint {
+  font-size: 11px;
+}
+
+/* History Panel */
+.historyPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.historyItem {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.historyItem:hover {
+  background: #f5f5f5;
+}
+
+.historyItem.active {
+  background: #e6f7ff;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .messageContent {
+    background: #1f1f1f;
+  }
+
+  .userMessage .messageContent {
+    background: #111d2c;
+  }
+
+  .assistantMessage .messageContent {
+    background: #120338;
+  }
+
+  .pendingChanges {
+    background: #141414;
+  }
+
+  .inputArea {
+    background: #1f1f1f;
+  }
+
+  .historyItem:hover {
+    background: #262626;
+  }
+
+  .historyItem.active {
+    background: #111d2c;
+  }
+}
+
+/* Scrollbar styling */
+.messagesArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messagesArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messagesArea::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.messagesArea::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}

@@ -6,8 +6,11 @@ import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.security.Principal;
 import java.util.List;
@@ -21,6 +24,44 @@ public class AIAssistantController {
 
     private final AIAssistantService aiAssistantService;
     private final AuthService authService;
+
+    /**
+     * AI 對話串流 API
+     * POST /api/ai-assistant/chat/stream
+     *
+     * 使用 Server-Sent Events (SSE) 串流回應
+     */
+    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<ChatStreamChunk>> chatStream(
+            @RequestBody ChatStreamRequest request,
+            Principal principal) {
+        log.info("Chat stream request: message={}",
+            request.getMessage() != null ?
+                request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
+
+        UUID userId = getUserId(principal);
+        return aiAssistantService.chatStream(request, userId)
+            .map(chunk -> ServerSentEvent.<ChatStreamChunk>builder()
+                .data(chunk)
+                .build());
+    }
+
+    /**
+     * AI 對話 API (非串流)
+     * POST /api/ai-assistant/chat
+     */
+    @PostMapping("/chat")
+    public ResponseEntity<ChatResponse> chat(
+            @RequestBody ChatStreamRequest request,
+            Principal principal) {
+        log.info("Chat request: message={}",
+            request.getMessage() != null ?
+                request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
+
+        UUID userId = getUserId(principal);
+        ChatResponse response = aiAssistantService.chat(request, userId);
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * Analyze flow before publishing - returns optimization suggestions

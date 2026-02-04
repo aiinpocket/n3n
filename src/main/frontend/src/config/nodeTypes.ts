@@ -314,6 +314,15 @@ export const nodeTypes: NodeTypeConfig[] = [
     description: '執行自定義 JavaScript/Python 代碼',
     category: 'transform',
   },
+  {
+    value: 'aiTransform',
+    label: 'AI 資料轉換',
+    labelEn: 'AI Transform',
+    color: '#13c2c2',
+    icon: 'RobotOutlined',
+    description: '使用自然語言描述資料轉換邏輯，AI 自動生成並執行程式碼',
+    category: 'transform',
+  },
 
   // ==================== 通訊 ====================
   {

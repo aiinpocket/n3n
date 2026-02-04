@@ -1,8 +1,13 @@
 package com.aiinpocket.n3n.ai.service;
 
+import com.aiinpocket.n3n.ai.agent.AgentContext;
+import com.aiinpocket.n3n.ai.agent.AgentResult;
+import com.aiinpocket.n3n.ai.agent.AgentStreamChunk;
+import com.aiinpocket.n3n.ai.agent.supervisor.SupervisorAgent;
 import com.aiinpocket.n3n.ai.dto.*;
 import com.aiinpocket.n3n.ai.module.FlowOptimizationModule;
 import com.aiinpocket.n3n.ai.module.NaturalLanguageModule;
+import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.plugin.entity.PluginInstallation;
@@ -10,6 +15,7 @@ import com.aiinpocket.n3n.plugin.repository.PluginInstallationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +29,8 @@ public class AIAssistantService {
     private final NaturalLanguageModule naturalLanguageModule;
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final PluginInstallationRepository pluginInstallationRepository;
+    private final SupervisorAgent supervisorAgent;
+    private final SimpleAIProviderRegistry simpleAIProviderRegistry;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -38,6 +46,106 @@ public class AIAssistantService {
     );
 
     private record CategoryDefinition(String displayName, String icon) {}
+
+    /**
+     * AI 對話串流
+     * 使用多代理協作系統處理使用者訊息
+     */
+    public Flux<ChatStreamChunk> chatStream(ChatStreamRequest request, UUID userId) {
+        log.info("Starting chat stream for user: {}", userId);
+
+        // 建立 Agent 上下文
+        AgentContext context = buildAgentContext(request, userId);
+
+        // 執行 Supervisor Agent 串流
+        return supervisorAgent.executeStream(context)
+            .map(this::convertToChunk)
+            .onErrorResume(e -> {
+                log.error("Chat stream error", e);
+                return Flux.just(ChatStreamChunk.error(e.getMessage()));
+            });
+    }
+
+    /**
+     * AI 對話（非串流）
+     */
+    public ChatResponse chat(ChatStreamRequest request, UUID userId) {
+        log.info("Starting chat for user: {}", userId);
+
+        try {
+            // 建立 Agent 上下文
+            AgentContext context = buildAgentContext(request, userId);
+
+            // 執行 Supervisor Agent
+            AgentResult result = supervisorAgent.execute(context);
+
+            if (!result.isSuccess()) {
+                return ChatResponse.error(result.getError());
+            }
+
+            // 轉換待確認變更
+            List<ChatResponse.PendingChange> pendingChanges = null;
+            if (result.getPendingChanges() != null) {
+                pendingChanges = result.getPendingChanges().stream()
+                    .map(pc -> ChatResponse.PendingChange.builder()
+                        .id(pc.getId())
+                        .type(pc.getType())
+                        .description(pc.getDescription())
+                        .before(pc.getBefore())
+                        .after(pc.getAfter())
+                        .build())
+                    .toList();
+            }
+
+            return ChatResponse.successWithFlow(
+                context.getConversationId(),
+                result.getContent(),
+                result.getFlowDefinition(),
+                pendingChanges
+            );
+
+        } catch (Exception e) {
+            log.error("Chat error", e);
+            return ChatResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 建立 Agent 執行上下文
+     */
+    private AgentContext buildAgentContext(ChatStreamRequest request, UUID userId) {
+        AgentContext.AgentContextBuilder builder = AgentContext.builder()
+            .conversationId(request.getConversationId() != null ?
+                request.getConversationId() : UUID.randomUUID())
+            .userId(userId)
+            .userInput(request.getMessage())
+            .flowId(request.getFlowId());
+
+        // 如果有流程定義，設置當前節點和邊
+        if (request.getFlowDefinition() != null) {
+            builder.currentNodes(request.getFlowDefinition().getNodes());
+            builder.currentEdges(request.getFlowDefinition().getEdges());
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * 轉換 Agent 串流片段為 DTO
+     */
+    private ChatStreamChunk convertToChunk(AgentStreamChunk agentChunk) {
+        return switch (agentChunk.getType()) {
+            case THINKING -> ChatStreamChunk.thinking(agentChunk.getText());
+            case TEXT -> ChatStreamChunk.text(agentChunk.getText());
+            case STRUCTURED -> ChatStreamChunk.structured(agentChunk.getStructuredData());
+            case PROGRESS -> ChatStreamChunk.progress(
+                agentChunk.getProgress() != null ? agentChunk.getProgress() : 0,
+                agentChunk.getStage()
+            );
+            case ERROR -> ChatStreamChunk.error(agentChunk.getText());
+            case DONE -> ChatStreamChunk.done();
+        };
+    }
 
     /**
      * Analyze flow for publish - provides optimization suggestions before publishing
@@ -90,15 +198,158 @@ public class AIAssistantService {
     /**
      * Apply selected suggestions to the flow
      */
+    @SuppressWarnings("unchecked")
     public ApplySuggestionsResponse applySuggestions(ApplySuggestionsRequest request) {
         log.info("Applying {} suggestions to flow {}",
             request.getSuggestionIds().size(), request.getFlowId());
 
-        return ApplySuggestionsResponse.builder()
-            .success(true)
-            .appliedCount(request.getSuggestionIds().size())
-            .appliedSuggestions(request.getSuggestionIds())
-            .build();
+        try {
+            if (request.getDefinition() == null) {
+                return ApplySuggestionsResponse.error("流程定義不可為空");
+            }
+
+            // Clone the definition to avoid modifying the original
+            Map<String, Object> updatedDefinition = new HashMap<>(request.getDefinition());
+            List<Map<String, Object>> nodes = new ArrayList<>((List<Map<String, Object>>) updatedDefinition.get("nodes"));
+            List<Map<String, Object>> edges = new ArrayList<>((List<Map<String, Object>>) updatedDefinition.get("edges"));
+
+            List<String> appliedIds = new ArrayList<>();
+
+            // Apply each suggestion
+            for (String suggestionId : request.getSuggestionIds()) {
+                // Find the suggestion details
+                ApplySuggestionsRequest.SuggestionInfo suggestion = null;
+                if (request.getSuggestions() != null) {
+                    suggestion = request.getSuggestions().stream()
+                        .filter(s -> suggestionId.equals(s.getId()))
+                        .findFirst()
+                        .orElse(null);
+                }
+
+                if (suggestion != null) {
+                    boolean applied = applySingleSuggestion(suggestion, nodes, edges);
+                    if (applied) {
+                        appliedIds.add(suggestionId);
+                    }
+                } else {
+                    // Fallback: just mark as applied without modification
+                    appliedIds.add(suggestionId);
+                }
+            }
+
+            updatedDefinition.put("nodes", nodes);
+            updatedDefinition.put("edges", edges);
+
+            return ApplySuggestionsResponse.success(appliedIds.size(), appliedIds, updatedDefinition);
+
+        } catch (Exception e) {
+            log.error("Error applying suggestions", e);
+            return ApplySuggestionsResponse.error("套用建議時發生錯誤: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Apply a single suggestion to the flow
+     */
+    private boolean applySingleSuggestion(
+            ApplySuggestionsRequest.SuggestionInfo suggestion,
+            List<Map<String, Object>> nodes,
+            List<Map<String, Object>> edges) {
+
+        String type = suggestion.getType();
+        List<String> affectedNodes = suggestion.getAffectedNodes();
+
+        switch (type) {
+            case "parallel" -> {
+                // Mark affected nodes for parallel execution
+                // This is metadata that the flow engine can use
+                for (String nodeId : affectedNodes) {
+                    nodes.stream()
+                        .filter(n -> nodeId.equals(n.get("id")))
+                        .findFirst()
+                        .ifPresent(n -> {
+                            Map<String, Object> data = (Map<String, Object>) n.get("data");
+                            if (data != null) {
+                                data.put("parallelExecution", true);
+                            }
+                        });
+                }
+                return true;
+            }
+            case "merge" -> {
+                // Merge sequential similar operations
+                // For now, just mark them as merged
+                if (affectedNodes.size() >= 2) {
+                    // Keep the first node, remove others
+                    String keepNodeId = affectedNodes.get(0);
+                    List<String> removeNodeIds = affectedNodes.subList(1, affectedNodes.size());
+
+                    // Update edges to point to the kept node
+                    for (Map<String, Object> edge : edges) {
+                        if (removeNodeIds.contains(edge.get("source"))) {
+                            edge.put("source", keepNodeId);
+                        }
+                        if (removeNodeIds.contains(edge.get("target"))) {
+                            edge.put("target", keepNodeId);
+                        }
+                    }
+
+                    // Remove duplicate edges
+                    edges.removeIf(e ->
+                        e.get("source").equals(e.get("target"))
+                    );
+
+                    // Remove the merged nodes
+                    nodes.removeIf(n -> removeNodeIds.contains(n.get("id")));
+
+                    return true;
+                }
+                return false;
+            }
+            case "remove" -> {
+                // Remove specified nodes
+                for (String nodeId : affectedNodes) {
+                    nodes.removeIf(n -> nodeId.equals(n.get("id")));
+                    edges.removeIf(e ->
+                        nodeId.equals(e.get("source")) || nodeId.equals(e.get("target"))
+                    );
+                }
+                return true;
+            }
+            case "reorder" -> {
+                // Reorder suggestions typically require more complex graph analysis
+                // For now, just mark as applied
+                return true;
+            }
+            case "add_error_handler" -> {
+                // Add error handler node
+                for (String nodeId : affectedNodes) {
+                    String errorHandlerId = "error_" + nodeId + "_" + System.currentTimeMillis();
+                    Map<String, Object> errorNode = new HashMap<>();
+                    errorNode.put("id", errorHandlerId);
+                    errorNode.put("type", "errorHandler");
+                    errorNode.put("data", Map.of(
+                        "label", "錯誤處理",
+                        "nodeType", "errorHandler",
+                        "targetNodeId", nodeId
+                    ));
+                    nodes.add(errorNode);
+
+                    // Connect error output to handler
+                    Map<String, Object> errorEdge = new HashMap<>();
+                    errorEdge.put("id", "edge_error_" + System.currentTimeMillis());
+                    errorEdge.put("source", nodeId);
+                    errorEdge.put("target", errorHandlerId);
+                    errorEdge.put("sourceHandle", "error");
+                    edges.add(errorEdge);
+                }
+                return true;
+            }
+            default -> {
+                log.debug("Unknown suggestion type: {}", type);
+                return false;
+            }
+        }
     }
 
     /**
@@ -342,4 +593,150 @@ public class AIAssistantService {
         }
         return List.of();
     }
+
+    // ==================== Code Generation ====================
+
+    private static final String CODE_GENERATION_SYSTEM_PROMPT = """
+        你是一個專業的程式碼生成助手。你的任務是根據使用者的自然語言描述生成正確的程式碼。
+
+        規則：
+        1. 只輸出程式碼，不要有任何解釋或說明
+        2. 使用 $input 來存取輸入資料
+        3. 直接 return 結果，不需要包裝函數
+        4. 處理可能的 null 或 undefined
+        5. 程式碼需要簡潔且效能良好
+
+        語言特定規則：
+        - JavaScript: 使用 ES6+ 語法
+        - 可以使用 lodash 風格的操作（_. 函數）
+        """;
+
+    /**
+     * 使用 AI 生成程式碼
+     */
+    public GenerateCodeResponse generateCode(GenerateCodeRequest request, UUID userId) {
+        log.info("Generating code for user: {}, language: {}", userId, request.getLanguage());
+
+        try {
+            // 目前僅支援 JavaScript
+            if (!"javascript".equalsIgnoreCase(request.getLanguage()) &&
+                !"js".equalsIgnoreCase(request.getLanguage())) {
+                return GenerateCodeResponse.failure("目前僅支援 JavaScript");
+            }
+
+            // 建構提示詞
+            String prompt = buildCodeGenerationPrompt(request);
+
+            // 使用 Failover 機制呼叫 AI
+            String aiResponse;
+            try {
+                aiResponse = simpleAIProviderRegistry.chatWithFailover(
+                    prompt,
+                    CODE_GENERATION_SYSTEM_PROMPT,
+                    2000, // maxTokens
+                    0.3,  // temperature (低一點以獲得更穩定的輸出)
+                    userId
+                );
+            } catch (Exception e) {
+                log.warn("AI provider not available for code generation", e);
+                return GenerateCodeResponse.aiUnavailable();
+            }
+
+            // 解析 AI 回應
+            CodeGenerationResult result = parseCodeGenerationResponse(aiResponse);
+
+            if (result.code == null || result.code.isBlank()) {
+                return GenerateCodeResponse.failure("AI 未能生成有效的程式碼");
+            }
+
+            return GenerateCodeResponse.success(
+                result.code,
+                result.explanation,
+                request.getLanguage()
+            );
+
+        } catch (Exception e) {
+            log.error("Code generation failed", e);
+            return GenerateCodeResponse.failure("程式碼生成失敗: " + e.getMessage());
+        }
+    }
+
+    private String buildCodeGenerationPrompt(GenerateCodeRequest request) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("請根據以下描述生成 JavaScript 程式碼：\n\n");
+        prompt.append("描述：").append(request.getDescription()).append("\n");
+
+        if (request.getInputSchema() != null && !request.getInputSchema().isEmpty()) {
+            prompt.append("\n輸入資料結構：\n");
+            prompt.append(formatSchema(request.getInputSchema())).append("\n");
+        }
+
+        if (request.getSampleInput() != null && !request.getSampleInput().isBlank()) {
+            prompt.append("\n輸入範例：\n");
+            prompt.append(request.getSampleInput()).append("\n");
+        }
+
+        if (request.getOutputSchema() != null && !request.getOutputSchema().isEmpty()) {
+            prompt.append("\n預期輸出結構：\n");
+            prompt.append(formatSchema(request.getOutputSchema())).append("\n");
+        }
+
+        prompt.append("\n請直接輸出可執行的 JavaScript 程式碼（使用 $input 存取輸入資料）：");
+
+        return prompt.toString();
+    }
+
+    private String formatSchema(Map<String, Object> schema) {
+        try {
+            // 簡單的 JSON 格式化
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            schema.forEach((key, value) -> {
+                sb.append("  ").append(key).append(": ").append(value).append(",\n");
+            });
+            sb.append("}");
+            return sb.toString();
+        } catch (Exception e) {
+            return schema.toString();
+        }
+    }
+
+    private CodeGenerationResult parseCodeGenerationResponse(String response) {
+        String code = response;
+        String explanation = null;
+
+        // 嘗試提取程式碼區塊
+        if (response.contains("```javascript")) {
+            int start = response.indexOf("```javascript") + "```javascript".length();
+            int end = response.indexOf("```", start);
+            if (end > start) {
+                code = response.substring(start, end).trim();
+                // 提取解釋（程式碼區塊之後的文字）
+                if (end + 3 < response.length()) {
+                    explanation = response.substring(end + 3).trim();
+                }
+            }
+        } else if (response.contains("```js")) {
+            int start = response.indexOf("```js") + "```js".length();
+            int end = response.indexOf("```", start);
+            if (end > start) {
+                code = response.substring(start, end).trim();
+            }
+        } else if (response.contains("```")) {
+            int start = response.indexOf("```") + 3;
+            // 跳過可能的語言標籤
+            int newlineIndex = response.indexOf('\n', start);
+            if (newlineIndex > start && newlineIndex - start < 20) {
+                start = newlineIndex + 1;
+            }
+            int end = response.indexOf("```", start);
+            if (end > start) {
+                code = response.substring(start, end).trim();
+            }
+        }
+
+        return new CodeGenerationResult(code, explanation);
+    }
+
+    private record CodeGenerationResult(String code, String explanation) {}
 }

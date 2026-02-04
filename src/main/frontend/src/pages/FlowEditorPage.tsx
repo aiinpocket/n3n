@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge } from 'antd'
 import {
   SaveOutlined,
@@ -19,6 +19,7 @@ import {
   UndoOutlined,
   RedoOutlined,
   CopyOutlined,
+  RobotOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -46,6 +47,8 @@ import OptimizationPanel from '../components/flow/OptimizationPanel'
 import PublishFlowModal from '../components/ai/PublishFlowModal'
 import NodeRecommendationDrawer from '../components/ai/NodeRecommendationDrawer'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
+import AIPanelDrawer from '../components/ai/AIPanelDrawer'
+import { useAIAssistantStore } from '../stores/aiAssistantStore'
 import { CommandPalette } from '../components/command'
 import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import type { ExternalService, ServiceEndpoint } from '../types'
@@ -58,6 +61,7 @@ export default function FlowEditorPage() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     currentFlow,
     currentVersion,
@@ -141,6 +145,9 @@ export default function FlowEditorPage() {
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [saveForm] = Form.useForm()
+
+  // AI Assistant Store
+  const { openPanel: openAIPanel } = useAIAssistantStore()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load flow on mount
@@ -151,6 +158,33 @@ export default function FlowEditorPage() {
     }
     return () => clearEditor()
   }, [id, loadFlow, loadVersions, clearEditor])
+
+  // Handle AI-generated flow from navigation state
+  useEffect(() => {
+    const state = location.state as { generatedFlow?: { nodes: Array<{ id: string; type: string; label?: string; config?: Record<string, unknown> }>; edges: Array<{ source: string; target: string }> } } | null
+    if (state?.generatedFlow) {
+      const flowDef = state.generatedFlow
+      const newNodes = flowDef.nodes.map((n, i) => ({
+        id: n.id,
+        type: n.type,
+        position: { x: 250, y: i * 120 + 50 },
+        data: {
+          label: n.label || n.type,
+          nodeType: n.type,
+          ...n.config,
+        },
+      }))
+      setNodes(newNodes)
+      setEdges(flowDef.edges.map((e, i) => ({
+        id: `edge-${i}`,
+        source: e.source,
+        target: e.target,
+      })))
+      message.success('AI 生成的流程已載入，您可以進一步調整')
+      // Clear the state to prevent re-applying on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, setNodes, setEdges])
 
   // Auto-save with debounce
   useEffect(() => {
@@ -265,10 +299,15 @@ export default function FlowEditorPage() {
         e.preventDefault()
         setCommandPaletteOpen(true)
       }
+      // Ctrl+I or Cmd+I to open AI assistant panel
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault()
+        openAIPanel()
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isDirty, currentVersion, saveForm, executionMode, selectedNodeIds, copySelectedNodes, cutSelectedNodes, pasteNodes, duplicateSelectedNodes, selectAllNodes, undo, redo, canUndo, canRedo, removeSelectedNodes])
+  }, [isDirty, currentVersion, saveForm, executionMode, selectedNodeIds, copySelectedNodes, cutSelectedNodes, pasteNodes, duplicateSelectedNodes, selectAllNodes, undo, redo, canUndo, canRedo, removeSelectedNodes, openAIPanel])
 
   // Format last saved time
   const formatLastSaved = () => {
@@ -537,32 +576,52 @@ export default function FlowEditorPage() {
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
               外部服務
             </Button>
-            <Tooltip title="用口語描述，AI 幫你生成流程">
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: 'assistant',
+                    icon: <RobotOutlined />,
+                    label: (
+                      <Space>
+                        <span>AI 助手</span>
+                        <Tag style={{ margin: 0, fontSize: 10 }}>Ctrl+I</Tag>
+                      </Space>
+                    ),
+                    onClick: openAIPanel,
+                  },
+                  {
+                    key: 'generate',
+                    icon: <ThunderboltOutlined />,
+                    label: '自然語言生成流程',
+                    onClick: () => setFlowGeneratorOpen(true),
+                  },
+                  {
+                    key: 'recommend',
+                    icon: <BulbOutlined />,
+                    label: '智慧節點推薦',
+                    onClick: () => setNodeRecommendationOpen(true),
+                  },
+                  { type: 'divider' },
+                  {
+                    key: 'optimize',
+                    icon: <RocketOutlined />,
+                    label: 'AI 優化分析',
+                    disabled: nodes.length === 0,
+                    onClick: () => setOptimizationPanelOpen(true),
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
               <Button
-                icon={<ThunderboltOutlined />}
-                onClick={() => setFlowGeneratorOpen(true)}
-                style={{ color: '#722ed1', borderColor: '#722ed1' }}
+                type="primary"
+                icon={<RobotOutlined />}
+                style={{ background: '#722ed1', borderColor: '#722ed1' }}
               >
-                AI 生成
+                AI 功能
               </Button>
-            </Tooltip>
-            <Tooltip title="智慧節點推薦，根據流程推薦適合的節點">
-              <Button
-                icon={<BulbOutlined />}
-                onClick={() => setNodeRecommendationOpen(true)}
-              >
-                智慧推薦
-              </Button>
-            </Tooltip>
-            <Tooltip title="使用 AI 分析流程，找出可優化的地方">
-              <Button
-                icon={<RocketOutlined />}
-                onClick={() => setOptimizationPanelOpen(true)}
-                disabled={nodes.length === 0}
-              >
-                AI 優化
-              </Button>
-            </Tooltip>
+            </Dropdown>
             <Dropdown menu={versionMenu} placement="bottomRight" disabled={versions.length === 0}>
               <Button icon={<HistoryOutlined />}>
                 版本記錄 ({versions.length})
@@ -666,6 +725,67 @@ export default function FlowEditorPage() {
           <Controls />
           <MiniMap />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+
+          {/* Empty State Guide */}
+          {nodes.length === 0 && !executionMode && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                zIndex: 10,
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: 16,
+                padding: '40px 48px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                maxWidth: 480,
+              }}
+            >
+              <RobotOutlined style={{ fontSize: 56, color: '#722ed1', marginBottom: 16 }} />
+              <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
+                開始建立您的流程
+              </Text>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+                選擇以下方式開始：
+              </Text>
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<ThunderboltOutlined />}
+                  onClick={() => setFlowGeneratorOpen(true)}
+                  style={{ width: '100%', background: '#722ed1', borderColor: '#722ed1' }}
+                >
+                  用口語描述讓 AI 幫您生成
+                </Button>
+                <Button
+                  size="large"
+                  icon={<RobotOutlined />}
+                  onClick={openAIPanel}
+                  style={{ width: '100%' }}
+                >
+                  與 AI 助手對話建立
+                </Button>
+                <Dropdown menu={addNodeMenu} placement="bottom">
+                  <Button
+                    size="large"
+                    icon={<PlusOutlined />}
+                    style={{ width: '100%' }}
+                  >
+                    手動新增節點
+                  </Button>
+                </Dropdown>
+              </Space>
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  快捷鍵: <Tag style={{ marginLeft: 4 }}>Ctrl+K</Tag> 命令面板{' '}
+                  <Tag>Ctrl+I</Tag> AI 助手
+                </Text>
+              </div>
+            </div>
+          )}
         </ReactFlow>
 
         {/* Execution Overlay */}
@@ -858,6 +978,44 @@ export default function FlowEditorPage() {
         onAddNode={() => {
           // Open the add node dropdown - we'll just add a trigger node for now
           handleAddNode('trigger')
+        }}
+      />
+
+      {/* AI Assistant Drawer */}
+      <AIPanelDrawer
+        flowId={id}
+        flowDefinition={nodes.length > 0 ? {
+          nodes: nodes.map(n => ({
+            id: n.id,
+            type: n.type || 'unknown',
+            label: typeof n.data?.label === 'string' ? n.data.label : undefined,
+            config: n.data as Record<string, unknown>,
+          })),
+          edges: edges.map(e => ({
+            source: e.source,
+            target: e.target,
+          })),
+        } : undefined}
+        onApplyFlowChanges={(flowDef) => {
+          // Apply the AI-generated flow changes
+          pushHistory()
+          const newNodes = flowDef.nodes.map((n, i) => ({
+            id: n.id,
+            type: n.type,
+            position: { x: 250, y: i * 120 + 50 },
+            data: {
+              label: n.label || n.type,
+              nodeType: n.type,
+              ...n.config,
+            },
+          }))
+          setNodes(newNodes)
+          setEdges(flowDef.edges.map((e, i) => ({
+            id: `edge-${i}`,
+            source: e.source,
+            target: e.target,
+          })))
+          message.success('流程變更已套用')
         }}
       />
     </>

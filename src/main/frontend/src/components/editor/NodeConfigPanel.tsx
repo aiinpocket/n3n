@@ -29,6 +29,7 @@ import {
   DeleteOutlined,
   PushpinOutlined,
   PushpinFilled,
+  RobotOutlined,
 } from '@ant-design/icons'
 import { Node } from '@xyflow/react'
 import Editor from '@monaco-editor/react'
@@ -38,6 +39,7 @@ import { flowApi, UpstreamNodeOutput } from '../../api/flow'
 import MultiOperationConfig from './MultiOperationConfig'
 import DataMappingEditor from './DataMappingEditor'
 import OutputSchemaPreview from './OutputSchemaPreview'
+import AiCodeGeneratorModal from '../ai/AiCodeGeneratorModal'
 import { useFlowStore } from '../../stores/flowStore'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
@@ -93,6 +95,8 @@ export default function NodeConfigPanel({
   const [loadError, setLoadError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('config')
   const [pinning, setPinning] = useState(false)
+  const [aiCodeModalOpen, setAiCodeModalOpen] = useState(false)
+  const [aiCodeFieldKey, setAiCodeFieldKey] = useState<string | null>(null)
 
   // Data Pinning
   const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowStore()
@@ -201,6 +205,20 @@ export default function NodeConfigPanel({
     }
   }, [node?.id, isPinned, pinNodeData, unpinNodeData])
 
+  const handleAiGenerateCode = (fieldKey: string) => {
+    setAiCodeFieldKey(fieldKey)
+    setAiCodeModalOpen(true)
+  }
+
+  const handleAiCodeGenerated = (code: string) => {
+    if (aiCodeFieldKey && node) {
+      form.setFieldValue(aiCodeFieldKey, code)
+      onUpdate(node.id, { ...form.getFieldsValue(), [aiCodeFieldKey]: code })
+    }
+    setAiCodeModalOpen(false)
+    setAiCodeFieldKey(null)
+  }
+
   const renderField = (key: string, property: SchemaProperty) => {
     // Code editor for code fields
     if (property.format === 'code' || property.language) {
@@ -220,24 +238,37 @@ export default function NodeConfigPanel({
             </Space>
           }
         >
-          <div style={{ border: '1px solid #d9d9d9', borderRadius: 6 }}>
-            <Editor
-              height="200px"
-              language={property.language || 'javascript'}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 13,
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-              }}
-              onChange={(value) => {
-                form.setFieldValue(key, value)
-                if (node) {
-                  onUpdate(node.id, { ...form.getFieldsValue(), [key]: value })
-                }
-              }}
-            />
+          <div>
+            {/* AI Generate Button */}
+            <div style={{ marginBottom: 8 }}>
+              <Button
+                size="small"
+                icon={<RobotOutlined />}
+                onClick={() => handleAiGenerateCode(key)}
+                style={{ borderColor: '#722ed1', color: '#722ed1' }}
+              >
+                AI 生成程式碼
+              </Button>
+            </div>
+            <div style={{ border: '1px solid #d9d9d9', borderRadius: 6 }}>
+              <Editor
+                height="200px"
+                language={property.language || 'javascript'}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                }}
+                onChange={(value) => {
+                  form.setFieldValue(key, value)
+                  if (node) {
+                    onUpdate(node.id, { ...form.getFieldsValue(), [key]: value })
+                  }
+                }}
+              />
+            </div>
           </div>
         </Form.Item>
       )
@@ -681,6 +712,17 @@ export default function NodeConfigPanel({
           </div>
         </>
       )}
+
+      {/* AI Code Generator Modal */}
+      <AiCodeGeneratorModal
+        open={aiCodeModalOpen}
+        onClose={() => {
+          setAiCodeModalOpen(false)
+          setAiCodeFieldKey(null)
+        }}
+        onGenerate={handleAiCodeGenerated}
+        language="javascript"
+      />
     </Drawer>
   )
 }

@@ -1,9 +1,12 @@
 package com.aiinpocket.n3n.ai.entity;
 
+import com.aiinpocket.n3n.ai.failover.FailoverConfig;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -80,6 +83,13 @@ public class AiModuleConfig {
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
+
+    /**
+     * Failover configuration (stored as JSON)
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "failover_config", columnDefinition = "jsonb")
+    private FailoverConfig failoverConfig;
 
     @CreationTimestamp
     @Column(name = "created_at")

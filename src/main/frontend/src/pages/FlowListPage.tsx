@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowStore } from '../stores/flowStore'
 import type { Flow } from '../api/flow'
 import FlowExportModal from '../components/flow/FlowExportModal'
 import FlowImportModal from '../components/flow/FlowImportModal'
+import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
+import { Typography, Result } from 'antd'
+
+const { Text } = Typography
 
 export default function FlowListPage() {
   const navigate = useNavigate()
@@ -18,6 +22,7 @@ export default function FlowListPage() {
   const [searchValue, setSearchValue] = useState(searchQuery)
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [exportFlow, setExportFlow] = useState<{ id: string; name: string; version: string } | null>(null)
+  const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false)
 
   useEffect(() => {
     fetchFlows()
@@ -175,6 +180,13 @@ export default function FlowListPage() {
               {t('flow.import')}
             </Button>
             <Button
+              icon={<ThunderboltOutlined />}
+              onClick={() => setAiGeneratorOpen(true)}
+              style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
+            >
+              AI 建立
+            </Button>
+            <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => setCreateModalOpen(true)}
@@ -196,6 +208,46 @@ export default function FlowListPage() {
             showSizeChanger: true,
             showTotal: (total) => t('common.total', { count: total }),
             onChange: (page, size) => fetchFlows(page - 1, size, searchQuery),
+          }}
+          locale={{
+            emptyText: (
+              <Result
+                icon={<BulbOutlined style={{ color: '#722ed1' }} />}
+                title="開始建立您的第一個工作流程"
+                subTitle="工作流程可以幫助您自動化日常任務，節省時間提高效率"
+                extra={
+                  <Space direction="vertical" size="middle" style={{ width: '100%', maxWidth: 400 }}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<ThunderboltOutlined />}
+                      onClick={() => setAiGeneratorOpen(true)}
+                      style={{ width: '100%', background: '#722ed1', borderColor: '#722ed1' }}
+                    >
+                      用 AI 快速建立（推薦）
+                    </Button>
+                    <Text type="secondary">
+                      用口語描述您想要的流程，AI 自動幫您生成
+                    </Text>
+                    <Button
+                      size="large"
+                      icon={<PlusOutlined />}
+                      onClick={() => setCreateModalOpen(true)}
+                      style={{ width: '100%' }}
+                    >
+                      從空白開始
+                    </Button>
+                    <Button
+                      icon={<UploadOutlined />}
+                      onClick={() => setImportModalOpen(true)}
+                      style={{ width: '100%' }}
+                    >
+                      匯入現有流程
+                    </Button>
+                  </Space>
+                }
+              />
+            ),
           }}
         />
       </Card>
@@ -260,6 +312,27 @@ export default function FlowListPage() {
           onClose={() => setExportFlow(null)}
         />
       )}
+
+      {/* AI Flow Generator Modal */}
+      <FlowGeneratorModal
+        open={aiGeneratorOpen}
+        onClose={() => setAiGeneratorOpen(false)}
+        onCreateFlow={async (flowDef) => {
+          if (flowDef) {
+            // First create a flow, then navigate to editor with the generated content
+            try {
+              const flow = await createFlow('AI 生成的流程', '由 AI 根據自然語言描述自動生成')
+              message.success('流程已建立，正在跳轉到編輯器...')
+              // Navigate to editor and let it handle the flow definition
+              navigate(`/flows/${flow.id}/edit`, {
+                state: { generatedFlow: flowDef },
+              })
+            } catch {
+              message.error('建立流程失敗')
+            }
+          }
+        }}
+      />
     </>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Modal,
   Input,
@@ -11,14 +11,27 @@ import {
   Spin,
   Steps,
   Result,
+  Progress,
+  List,
+  message,
 } from 'antd'
 import {
   RobotOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
+  DownloadOutlined,
+  LoadingOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from '@ant-design/icons'
 import { aiAssistantApi, GenerateFlowResponse } from '../../api/aiAssistant'
+import {
+  installMissingNodes,
+  getInstallTaskStatus,
+  type PluginInstallTaskStatus,
+} from '../../api/aiAssistantStream'
+import MiniFlowPreview from './MiniFlowPreview'
 
 const { TextArea } = Input
 const { Text, Paragraph, Title } = Typography
@@ -41,11 +54,92 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Plugin installation state
+  const [isInstalling, setIsInstalling] = useState(false)
+  const [installTasks, setInstallTasks] = useState<PluginInstallTaskStatus[]>([])
+  const [installedNodes, setInstalledNodes] = useState<Set<string>>(new Set())
+
+  // Poll for install task status
+  useEffect(() => {
+    if (installTasks.length === 0) return
+
+    const activeTasks = installTasks.filter(
+      (t) => !['COMPLETED', 'FAILED', 'CANCELLED'].includes(t.status)
+    )
+    if (activeTasks.length === 0) return
+
+    const pollInterval = setInterval(async () => {
+      const updatedTasks = await Promise.all(
+        installTasks.map(async (task) => {
+          if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(task.status)) {
+            return task
+          }
+          try {
+            return await getInstallTaskStatus(task.taskId)
+          } catch {
+            return task
+          }
+        })
+      )
+      setInstallTasks(updatedTasks)
+
+      // Update installed nodes
+      const newInstalled = new Set(installedNodes)
+      updatedTasks.forEach((t) => {
+        if (t.status === 'COMPLETED') {
+          newInstalled.add(t.nodeType)
+        }
+      })
+      setInstalledNodes(newInstalled)
+
+      // Check if all done
+      const allDone = updatedTasks.every((t) =>
+        ['COMPLETED', 'FAILED', 'CANCELLED'].includes(t.status)
+      )
+      if (allDone) {
+        setIsInstalling(false)
+        const completed = updatedTasks.filter((t) => t.status === 'COMPLETED').length
+        const failed = updatedTasks.filter((t) => t.status === 'FAILED').length
+        if (failed > 0) {
+          message.warning(`安裝完成: ${completed} 成功, ${failed} 失敗`)
+        } else {
+          message.success(`已成功安裝 ${completed} 個元件`)
+        }
+      }
+    }, 2000)
+
+    return () => clearInterval(pollInterval)
+  }, [installTasks, installedNodes])
+
+  const handleInstallMissingNodes = async () => {
+    if (!result?.missingNodes || result.missingNodes.length === 0) return
+
+    setIsInstalling(true)
+    try {
+      const response = await installMissingNodes(result.missingNodes)
+      // Initialize tasks with pending status
+      const initialTasks: PluginInstallTaskStatus[] = response.taskIds.map((taskId: string, i: number) => ({
+        taskId,
+        nodeType: result.missingNodes![i],
+        status: 'PENDING' as const,
+        progress: 0,
+        stage: '準備中...',
+      }))
+      setInstallTasks(initialTasks)
+    } catch (err) {
+      message.error('啟動安裝失敗: ' + (err instanceof Error ? err.message : '未知錯誤'))
+      setIsInstalling(false)
+    }
+  }
+
   const handleReset = () => {
     setStep('input')
     setUserInput('')
     setResult(null)
     setError(null)
+    setInstallTasks([])
+    setInstalledNodes(new Set())
+    setIsInstalling(false)
   }
 
   const handleClose = () => {
@@ -143,45 +237,102 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         </Card>
 
         <Card title="生成的流程預覽" size="small" style={{ marginBottom: 16 }}>
-          <div style={{ marginBottom: 8 }}>
-            <Text strong>節點 ({nodes.length} 個)：</Text>
-          </div>
-          <Space wrap style={{ marginBottom: 16 }}>
-            {nodes.map((node, i) => (
-              <Tag key={node.id} color="blue">
-                {i + 1}. {node.label || node.type}
-              </Tag>
-            ))}
-          </Space>
+          {/* Mini Flow Preview */}
+          <MiniFlowPreview nodes={nodes} edges={edges} height={220} />
 
-          <div style={{ marginBottom: 8 }}>
-            <Text strong>連線 ({edges.length} 條)：</Text>
+          {/* Node and Edge Summary */}
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
+            <Space split={<span style={{ color: '#d9d9d9' }}>|</span>}>
+              <Text type="secondary">
+                節點: <Text strong>{nodes.length}</Text> 個
+              </Text>
+              <Text type="secondary">
+                連線: <Text strong>{edges.length}</Text> 條
+              </Text>
+            </Space>
           </div>
-          <Space wrap>
-            {edges.map((edge, i) => (
-              <Tag key={i}>
-                {edge.source} → {edge.target}
-              </Tag>
-            ))}
-          </Space>
         </Card>
 
         {missingNodes && missingNodes.length > 0 && (
           <Alert
-            type="warning"
+            type={installedNodes.size === missingNodes.length ? 'success' : 'warning'}
             showIcon
-            icon={<ExclamationCircleOutlined />}
-            message="缺少部分節點"
+            icon={installedNodes.size === missingNodes.length ?
+              <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
+            message={installedNodes.size === missingNodes.length ?
+              '所有元件已安裝完成' : '缺少部分節點'}
             description={
               <div>
-                <Paragraph>以下節點類型尚未安裝，您可能需要先安裝：</Paragraph>
-                <Space wrap>
-                  {missingNodes.map((node) => (
-                    <Tag key={node} color="orange">
-                      {node}
-                    </Tag>
-                  ))}
+                {installedNodes.size < missingNodes.length && (
+                  <Paragraph>以下節點類型尚未安裝，點擊「一鍵安裝」即可自動安裝：</Paragraph>
+                )}
+                <Space wrap style={{ marginBottom: 12 }}>
+                  {missingNodes.map((node) => {
+                    const task = installTasks.find((t) => t.nodeType === node)
+                    const isNodeInstalled = installedNodes.has(node)
+                    return (
+                      <Tag
+                        key={node}
+                        color={isNodeInstalled ? 'success' : task?.status === 'FAILED' ? 'error' : 'orange'}
+                        icon={
+                          isNodeInstalled ? <CheckOutlined /> :
+                          task?.status === 'FAILED' ? <CloseOutlined /> :
+                          task ? <LoadingOutlined /> : undefined
+                        }
+                      >
+                        {node}
+                        {task && !isNodeInstalled && task.status !== 'FAILED' && (
+                          <span style={{ marginLeft: 4 }}>({task.progress}%)</span>
+                        )}
+                      </Tag>
+                    )
+                  })}
                 </Space>
+
+                {/* Installation Progress */}
+                {installTasks.length > 0 && (
+                  <List
+                    size="small"
+                    dataSource={installTasks}
+                    renderItem={(task) => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={
+                            task.status === 'COMPLETED' ? (
+                              <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+                            ) : task.status === 'FAILED' ? (
+                              <CloseOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+                            ) : (
+                              <LoadingOutlined style={{ fontSize: 16 }} />
+                            )
+                          }
+                          title={task.nodeType}
+                          description={
+                            task.status === 'COMPLETED' ? '安裝完成' :
+                            task.status === 'FAILED' ? (task.error || '安裝失敗') :
+                            task.stage || '準備中...'
+                          }
+                        />
+                        {!['COMPLETED', 'FAILED', 'CANCELLED'].includes(task.status) && (
+                          <Progress percent={task.progress} size="small" style={{ width: 80 }} />
+                        )}
+                      </List.Item>
+                    )}
+                    style={{ marginTop: 8 }}
+                  />
+                )}
+
+                {/* Install Button */}
+                {installedNodes.size < missingNodes.length && !isInstalling && (
+                  <Button
+                    type="primary"
+                    icon={<DownloadOutlined />}
+                    onClick={handleInstallMissingNodes}
+                    style={{ marginTop: 8 }}
+                  >
+                    一鍵安裝缺失元件
+                  </Button>
+                )}
               </div>
             }
             style={{ marginBottom: 16 }}
