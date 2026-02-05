@@ -5,12 +5,29 @@
   border-radius: 8px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .title {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  margin-bottom: 12px;
+}
+
+.searchStats {
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: rgba(114, 46, 209, 0.05);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .flowItem {
@@ -26,10 +43,19 @@
 .flowCard {
   width: 100%;
   border: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .flowCard:hover {
   border-color: #722ed1;
+  box-shadow: 0 2px 8px rgba(114, 46, 209, 0.15);
+}
+
+.flowCard:focus-within {
+  border-color: #722ed1;
+  outline: 2px solid rgba(114, 46, 209, 0.3);
+  outline-offset: 2px;
 }
 
 .flowHeader {
@@ -131,4 +157,22 @@
 
 :global(.dark) .flowActions {
   border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Accessibility: Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .flowCard {
+    transition: none;
+  }
+
+  .flowCard:hover {
+    transform: none;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.flowActions button:focus-visible {
+  outline: 2px solid #722ed1;
+  outline-offset: 2px;
+  border-radius: 4px;
 }

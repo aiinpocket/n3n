@@ -152,6 +152,34 @@ public class AIAssistantController {
     }
 
     /**
+     * Generate a flow from natural language description with SSE streaming
+     * POST /api/ai-assistant/generate-flow/stream
+     *
+     * Provides real-time progress updates during flow generation:
+     * - thinking: AI 思考中
+     * - progress: 進度更新 (0-100%)
+     * - understanding: AI 理解的需求
+     * - node_added: 新增節點 (可即時渲染)
+     * - edge_added: 新增連線
+     * - missing_nodes: 缺失的節點 (可安裝)
+     * - done: 完成
+     * - error: 錯誤
+     */
+    @PostMapping(value = "/generate-flow/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<FlowGenerationChunk>> generateFlowStream(
+            @RequestBody GenerateFlowRequest request,
+            Principal principal) {
+        log.info("Starting flow generation stream: {}",
+            request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
+
+        UUID userId = getUserId(principal);
+        return aiAssistantService.generateFlowStream(request, userId)
+            .map(chunk -> ServerSentEvent.<FlowGenerationChunk>builder()
+                .data(chunk)
+                .build());
+    }
+
+    /**
      * Get similar flows based on natural language description
      * GET /api/ai-assistant/similar-flows?query=xxx&limit=5
      */

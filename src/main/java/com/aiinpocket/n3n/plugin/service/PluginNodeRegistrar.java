@@ -226,4 +226,68 @@ public class PluginNodeRegistrar {
         DynamicPluginNodeHandler handler = globalPluginHandlers.get(nodeType);
         return handler != null ? Optional.of(handler.getPluginId()) : Optional.empty();
     }
+
+    /**
+     * Register a dynamic node from container node definition.
+     * Used by ContainerNodeDefinitionFetcher when installing plugins via Docker.
+     *
+     * @param nodeInfo Map containing node definition from container
+     */
+    public void registerDynamicNode(Map<String, Object> nodeInfo) {
+        String nodeType = (String) nodeInfo.get("type");
+        if (nodeType == null || nodeType.isBlank()) {
+            log.warn("Cannot register dynamic node: missing type");
+            return;
+        }
+
+        // Check if already registered
+        if (globalPluginHandlers.containsKey(nodeType)) {
+            log.info("Node type {} already registered, skipping", nodeType);
+            return;
+        }
+
+        // Create handler from container info
+        DynamicPluginNodeHandler handler = new DynamicPluginNodeHandler(
+                null, // No plugin ID for container-based nodes
+                nodeType,
+                nodeInfo,
+                extractConfigSchema(nodeInfo)
+        );
+
+        globalPluginHandlers.put(nodeType, handler);
+        nodeHandlerRegistry.register(handler);
+
+        log.info("Registered dynamic node from container: {} ({})",
+                nodeType, nodeInfo.get("displayName"));
+    }
+
+    /**
+     * Register multiple dynamic nodes from container.
+     */
+    public void registerDynamicNodes(List<Map<String, Object>> nodeInfoList) {
+        for (Map<String, Object> nodeInfo : nodeInfoList) {
+            registerDynamicNode(nodeInfo);
+        }
+    }
+
+    /**
+     * Extract config schema from node info.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractConfigSchema(Map<String, Object> nodeInfo) {
+        if (nodeInfo.containsKey("configSchema")) {
+            return (Map<String, Object>) nodeInfo.get("configSchema");
+        }
+        return Map.of();
+    }
+
+    /**
+     * Unregister a dynamic node.
+     */
+    public void unregisterDynamicNode(String nodeType) {
+        DynamicPluginNodeHandler removed = globalPluginHandlers.remove(nodeType);
+        if (removed != null) {
+            log.info("Unregistered dynamic node: {}", nodeType);
+        }
+    }
 }

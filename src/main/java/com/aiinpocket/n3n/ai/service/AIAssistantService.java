@@ -499,6 +499,26 @@ public class AIAssistantService {
     }
 
     /**
+     * Generate a flow from natural language description with SSE streaming
+     * Provides real-time progress updates and incremental flow building.
+     */
+    public Flux<FlowGenerationChunk> generateFlowStream(GenerateFlowRequest request, UUID userId) {
+        log.info("Starting flow generation stream for user: {}", userId);
+
+        Set<String> installedTypes = getInstalledNodeTypes(userId);
+
+        return naturalLanguageModule.generateFlowStream(
+                request.getUserInput(),
+                userId,
+                installedTypes
+            )
+            .onErrorResume(e -> {
+                log.error("Flow generation stream error", e);
+                return Flux.just(FlowGenerationChunk.error(e.getMessage()));
+            });
+    }
+
+    /**
      * Get installed node types for a user (builtin + plugins)
      */
     private Set<String> getInstalledNodeTypes(UUID userId) {

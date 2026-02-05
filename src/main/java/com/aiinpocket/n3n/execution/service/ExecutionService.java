@@ -375,8 +375,73 @@ public class ExecutionService {
                 }
             } catch (Exception e) {
                 log.error("Node execution failed: executionId={}, nodeId={}", executionId, nodeId, e);
-                updateExecutionFailed(executionId, "Node " + nodeId + " failed: " + e.getMessage());
-                return;
+
+                // Check for error handling edges
+                Map<String, List<DagParser.FlowEdge>> outgoingEdges =
+                    dagParser.getOutgoingEdgesByType(version.getDefinition(), nodeId);
+                List<DagParser.FlowEdge> errorEdges = outgoingEdges.get("error");
+                List<DagParser.FlowEdge> alwaysEdges = outgoingEdges.get("always");
+
+                boolean hasErrorPath = (errorEdges != null && !errorEdges.isEmpty()) ||
+                                       (alwaysEdges != null && !alwaysEdges.isEmpty());
+
+                if (hasErrorPath) {
+                    // Store error info in context for error handling nodes
+                    Map<String, Object> errorInfo = new HashMap<>();
+                    errorInfo.put("error", true);
+                    errorInfo.put("errorMessage", e.getMessage());
+                    errorInfo.put("errorType", e.getClass().getName());
+                    errorInfo.put("failedNodeId", nodeId);
+                    nodeOutputs.put(nodeId, errorInfo);
+                    context.put(nodeId, errorInfo);
+                    context.put("_lastError", errorInfo);
+
+                    log.info("Node {} failed but has error handling path, continuing with error route", nodeId);
+
+                    // Execute error path nodes
+                    Set<String> errorPathNodes = new HashSet<>();
+                    if (errorEdges != null) {
+                        for (DagParser.FlowEdge edge : errorEdges) {
+                            errorPathNodes.add(edge.getTarget());
+                        }
+                    }
+                    if (alwaysEdges != null) {
+                        for (DagParser.FlowEdge edge : alwaysEdges) {
+                            errorPathNodes.add(edge.getTarget());
+                        }
+                    }
+
+                    // Continue execution with error path nodes
+                    // Note: This is a simplified implementation that adds error path nodes to continue
+                    for (String errorNodeId : errorPathNodes) {
+                        if (!completedNodes.contains(errorNodeId)) {
+                            try {
+                                log.info("Executing error handler node: {}", errorNodeId);
+                                ExecuteNodeResult errorResult = executeNodeWithPauseSupport(
+                                    executionId, errorNodeId, version.getDefinition(), context, nodeOutputs);
+
+                                if (errorResult.isPauseRequested()) {
+                                    handleExecutionPause(execution, errorNodeId,
+                                        errorResult.getPauseReason(), errorResult.getResumeCondition(), nodeOutputs);
+                                    return;
+                                }
+
+                                Map<String, Object> errorNodeOutput = errorResult.getOutput();
+                                nodeOutputs.put(errorNodeId, errorNodeOutput);
+                                context.put(errorNodeId, errorNodeOutput);
+                                completedNodes.add(errorNodeId);
+                            } catch (Exception errorEx) {
+                                log.error("Error handler node {} also failed: {}", errorNodeId, errorEx.getMessage());
+                            }
+                        }
+                    }
+                    // Continue to next node in the main flow (skip failed node's success path)
+                    continue;
+                } else {
+                    // No error handling path, fail the execution
+                    updateExecutionFailed(executionId, "Node " + nodeId + " failed: " + e.getMessage());
+                    return;
+                }
             }
         }
 

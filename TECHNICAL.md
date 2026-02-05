@@ -87,6 +87,42 @@ For local AI features, GPU acceleration can significantly improve performance:
 6. On node completion, downstream dependencies are checked (fan-in)
 7. WebSocket pushes real-time status updates to frontend
 
+### Error Handling Edge Routing
+
+N3N supports three types of edge connections for fine-grained control over flow execution paths:
+
+| Edge Type | Color | Style | Description |
+|-----------|-------|-------|-------------|
+| `success` | Green (#52c41a) | Solid | Follows this path when node executes successfully (default) |
+| `error` | Red (#ff4d4f) | Dashed | Follows this path when node fails with an error |
+| `always` | Blue (#1890ff) | Solid | Always follows this path regardless of success/failure |
+
+**Flow Definition with Edge Types:**
+```json
+{
+  "nodes": [
+    {"id": "n1", "type": "httpRequest", "label": "API Call"},
+    {"id": "n2", "type": "code", "label": "Process Data"},
+    {"id": "n3", "type": "slack", "label": "Error Alert"}
+  ],
+  "edges": [
+    {"source": "n1", "target": "n2"},
+    {"source": "n1", "target": "n3", "edgeType": "error"}
+  ]
+}
+```
+
+**Execution Behavior:**
+- When a node fails, the engine checks for `error` and `always` edges from that node
+- Error information (`errorMessage`, `errorType`) is passed to downstream error handler nodes
+- Success edges are only followed when the node completes without error
+- Multiple edge types can be combined for comprehensive error handling patterns
+
+**Frontend Implementation:**
+- Custom edge components in `src/main/frontend/src/components/edges/`
+- `EdgeConfigPanel` allows users to configure edge types via click interaction
+- `EdgeLegend` component displays a visual key for edge types
+
 ---
 
 ## Technology Stack

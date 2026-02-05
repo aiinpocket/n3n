@@ -114,16 +114,25 @@ export const AIThinkingIndicator: React.FC<Props> = ({
   const currentStageData = stages[currentStage] || stages[0]
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      role="status"
+      aria-live="polite"
+      aria-busy={currentStage < stages.length - 1}
+      aria-label={`AI 處理中：${currentStageData?.label} - ${currentStageData?.description}`}
+    >
       {/* 主要動畫區域 */}
       <div className={styles.mainArea}>
-        <div className={`${styles.iconWrapper} ${animated ? styles.pulse : ''}`}>
+        <div
+          className={`${styles.iconWrapper} ${animated ? styles.pulse : ''}`}
+          aria-hidden="true"
+        >
           <RobotOutlined className={styles.mainIcon} />
         </div>
 
         <div className={styles.textArea}>
           <Text strong className={styles.stageLabel}>
-            {currentStageData?.icon} {currentStageData?.label}{dots}
+            <span aria-hidden="true">{currentStageData?.icon}</span> {currentStageData?.label}{dots}
           </Text>
           <Paragraph type="secondary" className={styles.description}>
             {currentStageData?.description}

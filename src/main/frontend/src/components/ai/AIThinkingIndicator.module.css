@@ -137,3 +137,39 @@
 :global(.dark) .description {
   color: rgba(255, 255, 255, 0.45);
 }
+
+/* Accessibility: Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+
+  .cursor {
+    animation: none;
+    opacity: 1;
+  }
+
+  .thoughtItem {
+    transition: none;
+  }
+}
+
+/* Smooth transitions for thought items */
+.thoughtItem {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.thoughtItem:last-child {
+  animation: fadeSlideIn 200ms ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

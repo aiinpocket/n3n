@@ -227,6 +227,13 @@
             <version>4.12.0</version>
         </dependency>
 
+        <!-- Jsoup for Web Scraping -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+
         <!-- SSHJ for SSH Node -->
         <dependency>
             <groupId>com.hierynomus</groupId>

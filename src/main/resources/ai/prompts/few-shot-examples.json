@@ -1,0 +1,44 @@
+[
+  {
+    "title": "每日天氣通知",
+    "userRequest": "每天早上 8 點查詢天氣預報並發送到 Slack",
+    "keywords": ["排程", "天氣", "通知", "slack", "每天"],
+    "solution": "{\n  \"understanding\": \"建立一個每天早上 8 點執行的排程任務，呼叫天氣 API 取得預報資訊，然後發送到 Slack 頻道\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"scheduleTrigger\", \"label\": \"每日早上 8 點\", \"config\": {\"cron\": \"0 8 * * *\"}},\n    {\"id\": \"2\", \"type\": \"httpRequest\", \"label\": \"取得天氣預報\", \"config\": {\"method\": \"GET\", \"url\": \"https://api.weather.gov/forecast\"}},\n    {\"id\": \"3\", \"type\": \"slack\", \"label\": \"發送天氣通知\", \"config\": {\"channel\": \"#general\"}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}],\n  \"requiredNodes\": [\"scheduleTrigger\", \"httpRequest\", \"slack\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "API 監控與告警",
+    "userRequest": "每 5 分鐘檢查網站是否正常，如果回應時間超過 3 秒就發送告警郵件",
+    "keywords": ["監控", "API", "告警", "郵件", "條件", "檢查"],
+    "solution": "{\n  \"understanding\": \"建立一個每 5 分鐘執行的監控任務，呼叫目標 API 並檢查回應時間，如果超過閾值則發送告警郵件\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"scheduleTrigger\", \"label\": \"每 5 分鐘執行\", \"config\": {\"interval\": \"5m\"}},\n    {\"id\": \"2\", \"type\": \"httpRequest\", \"label\": \"檢查網站\", \"config\": {\"method\": \"GET\", \"url\": \"https://example.com/health\"}},\n    {\"id\": \"3\", \"type\": \"condition\", \"label\": \"回應時間檢查\", \"config\": {\"rules\": [{\"field\": \"responseTime\", \"operator\": \"gt\", \"value\": 3000}]}},\n    {\"id\": \"4\", \"type\": \"sendEmail\", \"label\": \"發送告警郵件\", \"config\": {\"to\": \"admin@example.com\", \"subject\": \"網站回應緩慢告警\"}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}, {\"source\": \"3\", \"target\": \"4\", \"sourceHandle\": \"true\"}],\n  \"requiredNodes\": [\"scheduleTrigger\", \"httpRequest\", \"condition\", \"sendEmail\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "資料同步",
+    "userRequest": "從 Google Sheets 讀取資料並寫入資料庫",
+    "keywords": ["資料", "同步", "sheets", "資料庫", "批次", "匯入"],
+    "solution": "{\n  \"understanding\": \"從 Google Sheets 試算表讀取資料，然後批次寫入資料庫\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"trigger\", \"label\": \"手動觸發\", \"config\": {}},\n    {\"id\": \"2\", \"type\": \"googleSheets\", \"label\": \"讀取試算表\", \"config\": {\"operation\": \"read\", \"sheetId\": \"\"}},\n    {\"id\": \"3\", \"type\": \"loop\", \"label\": \"逐筆處理\", \"config\": {}},\n    {\"id\": \"4\", \"type\": \"database\", \"label\": \"寫入資料庫\", \"config\": {\"operation\": \"insert\"}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}, {\"source\": \"3\", \"target\": \"4\"}],\n  \"requiredNodes\": [\"trigger\", \"googleSheets\", \"loop\", \"database\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "AI 內容摘要",
+    "userRequest": "收到新郵件時使用 AI 生成摘要並發送到 Telegram",
+    "keywords": ["AI", "摘要", "郵件", "telegram", "自動", "通知"],
+    "solution": "{\n  \"understanding\": \"當收到新郵件時，使用 OpenAI 生成郵件內容摘要，然後發送到 Telegram\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"emailTrigger\", \"label\": \"收到新郵件\", \"config\": {}},\n    {\"id\": \"2\", \"type\": \"openai\", \"label\": \"AI 生成摘要\", \"config\": {\"model\": \"gpt-4\", \"prompt\": \"請摘要以下郵件內容：{{$input.body}}\", \"maxTokens\": 300}},\n    {\"id\": \"3\", \"type\": \"telegram\", \"label\": \"發送摘要通知\", \"config\": {}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}],\n  \"requiredNodes\": [\"emailTrigger\", \"openai\", \"telegram\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "表單審批流程",
+    "userRequest": "表單提交後需要主管審批，審批通過發送確認郵件，否則發送拒絕通知",
+    "keywords": ["表單", "審批", "郵件", "流程", "確認", "拒絕"],
+    "solution": "{\n  \"understanding\": \"建立表單審批流程：表單提交後等待主管審批，根據審批結果發送不同的通知郵件\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"formTrigger\", \"label\": \"表單提交\", \"config\": {}},\n    {\"id\": \"2\", \"type\": \"approval\", \"label\": \"主管審批\", \"config\": {\"approvers\": [\"manager@example.com\"], \"timeout\": \"24h\"}},\n    {\"id\": \"3\", \"type\": \"condition\", \"label\": \"審批結果\", \"config\": {\"rules\": [{\"field\": \"approved\", \"operator\": \"eq\", \"value\": true}]}},\n    {\"id\": \"4\", \"type\": \"sendEmail\", \"label\": \"發送確認郵件\", \"config\": {\"subject\": \"您的申請已通過\"}},\n    {\"id\": \"5\", \"type\": \"sendEmail\", \"label\": \"發送拒絕通知\", \"config\": {\"subject\": \"您的申請未通過\"}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}, {\"source\": \"3\", \"target\": \"4\", \"sourceHandle\": \"true\"}, {\"source\": \"3\", \"target\": \"5\", \"sourceHandle\": \"false\"}],\n  \"requiredNodes\": [\"formTrigger\", \"approval\", \"condition\", \"sendEmail\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "資料清洗與轉換",
+    "userRequest": "讀取 CSV 檔案，過濾掉空值，轉換日期格式，然後存到新檔案",
+    "keywords": ["CSV", "資料", "過濾", "轉換", "日期", "檔案"],
+    "solution": "{\n  \"understanding\": \"讀取 CSV 檔案資料，過濾掉包含空值的記錄，將日期格式轉換為標準格式，然後儲存到新的 CSV 檔案\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"trigger\", \"label\": \"手動觸發\", \"config\": {}},\n    {\"id\": \"2\", \"type\": \"googleDrive\", \"label\": \"讀取 CSV 檔案\", \"config\": {\"operation\": \"read\"}},\n    {\"id\": \"3\", \"type\": \"filter\", \"label\": \"過濾空值\", \"config\": {\"rules\": [{\"field\": \"*\", \"operator\": \"notEmpty\"}]}},\n    {\"id\": \"4\", \"type\": \"dateTime\", \"label\": \"轉換日期格式\", \"config\": {\"format\": \"YYYY-MM-DD\"}},\n    {\"id\": \"5\", \"type\": \"googleDrive\", \"label\": \"儲存新檔案\", \"config\": {\"operation\": \"write\"}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\"}, {\"source\": \"3\", \"target\": \"4\"}, {\"source\": \"4\", \"target\": \"5\"}],\n  \"requiredNodes\": [\"trigger\", \"googleDrive\", \"filter\", \"dateTime\"],\n  \"missingNodes\": []\n}"
+  },
+  {
+    "title": "多通路通知",
+    "userRequest": "當訂單金額超過 1000 元時，同時發送 Email、Slack 和 Telegram 通知",
+    "keywords": ["訂單", "通知", "email", "slack", "telegram", "多通路"],
+    "solution": "{\n  \"understanding\": \"當訂單金額超過閾值時，同時透過 Email、Slack 和 Telegram 三個通路發送通知\",\n  \"nodes\": [\n    {\"id\": \"1\", \"type\": \"webhookTrigger\", \"label\": \"訂單 Webhook\", \"config\": {}},\n    {\"id\": \"2\", \"type\": \"condition\", \"label\": \"金額檢查\", \"config\": {\"rules\": [{\"field\": \"amount\", \"operator\": \"gt\", \"value\": 1000}]}},\n    {\"id\": \"3\", \"type\": \"sendEmail\", \"label\": \"發送 Email\", \"config\": {}},\n    {\"id\": \"4\", \"type\": \"slack\", \"label\": \"發送 Slack\", \"config\": {}},\n    {\"id\": \"5\", \"type\": \"telegram\", \"label\": \"發送 Telegram\", \"config\": {}}\n  ],\n  \"edges\": [{\"source\": \"1\", \"target\": \"2\"}, {\"source\": \"2\", \"target\": \"3\", \"sourceHandle\": \"true\"}, {\"source\": \"2\", \"target\": \"4\", \"sourceHandle\": \"true\"}, {\"source\": \"2\", \"target\": \"5\", \"sourceHandle\": \"true\"}],\n  \"requiredNodes\": [\"webhookTrigger\", \"condition\", \"sendEmail\", \"slack\", \"telegram\"],\n  \"missingNodes\": []\n}"
+  }
+]

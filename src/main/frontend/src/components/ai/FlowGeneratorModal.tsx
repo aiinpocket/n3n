@@ -29,14 +29,18 @@ import {
   AudioOutlined,
   AudioMutedOutlined,
 } from '@ant-design/icons'
-import { aiAssistantApi, GenerateFlowResponse } from '../../api/aiAssistant'
+import type { GenerateFlowResponse } from '../../api/aiAssistant'
 import {
   installMissingNodes,
   getInstallTaskStatus,
+  generateFlowStream,
   type PluginInstallTaskStatus,
+  type NodeData,
+  type EdgeData,
+  type MissingNodeInfo,
 } from '../../api/aiAssistantStream'
 import MiniFlowPreview from './MiniFlowPreview'
-import AIThinkingIndicator, { DEFAULT_STAGES } from './AIThinkingIndicator'
+import AIThinkingIndicator from './AIThinkingIndicator'
 import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
 
@@ -64,6 +68,15 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   // AI thinking progress state
   const [thinkingStage, setThinkingStage] = useState(0)
   const [thinkingThoughts, setThinkingThoughts] = useState<string[]>([])
+
+  // Real-time streaming preview state
+  const [streamProgress, setStreamProgress] = useState(0)
+  const [streamStage, setStreamStage] = useState('')
+  const [streamMessage, setStreamMessage] = useState('')
+  const [previewNodes, setPreviewNodes] = useState<NodeData[]>([])
+  const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
+  const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
 
   // AI understanding edit state
   const [isEditingUnderstanding, setIsEditingUnderstanding] = useState(false)
@@ -176,6 +189,19 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setInstallTasks([])
     setInstalledNodes(new Set())
     setIsInstalling(false)
+    // Reset streaming state
+    setStreamProgress(0)
+    setStreamStage('')
+    setStreamMessage('')
+    setPreviewNodes([])
+    setPreviewEdges([])
+    setStreamMissingNodes([])
+    setThinkingStage(0)
+    setThinkingThoughts([])
+    if (abortController) {
+      abortController.abort()
+      setAbortController(null)
+    }
   }
 
   const handleClose = () => {
@@ -190,63 +216,77 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setError(null)
     setThinkingStage(0)
     setThinkingThoughts([])
+    setStreamProgress(0)
+    setStreamStage('')
+    setStreamMessage('')
+    setPreviewNodes([])
+    setPreviewEdges([])
+    setStreamMissingNodes([])
 
-    // 模擬思考過程的進度更新
-    const simulateThinking = () => {
-      const thoughts = [
-        '解析用戶描述中的關鍵字和意圖...',
-        '識別需要的服務和觸發條件...',
-        '確定節點之間的資料流向...',
-        '最佳化節點配置和連接...',
-      ]
-
-      let stageIndex = 0
-      let thoughtIndex = 0
-
-      const stageInterval = setInterval(() => {
-        if (stageIndex < DEFAULT_STAGES.length - 1) {
-          stageIndex++
-          setThinkingStage(stageIndex)
-        }
-      }, 1500)
-
-      const thoughtInterval = setInterval(() => {
-        if (thoughtIndex < thoughts.length) {
-          setThinkingThoughts((prev) => [...prev, thoughts[thoughtIndex]])
-          thoughtIndex++
-        }
-      }, 1000)
-
-      return () => {
-        clearInterval(stageInterval)
-        clearInterval(thoughtInterval)
-      }
-    }
-
-    const clearSimulation = simulateThinking()
+    // Create abort controller for cancellation
+    const controller = new AbortController()
+    setAbortController(controller)
 
     try {
-      const response = await aiAssistantApi.generateFlow({
-        userInput,
-        language: 'zh-TW',
-      })
-
-      clearSimulation()
-      setResult(response)
-
-      if (!response.aiAvailable) {
-        setError('AI 服務暫時不可用，請確認 Llamafile 已啟動或配置其他 AI 提供者。')
-        setStep('error')
-      } else if (!response.success) {
-        setError(response.error || '生成失敗')
-        setStep('error')
-      } else {
-        setStep('preview')
-      }
+      await generateFlowStream(
+        { userInput, language: 'zh-TW' },
+        {
+          onThinking: (msg) => {
+            setThinkingThoughts((prev) => [...prev, msg])
+          },
+          onProgress: (percent, stage, msg) => {
+            setStreamProgress(percent)
+            setStreamStage(stage)
+            if (msg) setStreamMessage(msg)
+            // Map progress to thinking stage
+            if (percent < 20) setThinkingStage(0)
+            else if (percent < 40) setThinkingStage(1)
+            else if (percent < 70) setThinkingStage(2)
+            else if (percent < 90) setThinkingStage(3)
+            else setThinkingStage(4)
+          },
+          onUnderstanding: (understanding) => {
+            // Update result with understanding as it comes
+            setResult((prev) => ({
+              ...(prev || { success: true, aiAvailable: true }),
+              understanding,
+            }))
+          },
+          onNodeAdded: (node) => {
+            setPreviewNodes((prev) => [...prev, node])
+          },
+          onEdgeAdded: (edge) => {
+            setPreviewEdges((prev) => [...prev, edge])
+          },
+          onMissingNodes: (missing) => {
+            setStreamMissingNodes(missing)
+          },
+          onDone: (flowDefinition, requiredNodes) => {
+            // Finalize result
+            setResult({
+              success: true,
+              aiAvailable: true,
+              understanding: result?.understanding || '',
+              flowDefinition: flowDefinition as GenerateFlowResponse['flowDefinition'],
+              requiredNodes,
+              missingNodes: streamMissingNodes.map((m) => m.nodeType),
+            })
+            setStep('preview')
+          },
+          onError: (err) => {
+            setError(err)
+            setStep('error')
+          },
+        },
+        controller
+      )
     } catch (err) {
-      clearSimulation()
-      setError(err instanceof Error ? err.message : '未知錯誤')
-      setStep('error')
+      if ((err as Error).name !== 'AbortError') {
+        setError(err instanceof Error ? err.message : '未知錯誤')
+        setStep('error')
+      }
+    } finally {
+      setAbortController(null)
     }
   }
 
@@ -278,68 +318,82 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStep('generating')
     setThinkingStage(0)
     setThinkingThoughts([])
+    setStreamProgress(0)
+    setStreamStage('')
+    setStreamMessage('')
+    setPreviewNodes([])
+    setPreviewEdges([])
+    setStreamMissingNodes([])
 
     // 建構帶反饋的輸入
     const feedbackInput = feedbackText.trim()
       ? `原始需求：${userInput}\n\n用戶反饋：${feedbackText}\n\n修正後的理解：${editedUnderstanding || result?.understanding}`
       : `原始需求：${userInput}\n\n修正後的理解：${editedUnderstanding}`
 
-    const simulateThinking = () => {
-      const thoughts = [
-        '根據您的反饋重新理解需求...',
-        '調整節點配置和連接邏輯...',
-        '優化流程設計...',
-      ]
-
-      let stageIndex = 0
-      let thoughtIndex = 0
-
-      const stageInterval = setInterval(() => {
-        if (stageIndex < DEFAULT_STAGES.length - 1) {
-          stageIndex++
-          setThinkingStage(stageIndex)
-        }
-      }, 1200)
-
-      const thoughtInterval = setInterval(() => {
-        if (thoughtIndex < thoughts.length) {
-          setThinkingThoughts((prev) => [...prev, thoughts[thoughtIndex]])
-          thoughtIndex++
-        }
-      }, 800)
-
-      return () => {
-        clearInterval(stageInterval)
-        clearInterval(thoughtInterval)
-      }
-    }
-
-    const clearSimulation = simulateThinking()
+    const controller = new AbortController()
+    setAbortController(controller)
 
     try {
-      const response = await aiAssistantApi.generateFlow({
-        userInput: feedbackInput,
-        language: 'zh-TW',
-      })
-
-      clearSimulation()
-      setResult(response)
-      setIsEditingUnderstanding(false)
-      setEditedUnderstanding('')
-      setFeedbackText('')
-
-      if (!response.aiAvailable || !response.success) {
-        setError(response.error || 'AI 服務暫時不可用')
-        setStep('error')
-      } else {
-        setStep('preview')
-      }
+      await generateFlowStream(
+        { userInput: feedbackInput, language: 'zh-TW' },
+        {
+          onThinking: (msg) => {
+            setThinkingThoughts((prev) => [...prev, msg])
+          },
+          onProgress: (percent, stage, msg) => {
+            setStreamProgress(percent)
+            setStreamStage(stage)
+            if (msg) setStreamMessage(msg)
+            if (percent < 20) setThinkingStage(0)
+            else if (percent < 40) setThinkingStage(1)
+            else if (percent < 70) setThinkingStage(2)
+            else if (percent < 90) setThinkingStage(3)
+            else setThinkingStage(4)
+          },
+          onUnderstanding: (understanding) => {
+            setResult((prev) => ({
+              ...(prev || { success: true, aiAvailable: true }),
+              understanding,
+            }))
+          },
+          onNodeAdded: (node) => {
+            setPreviewNodes((prev) => [...prev, node])
+          },
+          onEdgeAdded: (edge) => {
+            setPreviewEdges((prev) => [...prev, edge])
+          },
+          onMissingNodes: (missing) => {
+            setStreamMissingNodes(missing)
+          },
+          onDone: (flowDefinition, requiredNodes) => {
+            setResult({
+              success: true,
+              aiAvailable: true,
+              understanding: result?.understanding || '',
+              flowDefinition: flowDefinition as GenerateFlowResponse['flowDefinition'],
+              requiredNodes,
+              missingNodes: streamMissingNodes.map((m) => m.nodeType),
+            })
+            setIsEditingUnderstanding(false)
+            setEditedUnderstanding('')
+            setFeedbackText('')
+            setStep('preview')
+          },
+          onError: (err) => {
+            setError(err)
+            setStep('error')
+          },
+        },
+        controller
+      )
     } catch (err) {
-      clearSimulation()
-      setError(err instanceof Error ? err.message : '未知錯誤')
-      setStep('error')
+      if ((err as Error).name !== 'AbortError') {
+        setError(err instanceof Error ? err.message : '未知錯誤')
+        setStep('error')
+      }
     } finally {
       setIsRegenerating(false)
+      setAbortController(null)
     }
   }
 
@@ -380,12 +434,17 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               right: 8,
               bottom: 8,
               zIndex: 1,
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
             }}
-            title={isListening ? '停止語音輸入' : '開始語音輸入'}
+            aria-label={isListening ? '停止語音輸入' : '開始語音輸入'}
+            aria-pressed={isListening}
           />
         )}
         {isListening && (
           <div
+            role="status"
+            aria-live="polite"
             style={{
               position: 'absolute',
               right: 50,
@@ -397,7 +456,13 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               gap: 4,
             }}
           >
-            <span style={{ animation: 'pulse 1s infinite' }}>●</span>
+            <span
+              style={{
+                animation: 'pulse 1s infinite',
+                // Respect prefers-reduced-motion via CSS
+              }}
+              className="recording-indicator"
+            >●</span>
             錄音中...
           </div>
         )}
@@ -423,13 +488,84 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   )
 
   const renderGeneratingStep = () => (
-    <AIThinkingIndicator
-      currentStage={thinkingStage}
-      thoughts={thinkingThoughts}
-      showProgress={true}
-      showThoughts={true}
-      animated={true}
-    />
+    <div>
+      {/* Progress and Stage */}
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text strong>{streamStage || '準備中...'}</Text>
+            <Text type="secondary">{streamProgress}%</Text>
+          </div>
+          <Progress
+            percent={streamProgress}
+            status="active"
+            strokeColor={{
+              '0%': '#722ed1',
+              '100%': '#1890ff',
+            }}
+            showInfo={false}
+          />
+          {streamMessage && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {streamMessage}
+            </Text>
+          )}
+        </Space>
+      </Card>
+
+      {/* AI Thinking Indicator */}
+      <AIThinkingIndicator
+        currentStage={thinkingStage}
+        thoughts={thinkingThoughts}
+        showProgress={false}
+        showThoughts={true}
+        animated={true}
+      />
+
+      {/* Real-time Preview (show when we have nodes) */}
+      {previewNodes.length > 0 && (
+        <Card
+          title={
+            <Space>
+              <LoadingOutlined />
+              <span>即時預覽 ({previewNodes.length} 節點)</span>
+            </Space>
+          }
+          size="small"
+          style={{ marginTop: 16 }}
+        >
+          <MiniFlowPreview
+            nodes={previewNodes.map((n) => ({
+              id: n.id,
+              type: n.type,
+              data: { label: n.label, nodeType: n.type, config: n.config },
+              position: n.position || { x: 100, y: 100 },
+            }))}
+            edges={previewEdges.map((e) => ({
+              id: e.id,
+              source: e.source,
+              target: e.target,
+            }))}
+            height={180}
+          />
+        </Card>
+      )}
+
+      {/* Cancel Button */}
+      <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <Button
+          onClick={() => {
+            if (abortController) {
+              abortController.abort()
+              setAbortController(null)
+            }
+            handleReset()
+          }}
+        >
+          取消生成
+        </Button>
+      </div>
+    </div>
   )
 
   const renderPreviewStep = () => {

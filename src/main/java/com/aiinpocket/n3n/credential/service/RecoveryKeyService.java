@@ -22,16 +22,18 @@ import java.util.List;
  *
  * 負責 Recovery Key 的產生、驗證和 Master Key 衍生。
  *
- * Recovery Key 是 8 個英文單詞的助記詞，提供約 88 bits 的熵值 (log2(2048^8) ≈ 88)。
- * 雖然不如標準 BIP-39 的 12/24 個單詞安全，但對於企業內部使用足夠，
- * 且更容易記憶和備份。
+ * Recovery Key 是 12 個英文單詞的助記詞，提供約 132 bits 的熵值 (log2(2048^12) ≈ 132)。
+ * 這符合 NIST 建議的 128 bits 最低安全標準，並與 BIP-39 標準相容。
+ *
+ * 為了向後相容，系統仍支援驗證舊版 8 單詞的 Recovery Key，但新產生的一律為 12 單詞。
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class RecoveryKeyService {
 
-    private static final int WORD_COUNT = 8;
+    private static final int WORD_COUNT = 12;  // 132 bits entropy (NIST recommended minimum: 128 bits)
+    private static final int LEGACY_WORD_COUNT = 8;  // 88 bits entropy (向後相容)
     private static final int PBKDF2_ITERATIONS = 310000; // OWASP 2023 recommendation
     private static final int DERIVED_KEY_LENGTH = 256; // bits
 
@@ -40,7 +42,7 @@ public class RecoveryKeyService {
     /**
      * 產生新的 Recovery Key
      *
-     * @return 包含 8 個英文單詞的 RecoveryKey
+     * @return 包含 12 個英文單詞的 RecoveryKey (132 bits entropy)
      */
     public RecoveryKey generate() {
         SecureRandom random = new SecureRandom();
@@ -66,6 +68,8 @@ public class RecoveryKeyService {
     /**
      * 驗證 Recovery Key 格式
      *
+     * 支援 12 單詞（新版）和 8 單詞（舊版，向後相容）。
+     *
      * @param phrase 空格分隔的單詞字串
      * @return true 如果格式有效
      */
@@ -75,8 +79,10 @@ public class RecoveryKeyService {
         }
 
         String[] words = phrase.trim().toLowerCase().split("\\s+");
-        if (words.length != WORD_COUNT) {
-            log.debug("Invalid word count: {} (expected {})", words.length, WORD_COUNT);
+
+        // 支援 12 單詞（新版）和 8 單詞（舊版，向後相容）
+        if (words.length != WORD_COUNT && words.length != LEGACY_WORD_COUNT) {
+            log.debug("Invalid word count: {} (expected {} or {})", words.length, WORD_COUNT, LEGACY_WORD_COUNT);
             return false;
         }
 
@@ -87,7 +93,26 @@ public class RecoveryKeyService {
             }
         }
 
+        // 如果是舊版 8 單詞，記錄警告建議升級
+        if (words.length == LEGACY_WORD_COUNT) {
+            log.warn("Legacy 8-word Recovery Key detected. Consider upgrading to 12-word version for enhanced security.");
+        }
+
         return true;
+    }
+
+    /**
+     * 檢查 Recovery Key 是否為舊版（8 單詞）
+     *
+     * @param phrase 空格分隔的單詞字串
+     * @return true 如果是舊版 8 單詞格式
+     */
+    public boolean isLegacyFormat(String phrase) {
+        if (phrase == null || phrase.isBlank()) {
+            return false;
+        }
+        String[] words = phrase.trim().toLowerCase().split("\\s+");
+        return words.length == LEGACY_WORD_COUNT;
     }
 
     /**
@@ -119,7 +144,9 @@ public class RecoveryKeyService {
      * - 使用者只需備份助記詞即可完全恢復
      * - Salt 與助記詞綁定但使用不同部分
      *
-     * @param phrase Recovery Key 字串（8 個單詞）
+     * 支援 12 單詞（新版，132 bits）和 8 單詞（舊版，88 bits）。
+     *
+     * @param phrase Recovery Key 字串（12 或 8 個單詞）
      * @return 256-bit Master Key
      */
     public byte[] deriveMasterKey(String phrase) {
@@ -135,7 +162,9 @@ public class RecoveryKeyService {
             String lastWord = words[words.length - 1];
             byte[] salt = deriveSaltFromWord(lastWord);
 
-            // 使用前 7 個單字作為密碼
+            // 使用除最後一個外的所有單字作為密碼
+            // 對於 12 單詞：前 11 個單字
+            // 對於 8 單詞（舊版）：前 7 個單字
             String passwordPart = String.join(" ", java.util.Arrays.copyOf(words, words.length - 1));
 
             PBEKeySpec spec = new PBEKeySpec(
@@ -151,7 +180,11 @@ public class RecoveryKeyService {
             // 清除敏感資料
             spec.clearPassword();
 
-            log.debug("Master key derived successfully from recovery key");
+            if (words.length == LEGACY_WORD_COUNT) {
+                log.debug("Master key derived from legacy 8-word recovery key");
+            } else {
+                log.debug("Master key derived successfully from 12-word recovery key");
+            }
             return derivedKey;
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -278,9 +311,26 @@ public class RecoveryKeyService {
     }
 
     /**
-     * 取得期望的單詞數量
+     * 取得期望的單詞數量（新版）
      */
     public int getExpectedWordCount() {
         return WORD_COUNT;
+    }
+
+    /**
+     * 取得舊版的單詞數量
+     */
+    public int getLegacyWordCount() {
+        return LEGACY_WORD_COUNT;
+    }
+
+    /**
+     * 檢查是否需要升級 Recovery Key
+     *
+     * @param phrase 空格分隔的單詞字串
+     * @return true 如果是舊版格式且建議升級
+     */
+    public boolean shouldUpgrade(String phrase) {
+        return isLegacyFormat(phrase);
     }
 }

@@ -118,4 +118,60 @@ public class AgentContext {
         }
         visitedAgents.add(agentId);
     }
+
+    /**
+     * 檢查是否已訪問過指定的 Agent
+     */
+    public boolean hasVisited(String agentId) {
+        return visitedAgents != null && visitedAgents.contains(agentId);
+    }
+
+    /**
+     * 取得當前迭代次數
+     */
+    public int getIterationCount() {
+        return iterationCount;
+    }
+
+    /**
+     * 清除工作記憶中的指定項目
+     */
+    public void clearFromMemory(String key) {
+        if (workingMemory != null) {
+            workingMemory.remove(key);
+        }
+    }
+
+    /**
+     * 清除所有工作記憶
+     */
+    public void clearAllMemory() {
+        if (workingMemory != null) {
+            workingMemory.clear();
+        }
+    }
+
+    /**
+     * 取得訪問過的 Agent 數量
+     */
+    public int getVisitedCount() {
+        return visitedAgents != null ? visitedAgents.size() : 0;
+    }
+
+    /**
+     * 重設訪問記錄（用於新的協作循環）
+     */
+    public void resetVisited() {
+        if (visitedAgents != null) {
+            visitedAgents.clear();
+        }
+        iterationCount = 0;
+    }
+
+    /**
+     * 檢查是否即將達到迭代上限
+     */
+    public boolean isNearIterationLimit() {
+        return iterationCount >= maxIterations - 2;
+    }
 }

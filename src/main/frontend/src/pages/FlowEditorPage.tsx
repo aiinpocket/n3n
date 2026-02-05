@@ -41,6 +41,9 @@ import NodeConfigPanel from '../components/editor/NodeConfigPanel'
 import ServiceNodePanel from '../components/editor/ServiceNodePanel'
 import { customNodeTypes } from '../components/nodes/CustomNodes'
 import { executionAwareNodeTypes } from '../components/nodes/ExecutionAwareNodes'
+import { customEdgeTypes } from '../components/edges/CustomEdges'
+import EdgeConfigPanel, { EdgeLegend } from '../components/edges/EdgeConfigPanel'
+import type { EdgeType } from '../types'
 import { useFlowExecution } from '../hooks/useFlowExecution'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 import OptimizationPanel from '../components/flow/OptimizationPanel'
@@ -145,6 +148,10 @@ export default function FlowEditorPage() {
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [saveForm] = Form.useForm()
+
+  // Edge configuration state
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
+  const [edgeConfigPosition, setEdgeConfigPosition] = useState<{ x: number; y: number } | null>(null)
 
   // AI Assistant Store
   const { openPanel: openAIPanel } = useAIAssistantStore()
@@ -390,7 +397,35 @@ export default function FlowEditorPage() {
 
   const handlePaneClick = useCallback(() => {
     setSelectedNodeId(null)
+    setSelectedEdgeId(null)
+    setEdgeConfigPosition(null)
   }, [setSelectedNodeId])
+
+  // Edge click handler for configuring edge type
+  const handleEdgeClick = useCallback(
+    (event: React.MouseEvent, edge: { id: string }) => {
+      event.stopPropagation()
+      setSelectedEdgeId(edge.id)
+      setEdgeConfigPosition({ x: event.clientX, y: event.clientY })
+    },
+    []
+  )
+
+  // Edge type change handler
+  const handleEdgeTypeChange = useCallback(
+    (edgeId: string, newType: EdgeType) => {
+      pushHistory()
+      setEdges(
+        edges.map((e) =>
+          e.id === edgeId
+            ? { ...e, type: 'custom', data: { ...e.data, edgeType: newType } }
+            : e
+        )
+      )
+      message.success(`已將連線類型設為「${newType === 'success' ? '成功路徑' : newType === 'error' ? '錯誤路徑' : '總是執行'}」`)
+    },
+    [edges, setEdges, pushHistory]
+  )
 
   const handleNodeConfigUpdate = useCallback(
     (nodeId: string, data: Record<string, unknown>) => {
@@ -712,10 +747,16 @@ export default function FlowEditorPage() {
           nodes={displayNodes}
           edges={edges}
           nodeTypes={memoizedNodeTypes}
+          edgeTypes={customEdgeTypes}
+          defaultEdgeOptions={{
+            type: 'custom',
+            animated: false,
+          }}
           onNodesChange={executionMode ? undefined : onNodesChange}
           onEdgesChange={executionMode ? undefined : onEdgesChange}
           onConnect={executionMode ? undefined : onConnect}
           onNodeClick={executionMode ? undefined : handleNodeClick}
+          onEdgeClick={executionMode ? undefined : handleEdgeClick}
           onPaneClick={executionMode ? undefined : handlePaneClick}
           nodesDraggable={!executionMode}
           nodesConnectable={!executionMode}
@@ -724,6 +765,13 @@ export default function FlowEditorPage() {
         >
           <Controls />
           <MiniMap />
+
+          {/* Edge Legend - shows edge type colors */}
+          {!executionMode && edges.length > 0 && (
+            <div style={{ position: 'absolute', bottom: 10, left: 10, zIndex: 5 }}>
+              <EdgeLegend />
+            </div>
+          )}
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
 
           {/* Empty State Guide */}
@@ -799,6 +847,31 @@ export default function FlowEditorPage() {
             }}
             onExecutionStart={setActiveExecutionId}
           />
+        )}
+
+        {/* Edge Configuration Panel */}
+        {selectedEdgeId && edgeConfigPosition && (
+          <div
+            style={{
+              position: 'fixed',
+              left: edgeConfigPosition.x,
+              top: edgeConfigPosition.y,
+              zIndex: 1000,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <EdgeConfigPanel
+              edgeId={selectedEdgeId}
+              currentType={
+                (edges.find((e) => e.id === selectedEdgeId)?.data?.edgeType as EdgeType) || 'success'
+              }
+              onTypeChange={handleEdgeTypeChange}
+              onClose={() => {
+                setSelectedEdgeId(null)
+                setEdgeConfigPosition(null)
+              }}
+            />
+          </div>
         )}
       </Card>
 

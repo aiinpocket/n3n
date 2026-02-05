@@ -40,4 +40,45 @@ public interface SimpleAIProvider {
     default String chat(String prompt, String systemPrompt) {
         return chat(prompt, systemPrompt, 2048, 0.7);
     }
+
+    /**
+     * Generate a chat completion from a list of messages
+     * @param messages List of messages with role and content
+     * @param model Model to use for generation
+     * @return The generated response text
+     */
+    default String chat(java.util.List<java.util.Map<String, String>> messages, String model) {
+        // Default implementation: extract last user message
+        String prompt = messages.stream()
+                .filter(m -> "user".equals(m.get("role")))
+                .reduce((first, second) -> second)
+                .map(m -> m.get("content"))
+                .orElse("");
+
+        String systemPrompt = messages.stream()
+                .filter(m -> "system".equals(m.get("role")))
+                .map(m -> m.get("content"))
+                .findFirst()
+                .orElse(null);
+
+        return chat(prompt, systemPrompt);
+    }
+
+    /**
+     * Generate embedding for text
+     * @param text Text to embed
+     * @return Embedding vector (typically 1536 dimensions for OpenAI)
+     */
+    default float[] getEmbedding(String text) {
+        // Default implementation returns empty array
+        // Providers that support embeddings should override this
+        throw new UnsupportedOperationException("This provider does not support embeddings");
+    }
+
+    /**
+     * Check if this provider supports embeddings
+     */
+    default boolean supportsEmbeddings() {
+        return false;
+    }
 }

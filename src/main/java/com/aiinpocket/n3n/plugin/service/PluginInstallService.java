@@ -29,6 +29,7 @@ public class PluginInstallService {
     private final PluginService pluginService;
     private final DockerClientService dockerClientService;
     private final PluginNotificationService notificationService;
+    private final ContainerNodeDefinitionFetcher nodeDefinitionFetcher;
 
     /**
      * 批量安裝缺失的節點類型
@@ -295,8 +296,21 @@ public class PluginInstallService {
         updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 85, "註冊節點");
 
         // 從容器取得節點定義並註冊
-        // 這裡需要實作節點定義的取得邏輯，暫時跳過
-        log.info("Container {} is running on port {}", containerInfo.containerId(), containerInfo.port());
+        boolean registered = nodeDefinitionFetcher.fetchAndRegisterNodes(
+                containerInfo.containerId(),
+                containerInfo.port(),
+                task.getNodeType()
+        );
+
+        if (registered) {
+            log.info("Successfully registered nodes from container {} on port {}",
+                    containerInfo.containerId(), containerInfo.port());
+        } else {
+            log.warn("Failed to register nodes from container {}, but container is running",
+                    containerInfo.containerId());
+        }
+
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 95, "節點註冊完成");
     }
 
     /**

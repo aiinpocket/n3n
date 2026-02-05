@@ -45,6 +45,31 @@ public class DagParser {
         private String target;
         private String sourceHandle;
         private String targetHandle;
+        /** Edge type: success (default), error (for error handling), always (always execute) */
+        private String edgeType;
+        /** Optional label for the edge */
+        private String label;
+
+        /**
+         * Check if this is an error handling edge
+         */
+        public boolean isErrorEdge() {
+            return "error".equals(edgeType);
+        }
+
+        /**
+         * Check if this edge should always be followed regardless of success/failure
+         */
+        public boolean isAlwaysEdge() {
+            return "always".equals(edgeType);
+        }
+
+        /**
+         * Check if this is a success-only edge (default)
+         */
+        public boolean isSuccessEdge() {
+            return edgeType == null || "success".equals(edgeType);
+        }
     }
 
     @Data
@@ -183,12 +208,54 @@ public class DagParser {
                     edge.setTarget((String) edgeMap.get("target"));
                     edge.setSourceHandle((String) edgeMap.get("sourceHandle"));
                     edge.setTargetHandle((String) edgeMap.get("targetHandle"));
+                    edge.setEdgeType((String) edgeMap.get("edgeType"));
+                    edge.setLabel((String) edgeMap.get("label"));
                     edges.add(edge);
                 }
             }
         }
 
         return edges;
+    }
+
+    /**
+     * Get edges by type for a specific source node
+     */
+    public List<FlowEdge> getEdgesByType(Map<String, Object> definition, String sourceNodeId, String edgeType) {
+        List<FlowEdge> allEdges = extractEdges(definition);
+        return allEdges.stream()
+            .filter(e -> e.getSource().equals(sourceNodeId))
+            .filter(e -> {
+                if ("error".equals(edgeType)) return e.isErrorEdge();
+                if ("always".equals(edgeType)) return e.isAlwaysEdge();
+                return e.isSuccessEdge();
+            })
+            .toList();
+    }
+
+    /**
+     * Get all outgoing edges for a node, grouped by type
+     */
+    public Map<String, List<FlowEdge>> getOutgoingEdgesByType(Map<String, Object> definition, String sourceNodeId) {
+        List<FlowEdge> allEdges = extractEdges(definition);
+        Map<String, List<FlowEdge>> result = new HashMap<>();
+        result.put("success", new ArrayList<>());
+        result.put("error", new ArrayList<>());
+        result.put("always", new ArrayList<>());
+
+        for (FlowEdge edge : allEdges) {
+            if (edge.getSource().equals(sourceNodeId)) {
+                if (edge.isErrorEdge()) {
+                    result.get("error").add(edge);
+                } else if (edge.isAlwaysEdge()) {
+                    result.get("always").add(edge);
+                } else {
+                    result.get("success").add(edge);
+                }
+            }
+        }
+
+        return result;
     }
 
     private List<String> topologicalSort(Map<String, Set<String>> adjacency,

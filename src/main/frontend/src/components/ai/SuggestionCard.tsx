@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { Card, Tag, Space, Button, Typography, Tooltip, Popover } from 'antd'
 import {
   BranchesOutlined,
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import type { OptimizationSuggestion } from '../../api/aiAssistant'
 import { getSuggestionTypeColor, getPriorityLabel } from '../../api/aiAssistant'
 import MiniFlowDiff, { generateDiffFromSuggestion } from './MiniFlowDiff'
+import styles from './SuggestionCard.module.css'
 
 const { Text, Paragraph } = Typography
 
@@ -24,6 +25,7 @@ interface SuggestionCardProps {
   onViewNodes?: () => void
   nodeLookup?: Record<string, { label?: string; type?: string }>
   showDiffPreview?: boolean
+  animationDelay?: number
 }
 
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
@@ -33,11 +35,31 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   onViewNodes,
   nodeLookup,
   showDiffPreview = true,
+  animationDelay = 0,
 }) => {
   const { t } = useTranslation()
   const [diffVisible, setDiffVisible] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
+  const [wasJustSelected, setWasJustSelected] = useState(false)
+  const prevSelected = useRef(selected)
   const priorityInfo = getPriorityLabel(suggestion.priority)
   const typeColor = getSuggestionTypeColor(suggestion.type)
+
+  // Track selection changes for animation
+  useEffect(() => {
+    if (selected && !prevSelected.current) {
+      setWasJustSelected(true)
+      const timer = setTimeout(() => setWasJustSelected(false), 500)
+      return () => clearTimeout(timer)
+    }
+    prevSelected.current = selected
+  }, [selected])
+
+  const handleApply = () => {
+    setIsApplying(true)
+    onToggle()
+    setTimeout(() => setIsApplying(false), 500)
+  }
 
   // 生成差異預覽
   const diff = useMemo(() => {
@@ -68,13 +90,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     return names[suggestion.type] || suggestion.type
   }
 
+  const cardClassName = [
+    styles.cardEnter,
+    styles.cardHover,
+    wasJustSelected && styles.selectedCard,
+    isApplying && styles.applySuccess,
+  ].filter(Boolean).join(' ')
+
   return (
     <Card
       size="small"
+      className={cardClassName}
       style={{
         marginBottom: 12,
         borderLeft: `4px solid ${typeColor}`,
         backgroundColor: selected ? 'var(--color-bg-secondary, #f6ffed)' : undefined,
+        animationDelay: `${animationDelay}ms`,
       }}
       bodyStyle={{ padding: 12 }}
     >
@@ -150,8 +181,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
         <Button
           type={selected ? 'primary' : 'default'}
           size="small"
-          icon={selected ? <CheckOutlined /> : null}
-          onClick={onToggle}
+          icon={selected ? <CheckOutlined className={wasJustSelected ? styles.iconPulse : ''} /> : null}
+          onClick={handleApply}
+          className={styles.buttonPress}
         >
           {selected
             ? t('aiAssistant.selected', '已選擇')
@@ -162,7 +194,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
         {showDiffPreview && (
           <Popover
             content={
-              <div style={{ width: 320, maxHeight: 400, overflow: 'auto' }}>
+              <div style={{ width: 320, maxHeight: 400, overflow: 'auto' }} className={styles.diffPreview}>
                 <MiniFlowDiff diff={diff} maxChanges={6} />
               </div>
             }

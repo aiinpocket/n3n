@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip } from 'antd'
+import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip, Segmented, Badge } from 'antd'
 import {
   FolderOutlined,
   NodeIndexOutlined,
@@ -7,6 +7,9 @@ import {
   CopyOutlined,
   EyeOutlined,
   StarOutlined,
+  SearchOutlined,
+  RadarChartOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useDebounce } from '../../hooks/useDebounce'
@@ -14,6 +17,8 @@ import api from '../../api/client'
 import styles from './SimilarFlowsPanel.module.css'
 
 const { Text, Paragraph } = Typography
+
+type SearchMode = 'keyword' | 'semantic'
 
 interface SimilarFlow {
   flowId: string
@@ -25,6 +30,12 @@ interface SimilarFlow {
   createdAt: string
   matchedKeywords: string[]
   isTemplate: boolean
+  searchMode?: SearchMode
+  relevanceDetails?: {
+    keywordScore?: number
+    semanticScore?: number
+    combinedScore?: number
+  }
 }
 
 interface Props {
@@ -33,11 +44,14 @@ interface Props {
   onUseAsTemplate?: (flowId: string) => void
   minQueryLength?: number
   maxResults?: number
+  enableSemanticSearch?: boolean
+  defaultSearchMode?: SearchMode
 }
 
 /**
  * 類似流程推薦面板
  * 根據用戶輸入的描述推薦相似的現有流程
+ * 支援關鍵字搜尋和語義向量搜尋
  */
 export const SimilarFlowsPanel: React.FC<Props> = ({
   query,
@@ -45,16 +59,20 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
   onUseAsTemplate,
   minQueryLength = 5,
   maxResults = 5,
+  enableSemanticSearch = true,
+  defaultSearchMode = 'semantic',
 }) => {
   const { t } = useTranslation()
   const [flows, setFlows] = useState<SimilarFlow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [searchMode, setSearchMode] = useState<SearchMode>(defaultSearchMode)
+  const [searchTime, setSearchTime] = useState<number | null>(null)
 
   // 防抖處理
   const debouncedQuery = useDebounce(query, 500)
 
-  const fetchSimilarFlows = useCallback(async (searchQuery: string) => {
+  const fetchSimilarFlows = useCallback(async (searchQuery: string, mode: SearchMode) => {
     if (searchQuery.length < minQueryLength) {
       setFlows([])
       return
@@ -62,24 +80,60 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
 
     setLoading(true)
     setError(null)
+    setSearchTime(null)
+
+    const startTime = performance.now()
 
     try {
-      const response = await api.get<SimilarFlow[]>('/ai-assistant/similar-flows', {
-        params: { query: searchQuery, limit: maxResults },
+      const endpoint = mode === 'semantic'
+        ? '/ai-assistant/similar-flows/semantic'
+        : '/ai-assistant/similar-flows'
+
+      const response = await api.get<SimilarFlow[]>(endpoint, {
+        params: {
+          query: searchQuery,
+          limit: maxResults,
+          mode,
+        },
       })
-      setFlows(response.data)
+
+      const endTime = performance.now()
+      setSearchTime(Math.round(endTime - startTime))
+
+      setFlows(response.data.map(flow => ({
+        ...flow,
+        searchMode: mode,
+      })))
     } catch (err) {
       console.error('Failed to fetch similar flows:', err)
-      setError('無法載入類似流程')
-      setFlows([])
+      // 如果語義搜尋失敗，嘗試降級到關鍵字搜尋
+      if (mode === 'semantic') {
+        console.log('Semantic search failed, falling back to keyword search')
+        try {
+          const fallbackResponse = await api.get<SimilarFlow[]>('/ai-assistant/similar-flows', {
+            params: { query: searchQuery, limit: maxResults },
+          })
+          setFlows(fallbackResponse.data.map(flow => ({
+            ...flow,
+            searchMode: 'keyword',
+          })))
+          setError(null)
+        } catch {
+          setError('無法載入類似流程')
+          setFlows([])
+        }
+      } else {
+        setError('無法載入類似流程')
+        setFlows([])
+      }
     } finally {
       setLoading(false)
     }
   }, [minQueryLength, maxResults])
 
   useEffect(() => {
-    fetchSimilarFlows(debouncedQuery)
-  }, [debouncedQuery, fetchSimilarFlows])
+    fetchSimilarFlows(debouncedQuery, searchMode)
+  }, [debouncedQuery, searchMode, fetchSimilarFlows])
 
   // 格式化相似度顯示
   const formatSimilarity = (similarity: number) => {
@@ -131,9 +185,56 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
 
   return (
     <div className={styles.container}>
-      <Text type="secondary" className={styles.title}>
-        <FolderOutlined /> {t('aiAssistant.similarFlows', '類似流程')} ({flows.length})
-      </Text>
+      <div className={styles.header}>
+        <Text type="secondary" className={styles.title}>
+          <FolderOutlined /> {t('aiAssistant.similarFlows', '類似流程')} ({flows.length})
+        </Text>
+
+        {/* Search Mode Selector */}
+        {enableSemanticSearch && (
+          <Segmented
+            size="small"
+            value={searchMode}
+            onChange={(value) => setSearchMode(value as SearchMode)}
+            options={[
+              {
+                value: 'semantic',
+                icon: <RadarChartOutlined />,
+                label: (
+                  <Tooltip title="使用 AI 語義理解搜尋相關流程">
+                    <span>語義</span>
+                  </Tooltip>
+                ),
+              },
+              {
+                value: 'keyword',
+                icon: <SearchOutlined />,
+                label: (
+                  <Tooltip title="使用關鍵字匹配搜尋">
+                    <span>關鍵字</span>
+                  </Tooltip>
+                ),
+              },
+            ]}
+          />
+        )}
+      </div>
+
+      {/* Search Stats */}
+      {searchTime !== null && (
+        <div className={styles.searchStats}>
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            <ThunderboltOutlined /> 搜尋耗時 {searchTime}ms
+            {searchMode === 'semantic' && (
+              <Badge
+                status="processing"
+                text={<Text type="secondary" style={{ fontSize: 11 }}>AI 語義搜尋</Text>}
+                style={{ marginLeft: 8 }}
+              />
+            )}
+          </Text>
+        </div>
+      )}
 
       <List
         size="small"

@@ -41,6 +41,8 @@ export interface ConversationSession {
   messages: ChatMessage[]
   createdAt: Date
   updatedAt: Date
+  isFavorite?: boolean
+  tags?: string[]
 }
 
 interface AIAssistantState {
@@ -64,6 +66,10 @@ interface AIAssistantState {
   currentFlowId: string | null
   currentFlowDefinition: FlowSnapshot | null
 
+  // History for undo/redo
+  flowHistory: FlowSnapshot[]
+  historyIndex: number
+
   // Error state
   error: string | null
 
@@ -78,6 +84,11 @@ interface AIAssistantState {
   loadSession: (sessionId: string) => void
   clearSession: () => void
   deleteSession: (sessionId: string) => void
+  toggleFavorite: (sessionId: string) => void
+  addTagToSession: (sessionId: string, tag: string) => void
+  removeTagFromSession: (sessionId: string, tag: string) => void
+  searchSessions: (query: string) => ConversationSession[]
+  getGroupedSessions: () => Record<string, ConversationSession[]>
 
   // Message handling
   addUserMessage: (content: string) => void
@@ -97,6 +108,14 @@ interface AIAssistantState {
   setFlowContext: (flowId: string, definition: FlowSnapshot) => void
   updateFlowDefinition: (definition: FlowSnapshot) => void
 
+  // History management (undo/redo)
+  undo: () => void
+  redo: () => void
+  canUndo: () => boolean
+  canRedo: () => boolean
+  pushHistory: (snapshot: FlowSnapshot) => void
+  clearHistory: () => void
+
   // Error handling
   setError: (error: string | null) => void
   clearError: () => void
@@ -107,6 +126,7 @@ interface AIAssistantState {
 }
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const MAX_HISTORY_SIZE = 50
 
 export const useAIAssistantStore = create<AIAssistantState>()(
   persist(
@@ -122,6 +142,8 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       pendingChanges: [],
       currentFlowId: null,
       currentFlowDefinition: null,
+      flowHistory: [],
+      historyIndex: -1,
       error: null,
 
       // Panel actions
@@ -172,6 +194,79 @@ export const useAIAssistantStore = create<AIAssistantState>()(
         sessions: state.sessions.filter((s) => s.id !== sessionId),
         currentSession: state.currentSession?.id === sessionId ? null : state.currentSession,
       })),
+
+      toggleFavorite: (sessionId) => set((state) => ({
+        sessions: state.sessions.map((s) =>
+          s.id === sessionId ? { ...s, isFavorite: !s.isFavorite } : s
+        ),
+        currentSession: state.currentSession?.id === sessionId
+          ? { ...state.currentSession, isFavorite: !state.currentSession.isFavorite }
+          : state.currentSession,
+      })),
+
+      addTagToSession: (sessionId, tag) => set((state) => ({
+        sessions: state.sessions.map((s) =>
+          s.id === sessionId
+            ? { ...s, tags: [...(s.tags || []), tag].filter((t, i, arr) => arr.indexOf(t) === i) }
+            : s
+        ),
+      })),
+
+      removeTagFromSession: (sessionId, tag) => set((state) => ({
+        sessions: state.sessions.map((s) =>
+          s.id === sessionId
+            ? { ...s, tags: (s.tags || []).filter((t) => t !== tag) }
+            : s
+        ),
+      })),
+
+      searchSessions: (query) => {
+        const state = get()
+        const lowerQuery = query.toLowerCase()
+        return state.sessions.filter((s) => {
+          // Search in title
+          if (s.title.toLowerCase().includes(lowerQuery)) return true
+          // Search in tags
+          if (s.tags?.some((t) => t.toLowerCase().includes(lowerQuery))) return true
+          // Search in messages
+          if (s.messages.some((m) => m.content.toLowerCase().includes(lowerQuery))) return true
+          return false
+        })
+      },
+
+      getGroupedSessions: () => {
+        const state = get()
+        const groups: Record<string, ConversationSession[]> = {
+          favorites: [],
+          today: [],
+          yesterday: [],
+          thisWeek: [],
+          older: [],
+        }
+
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+        state.sessions.forEach((session) => {
+          const sessionDate = new Date(session.updatedAt)
+
+          if (session.isFavorite) {
+            groups.favorites.push(session)
+          } else if (sessionDate >= today) {
+            groups.today.push(session)
+          } else if (sessionDate >= yesterday) {
+            groups.yesterday.push(session)
+          } else if (sessionDate >= weekAgo) {
+            groups.thisWeek.push(session)
+          } else {
+            groups.older.push(session)
+          }
+        })
+
+        return groups
+      },
 
       // Message handling
       addUserMessage: (content) => {
@@ -289,13 +384,76 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       clearPendingChanges: () => set({ pendingChanges: [] }),
 
       // Flow context
-      setFlowContext: (flowId, definition) => set({
-        currentFlowId: flowId,
-        currentFlowDefinition: definition,
-      }),
+      setFlowContext: (flowId, definition) => {
+        set({
+          currentFlowId: flowId,
+          currentFlowDefinition: definition,
+          // Initialize history with the initial definition
+          flowHistory: [definition],
+          historyIndex: 0,
+        })
+      },
 
-      updateFlowDefinition: (definition) => set({
-        currentFlowDefinition: definition,
+      updateFlowDefinition: (definition) => {
+        const state = get()
+        // Push to history when updating
+        const newHistory = [...state.flowHistory.slice(0, state.historyIndex + 1), definition]
+          .slice(-MAX_HISTORY_SIZE)
+        set({
+          currentFlowDefinition: definition,
+          flowHistory: newHistory,
+          historyIndex: newHistory.length - 1,
+        })
+      },
+
+      // History management (undo/redo)
+      undo: () => {
+        const state = get()
+        if (state.historyIndex > 0) {
+          const newIndex = state.historyIndex - 1
+          set({
+            historyIndex: newIndex,
+            currentFlowDefinition: state.flowHistory[newIndex],
+          })
+        }
+      },
+
+      redo: () => {
+        const state = get()
+        if (state.historyIndex < state.flowHistory.length - 1) {
+          const newIndex = state.historyIndex + 1
+          set({
+            historyIndex: newIndex,
+            currentFlowDefinition: state.flowHistory[newIndex],
+          })
+        }
+      },
+
+      canUndo: () => {
+        const state = get()
+        return state.historyIndex > 0
+      },
+
+      canRedo: () => {
+        const state = get()
+        return state.historyIndex < state.flowHistory.length - 1
+      },
+
+      pushHistory: (snapshot) => {
+        set((state) => {
+          // Truncate future history when pushing new state
+          const newHistory = [...state.flowHistory.slice(0, state.historyIndex + 1), snapshot]
+            .slice(-MAX_HISTORY_SIZE)
+          return {
+            flowHistory: newHistory,
+            historyIndex: newHistory.length - 1,
+          }
+        })
+      },
+
+      clearHistory: () => set({
+        flowHistory: [],
+        historyIndex: -1,
       }),
 
       // Error handling

@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.agent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,6 +55,21 @@ public interface AgentNodeTool {
      */
     default boolean requiresConfirmation() {
         return false;
+    }
+
+    /**
+     * 工具執行超時（秒）
+     */
+    default int getTimeoutSeconds() {
+        return 30;
+    }
+
+    /**
+     * 取得工具所需的憑證類型
+     * 用於驗證是否有足夠的權限執行
+     */
+    default List<String> getRequiredCredentials() {
+        return List.of();
     }
 
     /**

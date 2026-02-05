@@ -1,0 +1,1486 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-02-05",
+  "templates": [
+    {
+      "id": "schedule-daily-report",
+      "name": "每日報表自動生成",
+      "description": "每天定時從資料庫查詢數據，生成 PDF 報表並發送郵件",
+      "category": "scheduling",
+      "tags": ["schedule", "report", "email", "pdf"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["業務報表", "銷售統計", "庫存報告"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每日觸發", "config": {"cron": "0 9 * * *"}},
+          {"id": "n2", "type": "database", "label": "查詢數據", "config": {"operation": "query"}},
+          {"id": "n3", "type": "code", "label": "格式化數據", "config": {"language": "javascript"}},
+          {"id": "n4", "type": "pdfGenerator", "label": "生成 PDF", "config": {}},
+          {"id": "n5", "type": "email", "label": "發送郵件", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-data-backup",
+      "name": "定時資料備份",
+      "description": "定期備份資料庫到雲端存儲",
+      "category": "scheduling",
+      "tags": ["schedule", "backup", "database", "cloud"],
+      "complexity": "simple",
+      "estimatedNodes": 4,
+      "useCases": ["數據安全", "災難恢復"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時觸發", "config": {"cron": "0 2 * * *"}},
+          {"id": "n2", "type": "database", "label": "導出數據", "config": {"operation": "export"}},
+          {"id": "n3", "type": "compress", "label": "壓縮備份", "config": {}},
+          {"id": "n4", "type": "cloudStorage", "label": "上傳雲端", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-health-check",
+      "name": "系統健康檢查",
+      "description": "定期檢查服務狀態，異常時發送告警",
+      "category": "scheduling",
+      "tags": ["schedule", "monitoring", "health", "alert"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["服務監控", "可用性檢測"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每 5 分鐘", "config": {"cron": "*/5 * * * *"}},
+          {"id": "n2", "type": "httpRequest", "label": "健康檢查", "config": {"method": "GET"}},
+          {"id": "n3", "type": "condition", "label": "狀態判斷", "config": {}},
+          {"id": "n4", "type": "slack", "label": "發送告警", "config": {}},
+          {"id": "n5", "type": "logger", "label": "記錄正常", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "異常"},
+          {"source": "n3", "target": "n5", "label": "正常"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-sync-data",
+      "name": "跨系統數據同步",
+      "description": "定期在兩個系統間同步數據",
+      "category": "scheduling",
+      "tags": ["schedule", "sync", "integration"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["ERP 同步", "CRM 整合"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時觸發", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "獲取來源數據", "config": {}},
+          {"id": "n3", "type": "code", "label": "數據轉換", "config": {}},
+          {"id": "n4", "type": "httpRequest", "label": "寫入目標系統", "config": {}},
+          {"id": "n5", "type": "logger", "label": "記錄結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-cleanup",
+      "name": "定期清理任務",
+      "description": "清理過期文件和臨時數據",
+      "category": "scheduling",
+      "tags": ["schedule", "cleanup", "maintenance"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["磁碟空間管理", "系統維護"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每週清理", "config": {"cron": "0 3 * * 0"}},
+          {"id": "n2", "type": "fileSystem", "label": "清理文件", "config": {"operation": "delete"}},
+          {"id": "n3", "type": "email", "label": "報告結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-inventory-alert",
+      "name": "庫存低量預警",
+      "description": "定期檢查庫存，低於閾值時發送補貨通知",
+      "category": "scheduling",
+      "tags": ["schedule", "inventory", "alert", "ecommerce"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["電商庫存", "倉儲管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每日檢查", "config": {}},
+          {"id": "n2", "type": "database", "label": "查詢庫存", "config": {}},
+          {"id": "n3", "type": "code", "label": "篩選低量", "config": {}},
+          {"id": "n4", "type": "condition", "label": "有低量商品?", "config": {}},
+          {"id": "n5", "type": "email", "label": "發送補貨通知", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5", "label": "是"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-certificate-expiry",
+      "name": "SSL 證書到期提醒",
+      "description": "定期檢查 SSL 證書有效期，到期前發送提醒",
+      "category": "scheduling",
+      "tags": ["schedule", "ssl", "security", "alert"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["網站安全", "證書管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每日檢查", "config": {}},
+          {"id": "n2", "type": "sslCheck", "label": "檢查證書", "config": {}},
+          {"id": "n3", "type": "condition", "label": "即將到期?", "config": {}},
+          {"id": "n4", "type": "slack", "label": "發送提醒", "config": {}},
+          {"id": "n5", "type": "logger", "label": "記錄狀態", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "是"},
+          {"source": "n3", "target": "n5", "label": "否"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-exchange-rate",
+      "name": "匯率監控",
+      "description": "定期獲取匯率，達到目標時發送通知",
+      "category": "scheduling",
+      "tags": ["schedule", "finance", "exchange", "notification"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["外匯交易", "財務規劃"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每小時檢查", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "獲取匯率", "config": {}},
+          {"id": "n3", "type": "condition", "label": "達到目標?", "config": {}},
+          {"id": "n4", "type": "telegram", "label": "發送通知", "config": {}},
+          {"id": "n5", "type": "database", "label": "記錄匯率", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "達到"},
+          {"source": "n2", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-social-post",
+      "name": "社群媒體定時發文",
+      "description": "定時發布預設的社群媒體內容",
+      "category": "scheduling",
+      "tags": ["schedule", "social", "marketing"],
+      "complexity": "simple",
+      "estimatedNodes": 4,
+      "useCases": ["社群行銷", "品牌推廣"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時觸發", "config": {}},
+          {"id": "n2", "type": "database", "label": "獲取待發內容", "config": {}},
+          {"id": "n3", "type": "socialMedia", "label": "發布貼文", "config": {}},
+          {"id": "n4", "type": "database", "label": "更新狀態", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "schedule-meeting-reminder",
+      "name": "會議提醒",
+      "description": "會議開始前自動發送提醒通知",
+      "category": "scheduling",
+      "tags": ["schedule", "meeting", "notification", "calendar"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["團隊協作", "時間管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每 15 分鐘", "config": {}},
+          {"id": "n2", "type": "calendar", "label": "查詢即將開始的會議", "config": {}},
+          {"id": "n3", "type": "condition", "label": "有會議?", "config": {}},
+          {"id": "n4", "type": "code", "label": "格式化提醒", "config": {}},
+          {"id": "n5", "type": "slack", "label": "發送提醒", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "有"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "notify-slack-webhook",
+      "name": "Webhook 轉 Slack 通知",
+      "description": "接收外部 Webhook 並轉發到 Slack",
+      "category": "notification",
+      "tags": ["webhook", "slack", "notification"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["告警通知", "系統整合"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "Webhook 觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "格式化訊息", "config": {}},
+          {"id": "n3", "type": "slack", "label": "發送 Slack", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "notify-email-template",
+      "name": "模板郵件發送",
+      "description": "使用預設模板發送客製化郵件",
+      "category": "notification",
+      "tags": ["email", "template", "notification"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["歡迎郵件", "訂單確認", "密碼重置"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "API 觸發", "config": {}},
+          {"id": "n2", "type": "template", "label": "載入模板", "config": {}},
+          {"id": "n3", "type": "code", "label": "填充數據", "config": {}},
+          {"id": "n4", "type": "email", "label": "發送郵件", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "notify-telegram-bot",
+      "name": "Telegram 機器人通知",
+      "description": "透過 Telegram Bot 發送即時通知",
+      "category": "notification",
+      "tags": ["telegram", "bot", "notification"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["系統告警", "訂單通知"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "格式化訊息", "config": {}},
+          {"id": "n3", "type": "telegram", "label": "發送 Telegram", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "notify-multi-channel",
+      "name": "多渠道通知",
+      "description": "同時發送到 Slack、Email、Telegram",
+      "category": "notification",
+      "tags": ["multi-channel", "notification", "parallel"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["重要告警", "緊急通知"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "準備訊息", "config": {}},
+          {"id": "n3", "type": "slack", "label": "Slack", "config": {}},
+          {"id": "n4", "type": "email", "label": "Email", "config": {}},
+          {"id": "n5", "type": "telegram", "label": "Telegram", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n4"},
+          {"source": "n2", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "notify-discord-webhook",
+      "name": "Discord Webhook 通知",
+      "description": "發送訊息到 Discord 頻道",
+      "category": "notification",
+      "tags": ["discord", "webhook", "notification"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["遊戲社群", "開發團隊"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "格式化", "config": {}},
+          {"id": "n3", "type": "discord", "label": "發送 Discord", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "notify-sms-alert",
+      "name": "SMS 緊急通知",
+      "description": "發送簡訊通知重要事件",
+      "category": "notification",
+      "tags": ["sms", "alert", "urgent"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["緊急告警", "驗證碼"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "準備訊息", "config": {}},
+          {"id": "n3", "type": "sms", "label": "發送簡訊", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "notify-line-message",
+      "name": "LINE 訊息推送",
+      "description": "透過 LINE Notify 發送訊息",
+      "category": "notification",
+      "tags": ["line", "notification", "messaging"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["台灣市場", "客戶通知"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "code", "label": "格式化", "config": {}},
+          {"id": "n3", "type": "line", "label": "發送 LINE", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "notify-push-notification",
+      "name": "推播通知",
+      "description": "發送 App 推播通知",
+      "category": "notification",
+      "tags": ["push", "mobile", "notification"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["行動應用", "即時提醒"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "database", "label": "獲取設備 Token", "config": {}},
+          {"id": "n3", "type": "code", "label": "準備通知", "config": {}},
+          {"id": "n4", "type": "firebase", "label": "發送推播", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "notify-conditional-routing",
+      "name": "條件式通知路由",
+      "description": "根據訊息類型發送到不同渠道",
+      "category": "notification",
+      "tags": ["routing", "condition", "notification"],
+      "complexity": "medium",
+      "estimatedNodes": 6,
+      "useCases": ["告警分級", "通知管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "switch", "label": "優先級判斷", "config": {}},
+          {"id": "n3", "type": "sms", "label": "緊急 - SMS", "config": {}},
+          {"id": "n4", "type": "slack", "label": "高 - Slack", "config": {}},
+          {"id": "n5", "type": "email", "label": "中 - Email", "config": {}},
+          {"id": "n6", "type": "logger", "label": "低 - 記錄", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3", "label": "critical"},
+          {"source": "n2", "target": "n4", "label": "high"},
+          {"source": "n2", "target": "n5", "label": "medium"},
+          {"source": "n2", "target": "n6", "label": "low"}
+        ]
+      }
+    },
+    {
+      "id": "notify-scheduled-digest",
+      "name": "定時摘要通知",
+      "description": "收集事件並定時發送摘要",
+      "category": "notification",
+      "tags": ["digest", "schedule", "summary"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["每日摘要", "週報"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每日 8 點", "config": {}},
+          {"id": "n2", "type": "database", "label": "查詢待發事件", "config": {}},
+          {"id": "n3", "type": "code", "label": "生成摘要", "config": {}},
+          {"id": "n4", "type": "email", "label": "發送摘要", "config": {}},
+          {"id": "n5", "type": "database", "label": "標記已發送", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "data-csv-to-json",
+      "name": "CSV 轉 JSON",
+      "description": "讀取 CSV 文件並轉換為 JSON 格式",
+      "category": "data-processing",
+      "tags": ["csv", "json", "transform"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["數據遷移", "格式轉換"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "fileRead", "label": "讀取 CSV", "config": {}},
+          {"id": "n2", "type": "csvParser", "label": "解析 CSV", "config": {}},
+          {"id": "n3", "type": "fileWrite", "label": "寫入 JSON", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "data-etl-pipeline",
+      "name": "ETL 數據管道",
+      "description": "提取、轉換、載入數據到目標系統",
+      "category": "data-processing",
+      "tags": ["etl", "database", "transform"],
+      "complexity": "complex",
+      "estimatedNodes": 6,
+      "useCases": ["數據倉儲", "數據整合"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時觸發", "config": {}},
+          {"id": "n2", "type": "database", "label": "提取數據", "config": {}},
+          {"id": "n3", "type": "code", "label": "清洗數據", "config": {}},
+          {"id": "n4", "type": "code", "label": "轉換格式", "config": {}},
+          {"id": "n5", "type": "database", "label": "載入目標", "config": {}},
+          {"id": "n6", "type": "email", "label": "報告結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"}
+        ]
+      }
+    },
+    {
+      "id": "data-json-validator",
+      "name": "JSON Schema 驗證",
+      "description": "驗證 JSON 數據是否符合 Schema",
+      "category": "data-processing",
+      "tags": ["json", "validation", "schema"],
+      "complexity": "simple",
+      "estimatedNodes": 4,
+      "useCases": ["API 驗證", "數據品質"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收數據", "config": {}},
+          {"id": "n2", "type": "jsonValidator", "label": "Schema 驗證", "config": {}},
+          {"id": "n3", "type": "httpResponse", "label": "回應成功", "config": {}},
+          {"id": "n4", "type": "httpResponse", "label": "回應錯誤", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3", "label": "valid"},
+          {"source": "n2", "target": "n4", "label": "invalid"}
+        ]
+      }
+    },
+    {
+      "id": "data-xml-to-json",
+      "name": "XML 轉 JSON",
+      "description": "將 XML 數據轉換為 JSON 格式",
+      "category": "data-processing",
+      "tags": ["xml", "json", "transform"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["API 整合", "舊系統遷移"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收 XML", "config": {}},
+          {"id": "n2", "type": "xmlParser", "label": "轉換為 JSON", "config": {}},
+          {"id": "n3", "type": "httpResponse", "label": "回應 JSON", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "data-batch-processor",
+      "name": "批次數據處理",
+      "description": "分批處理大量數據",
+      "category": "data-processing",
+      "tags": ["batch", "loop", "processing"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["大數據處理", "批量更新"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "database", "label": "查詢數據", "config": {}},
+          {"id": "n3", "type": "splitInBatches", "label": "分批處理", "config": {"batchSize": 100}},
+          {"id": "n4", "type": "code", "label": "處理每批", "config": {}},
+          {"id": "n5", "type": "merge", "label": "合併結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "data-deduplication",
+      "name": "數據去重",
+      "description": "移除重複的數據記錄",
+      "category": "data-processing",
+      "tags": ["dedupe", "clean", "data-quality"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["數據清洗", "品質控制"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時執行", "config": {}},
+          {"id": "n2", "type": "database", "label": "查詢數據", "config": {}},
+          {"id": "n3", "type": "code", "label": "識別重複", "config": {}},
+          {"id": "n4", "type": "database", "label": "刪除重複", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "data-aggregator",
+      "name": "數據聚合",
+      "description": "聚合多來源數據",
+      "category": "data-processing",
+      "tags": ["aggregate", "merge", "multi-source"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["報表生成", "數據整合"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "觸發", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "來源 A", "config": {}},
+          {"id": "n3", "type": "httpRequest", "label": "來源 B", "config": {}},
+          {"id": "n4", "type": "merge", "label": "合併數據", "config": {}},
+          {"id": "n5", "type": "database", "label": "存儲結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n1", "target": "n3"},
+          {"source": "n2", "target": "n4"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "data-image-processor",
+      "name": "圖片批量處理",
+      "description": "批量處理圖片（調整大小、格式轉換）",
+      "category": "data-processing",
+      "tags": ["image", "batch", "media"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["媒體處理", "縮圖生成"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收圖片", "config": {}},
+          {"id": "n2", "type": "imageResize", "label": "調整大小", "config": {}},
+          {"id": "n3", "type": "imageConvert", "label": "格式轉換", "config": {}},
+          {"id": "n4", "type": "cloudStorage", "label": "上傳雲端", "config": {}},
+          {"id": "n5", "type": "httpResponse", "label": "回應 URL", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "ai-text-summarizer",
+      "name": "AI 文章摘要",
+      "description": "使用 AI 自動生成文章摘要",
+      "category": "ai",
+      "tags": ["ai", "summary", "nlp"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["內容管理", "新聞摘要"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收文章", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "生成摘要", "config": {"prompt": "請摘要以下文章:"}},
+          {"id": "n3", "type": "httpResponse", "label": "回應摘要", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "ai-sentiment-analysis",
+      "name": "AI 情緒分析",
+      "description": "分析文本的情緒傾向",
+      "category": "ai",
+      "tags": ["ai", "sentiment", "nlp"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["客服分析", "社群監測"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收文本", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "情緒分析", "config": {"prompt": "分析以下文本的情緒:"}},
+          {"id": "n3", "type": "httpResponse", "label": "回應結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "ai-classification",
+      "name": "AI 文本分類",
+      "description": "自動分類文本到預設類別",
+      "category": "ai",
+      "tags": ["ai", "classification", "nlp"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["工單分類", "郵件分類"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收文本", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "AI 分類", "config": {}},
+          {"id": "n3", "type": "switch", "label": "路由處理", "config": {}},
+          {"id": "n4", "type": "database", "label": "存儲結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "ai-translator",
+      "name": "AI 翻譯服務",
+      "description": "使用 AI 進行多語言翻譯",
+      "category": "ai",
+      "tags": ["ai", "translation", "nlp"],
+      "complexity": "simple",
+      "estimatedNodes": 3,
+      "useCases": ["國際化", "客服支援"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收文本", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "翻譯", "config": {"prompt": "請將以下文本翻譯為英文:"}},
+          {"id": "n3", "type": "httpResponse", "label": "回應譯文", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"}
+        ]
+      }
+    },
+    {
+      "id": "ai-chatbot",
+      "name": "AI 客服機器人",
+      "description": "智能客服自動回覆",
+      "category": "ai",
+      "tags": ["ai", "chatbot", "customer-service"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["線上客服", "FAQ 回覆"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收問題", "config": {}},
+          {"id": "n2", "type": "ragSearch", "label": "搜尋知識庫", "config": {}},
+          {"id": "n3", "type": "aiChat", "label": "生成回答", "config": {}},
+          {"id": "n4", "type": "database", "label": "記錄對話", "config": {}},
+          {"id": "n5", "type": "httpResponse", "label": "回應", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n3", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "ai-content-generator",
+      "name": "AI 內容生成",
+      "description": "根據主題自動生成文章內容",
+      "category": "ai",
+      "tags": ["ai", "content", "generation"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["部落格", "行銷文案"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收主題", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "生成大綱", "config": {}},
+          {"id": "n3", "type": "aiChat", "label": "生成內容", "config": {}},
+          {"id": "n4", "type": "httpResponse", "label": "回應文章", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "ai-code-reviewer",
+      "name": "AI 代碼審查",
+      "description": "使用 AI 審查代碼並提供建議",
+      "category": "ai",
+      "tags": ["ai", "code", "review"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["開發流程", "代碼品質"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收代碼", "config": {}},
+          {"id": "n2", "type": "aiChat", "label": "AI 審查", "config": {"prompt": "請審查以下代碼並提供改進建議:"}},
+          {"id": "n3", "type": "code", "label": "格式化報告", "config": {}},
+          {"id": "n4", "type": "httpResponse", "label": "回應報告", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "ai-image-analyzer",
+      "name": "AI 圖片分析",
+      "description": "使用 AI 分析圖片內容",
+      "category": "ai",
+      "tags": ["ai", "image", "vision"],
+      "complexity": "medium",
+      "estimatedNodes": 4,
+      "useCases": ["內容審核", "圖片標籤"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收圖片", "config": {}},
+          {"id": "n2", "type": "aiVision", "label": "AI 分析", "config": {}},
+          {"id": "n3", "type": "database", "label": "存儲標籤", "config": {}},
+          {"id": "n4", "type": "httpResponse", "label": "回應結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-api-status",
+      "name": "API 可用性監控",
+      "description": "監控 API 端點可用性，異常時告警",
+      "category": "monitoring",
+      "tags": ["monitoring", "api", "uptime"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["服務監控", "SLA 管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每分鐘檢查", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "呼叫 API", "config": {}},
+          {"id": "n3", "type": "condition", "label": "狀態判斷", "config": {}},
+          {"id": "n4", "type": "slack", "label": "發送告警", "config": {}},
+          {"id": "n5", "type": "database", "label": "記錄狀態", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "異常"},
+          {"source": "n2", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-error-tracker",
+      "name": "錯誤追蹤通知",
+      "description": "收集並通知應用程式錯誤",
+      "category": "monitoring",
+      "tags": ["monitoring", "error", "tracking"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["除錯", "品質監控"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收錯誤", "config": {}},
+          {"id": "n2", "type": "code", "label": "解析錯誤", "config": {}},
+          {"id": "n3", "type": "database", "label": "儲存錯誤", "config": {}},
+          {"id": "n4", "type": "condition", "label": "嚴重程度?", "config": {}},
+          {"id": "n5", "type": "slack", "label": "通知團隊", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n4"},
+          {"source": "n4", "target": "n5", "label": "嚴重"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-resource-usage",
+      "name": "資源使用監控",
+      "description": "監控伺服器資源使用情況",
+      "category": "monitoring",
+      "tags": ["monitoring", "resource", "server"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["基礎設施監控", "容量規劃"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時檢查", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "獲取指標", "config": {}},
+          {"id": "n3", "type": "condition", "label": "超過閾值?", "config": {}},
+          {"id": "n4", "type": "email", "label": "發送告警", "config": {}},
+          {"id": "n5", "type": "database", "label": "記錄指標", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "是"},
+          {"source": "n2", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-security-alert",
+      "name": "安全事件告警",
+      "description": "偵測並告警安全異常事件",
+      "category": "monitoring",
+      "tags": ["monitoring", "security", "alert"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["安全監控", "入侵偵測"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收事件", "config": {}},
+          {"id": "n2", "type": "code", "label": "分析威脅", "config": {}},
+          {"id": "n3", "type": "condition", "label": "威脅等級", "config": {}},
+          {"id": "n4", "type": "sms", "label": "緊急告警", "config": {}},
+          {"id": "n5", "type": "slack", "label": "一般告警", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "高"},
+          {"source": "n3", "target": "n5", "label": "中"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-website-change",
+      "name": "網頁變更監控",
+      "description": "偵測網頁內容變更",
+      "category": "monitoring",
+      "tags": ["monitoring", "web", "change-detection"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["競品監控", "價格追蹤"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時檢查", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "獲取頁面", "config": {}},
+          {"id": "n3", "type": "code", "label": "比對變更", "config": {}},
+          {"id": "n4", "type": "condition", "label": "有變更?", "config": {}},
+          {"id": "n5", "type": "telegram", "label": "通知變更", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5", "label": "是"}
+        ]
+      }
+    },
+    {
+      "id": "monitor-database-health",
+      "name": "資料庫健康監控",
+      "description": "監控資料庫連線和效能",
+      "category": "monitoring",
+      "tags": ["monitoring", "database", "health"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["DBA 監控", "效能調校"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每 5 分鐘", "config": {}},
+          {"id": "n2", "type": "database", "label": "執行健康查詢", "config": {}},
+          {"id": "n3", "type": "code", "label": "分析指標", "config": {}},
+          {"id": "n4", "type": "condition", "label": "有異常?", "config": {}},
+          {"id": "n5", "type": "slack", "label": "發送告警", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5", "label": "是"}
+        ]
+      }
+    },
+    {
+      "id": "approval-expense",
+      "name": "費用報銷審批",
+      "description": "費用報銷多級審批流程",
+      "category": "approval",
+      "tags": ["approval", "expense", "workflow"],
+      "complexity": "complex",
+      "estimatedNodes": 7,
+      "useCases": ["財務管理", "報銷審核"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "提交申請", "config": {}},
+          {"id": "n2", "type": "database", "label": "儲存申請", "config": {}},
+          {"id": "n3", "type": "condition", "label": "金額判斷", "config": {}},
+          {"id": "n4", "type": "email", "label": "通知主管", "config": {}},
+          {"id": "n5", "type": "email", "label": "通知財務", "config": {}},
+          {"id": "n6", "type": "wait", "label": "等待審批", "config": {}},
+          {"id": "n7", "type": "email", "label": "通知結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "<1000"},
+          {"source": "n3", "target": "n5", "label": ">=1000"},
+          {"source": "n4", "target": "n6"},
+          {"source": "n5", "target": "n6"},
+          {"source": "n6", "target": "n7"}
+        ]
+      }
+    },
+    {
+      "id": "approval-leave-request",
+      "name": "請假申請審批",
+      "description": "員工請假申請流程",
+      "category": "approval",
+      "tags": ["approval", "leave", "hr"],
+      "complexity": "medium",
+      "estimatedNodes": 6,
+      "useCases": ["人力資源", "出勤管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "提交申請", "config": {}},
+          {"id": "n2", "type": "database", "label": "檢查餘額", "config": {}},
+          {"id": "n3", "type": "condition", "label": "餘額足夠?", "config": {}},
+          {"id": "n4", "type": "email", "label": "通知主管", "config": {}},
+          {"id": "n5", "type": "wait", "label": "等待審批", "config": {}},
+          {"id": "n6", "type": "database", "label": "更新記錄", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "是"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"}
+        ]
+      }
+    },
+    {
+      "id": "approval-document",
+      "name": "文件審核流程",
+      "description": "文件多人審核簽核",
+      "category": "approval",
+      "tags": ["approval", "document", "review"],
+      "complexity": "complex",
+      "estimatedNodes": 7,
+      "useCases": ["合約審核", "文件簽核"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "提交文件", "config": {}},
+          {"id": "n2", "type": "cloudStorage", "label": "儲存文件", "config": {}},
+          {"id": "n3", "type": "email", "label": "通知審核人 1", "config": {}},
+          {"id": "n4", "type": "wait", "label": "等待審核 1", "config": {}},
+          {"id": "n5", "type": "email", "label": "通知審核人 2", "config": {}},
+          {"id": "n6", "type": "wait", "label": "等待審核 2", "config": {}},
+          {"id": "n7", "type": "email", "label": "通知完成", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"},
+          {"source": "n6", "target": "n7"}
+        ]
+      }
+    },
+    {
+      "id": "approval-purchase-order",
+      "name": "採購申請審批",
+      "description": "採購單申請審批流程",
+      "category": "approval",
+      "tags": ["approval", "purchase", "procurement"],
+      "complexity": "medium",
+      "estimatedNodes": 6,
+      "useCases": ["採購管理", "預算控制"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "提交採購單", "config": {}},
+          {"id": "n2", "type": "database", "label": "檢查預算", "config": {}},
+          {"id": "n3", "type": "condition", "label": "預算內?", "config": {}},
+          {"id": "n4", "type": "email", "label": "通知審批人", "config": {}},
+          {"id": "n5", "type": "wait", "label": "等待審批", "config": {}},
+          {"id": "n6", "type": "database", "label": "更新狀態", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "是"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"}
+        ]
+      }
+    },
+    {
+      "id": "approval-access-request",
+      "name": "權限申請審批",
+      "description": "系統權限申請審批",
+      "category": "approval",
+      "tags": ["approval", "access", "security"],
+      "complexity": "medium",
+      "estimatedNodes": 6,
+      "useCases": ["權限管理", "安全控制"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "提交申請", "config": {}},
+          {"id": "n2", "type": "database", "label": "記錄申請", "config": {}},
+          {"id": "n3", "type": "email", "label": "通知 IT 主管", "config": {}},
+          {"id": "n4", "type": "wait", "label": "等待審批", "config": {}},
+          {"id": "n5", "type": "httpRequest", "label": "開通權限", "config": {}},
+          {"id": "n6", "type": "email", "label": "通知申請人", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"}
+        ]
+      }
+    },
+    {
+      "id": "integration-github-webhook",
+      "name": "GitHub Webhook 處理",
+      "description": "處理 GitHub 事件並觸發 CI/CD",
+      "category": "integration",
+      "tags": ["github", "webhook", "cicd"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["CI/CD", "自動部署"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "GitHub Webhook", "config": {}},
+          {"id": "n2", "type": "code", "label": "解析事件", "config": {}},
+          {"id": "n3", "type": "switch", "label": "事件類型", "config": {}},
+          {"id": "n4", "type": "httpRequest", "label": "觸發建置", "config": {}},
+          {"id": "n5", "type": "slack", "label": "通知團隊", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "push"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "integration-stripe-webhook",
+      "name": "Stripe 支付處理",
+      "description": "處理 Stripe 支付事件",
+      "category": "integration",
+      "tags": ["stripe", "payment", "webhook"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["電商支付", "訂閱處理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "Stripe Webhook", "config": {}},
+          {"id": "n2", "type": "code", "label": "驗證簽名", "config": {}},
+          {"id": "n3", "type": "switch", "label": "事件類型", "config": {}},
+          {"id": "n4", "type": "database", "label": "更新訂單", "config": {}},
+          {"id": "n5", "type": "email", "label": "發送收據", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4", "label": "succeeded"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "integration-oauth-flow",
+      "name": "OAuth 認證流程",
+      "description": "處理 OAuth 2.0 認證",
+      "category": "integration",
+      "tags": ["oauth", "authentication", "api"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["第三方登入", "API 整合"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "OAuth 回調", "config": {}},
+          {"id": "n2", "type": "httpRequest", "label": "換取 Token", "config": {}},
+          {"id": "n3", "type": "httpRequest", "label": "獲取用戶資訊", "config": {}},
+          {"id": "n4", "type": "database", "label": "儲存用戶", "config": {}},
+          {"id": "n5", "type": "httpResponse", "label": "重定向", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "integration-shopify-order",
+      "name": "Shopify 訂單同步",
+      "description": "同步 Shopify 訂單到 ERP",
+      "category": "integration",
+      "tags": ["shopify", "ecommerce", "sync"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["電商整合", "訂單管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "Shopify Webhook", "config": {}},
+          {"id": "n2", "type": "code", "label": "轉換格式", "config": {}},
+          {"id": "n3", "type": "httpRequest", "label": "寫入 ERP", "config": {}},
+          {"id": "n4", "type": "database", "label": "記錄同步", "config": {}},
+          {"id": "n5", "type": "slack", "label": "通知新訂單", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n3", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "integration-jira-sync",
+      "name": "Jira Issue 同步",
+      "description": "同步 Jira Issue 到內部系統",
+      "category": "integration",
+      "tags": ["jira", "project", "sync"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["專案管理", "工單追蹤"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "Jira Webhook", "config": {}},
+          {"id": "n2", "type": "code", "label": "解析事件", "config": {}},
+          {"id": "n3", "type": "database", "label": "同步到資料庫", "config": {}},
+          {"id": "n4", "type": "condition", "label": "狀態變更?", "config": {}},
+          {"id": "n5", "type": "slack", "label": "通知團隊", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n4"},
+          {"source": "n4", "target": "n5", "label": "是"}
+        ]
+      }
+    },
+    {
+      "id": "integration-google-sheets",
+      "name": "Google Sheets 同步",
+      "description": "同步數據到 Google Sheets",
+      "category": "integration",
+      "tags": ["google", "sheets", "sync"],
+      "complexity": "simple",
+      "estimatedNodes": 4,
+      "useCases": ["報表匯出", "數據共享"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "定時同步", "config": {}},
+          {"id": "n2", "type": "database", "label": "查詢數據", "config": {}},
+          {"id": "n3", "type": "code", "label": "格式化", "config": {}},
+          {"id": "n4", "type": "googleSheets", "label": "寫入 Sheets", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "integration-salesforce",
+      "name": "Salesforce CRM 同步",
+      "description": "同步客戶資料到 Salesforce",
+      "category": "integration",
+      "tags": ["salesforce", "crm", "sync"],
+      "complexity": "medium",
+      "estimatedNodes": 5,
+      "useCases": ["CRM 整合", "客戶管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "新客戶事件", "config": {}},
+          {"id": "n2", "type": "code", "label": "轉換格式", "config": {}},
+          {"id": "n3", "type": "salesforce", "label": "創建 Lead", "config": {}},
+          {"id": "n4", "type": "database", "label": "記錄同步", "config": {}},
+          {"id": "n5", "type": "logger", "label": "記錄結果", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"}
+        ]
+      }
+    },
+    {
+      "id": "integration-aws-s3-upload",
+      "name": "AWS S3 文件上傳",
+      "description": "處理文件上傳到 S3",
+      "category": "integration",
+      "tags": ["aws", "s3", "upload"],
+      "complexity": "simple",
+      "estimatedNodes": 4,
+      "useCases": ["文件存儲", "媒體管理"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "webhookTrigger", "label": "接收文件", "config": {}},
+          {"id": "n2", "type": "code", "label": "生成路徑", "config": {}},
+          {"id": "n3", "type": "awsS3", "label": "上傳 S3", "config": {}},
+          {"id": "n4", "type": "httpResponse", "label": "回應 URL", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"}
+        ]
+      }
+    },
+    {
+      "id": "scraper-financial-news",
+      "name": "金融新聞爬蟲",
+      "description": "定時抓取金融新聞網站，擷取最新十筆新聞並存入資料庫",
+      "category": "web-scraping",
+      "tags": ["scraper", "news", "finance", "database", "schedule"],
+      "complexity": "medium",
+      "estimatedNodes": 8,
+      "useCases": ["金融資訊", "新聞聚合", "市場監控"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每小時抓取", "config": {"cron": "0 * * * *"}},
+          {"id": "n2", "type": "httpRequest", "label": "抓取新聞頁面", "config": {"method": "GET", "url": "https://finance.yahoo.com/news/", "timeout": 30000}},
+          {"id": "n3", "type": "html", "label": "解析 HTML", "config": {"operation": "extractLinks"}},
+          {"id": "n4", "type": "code", "label": "篩選新聞連結", "config": {"language": "javascript", "code": "return { items: $input.links.filter(l => l.url.includes('/news/')).slice(0, 10) }"}},
+          {"id": "n5", "type": "loop", "label": "遍歷新聞", "config": {"arrayField": "items", "batchSize": 1}},
+          {"id": "n6", "type": "httpRequest", "label": "抓取文章內容", "config": {"method": "GET"}},
+          {"id": "n7", "type": "html", "label": "擷取文章文字", "config": {"operation": "extractText"}},
+          {"id": "n8", "type": "database", "label": "寫入資料庫", "config": {"operation": "insert", "table": "financial_news"}},
+          {"id": "n9", "type": "slack", "label": "錯誤通知", "config": {"channel": "#alerts"}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n9", "edgeType": "error"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"},
+          {"source": "n6", "target": "n7"},
+          {"source": "n6", "target": "n9", "edgeType": "error"},
+          {"source": "n7", "target": "n8"},
+          {"source": "n8", "target": "n9", "edgeType": "error"}
+        ]
+      }
+    },
+    {
+      "id": "scraper-product-price",
+      "name": "商品價格監控爬蟲",
+      "description": "監控電商網站商品價格，價格下降時發送通知",
+      "category": "web-scraping",
+      "tags": ["scraper", "ecommerce", "price", "monitoring"],
+      "complexity": "medium",
+      "estimatedNodes": 7,
+      "useCases": ["比價", "促銷監控", "電商分析"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每日檢查", "config": {"cron": "0 9 * * *"}},
+          {"id": "n2", "type": "database", "label": "讀取監控清單", "config": {"operation": "query"}},
+          {"id": "n3", "type": "loop", "label": "遍歷商品", "config": {"arrayField": "items"}},
+          {"id": "n4", "type": "httpRequest", "label": "抓取商品頁", "config": {"method": "GET"}},
+          {"id": "n5", "type": "html", "label": "擷取價格", "config": {"operation": "extractBySelector", "selector": ".price"}},
+          {"id": "n6", "type": "condition", "label": "價格下降?", "config": {}},
+          {"id": "n7", "type": "telegram", "label": "發送降價通知", "config": {}},
+          {"id": "n8", "type": "database", "label": "更新價格記錄", "config": {"operation": "update"}},
+          {"id": "n9", "type": "logger", "label": "記錄錯誤", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n4", "target": "n9", "edgeType": "error"},
+          {"source": "n5", "target": "n6"},
+          {"source": "n6", "target": "n7", "label": "是"},
+          {"source": "n6", "target": "n8", "edgeType": "always"},
+          {"source": "n7", "target": "n8"}
+        ]
+      }
+    },
+    {
+      "id": "scraper-social-mentions",
+      "name": "社群媒體品牌監控",
+      "description": "監控社群媒體上的品牌提及，收集並分析輿情",
+      "category": "web-scraping",
+      "tags": ["scraper", "social", "brand", "monitoring"],
+      "complexity": "complex",
+      "estimatedNodes": 8,
+      "useCases": ["品牌監控", "輿情分析", "競品追蹤"],
+      "definition": {
+        "nodes": [
+          {"id": "n1", "type": "scheduleTrigger", "label": "每 30 分鐘", "config": {"cron": "*/30 * * * *"}},
+          {"id": "n2", "type": "httpRequest", "label": "搜尋 API", "config": {"method": "GET"}},
+          {"id": "n3", "type": "code", "label": "解析結果", "config": {}},
+          {"id": "n4", "type": "loop", "label": "遍歷提及", "config": {}},
+          {"id": "n5", "type": "aiChat", "label": "情緒分析", "config": {"prompt": "分析以下內容的情緒傾向"}},
+          {"id": "n6", "type": "database", "label": "儲存分析結果", "config": {}},
+          {"id": "n7", "type": "condition", "label": "負面評論?", "config": {}},
+          {"id": "n8", "type": "slack", "label": "告警通知", "config": {}},
+          {"id": "n9", "type": "email", "label": "錯誤報告", "config": {}}
+        ],
+        "edges": [
+          {"source": "n1", "target": "n2"},
+          {"source": "n2", "target": "n3"},
+          {"source": "n2", "target": "n9", "edgeType": "error"},
+          {"source": "n3", "target": "n4"},
+          {"source": "n4", "target": "n5"},
+          {"source": "n5", "target": "n6"},
+          {"source": "n5", "target": "n9", "edgeType": "error"},
+          {"source": "n6", "target": "n7"},
+          {"source": "n7", "target": "n8", "label": "是"}
+        ]
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": "scheduling",
+      "name": "自動化排程",
+      "description": "定時觸發的自動化任務",
+      "icon": "clock-circle"
+    },
+    {
+      "id": "notification",
+      "name": "通知整合",
+      "description": "多渠道訊息通知",
+      "icon": "notification"
+    },
+    {
+      "id": "data-processing",
+      "name": "資料處理",
+      "description": "ETL 和數據轉換",
+      "icon": "database"
+    },
+    {
+      "id": "ai",
+      "name": "AI 應用",
+      "description": "AI 驅動的智能流程",
+      "icon": "robot"
+    },
+    {
+      "id": "monitoring",
+      "name": "監控告警",
+      "description": "系統監控和告警",
+      "icon": "eye"
+    },
+    {
+      "id": "approval",
+      "name": "審批流程",
+      "description": "表單審核和簽核",
+      "icon": "audit"
+    },
+    {
+      "id": "integration",
+      "name": "外部整合",
+      "description": "第三方服務整合",
+      "icon": "api"
+    },
+    {
+      "id": "web-scraping",
+      "name": "網路爬蟲",
+      "description": "網頁資料抓取和監控",
+      "icon": "global"
+    }
+  ]
+}

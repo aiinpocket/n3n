@@ -142,6 +142,152 @@ export async function deleteConversation(conversationId: string) {
   return response.data
 }
 
+// ==================== Flow Generation Stream ====================
+
+export interface GenerateFlowStreamRequest {
+  userInput: string
+  language?: string // 'zh-TW' | 'en'
+}
+
+export interface FlowGenerationChunk {
+  type:
+    | 'thinking'
+    | 'progress'
+    | 'understanding'
+    | 'node_added'
+    | 'edge_added'
+    | 'missing_nodes'
+    | 'done'
+    | 'error'
+  progress?: number
+  stage?: string
+  message?: string
+  node?: NodeData
+  edge?: EdgeData
+  missingNodes?: MissingNodeInfo[]
+  flowDefinition?: {
+    nodes: unknown[]
+    edges: unknown[]
+  }
+  requiredNodes?: string[]
+  timestamp?: string
+}
+
+export interface NodeData {
+  id: string
+  type: string
+  label: string
+  config?: Record<string, unknown>
+  position?: { x: number; y: number }
+}
+
+export interface EdgeData {
+  id: string
+  source: string
+  target: string
+  label?: string
+}
+
+export interface MissingNodeInfo {
+  nodeType: string
+  displayName: string
+  description?: string
+  pluginId?: string
+  canAutoInstall: boolean
+}
+
+export interface FlowGenerationCallbacks {
+  onThinking?: (message: string) => void
+  onProgress?: (percent: number, stage: string, message?: string) => void
+  onUnderstanding?: (understanding: string) => void
+  onNodeAdded?: (node: NodeData) => void
+  onEdgeAdded?: (edge: EdgeData) => void
+  onMissingNodes?: (missing: MissingNodeInfo[]) => void
+  onDone?: (flowDefinition: { nodes: unknown[]; edges: unknown[] }, requiredNodes: string[]) => void
+  onError?: (error: string) => void
+}
+
+/**
+ * Generate flow with SSE streaming for real-time preview
+ */
+export async function generateFlowStream(
+  request: GenerateFlowStreamRequest,
+  callbacks: FlowGenerationCallbacks,
+  abortController?: AbortController
+): Promise<void> {
+  const token = getAuthToken()
+
+  await fetchEventSource('/api/ai-assistant/generate-flow/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(request),
+    signal: abortController?.signal,
+
+    onopen: async (response) => {
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(error || `HTTP ${response.status}`)
+      }
+    },
+
+    onmessage: (event) => {
+      if (!event.data) return
+
+      try {
+        const chunk: FlowGenerationChunk = JSON.parse(event.data)
+
+        switch (chunk.type) {
+          case 'thinking':
+            callbacks.onThinking?.(chunk.message || '')
+            break
+          case 'progress':
+            callbacks.onProgress?.(chunk.progress || 0, chunk.stage || '', chunk.message)
+            break
+          case 'understanding':
+            callbacks.onUnderstanding?.(chunk.message || '')
+            break
+          case 'node_added':
+            if (chunk.node) {
+              callbacks.onNodeAdded?.(chunk.node)
+            }
+            break
+          case 'edge_added':
+            if (chunk.edge) {
+              callbacks.onEdgeAdded?.(chunk.edge)
+            }
+            break
+          case 'missing_nodes':
+            if (chunk.missingNodes) {
+              callbacks.onMissingNodes?.(chunk.missingNodes)
+            }
+            break
+          case 'done':
+            if (chunk.flowDefinition) {
+              callbacks.onDone?.(chunk.flowDefinition, chunk.requiredNodes || [])
+            }
+            break
+          case 'error':
+            callbacks.onError?.(chunk.message || 'Unknown error')
+            break
+        }
+      } catch (e) {
+        console.warn('Failed to parse flow generation SSE chunk:', e)
+      }
+    },
+
+    onerror: (error) => {
+      console.error('Flow generation SSE error:', error)
+      callbacks.onError?.(error.message || 'Connection error')
+      throw error
+    },
+  })
+}
+
+// ==================== Plugin Install ====================
+
 // Plugin install types
 export interface PluginInstallTaskStatus {
   taskId: string

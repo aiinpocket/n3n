@@ -1,0 +1,234 @@
+.container {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.headerIcon {
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.headerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nodeType {
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.progressSection {
+  margin-bottom: 16px;
+}
+
+.estimatedTime {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.errorSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.errorIcon {
+  color: #ff4d4f;
+  font-size: 16px;
+}
+
+.stepsSection {
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+
+.stepRunning {
+  border-color: #91d5ff;
+  background: #e6f7ff;
+}
+
+.stepCompleted {
+  border-color: #b7eb8f;
+  background: #f6ffed;
+}
+
+.stepError {
+  border-color: #ffa39e;
+  background: #fff1f0;
+}
+
+.stepIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepName {
+  display: block;
+  font-size: 13px;
+}
+
+.stepMessage {
+  display: block;
+  font-size: 12px;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.stepProgress {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.stepDuration {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.iconSuccess {
+  color: #52c41a;
+  font-size: 16px;
+}
+
+.iconRunning {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.iconError {
+  color: #ff4d4f;
+  font-size: 16px;
+}
+
+.iconPending {
+  color: #bfbfbf;
+  font-size: 16px;
+}
+
+.logsContainer {
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 12px;
+  background: #1f1f1f;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.logEntry {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid #303030;
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}
+
+.logTime {
+  flex-shrink: 0;
+  color: #8c8c8c;
+  font-size: 11px;
+}
+
+.logMessage {
+  color: #d9d9d9;
+  word-break: break-all;
+}
+
+.logInfo {
+}
+
+.logWarn .logMessage {
+  color: #faad14;
+}
+
+.logError .logMessage {
+  color: #ff4d4f;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .stepItem {
+    background: #141414;
+    border-color: #303030;
+  }
+
+  .stepRunning {
+    border-color: #177ddc;
+    background: #111d2c;
+  }
+
+  .stepCompleted {
+    border-color: #49aa19;
+    background: #162312;
+  }
+
+  .stepError {
+    border-color: #a61d24;
+    background: #2a1215;
+  }
+
+  .errorSection {
+    background: #2a1215;
+    border-color: #58181c;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stepItem {
+    transition: none;
+  }
+}

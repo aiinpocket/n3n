@@ -1,0 +1,212 @@
+/* SuggestionCard Animations */
+
+/* Card entrance animation */
+.cardEnter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.cardExit {
+  animation: slideOutRight 0.2s ease-in forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Selection pulse animation */
+.selectedCard {
+  animation: selectPulse 0.5s ease-in-out;
+}
+
+@keyframes selectPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(82, 196, 26, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
+
+/* Apply success animation */
+.applySuccess {
+  animation: applySuccess 0.5s ease-out forwards;
+}
+
+@keyframes applySuccess {
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.02);
+    background-color: rgba(82, 196, 26, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgba(82, 196, 26, 0.05);
+  }
+}
+
+/* Hover effects */
+.cardHover {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cardHover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cardHover:focus-within {
+  outline: 2px solid var(--color-primary, #722ed1);
+  outline-offset: 2px;
+}
+
+/* Icon animations */
+.iconSpin {
+  animation: iconSpin 1s linear infinite;
+}
+
+@keyframes iconSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.iconPulse {
+  animation: iconPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Button press effect */
+.buttonPress:active {
+  transform: scale(0.95);
+}
+
+/* Stagger animation for list items */
+.staggerItem {
+  opacity: 0;
+  animation: staggerFadeIn 0.3s ease-out forwards;
+}
+
+.staggerItem:nth-child(1) { animation-delay: 0.05s; }
+.staggerItem:nth-child(2) { animation-delay: 0.1s; }
+.staggerItem:nth-child(3) { animation-delay: 0.15s; }
+.staggerItem:nth-child(4) { animation-delay: 0.2s; }
+.staggerItem:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Diff preview fade */
+.diffPreview {
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Tag animation */
+.tagBounce {
+  animation: tagBounce 0.3s ease-out;
+}
+
+@keyframes tagBounce {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Loading shimmer */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cardEnter,
+  .cardExit,
+  .selectedCard,
+  .applySuccess,
+  .iconSpin,
+  .iconPulse,
+  .staggerItem,
+  .diffPreview,
+  .tagBounce,
+  .shimmer {
+    animation: none;
+  }
+
+  .cardHover:hover {
+    transform: none;
+  }
+}

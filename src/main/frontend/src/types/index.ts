@@ -38,7 +38,14 @@ export interface FlowEdge {
   target: string
   sourceHandle: string
   targetHandle: string
+  /** Edge type: success (default), error (for error handling), or always (always execute) */
+  edgeType?: 'success' | 'error' | 'always'
+  /** Optional label for the edge */
+  label?: string
 }
+
+/** Edge type enum for better type safety */
+export type EdgeType = 'success' | 'error' | 'always'
 
 export interface FlowSettings {
   concurrency: {

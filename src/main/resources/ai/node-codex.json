@@ -1,0 +1,444 @@
+{
+  "trigger": {
+    "displayName": "手動觸發",
+    "keywords": ["開始", "啟動", "手動", "manual", "start", "begin"],
+    "useCases": ["手動啟動工作流程", "測試工作流程"],
+    "relatedNodes": ["scheduleTrigger", "webhookTrigger"],
+    "bestPractices": "適合用於需要手動介入或測試的情境"
+  },
+  "scheduleTrigger": {
+    "displayName": "排程觸發",
+    "keywords": ["排程", "定時", "cron", "schedule", "timer", "定期", "每天", "每小時", "週期"],
+    "useCases": ["定時執行任務", "每日報表生成", "定期資料同步", "排程備份"],
+    "relatedNodes": ["trigger", "webhookTrigger"],
+    "inputFormats": ["cron 表達式", "間隔時間"],
+    "bestPractices": "使用 cron 表達式設定精確的執行時間，建議設定合理的執行間隔避免資源浪費",
+    "examples": [
+      {
+        "scenario": "每天早上 9 點執行",
+        "config": {"cron": "0 9 * * *"},
+        "description": "適合用於每日報表或通知"
+      },
+      {
+        "scenario": "每小時執行一次",
+        "config": {"interval": "1h"},
+        "description": "適合用於定期檢查或同步"
+      }
+    ]
+  },
+  "webhookTrigger": {
+    "displayName": "Webhook 觸發",
+    "keywords": ["webhook", "callback", "api", "回調", "外部觸發", "http"],
+    "useCases": ["接收外部系統通知", "GitHub webhook", "第三方服務回調"],
+    "relatedNodes": ["httpRequest", "trigger"],
+    "inputFormats": ["JSON payload", "Form data"],
+    "outputFormats": ["JSON"],
+    "bestPractices": "記得設定驗證機制（如 secret token）以確保安全性"
+  },
+  "httpRequest": {
+    "displayName": "HTTP 請求",
+    "keywords": ["api", "rest", "http", "request", "fetch", "call", "外部", "第三方", "網路", "url"],
+    "useCases": ["呼叫外部 REST API", "發送 Webhook 通知", "整合第三方服務", "取得網路資料"],
+    "relatedNodes": ["graphql", "webhookTrigger", "code"],
+    "inputFormats": ["JSON", "Form data", "Raw body"],
+    "outputFormats": ["JSON", "XML", "Text"],
+    "bestPractices": "建議設定適當的 timeout，對於外部 API 應處理錯誤情況",
+    "examples": [
+      {
+        "scenario": "呼叫天氣 API",
+        "config": {
+          "method": "GET",
+          "url": "https://api.weather.com/v1/current",
+          "headers": {"Authorization": "Bearer {{$env.WEATHER_API_KEY}}"}
+        }
+      },
+      {
+        "scenario": "發送 POST 請求",
+        "config": {
+          "method": "POST",
+          "url": "https://api.example.com/data",
+          "body": {"key": "value"},
+          "contentType": "application/json"
+        }
+      }
+    ]
+  },
+  "condition": {
+    "displayName": "條件判斷",
+    "keywords": ["if", "條件", "判斷", "分支", "condition", "branch", "switch", "邏輯"],
+    "useCases": ["根據條件執行不同分支", "資料驗證", "流程控制"],
+    "relatedNodes": ["switch", "filter", "code"],
+    "inputFormats": ["任意資料"],
+    "outputFormats": ["true/false 分支輸出"],
+    "bestPractices": "保持條件邏輯簡單清晰，複雜判斷可拆分成多個條件節點",
+    "examples": [
+      {
+        "scenario": "檢查數值是否大於 100",
+        "config": {
+          "rules": [{"field": "value", "operator": "gt", "value": 100}]
+        }
+      }
+    ]
+  },
+  "switch": {
+    "displayName": "多路分支",
+    "keywords": ["switch", "多分支", "case", "路由", "分流"],
+    "useCases": ["根據多個條件分流", "類型路由", "多種情況處理"],
+    "relatedNodes": ["condition", "filter", "merge"],
+    "bestPractices": "適合用於處理多種情況，每個分支應有明確的條件"
+  },
+  "loop": {
+    "displayName": "迴圈",
+    "keywords": ["loop", "迴圈", "循環", "foreach", "iterate", "批次", "陣列"],
+    "useCases": ["批次處理資料", "遍歷陣列", "重複執行操作"],
+    "relatedNodes": ["splitOut", "aggregate", "filter"],
+    "inputFormats": ["陣列/列表"],
+    "bestPractices": "注意迴圈次數限制，避免無限迴圈"
+  },
+  "code": {
+    "displayName": "程式碼",
+    "keywords": ["code", "javascript", "js", "程式", "腳本", "script", "自訂", "custom"],
+    "useCases": ["自訂資料轉換", "複雜邏輯處理", "特殊計算"],
+    "relatedNodes": ["json", "text", "condition"],
+    "inputFormats": ["$input 變數"],
+    "outputFormats": ["return 值"],
+    "bestPractices": "保持程式碼簡潔，複雜邏輯應拆分成多個節點",
+    "examples": [
+      {
+        "scenario": "資料轉換",
+        "config": {
+          "code": "return $input.data.map(item => ({ ...item, processed: true }));"
+        }
+      }
+    ]
+  },
+  "json": {
+    "displayName": "JSON 處理",
+    "keywords": ["json", "parse", "stringify", "轉換", "解析", "序列化"],
+    "useCases": ["JSON 解析", "JSON 格式化", "物件轉換"],
+    "relatedNodes": ["text", "code", "setFields"],
+    "inputFormats": ["JSON 字串或物件"],
+    "outputFormats": ["JSON 物件或字串"]
+  },
+  "text": {
+    "displayName": "文字處理",
+    "keywords": ["text", "string", "文字", "字串", "replace", "concat", "split"],
+    "useCases": ["文字拼接", "文字取代", "文字分割"],
+    "relatedNodes": ["json", "regex", "code"],
+    "inputFormats": ["文字字串"],
+    "outputFormats": ["文字字串"]
+  },
+  "regex": {
+    "displayName": "正規表達式",
+    "keywords": ["regex", "regexp", "pattern", "正規", "匹配", "match", "extract"],
+    "useCases": ["文字匹配", "資料提取", "格式驗證"],
+    "relatedNodes": ["text", "filter", "code"],
+    "bestPractices": "使用正規表達式時注意效能，避免過於複雜的 pattern"
+  },
+  "dateTime": {
+    "displayName": "日期時間",
+    "keywords": ["date", "time", "datetime", "日期", "時間", "格式化", "timestamp"],
+    "useCases": ["日期格式化", "時間計算", "時區轉換"],
+    "relatedNodes": ["code", "text"],
+    "inputFormats": ["日期字串", "timestamp"],
+    "outputFormats": ["格式化日期字串"]
+  },
+  "filter": {
+    "displayName": "過濾",
+    "keywords": ["filter", "過濾", "篩選", "where", "條件"],
+    "useCases": ["過濾資料", "條件篩選", "資料清洗"],
+    "relatedNodes": ["condition", "loop", "aggregate"],
+    "inputFormats": ["陣列"],
+    "outputFormats": ["過濾後的陣列"]
+  },
+  "sort": {
+    "displayName": "排序",
+    "keywords": ["sort", "排序", "order", "升序", "降序", "asc", "desc"],
+    "useCases": ["資料排序", "列表排序"],
+    "relatedNodes": ["filter", "aggregate"],
+    "inputFormats": ["陣列"],
+    "outputFormats": ["排序後的陣列"]
+  },
+  "aggregate": {
+    "displayName": "聚合",
+    "keywords": ["aggregate", "聚合", "sum", "avg", "count", "統計", "group"],
+    "useCases": ["資料統計", "分組聚合", "計算總和/平均"],
+    "relatedNodes": ["filter", "sort", "loop"],
+    "inputFormats": ["陣列"],
+    "outputFormats": ["聚合結果"]
+  },
+  "merge": {
+    "displayName": "合併",
+    "keywords": ["merge", "合併", "join", "combine", "匯集"],
+    "useCases": ["合併多個分支", "資料合併"],
+    "relatedNodes": ["switch", "condition", "splitOut"],
+    "bestPractices": "確保合併的資料格式相容"
+  },
+  "splitOut": {
+    "displayName": "分割",
+    "keywords": ["split", "分割", "拆分", "展開", "flatten"],
+    "useCases": ["陣列展開為單項", "批次處理前的準備"],
+    "relatedNodes": ["loop", "merge", "aggregate"],
+    "inputFormats": ["陣列"],
+    "outputFormats": ["單項輸出"]
+  },
+  "setFields": {
+    "displayName": "設定欄位",
+    "keywords": ["set", "設定", "欄位", "field", "assign", "賦值"],
+    "useCases": ["設定資料欄位", "新增欄位", "修改值"],
+    "relatedNodes": ["renameKeys", "json"],
+    "bestPractices": "使用表達式時注意資料類型"
+  },
+  "renameKeys": {
+    "displayName": "重新命名欄位",
+    "keywords": ["rename", "重命名", "key", "欄位名", "alias"],
+    "useCases": ["欄位重命名", "API 格式轉換"],
+    "relatedNodes": ["setFields", "json"]
+  },
+  "openai": {
+    "displayName": "OpenAI",
+    "keywords": ["openai", "gpt", "chatgpt", "ai", "聊天", "chat", "completion", "生成"],
+    "useCases": ["AI 文字生成", "聊天機器人", "內容摘要", "文字翻譯"],
+    "relatedNodes": ["claude", "gemini", "aiChat"],
+    "inputFormats": ["文字 prompt"],
+    "outputFormats": ["AI 回應文字"],
+    "bestPractices": "設定適當的 temperature 和 max_tokens，注意 API 成本",
+    "examples": [
+      {
+        "scenario": "文字摘要",
+        "config": {
+          "model": "gpt-4",
+          "prompt": "請摘要以下內容：{{$input.text}}",
+          "maxTokens": 500
+        }
+      }
+    ]
+  },
+  "claude": {
+    "displayName": "Claude",
+    "keywords": ["claude", "anthropic", "ai", "聊天", "chat", "生成"],
+    "useCases": ["AI 文字生成", "複雜任務處理", "程式碼生成"],
+    "relatedNodes": ["openai", "gemini", "aiChat"],
+    "bestPractices": "Claude 擅長長文本和複雜推理任務"
+  },
+  "gemini": {
+    "displayName": "Gemini",
+    "keywords": ["gemini", "google", "ai", "聊天", "chat", "生成"],
+    "useCases": ["AI 文字生成", "多模態處理"],
+    "relatedNodes": ["openai", "claude", "aiChat"]
+  },
+  "aiChat": {
+    "displayName": "AI 對話",
+    "keywords": ["ai", "chat", "對話", "聊天", "conversation"],
+    "useCases": ["多輪對話", "聊天機器人"],
+    "relatedNodes": ["openai", "claude", "aiMemory"],
+    "bestPractices": "搭配 AI Memory 節點可實現記憶功能"
+  },
+  "aiAgent": {
+    "displayName": "AI Agent",
+    "keywords": ["agent", "代理", "自動化", "工具", "tool"],
+    "useCases": ["自動化任務執行", "工具調用", "多步驟推理"],
+    "relatedNodes": ["aiChat", "openai", "code"],
+    "bestPractices": "定義清晰的工具說明，設定合理的迭代限制"
+  },
+  "aiMemory": {
+    "displayName": "AI 記憶",
+    "keywords": ["memory", "記憶", "context", "上下文", "歷史"],
+    "useCases": ["對話記憶", "上下文管理"],
+    "relatedNodes": ["aiChat", "aiAgent"]
+  },
+  "aiVectorSearch": {
+    "displayName": "向量搜尋",
+    "keywords": ["vector", "向量", "embedding", "搜尋", "相似", "semantic"],
+    "useCases": ["語義搜尋", "相似度查詢", "RAG"],
+    "relatedNodes": ["aiEmbedding", "database"]
+  },
+  "aiEmbedding": {
+    "displayName": "AI 嵌入",
+    "keywords": ["embedding", "嵌入", "向量化", "vectorize"],
+    "useCases": ["文字向量化", "語義表示"],
+    "relatedNodes": ["aiVectorSearch", "openai"]
+  },
+  "slack": {
+    "displayName": "Slack",
+    "keywords": ["slack", "訊息", "通知", "channel", "頻道", "聊天室"],
+    "useCases": ["發送 Slack 通知", "頻道訊息", "團隊協作"],
+    "relatedNodes": ["telegram", "discord", "email"],
+    "bestPractices": "使用 Block Kit 可建立更豐富的訊息格式",
+    "examples": [
+      {
+        "scenario": "發送通知到頻道",
+        "config": {
+          "channel": "#general",
+          "message": "工作流程執行完成！"
+        }
+      }
+    ]
+  },
+  "telegram": {
+    "displayName": "Telegram",
+    "keywords": ["telegram", "訊息", "通知", "bot", "機器人"],
+    "useCases": ["發送 Telegram 訊息", "Bot 通知"],
+    "relatedNodes": ["slack", "discord", "line"]
+  },
+  "discord": {
+    "displayName": "Discord",
+    "keywords": ["discord", "訊息", "通知", "webhook", "伺服器"],
+    "useCases": ["發送 Discord 訊息", "伺服器通知"],
+    "relatedNodes": ["slack", "telegram"]
+  },
+  "line": {
+    "displayName": "LINE",
+    "keywords": ["line", "訊息", "通知", "推播", "台灣"],
+    "useCases": ["發送 LINE 訊息", "推播通知"],
+    "relatedNodes": ["telegram", "slack"]
+  },
+  "sendEmail": {
+    "displayName": "發送郵件",
+    "keywords": ["email", "mail", "郵件", "寄信", "smtp", "通知"],
+    "useCases": ["發送郵件通知", "報表寄送", "自動回覆"],
+    "relatedNodes": ["gmail", "slack"],
+    "bestPractices": "避免發送過於頻繁，注意郵件內容格式"
+  },
+  "gmail": {
+    "displayName": "Gmail",
+    "keywords": ["gmail", "google", "mail", "郵件", "email"],
+    "useCases": ["Gmail 整合", "郵件處理", "標籤管理"],
+    "relatedNodes": ["sendEmail", "googleDrive"]
+  },
+  "googleSheets": {
+    "displayName": "Google Sheets",
+    "keywords": ["sheets", "spreadsheet", "試算表", "excel", "google"],
+    "useCases": ["讀取試算表資料", "寫入試算表", "資料同步"],
+    "relatedNodes": ["googleDrive", "database"],
+    "bestPractices": "使用批次操作提升效能"
+  },
+  "googleDrive": {
+    "displayName": "Google Drive",
+    "keywords": ["drive", "檔案", "雲端", "google", "儲存"],
+    "useCases": ["檔案上傳", "檔案下載", "資料夾管理"],
+    "relatedNodes": ["googleSheets", "ftp"]
+  },
+  "googleCalendar": {
+    "displayName": "Google Calendar",
+    "keywords": ["calendar", "日曆", "行事曆", "event", "活動", "google"],
+    "useCases": ["建立活動", "查詢行程", "會議安排"],
+    "relatedNodes": ["gmail", "slack"]
+  },
+  "database": {
+    "displayName": "資料庫",
+    "keywords": ["database", "db", "sql", "資料庫", "query", "查詢"],
+    "useCases": ["執行 SQL 查詢", "資料 CRUD"],
+    "relatedNodes": ["postgres", "mysql", "mongodb"],
+    "bestPractices": "使用參數化查詢防止 SQL 注入"
+  },
+  "postgres": {
+    "displayName": "PostgreSQL",
+    "keywords": ["postgres", "postgresql", "sql", "資料庫", "db"],
+    "useCases": ["PostgreSQL 資料操作"],
+    "relatedNodes": ["database", "mysql"]
+  },
+  "mysql": {
+    "displayName": "MySQL",
+    "keywords": ["mysql", "sql", "資料庫", "db", "mariadb"],
+    "useCases": ["MySQL 資料操作"],
+    "relatedNodes": ["database", "postgres"]
+  },
+  "mongodb": {
+    "displayName": "MongoDB",
+    "keywords": ["mongodb", "mongo", "nosql", "文件資料庫", "document"],
+    "useCases": ["MongoDB 資料操作", "文件查詢"],
+    "relatedNodes": ["elasticsearch", "redis"]
+  },
+  "redis": {
+    "displayName": "Redis",
+    "keywords": ["redis", "cache", "快取", "key-value"],
+    "useCases": ["快取操作", "資料暫存", "佇列"],
+    "relatedNodes": ["mongodb", "database"]
+  },
+  "elasticsearch": {
+    "displayName": "Elasticsearch",
+    "keywords": ["elasticsearch", "es", "搜尋", "全文搜尋", "索引"],
+    "useCases": ["全文搜尋", "日誌查詢", "資料分析"],
+    "relatedNodes": ["mongodb", "database"]
+  },
+  "graphql": {
+    "displayName": "GraphQL",
+    "keywords": ["graphql", "api", "query", "mutation"],
+    "useCases": ["GraphQL API 呼叫", "複雜查詢"],
+    "relatedNodes": ["httpRequest"]
+  },
+  "ftp": {
+    "displayName": "FTP",
+    "keywords": ["ftp", "sftp", "檔案傳輸", "upload", "download"],
+    "useCases": ["檔案上傳下載", "FTP 伺服器操作"],
+    "relatedNodes": ["googleDrive", "ssh"]
+  },
+  "ssh": {
+    "displayName": "SSH",
+    "keywords": ["ssh", "shell", "遠端", "command", "伺服器"],
+    "useCases": ["遠端命令執行", "伺服器管理"],
+    "relatedNodes": ["ftp", "code"]
+  },
+  "wait": {
+    "displayName": "等待",
+    "keywords": ["wait", "delay", "等待", "延遲", "sleep", "pause"],
+    "useCases": ["流程暫停", "延遲執行", "等待外部事件"],
+    "relatedNodes": ["scheduleTrigger"]
+  },
+  "stopAndError": {
+    "displayName": "停止並報錯",
+    "keywords": ["stop", "error", "停止", "錯誤", "中斷", "exception"],
+    "useCases": ["錯誤處理", "流程中斷", "異常情況處理"],
+    "relatedNodes": ["condition", "output"]
+  },
+  "output": {
+    "displayName": "輸出",
+    "keywords": ["output", "輸出", "結果", "return", "response"],
+    "useCases": ["設定流程輸出", "回傳結果"],
+    "relatedNodes": ["stopAndError"]
+  },
+  "subWorkflow": {
+    "displayName": "子流程",
+    "keywords": ["subworkflow", "子流程", "call", "呼叫", "nested"],
+    "useCases": ["呼叫其他工作流程", "模組化設計"],
+    "bestPractices": "將重複使用的邏輯抽取為子流程"
+  },
+  "approval": {
+    "displayName": "審批",
+    "keywords": ["approval", "審批", "核准", "確認", "human"],
+    "useCases": ["人工審批", "確認步驟"],
+    "relatedNodes": ["form", "wait"],
+    "bestPractices": "設定合理的超時時間"
+  },
+  "form": {
+    "displayName": "表單",
+    "keywords": ["form", "表單", "輸入", "input", "收集"],
+    "useCases": ["收集使用者輸入", "表單提交"],
+    "relatedNodes": ["formTrigger", "approval"]
+  },
+  "formTrigger": {
+    "displayName": "表單觸發",
+    "keywords": ["form", "表單", "trigger", "觸發", "提交"],
+    "useCases": ["表單提交觸發流程"],
+    "relatedNodes": ["form", "webhookTrigger"]
+  },
+  "html": {
+    "displayName": "HTML 處理",
+    "keywords": ["html", "parse", "scrape", "網頁", "爬蟲"],
+    "useCases": ["HTML 解析", "網頁資料提取"],
+    "relatedNodes": ["httpRequest", "text"]
+  },
+  "crypto": {
+    "displayName": "加密",
+    "keywords": ["crypto", "加密", "hash", "encrypt", "decrypt", "安全"],
+    "useCases": ["資料加密", "雜湊計算", "簽章驗證"],
+    "relatedNodes": ["code"]
+  },
+  "removeDuplicates": {
+    "displayName": "移除重複",
+    "keywords": ["duplicate", "重複", "unique", "去重", "distinct"],
+    "useCases": ["資料去重", "唯一值篩選"],
+    "relatedNodes": ["filter", "aggregate"]
+  }
+}

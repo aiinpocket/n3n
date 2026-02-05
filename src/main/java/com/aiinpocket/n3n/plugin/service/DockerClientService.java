@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -14,6 +16,11 @@ import java.util.function.BiConsumer;
 /**
  * Docker 客戶端服務
  * 使用 Docker CLI 執行容器操作
+ *
+ * 安全功能：
+ * - CPU 和記憶體資源限制
+ * - Docker Content Trust 映像簽章驗證
+ * - 可信任 Registry 白名單
  *
  * 注意：生產環境應使用 docker-java 客戶端庫
  * 目前使用 CLI 以簡化依賴
@@ -30,6 +37,28 @@ public class DockerClientService {
 
     @Value("${n3n.docker.network:n3n-network}")
     private String dockerNetwork;
+
+    // 資源限制配置
+    @Value("${n3n.plugin.cpu-limit:1.0}")
+    private double cpuLimit;
+
+    @Value("${n3n.plugin.memory-limit:512m}")
+    private String memoryLimit;
+
+    // 安全考量：Swap 限制應與記憶體限制相同以防止 swap 濫用
+    @Value("${n3n.plugin.memory-swap-limit:512m}")
+    private String memorySwapLimit;
+
+    // 安全考量：降低 PID 限制以防止 fork bomb 攻擊
+    @Value("${n3n.plugin.pids-limit:50}")
+    private int pidsLimit;
+
+    // 安全配置：預設啟用 Content Trust 進行映像簽章驗證
+    @Value("${n3n.docker.content-trust:true}")
+    private boolean contentTrustEnabled;
+
+    @Value("${n3n.docker.trusted-registries:ghcr.io/n3n,docker.io/n3n}")
+    private String trustedRegistriesConfig;
 
     /**
      * 檢查 Docker 是否可用
@@ -49,18 +78,74 @@ public class DockerClientService {
     }
 
     /**
+     * 取得可信任的 Registry 列表
+     */
+    private List<String> getTrustedRegistries() {
+        return Arrays.stream(trustedRegistriesConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    /**
+     * 驗證映像是否來自可信任的 Registry
+     *
+     * @param image 映像名稱
+     * @return true 如果映像來自可信任的 Registry
+     */
+    public boolean isFromTrustedRegistry(String image) {
+        List<String> trustedRegistries = getTrustedRegistries();
+        if (trustedRegistries.isEmpty()) {
+            log.warn("No trusted registries configured, allowing all images");
+            return true;
+        }
+
+        for (String registry : trustedRegistries) {
+            if (image.startsWith(registry + "/") || image.startsWith(registry + ":")) {
+                return true;
+            }
+        }
+
+        // Docker Hub 官方映像（無前綴）
+        if (!image.contains("/") || image.startsWith("library/")) {
+            return trustedRegistries.stream().anyMatch(r -> r.contains("docker.io"));
+        }
+
+        log.warn("Image {} is not from a trusted registry. Trusted registries: {}", image, trustedRegistries);
+        return false;
+    }
+
+    /**
      * 拉取 Docker 映像
+     *
+     * 安全功能：
+     * - 驗證映像來自可信任的 Registry
+     * - 可選啟用 Docker Content Trust 進行簽章驗證
      *
      * @param image 映像名稱
      * @param tag 映像標籤
      * @param progressCallback 進度回調 (progress 0-1, statusMessage)
+     * @throws SecurityException 如果映像不是來自可信任的 Registry
      */
     public void pullImage(String image, String tag, BiConsumer<Double, String> progressCallback) {
         String fullImage = image + ":" + tag;
-        log.info("Pulling Docker image: {}", fullImage);
+
+        // 驗證可信任的 Registry
+        if (!isFromTrustedRegistry(image)) {
+            throw new SecurityException("Image " + image + " is not from a trusted registry. " +
+                    "Allowed registries: " + getTrustedRegistries());
+        }
+
+        log.info("Pulling Docker image: {} (Content Trust: {})", fullImage, contentTrustEnabled);
 
         try {
             ProcessBuilder pb = new ProcessBuilder("docker", "pull", fullImage);
+
+            // 設定 Docker Content Trust 環境變數
+            if (contentTrustEnabled) {
+                pb.environment().put("DOCKER_CONTENT_TRUST", "1");
+            }
+
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
@@ -107,6 +192,14 @@ public class DockerClientService {
     /**
      * 建立並啟動容器
      *
+     * 安全功能：
+     * - CPU 限制（預設 1.0 核心）
+     * - 記憶體限制（預設 512MB）
+     * - Swap 限制（預設 1GB）
+     * - 行程數限制（預設 100）
+     * - 禁用特權模式
+     * - 禁用新特權獲取
+     *
      * @param image 映像名稱
      * @param containerName 容器名稱
      * @param envVars 環境變數
@@ -114,7 +207,8 @@ public class DockerClientService {
      */
     public ContainerInfo createAndStartContainer(String image, String containerName,
                                                   Map<String, String> envVars) {
-        log.info("Creating container: {} from image: {}", containerName, image);
+        log.info("Creating container: {} from image: {} (CPU: {}, Memory: {})",
+                containerName, image, cpuLimit, memoryLimit);
 
         try {
             // 先停止並移除同名容器（如果存在）
@@ -132,6 +226,26 @@ public class DockerClientService {
             pb.command().add(dockerNetwork);
             pb.command().add("--restart");
             pb.command().add("unless-stopped");
+
+            // 資源限制
+            pb.command().add("--cpus");
+            pb.command().add(String.valueOf(cpuLimit));
+            pb.command().add("--memory");
+            pb.command().add(memoryLimit);
+            pb.command().add("--memory-swap");
+            pb.command().add(memorySwapLimit);
+            pb.command().add("--pids-limit");
+            pb.command().add(String.valueOf(pidsLimit));
+
+            // 安全限制
+            pb.command().add("--security-opt");
+            pb.command().add("no-new-privileges:true");
+            pb.command().add("--cap-drop");
+            pb.command().add("ALL");
+            // 安全考量：不添加任何 capabilities，使用高端口 (>1024) 代替低端口
+
+            // 唯讀根檔案系統（可選，某些容器可能需要寫入）
+            // pb.command().add("--read-only");
 
             // 添加環境變數
             for (Map.Entry<String, String> env : envVars.entrySet()) {
