@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/ai/code")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "AI Code Generation", description = "AI-powered code generation")
 public class AICodeController {
 
     private final AIAssistantService aiAssistantService;

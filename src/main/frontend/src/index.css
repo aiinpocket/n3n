@@ -49,6 +49,11 @@
   --node-output: #EF4444;
   --node-wait: #F97316;
 
+  /* AI Feature Colors */
+  --color-ai: #8B5CF6;
+  --color-ai-hover: #7C3AED;
+  --color-ai-bg: rgba(139, 92, 246, 0.15);
+
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;

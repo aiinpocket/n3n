@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/settings/gateway")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Gateway Settings", description = "Gateway configuration management")
 public class GatewaySettingsController {
 
     private final GatewaySettingsService gatewaySettingsService;

@@ -1,8 +1,10 @@
 package com.aiinpocket.n3n.api.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +17,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public")
 @RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Health", description = "Health check endpoints")
 public class HealthController {
 
     private final DataSource dataSource;
@@ -33,7 +37,8 @@ public class HealthController {
         try (Connection connection = dataSource.getConnection()) {
             return connection.isValid(2) ? "UP" : "DOWN";
         } catch (Exception e) {
-            return "DOWN: " + e.getMessage();
+            log.warn("Database health check failed: {}", e.getMessage());
+            return "DOWN";
         }
     }
 
@@ -42,7 +47,8 @@ public class HealthController {
             String pong = redisTemplate.getConnectionFactory().getConnection().ping();
             return "PONG".equals(pong) ? "UP" : "DOWN";
         } catch (Exception e) {
-            return "DOWN: " + e.getMessage();
+            log.warn("Redis health check failed: {}", e.getMessage());
+            return "DOWN";
         }
     }
 }

@@ -182,9 +182,9 @@ export default function FlowListPage() {
             <Button
               icon={<ThunderboltOutlined />}
               onClick={() => setAiGeneratorOpen(true)}
-              style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
+              style={{ background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff' }}
             >
-              AI 建立
+              {t('flow.aiCreate')}
             </Button>
             <Button
               type="primary"
@@ -212,9 +212,9 @@ export default function FlowListPage() {
           locale={{
             emptyText: (
               <Result
-                icon={<BulbOutlined style={{ color: '#722ed1' }} />}
-                title="開始建立您的第一個工作流程"
-                subTitle="工作流程可以幫助您自動化日常任務，節省時間提高效率"
+                icon={<BulbOutlined style={{ color: '#8B5CF6' }} />}
+                title={t('flow.emptyTitle')}
+                subTitle={t('flow.emptySubtitle')}
                 extra={
                   <Space direction="vertical" size="middle" style={{ width: '100%', maxWidth: 400 }}>
                     <Button
@@ -222,12 +222,12 @@ export default function FlowListPage() {
                       size="large"
                       icon={<ThunderboltOutlined />}
                       onClick={() => setAiGeneratorOpen(true)}
-                      style={{ width: '100%', background: '#722ed1', borderColor: '#722ed1' }}
+                      style={{ width: '100%', background: '#8B5CF6', borderColor: '#8B5CF6' }}
                     >
-                      用 AI 快速建立（推薦）
+                      {t('flow.aiCreateRecommended')}
                     </Button>
                     <Text type="secondary">
-                      用口語描述您想要的流程，AI 自動幫您生成
+                      {t('flow.aiCreateHint')}
                     </Text>
                     <Button
                       size="large"
@@ -235,14 +235,14 @@ export default function FlowListPage() {
                       onClick={() => setCreateModalOpen(true)}
                       style={{ width: '100%' }}
                     >
-                      從空白開始
+                      {t('flow.createBlank')}
                     </Button>
                     <Button
                       icon={<UploadOutlined />}
                       onClick={() => setImportModalOpen(true)}
                       style={{ width: '100%' }}
                     >
-                      匯入現有流程
+                      {t('flow.importExisting')}
                     </Button>
                   </Space>
                 }

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api/executions/{executionId}")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Execution Approvals", description = "Execution approval management")
 public class ExecutionApprovalController {
 
     private final ExecutionApprovalService approvalService;

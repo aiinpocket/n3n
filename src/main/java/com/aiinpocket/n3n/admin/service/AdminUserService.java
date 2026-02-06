@@ -8,6 +8,7 @@ import com.aiinpocket.n3n.auth.entity.UserRole;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.common.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public class AdminUserService {
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ActivityService activityService;
+    private final EmailService emailService;
 
     public Page<UserResponse> listUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
@@ -91,7 +93,8 @@ public class AdminUserService {
         log.info("Admin {} created user: {}", adminId, user.getEmail());
         activityService.logActivity(adminId, ActivityService.USER_CREATE, "user", user.getId(), user.getEmail(), null);
 
-        // TODO: Send invite email with temporary password if requested
+        // Send invite email with temporary password
+        emailService.sendUserInvitation(user.getEmail(), user.getName(), password);
 
         return UserResponse.from(user, request.getRoles());
     }
@@ -153,7 +156,8 @@ public class AdminUserService {
 
         log.info("Admin {} reset password for user: {}", adminId, id);
 
-        // TODO: Send password reset email
+        // Send password reset email
+        emailService.sendPasswordReset(user.getEmail(), newPassword);
     }
 
     private String generateRandomPassword() {

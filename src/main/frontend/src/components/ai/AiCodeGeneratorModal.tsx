@@ -90,7 +90,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
     <Modal
       title={
         <Space>
-          <RobotOutlined style={{ color: '#722ed1' }} />
+          <RobotOutlined style={{ color: '#8B5CF6' }} />
           <span>AI 程式碼生成</span>
         </Space>
       }

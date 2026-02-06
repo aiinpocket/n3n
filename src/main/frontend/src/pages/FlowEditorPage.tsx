@@ -652,7 +652,7 @@ export default function FlowEditorPage() {
               <Button
                 type="primary"
                 icon={<RobotOutlined />}
-                style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                style={{ background: '#8B5CF6', borderColor: '#8B5CF6' }}
               >
                 AI 功能
               </Button>
@@ -791,7 +791,7 @@ export default function FlowEditorPage() {
                 maxWidth: 480,
               }}
             >
-              <RobotOutlined style={{ fontSize: 56, color: '#722ed1', marginBottom: 16 }} />
+              <RobotOutlined style={{ fontSize: 56, color: '#8B5CF6', marginBottom: 16 }} />
               <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
                 開始建立您的流程
               </Text>
@@ -804,7 +804,7 @@ export default function FlowEditorPage() {
                   size="large"
                   icon={<ThunderboltOutlined />}
                   onClick={() => setFlowGeneratorOpen(true)}
-                  style={{ width: '100%', background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ width: '100%', background: '#8B5CF6', borderColor: '#8B5CF6' }}
                 >
                   用口語描述讓 AI 幫您生成
                 </Button>

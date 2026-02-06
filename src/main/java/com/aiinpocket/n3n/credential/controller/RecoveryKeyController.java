@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RequestMapping("/api/security")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Recovery Keys", description = "Credential recovery key management")
 public class RecoveryKeyController {
 
     private final RecoveryKeyService recoveryKeyService;

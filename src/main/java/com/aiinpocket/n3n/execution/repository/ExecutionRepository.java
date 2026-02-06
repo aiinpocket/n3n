@@ -42,4 +42,25 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
      * Count running executions for a flow version.
      */
     long countByFlowVersionIdAndStatus(UUID flowVersionId, String status);
+
+    /**
+     * Count executions by status (all time).
+     */
+    long countByStatus(String status);
+
+    /**
+     * Count executions started after a given time.
+     */
+    long countByStartedAtAfter(Instant after);
+
+    /**
+     * Count executions by status started after a given time.
+     */
+    long countByStatusAndStartedAtAfter(String status, Instant after);
+
+    /**
+     * Calculate average duration for completed executions started after a given time.
+     */
+    @Query("SELECT AVG(e.durationMs) FROM Execution e WHERE e.status = 'completed' AND e.durationMs IS NOT NULL AND e.startedAt > :after")
+    Double findAverageDurationMsSince(@Param("after") Instant after);
 }

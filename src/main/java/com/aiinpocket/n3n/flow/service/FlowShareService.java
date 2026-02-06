@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.flow.service;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.common.service.EmailService;
 import com.aiinpocket.n3n.flow.dto.FlowShareRequest;
 import com.aiinpocket.n3n.flow.dto.FlowShareResponse;
 import com.aiinpocket.n3n.flow.entity.Flow;
@@ -26,6 +27,7 @@ public class FlowShareService {
     private final FlowShareRepository flowShareRepository;
     private final FlowRepository flowRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     /**
      * 分享流程給用戶
@@ -92,8 +94,11 @@ public class FlowShareService {
                     .sharedBy(sharedBy)
                     .build();
 
-                // TODO: 發送邀請 Email
-                log.info("Invitation email should be sent to: {}", request.getEmail());
+                // Send invitation email
+                String sharedByName = userRepository.findById(sharedBy)
+                    .map(User::getName)
+                    .orElse("A user");
+                emailService.sendFlowInvitation(request.getEmail(), flow.getName(), sharedByName);
             }
         } else {
             throw new IllegalArgumentException("Either userId or email is required");

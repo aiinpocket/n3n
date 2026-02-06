@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.plugin.service.PluginService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/marketplace")
+@Tag(name = "Marketplace", description = "Plugin marketplace")
 public class MarketplaceController {
 
     private final PluginService pluginService;

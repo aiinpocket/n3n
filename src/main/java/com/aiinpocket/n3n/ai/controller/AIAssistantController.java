@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api/ai-assistant")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "AI Assistant", description = "AI assistant chat and flow generation")
 public class AIAssistantController {
 
     private final AIAssistantService aiAssistantService;

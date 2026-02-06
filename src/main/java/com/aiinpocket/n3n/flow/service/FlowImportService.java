@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.flow.service;
 
+import com.aiinpocket.n3n.component.repository.ComponentRepository;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
@@ -38,6 +39,7 @@ public class FlowImportService {
     private final FlowVersionRepository flowVersionRepository;
     private final FlowImportRepository importRepository;
     private final CredentialRepository credentialRepository;
+    private final ComponentRepository componentRepository;
     private final DagParser dagParser;
     private final ObjectMapper objectMapper;
 
@@ -206,15 +208,17 @@ public class FlowImportService {
         }
 
         return components.stream()
-                .map(comp -> FlowImportPreviewResponse.ComponentStatus.builder()
-                        .name(comp.getName())
-                        .version(comp.getVersion())
-                        .image(comp.getImage())
-                        // TODO: 檢查元件是否已安裝
-                        .installed(true) // 暫時假設已安裝
-                        .versionMatch(true)
-                        .canAutoInstall(comp.getImage() != null && !comp.getImage().isEmpty())
-                        .build())
+                .map(comp -> {
+                    boolean installed = componentRepository.existsByNameAndIsDeletedFalse(comp.getName());
+                    return FlowImportPreviewResponse.ComponentStatus.builder()
+                            .name(comp.getName())
+                            .version(comp.getVersion())
+                            .image(comp.getImage())
+                            .installed(installed)
+                            .versionMatch(installed)
+                            .canAutoInstall(comp.getImage() != null && !comp.getImage().isEmpty())
+                            .build();
+                })
                 .toList();
     }
 

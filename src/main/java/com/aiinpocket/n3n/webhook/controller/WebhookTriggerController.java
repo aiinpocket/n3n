@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RequestMapping("/webhook")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Webhook Triggers", description = "Webhook trigger endpoints")
 public class WebhookTriggerController {
 
     private final WebhookService webhookService;

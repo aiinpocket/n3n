@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletionException;
 @RequestMapping("/api/agent")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "AI Agents", description = "AI agent conversation and management")
 public class AgentController {
 
     private final AgentService agentService;

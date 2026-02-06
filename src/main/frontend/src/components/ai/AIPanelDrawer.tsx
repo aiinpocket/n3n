@@ -509,7 +509,7 @@ export default function AIPanelDrawer({
             <div className={styles.messagesArea}>
               {!currentSession?.messages.length && !isStreaming ? (
                 <div className={styles.emptyState}>
-                  <BulbOutlined style={{ fontSize: 48, color: '#722ed1' }} />
+                  <BulbOutlined style={{ fontSize: 48, color: '#8B5CF6' }} />
                   <Paragraph type="secondary" style={{ marginTop: 16 }}>
                     你好！我是 N3N 流程助手。
                   </Paragraph>

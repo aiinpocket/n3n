@@ -15,6 +15,8 @@ import {
   DesktopOutlined,
   ShopOutlined,
   CloudServerOutlined,
+  DashboardOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -33,7 +35,7 @@ export default function MainLayout() {
     // 核心功能區
     {
       type: 'group' as const,
-      label: collapsed ? null : '工作流程',
+      label: collapsed ? null : t('nav.groupWorkflow'),
       children: [
         {
           key: '/flows',
@@ -50,7 +52,7 @@ export default function MainLayout() {
     // 連接與整合
     {
       type: 'group' as const,
-      label: collapsed ? null : '連接',
+      label: collapsed ? null : t('nav.groupConnect'),
       children: [
         {
           key: '/services',
@@ -72,7 +74,7 @@ export default function MainLayout() {
     // 資源管理
     {
       type: 'group' as const,
-      label: collapsed ? null : '資源',
+      label: collapsed ? null : t('nav.groupResource'),
       children: [
         {
           key: '/credentials',
@@ -111,12 +113,22 @@ export default function MainLayout() {
     // 系統設定
     {
       type: 'group' as const,
-      label: collapsed ? null : '系統',
+      label: collapsed ? null : t('nav.groupSystem'),
       children: [
+        {
+          key: '/monitoring',
+          icon: <DashboardOutlined />,
+          label: t('nav.monitoring'),
+        },
+        {
+          key: '/logs',
+          icon: <FileTextOutlined />,
+          label: t('nav.logs'),
+        },
         {
           key: '/settings/gateway',
           icon: <CloudServerOutlined />,
-          label: 'Gateway 設定',
+          label: t('nav.gatewaySettings'),
         },
       ],
     },

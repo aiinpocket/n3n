@@ -167,16 +167,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         log.warn("Malformed JSON request: {}", ex.getMessage());
-        String message = "請求格式錯誤";
-        Throwable cause = ex.getCause();
-        if (cause != null) {
-            // 提供更具體的錯誤訊息
-            String causeMsg = cause.getMessage();
-            if (causeMsg != null && causeMsg.length() < 200) {
-                message = "JSON 解析錯誤: " + causeMsg;
-            }
-        }
-        return buildResponse(HttpStatus.BAD_REQUEST, "INVALID_JSON", message);
+        return buildResponse(HttpStatus.BAD_REQUEST, "INVALID_JSON", "Invalid request format");
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

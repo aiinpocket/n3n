@@ -500,7 +500,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             percent={streamProgress}
             status="active"
             strokeColor={{
-              '0%': '#722ed1',
+              '0%': '#8B5CF6',
               '100%': '#1890ff',
             }}
             showInfo={false}
@@ -799,7 +799,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     <Modal
       title={
         <Space>
-          <ThunderboltOutlined style={{ color: '#722ed1' }} />
+          <ThunderboltOutlined style={{ color: '#8B5CF6' }} />
           <span>自然語言流程生成</span>
         </Space>
       }

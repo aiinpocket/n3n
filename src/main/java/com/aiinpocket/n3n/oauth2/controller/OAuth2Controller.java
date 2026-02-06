@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.oauth2.service.OAuth2TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/oauth2")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "OAuth2", description = "OAuth2 integration")
 public class OAuth2Controller {
 
     private final OAuth2TokenService tokenService;

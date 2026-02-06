@@ -19,7 +19,7 @@ export type QuickActionCategory = 'create' | 'optimize' | 'analyze' | 'debug' | 
 export const QUICK_ACTION_CATEGORIES: Record<QuickActionCategory, { label: string; color: string }> = {
   create: { label: '建立', color: '#52c41a' },
   optimize: { label: '優化', color: '#1890ff' },
-  analyze: { label: '分析', color: '#722ed1' },
+  analyze: { label: '分析', color: '#8B5CF6' },
   debug: { label: '除錯', color: '#fa8c16' },
   template: { label: '範本', color: '#13c2c2' },
 }

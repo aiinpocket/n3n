@@ -74,6 +74,8 @@ public class SecurityConfig {
                 .requestMatchers("/webhook/**").permitAll()
                 // Actuator endpoints for K8s probes
                 .requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
+                // Swagger UI
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // WebSocket - authentication handled by interceptor
                 .requestMatchers("/ws/**").permitAll()
                 // Static resources (frontend)

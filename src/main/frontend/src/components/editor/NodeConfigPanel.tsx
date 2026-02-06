@@ -245,7 +245,7 @@ export default function NodeConfigPanel({
                 size="small"
                 icon={<RobotOutlined />}
                 onClick={() => handleAiGenerateCode(key)}
-                style={{ borderColor: '#722ed1', color: '#722ed1' }}
+                style={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}
               >
                 AI 生成程式碼
               </Button>

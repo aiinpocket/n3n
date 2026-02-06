@@ -1,9 +1,11 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.base;
 
 import com.aiinpocket.n3n.ai.provider.*;
+import com.aiinpocket.n3n.ai.service.AiTokenUsageService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.multiop.MultiOperationNodeHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
@@ -20,6 +22,9 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     implements StreamingNodeHandler {
 
     protected final AiProviderFactory providerFactory;
+
+    @Autowired(required = false)
+    protected AiTokenUsageService aiTokenUsageService;
 
     protected AbstractAiNodeHandler(AiProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
@@ -109,9 +114,26 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
         int inputTokens,
         int outputTokens
     ) {
+        recordTokenUsage(userId, provider, model, inputTokens, outputTokens, null, null);
+    }
+
+    /**
+     * 記錄 Token 使用量（含執行上下文資訊）
+     */
+    protected void recordTokenUsage(
+        UUID userId,
+        String provider,
+        String model,
+        int inputTokens,
+        int outputTokens,
+        UUID executionId,
+        String nodeId
+    ) {
         log.debug("Token usage - user: {}, provider: {}, model: {}, input: {}, output: {}",
             userId, provider, model, inputTokens, outputTokens);
-        // TODO: 實作 Token 使用量記錄到資料庫
+        if (aiTokenUsageService != null) {
+            aiTokenUsageService.record(userId, provider, model, inputTokens, outputTokens, executionId, nodeId);
+        }
     }
 
     /**

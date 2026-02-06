@@ -74,8 +74,15 @@
     "marketplace": "插件市場",
     "aiAssistant": "AI 助手",
     "aiSettings": "AI 設定",
+    "monitoring": "系統監控",
+    "logs": "系統日誌",
     "settings": "設定",
-    "logout": "登出"
+    "logout": "登出",
+    "gatewaySettings": "Gateway 設定",
+    "groupWorkflow": "工作流程",
+    "groupConnect": "連接",
+    "groupResource": "資源",
+    "groupSystem": "系統"
   },
   "auth": {
     "login": "登入",
@@ -159,7 +166,14 @@
     "pleaseEnterContent": "請輸入內容",
     "invalidJsonFormat": "無效的 JSON 格式",
     "invalidJsonFile": "無效的 JSON 檔案",
-    "importPreviewFailed": "預覽失敗"
+    "importPreviewFailed": "預覽失敗",
+    "aiCreate": "AI 建立",
+    "emptyTitle": "開始建立您的第一個工作流程",
+    "emptySubtitle": "工作流程可以幫助您自動化日常任務，節省時間提高效率",
+    "aiCreateRecommended": "用 AI 快速建立（推薦）",
+    "aiCreateHint": "用口語描述您想要的流程，AI 自動幫您生成",
+    "createBlank": "從空白開始",
+    "importExisting": "匯入現有流程"
   },
   "optimizer": {
     "title": "AI 流程優化",
@@ -628,6 +642,60 @@
     "fieldRequired": "此欄位為必填",
     "formExpired": "表單連結已過期",
     "formNotFound": "找不到表單"
+  },
+  "monitoring": {
+    "title": "系統監控",
+    "refresh": "重新整理",
+    "autoRefresh": "自動重新整理",
+    "jvm": {
+      "title": "JVM 指標",
+      "heapUsed": "堆記憶體使用",
+      "heapMax": "堆記憶體上限",
+      "threads": "活動執行緒",
+      "threadPeak": "峰值執行緒",
+      "cpu": "CPU 使用率",
+      "gc": "GC 次數",
+      "gcTime": "GC 累計時間",
+      "uptime": "運行時間"
+    },
+    "flows": {
+      "title": "流程執行 (24h)",
+      "total": "總計",
+      "running": "執行中",
+      "completed": "已完成",
+      "failed": "失敗",
+      "cancelled": "已取消",
+      "avgDuration": "平均耗時",
+      "allTime": "歷史總計"
+    },
+    "health": {
+      "title": "連線健康",
+      "database": "PostgreSQL",
+      "redis": "Redis",
+      "up": "正常",
+      "down": "異常",
+      "responseTime": "回應時間"
+    }
+  },
+  "logs": {
+    "title": "系統日誌",
+    "search": "搜尋日誌...",
+    "autoRefresh": "自動重新整理",
+    "level": {
+      "all": "全部",
+      "info": "INFO",
+      "warn": "WARN",
+      "error": "ERROR",
+      "debug": "DEBUG"
+    },
+    "noLogs": "無日誌記錄",
+    "streaming": "即時串流中...",
+    "paused": "已暫停",
+    "clear": "清除",
+    "timestamp": "時間",
+    "logLevel": "等級",
+    "source": "來源",
+    "message": "訊息"
   },
   "marketplace": {
     "title": "插件市場",

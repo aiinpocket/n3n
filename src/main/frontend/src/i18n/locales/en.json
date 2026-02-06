@@ -74,8 +74,15 @@
     "marketplace": "Marketplace",
     "aiAssistant": "AI Assistant",
     "aiSettings": "AI Settings",
+    "monitoring": "Monitoring",
+    "logs": "Logs",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "gatewaySettings": "Gateway Settings",
+    "groupWorkflow": "Workflow",
+    "groupConnect": "Connect",
+    "groupResource": "Resource",
+    "groupSystem": "System"
   },
   "auth": {
     "login": "Login",
@@ -159,7 +166,14 @@
     "pleaseEnterContent": "Please enter content",
     "invalidJsonFormat": "Invalid JSON format",
     "invalidJsonFile": "Invalid JSON file",
-    "importPreviewFailed": "Preview failed"
+    "importPreviewFailed": "Preview failed",
+    "aiCreate": "AI Create",
+    "emptyTitle": "Create Your First Workflow",
+    "emptySubtitle": "Workflows help you automate daily tasks, saving time and improving efficiency",
+    "aiCreateRecommended": "Quick Create with AI (Recommended)",
+    "aiCreateHint": "Describe the workflow you want in plain language...",
+    "createBlank": "Start from Scratch",
+    "importExisting": "Import Existing Flow"
   },
   "optimizer": {
     "title": "AI Flow Optimization",
@@ -622,6 +636,60 @@
     "fieldRequired": "This field is required",
     "formExpired": "Form link has expired",
     "formNotFound": "Form not found"
+  },
+  "monitoring": {
+    "title": "System Monitoring",
+    "refresh": "Refresh",
+    "autoRefresh": "Auto Refresh",
+    "jvm": {
+      "title": "JVM Metrics",
+      "heapUsed": "Heap Used",
+      "heapMax": "Heap Max",
+      "threads": "Active Threads",
+      "threadPeak": "Peak Threads",
+      "cpu": "CPU Usage",
+      "gc": "GC Count",
+      "gcTime": "GC Total Time",
+      "uptime": "Uptime"
+    },
+    "flows": {
+      "title": "Flow Executions (24h)",
+      "total": "Total",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "avgDuration": "Avg Duration",
+      "allTime": "All Time Total"
+    },
+    "health": {
+      "title": "Connection Health",
+      "database": "PostgreSQL",
+      "redis": "Redis",
+      "up": "UP",
+      "down": "DOWN",
+      "responseTime": "Response Time"
+    }
+  },
+  "logs": {
+    "title": "System Logs",
+    "search": "Search logs...",
+    "autoRefresh": "Auto Refresh",
+    "level": {
+      "all": "All",
+      "info": "INFO",
+      "warn": "WARN",
+      "error": "ERROR",
+      "debug": "DEBUG"
+    },
+    "noLogs": "No logs found",
+    "streaming": "Streaming...",
+    "paused": "Paused",
+    "clear": "Clear",
+    "timestamp": "Time",
+    "logLevel": "Level",
+    "source": "Source",
+    "message": "Message"
   },
   "marketplace": {
     "title": "Plugin Marketplace",

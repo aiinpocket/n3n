@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.agent.entity.AgentRegistration;
 import com.aiinpocket.n3n.agent.service.AgentRegistrationService;
 import com.aiinpocket.n3n.agent.service.GatewaySettingsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -35,6 +36,7 @@ import java.util.zip.ZipOutputStream;
 @RequestMapping("/api/agents")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Agent Registration", description = "Agent registration management")
 public class AgentRegistrationController {
 
     private final AgentRegistrationService registrationService;

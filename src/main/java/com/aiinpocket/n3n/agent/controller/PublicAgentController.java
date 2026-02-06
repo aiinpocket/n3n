@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/public/agents")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Public Agent", description = "Public agent registration endpoints")
 public class PublicAgentController {
 
     private final AgentRegistrationService registrationService;

@@ -80,7 +80,7 @@
 }
 
 .cardHover:focus-within {
-  outline: 2px solid var(--color-primary, #722ed1);
+  outline: 2px solid var(--color-primary, #8B5CF6);
   outline-offset: 2px;
 }
 

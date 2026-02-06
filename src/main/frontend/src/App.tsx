@@ -27,6 +27,8 @@ import WebhooksPage from './pages/WebhooksPage'
 import DeviceManagementPage from './pages/DeviceManagementPage'
 import GatewaySettingsPage from './pages/GatewaySettingsPage'
 import MarketplacePage from './pages/MarketplacePage'
+import MonitoringPage from './pages/MonitoringPage'
+import LogViewerPage from './pages/LogViewerPage'
 
 // Map i18n language to Ant Design locale
 const antdLocales = {
@@ -91,13 +93,13 @@ function App() {
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#6366F1',
+          colorPrimary: '#14B8A6',
           colorSuccess: '#22C55E',
           colorWarning: '#F59E0B',
           colorError: '#EF4444',
-          colorInfo: '#6366F1',
+          colorInfo: '#3B82F6',
           colorBgBase: '#020617',
-          colorBgContainer: '#0F172A',
+          colorBgContainer: '#1E293B',
           colorBgElevated: '#1E293B',
           colorBgLayout: '#020617',
           colorBorder: '#334155',
@@ -113,20 +115,20 @@ function App() {
         },
         components: {
           Button: {
-            primaryShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.4)',
+            primaryShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.4)',
           },
           Card: {
-            colorBgContainer: '#0F172A',
+            colorBgContainer: '#1E293B',
           },
           Table: {
-            colorBgContainer: '#0F172A',
+            colorBgContainer: '#1E293B',
             headerBg: '#1E293B',
-            rowHoverBg: 'rgba(99, 102, 241, 0.08)',
+            rowHoverBg: 'rgba(20, 184, 166, 0.08)',
           },
           Menu: {
             darkItemBg: '#0F172A',
             darkSubMenuItemBg: '#020617',
-            darkItemSelectedBg: 'rgba(99, 102, 241, 0.15)',
+            darkItemSelectedBg: 'rgba(20, 184, 166, 0.15)',
           },
           Input: {
             colorBgContainer: '#1E293B',
@@ -182,6 +184,8 @@ function App() {
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
+            <Route path="monitoring" element={<MonitoringPage />} />
+            <Route path="logs" element={<LogViewerPage />} />
           </Route>
             </Routes>
           </SetupCheck>

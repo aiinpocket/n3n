@@ -51,8 +51,15 @@
     "marketplace": "プラグインマーケット",
     "aiAssistant": "AIアシスタント",
     "aiSettings": "AI設定",
+    "monitoring": "システム監視",
+    "logs": "システムログ",
     "settings": "設定",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "gatewaySettings": "Gateway 設定",
+    "groupWorkflow": "ワークフロー",
+    "groupConnect": "接続",
+    "groupResource": "リソース",
+    "groupSystem": "システム"
   },
   "auth": {
     "login": "ログイン",
@@ -136,7 +143,14 @@
     "pleaseEnterContent": "内容を入力してください",
     "invalidJsonFormat": "無効なJSON形式",
     "invalidJsonFile": "無効なJSONファイル",
-    "importPreviewFailed": "プレビュー失敗"
+    "importPreviewFailed": "プレビュー失敗",
+    "aiCreate": "AI 作成",
+    "emptyTitle": "最初のワークフローを作成しましょう",
+    "emptySubtitle": "ワークフローで日常業務を自動化し、時間を節約して効率を向上させます",
+    "aiCreateRecommended": "AI で素早く作成（推奨）",
+    "aiCreateHint": "作りたいフローを自然な言葉で説明してください...",
+    "createBlank": "空白から作成",
+    "importExisting": "既存のフローをインポート"
   },
   "optimizer": {
     "title": "AIフロー最適化",
@@ -508,6 +522,60 @@
     "zhTW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "monitoring": {
+    "title": "システム監視",
+    "refresh": "更新",
+    "autoRefresh": "自動更新",
+    "jvm": {
+      "title": "JVM メトリクス",
+      "heapUsed": "ヒープ使用量",
+      "heapMax": "ヒープ上限",
+      "threads": "アクティブスレッド",
+      "threadPeak": "ピークスレッド",
+      "cpu": "CPU使用率",
+      "gc": "GC回数",
+      "gcTime": "GC累計時間",
+      "uptime": "稼働時間"
+    },
+    "flows": {
+      "title": "フロー実行 (24h)",
+      "total": "合計",
+      "running": "実行中",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル",
+      "avgDuration": "平均時間",
+      "allTime": "全期間合計"
+    },
+    "health": {
+      "title": "接続状態",
+      "database": "PostgreSQL",
+      "redis": "Redis",
+      "up": "正常",
+      "down": "異常",
+      "responseTime": "応答時間"
+    }
+  },
+  "logs": {
+    "title": "システムログ",
+    "search": "ログを検索...",
+    "autoRefresh": "自動更新",
+    "level": {
+      "all": "すべて",
+      "info": "INFO",
+      "warn": "WARN",
+      "error": "ERROR",
+      "debug": "DEBUG"
+    },
+    "noLogs": "ログがありません",
+    "streaming": "ストリーミング中...",
+    "paused": "一時停止",
+    "clear": "クリア",
+    "timestamp": "時間",
+    "logLevel": "レベル",
+    "source": "ソース",
+    "message": "メッセージ"
   },
   "marketplace": {
     "title": "プラグインマーケット",

@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.optimizer.dto.FlowOptimizationResponse;
 import com.aiinpocket.n3n.optimizer.service.FlowOptimizerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/flow-optimizer")
 @RequiredArgsConstructor
+@Tag(name = "Flow Optimizer", description = "Flow optimization and analysis")
 public class FlowOptimizerController {
 
     private final FlowOptimizerService flowOptimizerService;

@@ -7,6 +7,9 @@
     <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="n3n"/>
     <springProperty scope="context" name="LOG_FORMAT" source="logging.format" defaultValue="console"/>
 
+    <!-- In-Memory Buffer Appender (for Log Viewer UI) -->
+    <appender name="BUFFER" class="com.aiinpocket.n3n.logging.LogBufferAppender"/>
+
     <!-- Console Appender (for development) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -85,16 +88,19 @@
     <springProfile name="default,dev,development">
         <root level="${LOG_LEVEL_ROOT:-INFO}">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="BUFFER"/>
         </root>
 
         <!-- Application specific loggers -->
         <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-DEBUG}" additivity="false">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="BUFFER"/>
         </logger>
 
         <!-- Execution logging -->
         <logger name="com.aiinpocket.n3n.execution" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="BUFFER"/>
         </logger>
     </springProfile>
 
@@ -102,11 +108,13 @@
     <springProfile name="prod,production">
         <root level="${LOG_LEVEL_ROOT:-INFO}">
             <appender-ref ref="ASYNC_JSON"/>
+            <appender-ref ref="BUFFER"/>
         </root>
 
         <!-- Application specific loggers -->
         <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-INFO}" additivity="false">
             <appender-ref ref="ASYNC_JSON"/>
+            <appender-ref ref="BUFFER"/>
         </logger>
 
         <!-- Reduce noisy loggers -->
@@ -120,11 +128,13 @@
         <root level="${LOG_LEVEL_ROOT:-INFO}">
             <appender-ref ref="JSON"/>
             <appender-ref ref="JSON_FILE"/>
+            <appender-ref ref="BUFFER"/>
         </root>
 
         <logger name="com.aiinpocket.n3n" level="${LOG_LEVEL_APP:-INFO}" additivity="false">
             <appender-ref ref="JSON"/>
             <appender-ref ref="JSON_FILE"/>
+            <appender-ref ref="BUFFER"/>
         </logger>
     </springProfile>
 </configuration>
