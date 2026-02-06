@@ -46,7 +46,7 @@ export default function SetupPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'var(--color-bg-primary)',
     }}>
       <Card style={{ width: 480, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>

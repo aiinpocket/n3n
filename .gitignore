@@ -36,6 +36,17 @@ build/
 src/main/frontend/node_modules/
 src/main/frontend/dist/
 src/main/frontend/.eslintcache
+src/main/frontend/tsconfig.tsbuildinfo
+
+### E2E Testing (Playwright) ###
+src/main/frontend/e2e/
+src/main/frontend/playwright.config.ts
+src/main/frontend/playwright-report/
+src/main/frontend/test-results/
+src/main/frontend/test-results.json
+
+### Test Documentation ###
+e2e-test-*.md
 
 .idea/
 .claude/

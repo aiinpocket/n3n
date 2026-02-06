@@ -10,11 +10,11 @@
   --color-bg-hover: #334155;
   --color-bg-active: #475569;
 
-  /* Brand Colors */
-  --color-primary: #6366F1;
-  --color-primary-hover: #818CF8;
-  --color-primary-active: #4F46E5;
-  --color-secondary: #818CF8;
+  /* Brand Colors - Professional Teal/Cyan */
+  --color-primary: #14B8A6;
+  --color-primary-hover: #2DD4BF;
+  --color-primary-active: #0D9488;
+  --color-secondary: #06B6D4;
 
   /* Semantic Colors */
   --color-success: #22C55E;
@@ -35,7 +35,7 @@
   /* Border Colors */
   --color-border: #334155;
   --color-border-hover: #475569;
-  --color-border-focus: #6366F1;
+  --color-border-focus: #14B8A6;
 
   /* Node Colors */
   --node-trigger: #22C55E;
@@ -86,7 +86,7 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -366,7 +366,7 @@ code, pre {
 .ant-select-focused .ant-select-selector,
 .ant-picker-focused {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
 }
 
 .ant-input::placeholder {
