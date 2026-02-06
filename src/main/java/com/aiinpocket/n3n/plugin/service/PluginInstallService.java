@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.plugin.service;
 
 import com.aiinpocket.n3n.plugin.dto.InstallPluginRequest;
 import com.aiinpocket.n3n.plugin.entity.*;
+import com.aiinpocket.n3n.plugin.orchestrator.ContainerOrchestrator;
 import com.aiinpocket.n3n.plugin.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Plugin 安裝服務
- * 處理 Plugin 的自動安裝，包括 Docker 映像拉取
+ * 處理 Plugin 的自動安裝，透過 ContainerOrchestrator 管理容器（Docker 或 K8s）
  */
 @Slf4j
 @Service
@@ -27,7 +28,7 @@ public class PluginInstallService {
     private final PluginVersionRepository pluginVersionRepository;
     @Qualifier("pluginPluginService")
     private final PluginService pluginService;
-    private final DockerClientService dockerClientService;
+    private final ContainerOrchestrator containerOrchestrator;
     private final PluginNotificationService notificationService;
     private final ContainerNodeDefinitionFetcher nodeDefinitionFetcher;
 
@@ -154,7 +155,7 @@ public class PluginInstallService {
 
         // 如果有容器正在運行，停止它
         if (task.getContainerId() != null) {
-            dockerClientService.stopContainer(task.getContainerId());
+            containerOrchestrator.stop(task.getContainerId());
         }
 
         notificationService.notifyTaskCancelled(task);
@@ -182,7 +183,8 @@ public class PluginInstallService {
         PluginInstallTask task = taskRepository.findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-        log.info("Starting install task: {} for node type: {}", taskId, task.getNodeType());
+        log.info("Starting install task: {} for node type: {} (orchestrator: {})",
+                taskId, task.getNodeType(), containerOrchestrator.getOrchestratorType());
 
         try {
             switch (task.getSource()) {
@@ -218,12 +220,12 @@ public class PluginInstallService {
 
         updateTaskProgress(task, PluginInstallTask.InstallStatus.CONFIGURING, 30, "配置 Plugin");
 
-        // 檢查是否需要 Docker
+        // 檢查是否需要容器
         String dockerImage = (String) version.getConfigSchema().get("dockerImage");
         if (dockerImage != null && !dockerImage.isBlank()) {
-            installWithDocker(task, dockerImage);
+            installWithContainer(task, dockerImage);
         } else {
-            // 直接安裝（不需要 Docker）
+            // 直接安裝（不需要容器）
             updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 70, "註冊節點");
             InstallPluginRequest installRequest = new InstallPluginRequest();
             installRequest.setVersion(version.getVersion());
@@ -242,14 +244,14 @@ public class PluginInstallService {
             throw new IllegalArgumentException("Docker image reference is required");
         }
 
-        installWithDocker(task, imageRef);
+        installWithContainer(task, imageRef);
         markTaskCompleted(task);
     }
 
     /**
-     * 使用 Docker 安裝
+     * 使用容器安裝（Docker 或 K8s，由 ContainerOrchestrator 決定）
      */
-    private void installWithDocker(PluginInstallTask task, String imageRef) {
+    private void installWithContainer(PluginInstallTask task, String imageRef) {
         // 解析映像名稱和標籤
         String image = imageRef;
         String tag = "latest";
@@ -260,20 +262,21 @@ public class PluginInstallService {
         }
 
         // 拉取映像
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 20, "拉取 Docker 映像: " + imageRef);
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 20, "準備映像: " + imageRef);
 
-        dockerClientService.pullImage(image, tag, (progress, status) -> {
-            int percent = 20 + (int) (progress * 0.4); // 20% - 60%
+        containerOrchestrator.pullImage(image, tag, (progress, status) -> {
+            int percent = 20 + (int) (progress * 40); // 20% - 60%
             updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, percent, status);
             notificationService.notifyTaskProgress(task);
         });
 
-        // 啟動容器
+        // 啟動容器/Pod
         updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 65, "啟動容器");
 
-        DockerClientService.ContainerInfo containerInfo = dockerClientService.createAndStartContainer(
+        String containerName = task.getNodeType() + "-" + task.getId().toString().substring(0, 8);
+        ContainerOrchestrator.ContainerInfo containerInfo = containerOrchestrator.createAndStart(
             imageRef,
-            task.getNodeType() + "-" + task.getId().toString().substring(0, 8),
+            containerName,
             Map.of(
                 "N3N_PLUGIN_TYPE", task.getNodeType(),
                 "N3N_TASK_ID", task.getId().toString()
@@ -287,7 +290,7 @@ public class PluginInstallService {
         // 等待容器就緒
         updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 75, "等待容器就緒");
 
-        boolean healthy = dockerClientService.waitForHealthy(containerInfo.containerId(), 60);
+        boolean healthy = containerOrchestrator.waitForHealthy(containerInfo.containerId(), 60);
         if (!healthy) {
             throw new RuntimeException("Container failed to become healthy");
         }
@@ -295,7 +298,6 @@ public class PluginInstallService {
         // 註冊節點
         updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 85, "註冊節點");
 
-        // 從容器取得節點定義並註冊
         boolean registered = nodeDefinitionFetcher.fetchAndRegisterNodes(
                 containerInfo.containerId(),
                 containerInfo.port(),
@@ -318,7 +320,6 @@ public class PluginInstallService {
      */
     private void installLocal(PluginInstallTask task) {
         updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 50, "本地安裝");
-        // 本地安裝邏輯
         markTaskCompleted(task);
     }
 
@@ -368,7 +369,6 @@ public class PluginInstallService {
      * 節點類型轉 Docker 映像
      */
     private String resolveNodeTypeToDockerImage(String nodeType) {
-        // 預設映像對應表
         return switch (nodeType.toLowerCase()) {
             case "puppeteer", "browser" -> "n3n/puppeteer-plugin:latest";
             case "ffmpeg", "video" -> "n3n/ffmpeg-plugin:latest";

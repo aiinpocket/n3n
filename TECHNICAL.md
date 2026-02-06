@@ -141,6 +141,7 @@ N3N supports three types of edge connections for fine-grained control over flow 
 | Flyway | - | Database migrations |
 | GraalVM Polyglot | 24.0 | JavaScript node execution |
 | jjwt | 0.12.6 | JWT tokens |
+| fabric8 kubernetes-client | 6.13.4 | Kubernetes API (optional) |
 
 ### Frontend
 
@@ -212,7 +213,7 @@ Flow execution engine with node handlers.
 - `ExecutionService` - Trigger, cancel, retry executions
 - `StateManager` - Redis-backed execution state
 - `NodeHandler` - Interface for node type handlers
-- Built-in handlers: HTTP, Code (JS), Condition, Loop, Wait
+- Built-in handlers: HTTP, Code (JS), Condition, Loop, Wait, Send Email, Sub-workflow
 
 #### credential/
 Secure credential storage with AES-256-GCM encryption.
@@ -222,11 +223,16 @@ Secure credential storage with AES-256-GCM encryption.
 - `RecoveryKeyService` - BIP39-based recovery key generation
 
 #### plugin/
-Plugin marketplace with dynamic node registration.
+Plugin marketplace with dynamic node registration and container orchestration.
 - `MarketplaceController` - Plugin browsing, install, uninstall APIs
 - `PluginService` - Plugin lifecycle management
 - `PluginNodeRegistrar` - Dynamic registration of plugin nodes
 - `DynamicPluginNodeHandler` - Runtime execution of plugin-defined nodes
+- `ContainerOrchestrator` - Abstraction layer for Docker/Kubernetes container management
+- `DockerContainerOrchestrator` - Docker CLI-based container management (default)
+- `KubernetesContainerOrchestrator` - Kubernetes Deployment/Service management (via fabric8)
+- `RuntimeEnvironmentDetector` - Auto-detects Docker or Kubernetes at startup
+- `TrustedRegistryValidator` - Shared image registry validation for security
 
 #### gateway/
 WebSocket gateway for local agent communication.
@@ -774,7 +780,7 @@ The Agent Gateway enables secure communication with local agents:
 
 ### Plugin System Architecture
 
-The plugin system allows dynamic registration of node types at runtime:
+The plugin system allows dynamic registration of node types at runtime, with pluggable container orchestration:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -783,22 +789,36 @@ The plugin system allows dynamic registration of node types at runtime:
 └────────────────────────┬────────────────────────────────┘
                          │ Install/Uninstall
 ┌────────────────────────▼────────────────────────────────┐
-│  PluginService                                           │
-│  - Install: Save to DB + Register nodes                 │
-│  - Uninstall: Remove from DB + Unregister nodes         │
+│  PluginInstallService                                    │
+│  - Validates image from trusted registry                │
+│  - Delegates container ops to ContainerOrchestrator     │
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│  PluginNodeRegistrar                                     │
-│  - Registers DynamicPluginNodeHandler to registry       │
-│  - Tracks handlers per user (for user-specific plugins) │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│  NodeHandlerRegistry                                     │
-│  - Central registry of all node types                   │
-│  - Lookup by type name during execution                 │
-└─────────────────────────────────────────────────────────┘
+│  ContainerOrchestrator (Interface)                        │
+│  - pullImage(), createAndStart(), waitForHealthy()      │
+│  - getServiceEndpoint(), listPluginContainers()         │
+├─────────────────────┬───────────────────────────────────┘
+│                     │
+│  ┌──────────────────▼──────────────────┐
+│  │ DockerContainerOrchestrator         │  (default)
+│  │ - Docker CLI + labels (n3n.plugin)  │
+│  │ - Service: http://localhost:<port>  │
+│  └─────────────────────────────────────┘
+│  ┌─────────────────────────────────────┐
+│  │ KubernetesContainerOrchestrator     │  (when K8s detected)
+│  │ - fabric8 Deployment + Service      │
+│  │ - Service: <name>.<ns>.svc:8080     │
+│  └─────────────────────────────────────┘
+│
+│  RuntimeEnvironmentDetector (auto mode)
+│  K8s env var → K8s SA token → Docker socket → Docker CLI
+│
+┌────────────────────────────────────────────────────────┐
+│  PluginNodeRegistrar + NodeHandlerRegistry              │
+│  - Registers DynamicPluginNodeHandler to registry      │
+│  - Lookup by type name during execution                │
+└────────────────────────────────────────────────────────┘
 ```
 
 **Plugin Node Definition (JSONB):**
@@ -889,18 +909,36 @@ management.health.redis.enabled=false
 
 ```
 src/test/java/com/aiinpocket/n3n/
-├── base/                    # Base test classes
-│   ├── BaseRepositoryTest   # @DataJpaTest base
-│   ├── BaseServiceTest      # Service test base with mocks
-│   └── BaseControllerTest   # MockMvc test base
+├── base/                          # Base test classes
+│   ├── BaseRepositoryTest         # @DataJpaTest base
+│   ├── BaseServiceTest            # Service test base with mocks
+│   └── BaseControllerTest         # MockMvc test base
 ├── auth/
 │   ├── AuthServiceTest
-│   └── AuthControllerTest
+│   ├── AuthControllerTest
+│   └── UserRepositoryTest
 ├── flow/
 │   ├── FlowServiceTest
+│   ├── FlowRepositoryTest
 │   └── DagParserTest
-└── ...
+├── credential/
+│   ├── EncryptionServiceTest
+│   ├── RecoveryKeyServiceTest
+│   └── MasterKeyProviderMigrationTest  # Key rotation & emergency restore
+├── execution/
+│   └── handler/handlers/
+│       ├── SendEmailNodeHandlerTest     # Email handler tests
+│       └── SubWorkflowNodeHandlerTest   # Sub-workflow handler tests
+├── plugin/
+│   └── orchestrator/
+│       ├── TrustedRegistryValidatorTest # Registry validation
+│       └── RuntimeEnvironmentDetectorTest # Environment detection
+└── ai/failover/
+    ├── CircuitBreakerTest
+    └── FailoverConfigTest
 ```
+
+**Total tests: 168** (as of 2026-02-06)
 
 ### Writing Tests
 
@@ -1008,6 +1046,15 @@ Kubernetes manifests are in `k8s/` directory (when available):
 - `k8s/overlays/dev/` - Development overlay
 - `k8s/overlays/prod/` - Production overlay
 
+**Plugin Container Orchestration on K8s:**
+
+When deployed on Kubernetes with `ORCHESTRATOR_TYPE=kubernetes` (or `auto`), the plugin system uses fabric8 kubernetes-client to:
+- Create Deployment + ClusterIP Service per plugin (in `n3n-plugins` namespace)
+- Apply security constraints: `runAsNonRoot`, `drop ALL capabilities`, no privilege escalation
+- Configure resource limits (CPU/memory) and health probes (liveness + readiness)
+- Use K8s DNS for service discovery: `http://<plugin-name>.n3n-plugins.svc.cluster.local:8080`
+- Label-based service discovery: `n3n/plugin=true`, `n3n/node-type=<type>`
+
 ---
 
 ## Configuration Reference
@@ -1053,6 +1100,22 @@ All environment variables are **optional** with sensible defaults.
 | `FLOW_OPTIMIZER_URL` | `http://localhost:8081` | Optimizer service URL |
 | `FLOW_OPTIMIZER_TIMEOUT` | `30000` | Request timeout in ms |
 
+#### Container Orchestration (Plugin System)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORCHESTRATOR_TYPE` | `docker` | Container orchestrator: `docker`, `kubernetes`, or `auto` |
+| `K8S_NAMESPACE` | `n3n` | Kubernetes main namespace |
+| `K8S_PLUGIN_NAMESPACE` | `n3n-plugins` | Kubernetes plugin namespace |
+| `K8S_SERVICE_ACCOUNT` | `n3n-plugin-manager` | Kubernetes service account for plugin management |
+
+**Auto-detection order** (when `ORCHESTRATOR_TYPE=auto`):
+1. `KUBERNETES_SERVICE_HOST` env var → Kubernetes
+2. K8s Service Account token path → Kubernetes
+3. Docker socket (`/var/run/docker.sock`) → Docker
+4. `docker` CLI availability → Docker
+5. Fallback → Docker
+
 #### Execution Settings
 
 | Variable | Default | Description |
@@ -1087,3 +1150,5 @@ For production deployments:
 4. **Set strong passwords** - Change default database credentials
 5. **Configure CORS** - Set `ALLOWED_ORIGINS` to your domain
 6. **Backup Recovery Key** - The 8-word mnemonic is required to recover encrypted credentials
+7. **Set N3N_MASTER_KEY** - Required in production; auto-generation is disabled for security
+8. **Configure orchestrator** - Set `ORCHESTRATOR_TYPE=kubernetes` for K8s deployments, or use `auto` for automatic detection

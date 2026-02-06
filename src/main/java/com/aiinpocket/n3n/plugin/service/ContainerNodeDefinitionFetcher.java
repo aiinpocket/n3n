@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.plugin.service;
 
 import com.aiinpocket.n3n.plugin.dto.ContainerNodeDefinition;
+import com.aiinpocket.n3n.plugin.orchestrator.ContainerOrchestrator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Container Node Definition Fetcher - Fetches node definitions from running plugin containers.
- * Used during plugin installation to auto-register nodes.
+ * Container Node Definition Fetcher - 從運行中的 Plugin 容器/Pod 取得節點定義。
+ * 支援 Docker 和 K8s 環境（透過 ContainerOrchestrator 服務發現）。
  */
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class ContainerNodeDefinitionFetcher {
 
     private final ObjectMapper objectMapper;
     private final PluginNodeRegistrar pluginNodeRegistrar;
+    private final ContainerOrchestrator containerOrchestrator;
 
     private static final int MAX_RETRIES = 3;
     private static final Duration RETRY_DELAY = Duration.ofSeconds(2);
@@ -40,19 +42,19 @@ public class ContainerNodeDefinitionFetcher {
     /**
      * Fetch node definitions from a container and register them.
      *
-     * @param containerId Container ID
-     * @param containerPort Container port
+     * @param containerId Container ID or Deployment name
+     * @param containerPort Container port (used as fallback)
      * @param nodeType Expected node type (for fallback)
      * @return true if successful, false otherwise
      */
     public boolean fetchAndRegisterNodes(String containerId, int containerPort, String nodeType) {
-        log.info("Fetching node definitions from container {} on port {}", containerId, containerPort);
+        log.info("Fetching node definitions from container {} on port {} (orchestrator: {})",
+                containerId, containerPort, containerOrchestrator.getOrchestratorType());
 
-        Optional<List<ContainerNodeDefinition>> definitions = fetchWithRetry(containerPort);
+        Optional<List<ContainerNodeDefinition>> definitions = fetchWithRetry(containerId, containerPort);
 
         if (definitions.isEmpty()) {
             log.warn("Failed to fetch node definitions from container {}, using fallback", containerId);
-            // Create a minimal fallback definition
             ContainerNodeDefinition fallback = createFallbackDefinition(containerId, containerPort, nodeType);
             registerNode(fallback);
             return true;
@@ -61,15 +63,12 @@ public class ContainerNodeDefinitionFetcher {
         List<ContainerNodeDefinition> nodeDefinitions = definitions.get();
         log.info("Fetched {} node definitions from container {}", nodeDefinitions.size(), containerId);
 
-        // Register each node
         for (ContainerNodeDefinition definition : nodeDefinitions) {
-            // Set container metadata
             definition.setContainer(ContainerNodeDefinition.ContainerMetadata.builder()
                     .containerId(containerId)
                     .port(containerPort)
                     .healthEndpoint("/health")
                     .build());
-
             registerNode(definition);
         }
 
@@ -78,13 +77,19 @@ public class ContainerNodeDefinitionFetcher {
 
     /**
      * Fetch node definitions with retry logic.
+     * Uses ContainerOrchestrator.getServiceEndpoint() for service discovery.
      */
-    private Optional<List<ContainerNodeDefinition>> fetchWithRetry(int containerPort) {
-        String url = "http://localhost:" + containerPort + NODE_DEFINITIONS_ENDPOINT;
+    private Optional<List<ContainerNodeDefinition>> fetchWithRetry(String containerId, int containerPort) {
+        // 透過 ContainerOrchestrator 取得服務端點（Docker: localhost:port, K8s: service DNS）
+        String baseUrl = containerOrchestrator.getServiceEndpoint(containerId);
+        if (baseUrl == null) {
+            baseUrl = "http://localhost:" + containerPort;
+        }
+        String url = baseUrl + NODE_DEFINITIONS_ENDPOINT;
 
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                log.debug("Attempting to fetch node definitions (attempt {}/{})", attempt, MAX_RETRIES);
+                log.debug("Attempting to fetch node definitions from {} (attempt {}/{})", url, attempt, MAX_RETRIES);
 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))
@@ -159,7 +164,6 @@ public class ContainerNodeDefinitionFetcher {
         try {
             log.info("Registering node: {} ({})", definition.getType(), definition.getDisplayName());
 
-            // Convert to the format expected by PluginNodeRegistrar
             Map<String, Object> nodeInfo = Map.of(
                     "type", definition.getType(),
                     "displayName", definition.getDisplayName(),
@@ -185,20 +189,13 @@ public class ContainerNodeDefinitionFetcher {
         }
     }
 
-    /**
-     * Format node type to display name.
-     */
     private String formatDisplayName(String nodeType) {
         if (nodeType == null || nodeType.isBlank()) {
             return "未知節點";
         }
-
-        // Convert camelCase or snake_case to readable format
         String formatted = nodeType
                 .replaceAll("([a-z])([A-Z])", "$1 $2")
                 .replaceAll("_", " ");
-
-        // Capitalize first letter
         return formatted.substring(0, 1).toUpperCase() + formatted.substring(1);
     }
 

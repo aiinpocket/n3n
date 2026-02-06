@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.credential.repository.KeyMigrationLogRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.NoSuchAlgorithmException;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,11 +75,16 @@ public class MasterKeyProvider {
     @Value("${spring.profiles.active:default}")
     private String activeProfile;
 
+    private static final String CIPHER_ALGORITHM = "AES/GCM/NoPadding";
+    private static final int GCM_TAG_LENGTH = 128;
+    private static final int GCM_IV_LENGTH = 12;
+
     private final RecoveryKeyService recoveryKeyService;
     private final EncryptionKeyMetadataRepository metadataRepository;
     private final KeyMigrationLogRepository migrationLogRepository;
     private final CredentialRepository credentialRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private SecretKey masterKey;
     private String keySource;
@@ -89,12 +98,14 @@ public class MasterKeyProvider {
             EncryptionKeyMetadataRepository metadataRepository,
             KeyMigrationLogRepository migrationLogRepository,
             CredentialRepository credentialRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.recoveryKeyService = recoveryKeyService;
         this.metadataRepository = metadataRepository;
         this.migrationLogRepository = migrationLogRepository;
         this.credentialRepository = credentialRepository;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostConstruct
@@ -380,12 +391,20 @@ public class MasterKeyProvider {
 
         try {
             // 用舊 Recovery Key 衍生舊 Master Key（Salt 從助記詞最後一個單字衍生）
-            byte[] oldMasterKey = recoveryKeyService.deriveMasterKey(oldRecoveryKeyPhrase);
+            byte[] oldMasterKeyBytes = recoveryKeyService.deriveMasterKey(oldRecoveryKeyPhrase);
+            SecretKey oldMasterKey = new SecretKeySpec(oldMasterKeyBytes, ALGORITHM);
 
-            // TODO: 解密憑證資料並用新 Master Key 重新加密
-            // 這需要整合 EnvelopeEncryptionService
+            // 用舊 Master Key 解密憑證資料（AES-256-GCM）
+            byte[] plaintext = decryptWithKey(credential.getEncryptedData(), credential.getEncryptionIv(), oldMasterKey);
 
-            // 更新憑證狀態
+            // 用新 Master Key（this.masterKey）重新加密
+            byte[] newIv = new byte[GCM_IV_LENGTH];
+            new SecureRandom().nextBytes(newIv);
+            byte[] newEncryptedData = encryptWithKey(plaintext, newIv, this.masterKey);
+
+            // 更新憑證
+            credential.setEncryptedData(newEncryptedData);
+            credential.setEncryptionIv(newIv);
             credential.setKeyVersion(currentKeyVersion);
             credential.setKeyStatus("active");
             credentialRepository.save(credential);
@@ -418,8 +437,12 @@ public class MasterKeyProvider {
             throw new IllegalArgumentException("Invalid Recovery Key format");
         }
 
-        // 驗證永久密碼（可以是用戶密碼或特定的恢復密碼）
-        // TODO: 實作永久密碼驗證邏輯
+        // 驗證永久密碼
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        if (!passwordEncoder.matches(permanentPassword, user.getPasswordHash())) {
+            throw new SecurityException("Invalid permanent password");
+        }
 
         // 產生新的 Recovery Key
         RecoveryKey newRecoveryKey = recoveryKeyService.generate();
@@ -455,8 +478,75 @@ public class MasterKeyProvider {
                     metadataRepository.save(old);
                 });
 
-        log.warn("Emergency restore completed for user: {}", userId);
+        // 用舊 Master Key 批量重新加密所有使用者憑證
+        List<Credential> userCredentials = credentialRepository.findByOwnerIdAndKeyVersionLessThan(
+                userId, currentKeyVersion);
+        int migrated = 0;
+        int failed = 0;
+        for (Credential credential : userCredentials) {
+            try {
+                reEncryptCredential(credential, oldMasterKeyBytes);
+                migrated++;
+            } catch (Exception e) {
+                log.error("Failed to re-encrypt credential {}: {}", credential.getId(), e.getMessage());
+                credential.setKeyStatus("mismatched");
+                credentialRepository.save(credential);
+                failed++;
+            }
+        }
+
+        log.warn("Emergency restore completed for user: {}. Migrated: {}, Failed: {}",
+                userId, migrated, failed);
         return newRecoveryKey;
+    }
+
+    /**
+     * 重新加密單一憑證（用舊 Master Key 解密，用新 Master Key 加密）
+     */
+    private void reEncryptCredential(Credential credential, byte[] oldMasterKeyBytes) {
+        SecretKey oldKey = new SecretKeySpec(oldMasterKeyBytes, ALGORITHM);
+
+        // 解密
+        byte[] plaintext = decryptWithKey(credential.getEncryptedData(), credential.getEncryptionIv(), oldKey);
+
+        // 用新 Master Key 重新加密
+        byte[] newIv = new byte[GCM_IV_LENGTH];
+        new SecureRandom().nextBytes(newIv);
+        byte[] newEncryptedData = encryptWithKey(plaintext, newIv, this.masterKey);
+
+        credential.setEncryptedData(newEncryptedData);
+        credential.setEncryptionIv(newIv);
+        credential.setKeyVersion(currentKeyVersion);
+        credential.setKeyStatus("active");
+        credentialRepository.save(credential);
+    }
+
+    /**
+     * 使用指定金鑰解密（AES-256-GCM）
+     */
+    private byte[] decryptWithKey(byte[] ciphertext, byte[] iv, SecretKey key) {
+        try {
+            Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+            cipher.init(Cipher.DECRYPT_MODE, key, spec);
+            return cipher.doFinal(ciphertext);
+        } catch (Exception e) {
+            throw new RuntimeException("Decryption failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 使用指定金鑰加密（AES-256-GCM）
+     */
+    private byte[] encryptWithKey(byte[] plaintext, byte[] iv, SecretKey key) {
+        try {
+            Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+            return cipher.doFinal(plaintext);
+        } catch (Exception e) {
+            throw new RuntimeException("Encryption failed: " + e.getMessage(), e);
+        }
     }
 
     // Note: Instance Salt 已不再需要，Salt 現在從 Recovery Key 的最後一個單字衍生

@@ -33,4 +33,8 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
     Optional<Credential> findByIdAndOwnerId(UUID id, UUID ownerId);
 
     boolean existsByNameAndOwnerId(String name, UUID ownerId);
+
+    List<Credential> findByOwnerId(UUID ownerId);
+
+    List<Credential> findByOwnerIdAndKeyVersionLessThan(UUID ownerId, Integer keyVersion);
 }

@@ -1,7 +1,14 @@
 package com.aiinpocket.n3n.execution.handler.handlers;
 
+import com.aiinpocket.n3n.execution.dto.ExecutionResponse;
+import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.handler.*;
+import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
+import com.aiinpocket.n3n.execution.service.ExecutionService;
+import com.aiinpocket.n3n.flow.entity.Flow;
+import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -9,10 +16,27 @@ import java.util.*;
 /**
  * Handler for sub-workflow nodes.
  * Executes another workflow as part of the current flow.
+ *
+ * Uses ObjectProvider to lazily inject ExecutionService
+ * and break the circular dependency:
+ * ExecutionService -> NodeHandlerRegistry -> SubWorkflowNodeHandler -> ExecutionService
  */
 @Component
 @Slf4j
 public class SubWorkflowNodeHandler extends AbstractNodeHandler {
+
+    private final ObjectProvider<ExecutionService> executionServiceProvider;
+    private final FlowRepository flowRepository;
+    private final ExecutionRepository executionRepository;
+
+    public SubWorkflowNodeHandler(
+            ObjectProvider<ExecutionService> executionServiceProvider,
+            FlowRepository flowRepository,
+            ExecutionRepository executionRepository) {
+        this.executionServiceProvider = executionServiceProvider;
+        this.flowRepository = flowRepository;
+        this.executionRepository = executionRepository;
+    }
 
     @Override
     public String getType() {
@@ -41,41 +65,141 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
 
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
-        Map<String, Object> inputData = context.getInputData();
         String workflowId = getStringConfig(context, "workflowId", "");
-        String workflowVersion = getStringConfig(context, "workflowVersion", "latest");
         boolean waitForCompletion = getBooleanConfig(context, "waitForCompletion", true);
+        int timeoutSeconds = getIntConfig(context, "timeoutSeconds", 300);
 
         if (workflowId.isEmpty()) {
-            return NodeExecutionResult.builder()
-                .success(false)
-                .errorMessage("Workflow ID is required")
-                .build();
+            return NodeExecutionResult.failure("Workflow ID is required");
         }
 
-        log.info("Executing sub-workflow: {} (version: {})", workflowId, workflowVersion);
+        UUID subFlowId;
+        try {
+            subFlowId = UUID.fromString(workflowId);
+        } catch (IllegalArgumentException e) {
+            return NodeExecutionResult.failure("Invalid workflow ID format: " + workflowId);
+        }
 
-        // Note: In a real implementation, this would call ExecutionService to run the sub-workflow
-        // For now, we return a placeholder indicating the sub-workflow should be triggered
+        // 驗證子工作流程存在
+        Optional<Flow> subFlowOpt = flowRepository.findByIdAndIsDeletedFalse(subFlowId);
+        if (subFlowOpt.isEmpty()) {
+            return NodeExecutionResult.failure("Sub-workflow not found: " + workflowId);
+        }
+        Flow subFlow = subFlowOpt.get();
 
-        Map<String, Object> output = new HashMap<>();
-        output.put("subWorkflowId", workflowId);
-        output.put("subWorkflowVersion", workflowVersion);
-        output.put("status", "triggered");
-        output.put("inputData", inputData);
-        output.put("waitForCompletion", waitForCompletion);
+        ExecutionService executionService = executionServiceProvider.getIfAvailable();
+        if (executionService == null) {
+            return NodeExecutionResult.failure("ExecutionService not available");
+        }
 
-        // The actual sub-workflow execution would be handled by ExecutionService
-        // This handler just prepares the execution request
+        // 準備子工作流程的輸入
+        Map<String, Object> subInput = new HashMap<>(context.getInputData() != null ? context.getInputData() : Map.of());
 
-        return NodeExecutionResult.builder()
-            .success(true)
-            .output(output)
-            .metadata(Map.of(
-                "subWorkflowId", workflowId,
-                "subWorkflowVersion", workflowVersion
-            ))
-            .build();
+        // 如果有 inputMapping，使用映射取代直接傳遞
+        Map<String, Object> inputMapping = getMapConfig(context, "inputMapping");
+        if (!inputMapping.isEmpty()) {
+            subInput = applyInputMapping(inputMapping, context);
+        }
+
+        try {
+            log.info("Triggering sub-workflow: {} (flowId: {}, wait: {})",
+                    subFlow.getName(), subFlowId, waitForCompletion);
+
+            // 觸發子工作流程
+            ExecutionResponse subExecution = executionService.startExecution(
+                    subFlowId, context.getUserId(), subInput);
+
+            UUID subExecutionId = subExecution.getId();
+
+            if (!waitForCompletion) {
+                Map<String, Object> output = new HashMap<>();
+                output.put("subExecutionId", subExecutionId.toString());
+                output.put("status", "triggered");
+                output.put("subFlowName", subFlow.getName());
+                return NodeExecutionResult.success(output, Map.of(
+                        "subWorkflowId", workflowId,
+                        "subExecutionId", subExecutionId.toString()
+                ));
+            }
+
+            // 等待子工作流程完成
+            return pollForCompletion(executionService, subExecutionId, subFlow.getName(), timeoutSeconds);
+
+        } catch (Exception e) {
+            log.error("Sub-workflow execution failed for flow: {}", workflowId, e);
+            return NodeExecutionResult.failure("Sub-workflow execution failed: " + e.getMessage());
+        }
+    }
+
+    private NodeExecutionResult pollForCompletion(
+            ExecutionService executionService,
+            UUID subExecutionId,
+            String subFlowName,
+            int timeoutSeconds) {
+
+        long startTime = System.currentTimeMillis();
+        long timeoutMs = timeoutSeconds * 1000L;
+
+        while (System.currentTimeMillis() - startTime < timeoutMs) {
+            Optional<Execution> execOpt = executionRepository.findById(subExecutionId);
+            if (execOpt.isEmpty()) break;
+
+            Execution exec = execOpt.get();
+            String status = exec.getStatus();
+
+            if ("completed".equals(status)) {
+                Map<String, Object> output = new HashMap<>();
+                output.put("subExecutionId", subExecutionId.toString());
+                output.put("subFlowName", subFlowName);
+                output.put("status", "completed");
+                output.put("durationMs", exec.getDurationMs());
+                return NodeExecutionResult.success(output, Map.of(
+                        "subExecutionId", subExecutionId.toString(),
+                        "subFlowStatus", "completed"
+                ));
+            }
+
+            if ("failed".equals(status)) {
+                return NodeExecutionResult.failure(
+                        "Sub-workflow failed: " + subFlowName + " (executionId: " + subExecutionId + ")");
+            }
+
+            if ("cancelled".equals(status)) {
+                return NodeExecutionResult.failure(
+                        "Sub-workflow cancelled: " + subFlowName + " (executionId: " + subExecutionId + ")");
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return NodeExecutionResult.failure("Sub-workflow polling interrupted");
+            }
+        }
+
+        return NodeExecutionResult.failure(
+                "Sub-workflow timed out after " + timeoutSeconds + " seconds: " + subFlowName);
+    }
+
+    private Map<String, Object> applyInputMapping(
+            Map<String, Object> mapping, NodeExecutionContext context) {
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : mapping.entrySet()) {
+            String targetKey = entry.getKey();
+            Object sourceExpr = entry.getValue();
+            if (sourceExpr instanceof String expr) {
+                try {
+                    Object resolved = context.evaluateExpression(expr);
+                    result.put(targetKey, resolved);
+                } catch (Exception e) {
+                    log.warn("Failed to evaluate expression '{}', using literal value", expr);
+                    result.put(targetKey, sourceExpr);
+                }
+            } else {
+                result.put(targetKey, sourceExpr);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -100,6 +224,12 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
                     "title", "Wait for Completion",
                     "description", "Wait for sub-workflow to complete before continuing",
                     "default", true
+                ),
+                "timeoutSeconds", Map.of(
+                    "type", "integer",
+                    "title", "Timeout (seconds)",
+                    "description", "Maximum wait time for sub-workflow completion",
+                    "default", 300
                 ),
                 "inputMapping", Map.of(
                     "type", "object",

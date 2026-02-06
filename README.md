@@ -254,6 +254,17 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 | `JWT_SECRET` | 自動產生 | JWT 簽名密鑰（叢集部署時需統一設定） |
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS 允許來源 |
 
+### 容器編排（插件系統）
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `ORCHESTRATOR_TYPE` | `docker` | 容器編排引擎（`docker` / `kubernetes` / `auto`） |
+| `K8S_NAMESPACE` | `n3n` | Kubernetes 主命名空間 |
+| `K8S_PLUGIN_NAMESPACE` | `n3n-plugins` | Kubernetes 插件命名空間 |
+| `K8S_SERVICE_ACCOUNT` | `n3n-plugin-manager` | Kubernetes 服務帳號 |
+
+> **auto 模式**：系統啟動時自動偵測環境（K8s Service Account → Docker Socket → Docker CLI），選擇對應的容器編排引擎。
+
 ### AI 流程優化器（選配）
 
 | 變數 | 預設值 | 說明 |
