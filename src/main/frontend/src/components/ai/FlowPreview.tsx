@@ -208,13 +208,13 @@ const FlowPreview: React.FC<Props> = ({
             value={previewSize}
             onChange={(value) => handleSizeChange(value as PreviewSize)}
             options={[
-              { value: 'compact', icon: <CompressOutlined />, label: '小' },
-              { value: 'normal', icon: <EyeOutlined />, label: '中' },
-              { value: 'expanded', icon: <ExpandOutlined />, label: '大' },
+              { value: 'compact', icon: <CompressOutlined />, label: t('flowPreview.sizeSmall') },
+              { value: 'normal', icon: <EyeOutlined />, label: t('flowPreview.sizeMedium') },
+              { value: 'expanded', icon: <ExpandOutlined />, label: t('flowPreview.sizeLarge') },
             ]}
           />
-          <Tag color="blue">{nodes.length} 個節點</Tag>
-          <Tag color="purple">{edges.length} 條連線</Tag>
+          <Tag color="blue">{nodes.length} {t('flowPreview.nodes')}</Tag>
+          <Tag color="purple">{edges.length} {t('flowPreview.edges')}</Tag>
           {hoveredNode && (
             <Tooltip
               title={<NodeTooltip node={hoveredNode} flowDefinition={flowDefinition} />}

@@ -223,10 +223,10 @@ export function getSuggestionTypeColor(type: OptimizationSuggestion['type']): st
 
 export function getSuggestionTypeName(type: OptimizationSuggestion['type']): string {
   const names: Record<string, string> = {
-    parallel: '並行執行',
-    merge: '合併請求',
-    remove: '移除冗餘',
-    reorder: '重新排序',
+    parallel: 'optimization.parallel',
+    merge: 'optimization.merge',
+    remove: 'optimization.remove',
+    reorder: 'optimization.reorder',
   }
   return names[type] || type
 }
@@ -244,12 +244,12 @@ export function getSuggestionTypeIcon(type: OptimizationSuggestion['type']): str
 export function getPriorityLabel(priority: number): { text: string; color: string } {
   switch (priority) {
     case 1:
-      return { text: '高影響', color: 'red' }
+      return { text: 'optimization.highImpact', color: 'red' }
     case 2:
-      return { text: '中等', color: 'orange' }
+      return { text: 'optimization.medium', color: 'orange' }
     case 3:
     default:
-      return { text: '低', color: 'default' }
+      return { text: 'optimization.low', color: 'default' }
   }
 }
 

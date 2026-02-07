@@ -129,7 +129,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           </div>
         </Space>
         <Tag color={priorityInfo.color} style={{ margin: 0 }}>
-          {priorityInfo.text}
+          {t(priorityInfo.text)}
         </Tag>
       </div>
 

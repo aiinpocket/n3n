@@ -1479,7 +1479,10 @@
     "createFlow": "Create This Flow",
     "nodes": "nodes",
     "edges": "edges",
-    "dragHint": "Drag to pan | Scroll to zoom | Click node for details"
+    "dragHint": "Drag to pan | Scroll to zoom | Click node for details",
+    "sizeSmall": "Small",
+    "sizeMedium": "Medium",
+    "sizeLarge": "Large"
   },
   "aiThinking": {
     "understanding": "Understanding",
@@ -1938,5 +1941,14 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "optimization": {
+    "parallel": "Parallel Execution",
+    "merge": "Merge Requests",
+    "remove": "Remove Redundancy",
+    "reorder": "Reorder",
+    "highImpact": "High Impact",
+    "medium": "Medium",
+    "low": "Low"
   }
 }

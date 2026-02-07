@@ -1479,7 +1479,10 @@
     "createFlow": "建立此流程",
     "nodes": "個節點",
     "edges": "條連線",
-    "dragHint": "拖曳平移 | 滾輪縮放 | 點擊節點查看詳情"
+    "dragHint": "拖曳平移 | 滾輪縮放 | 點擊節點查看詳情",
+    "sizeSmall": "小",
+    "sizeMedium": "中",
+    "sizeLarge": "大"
   },
   "aiThinking": {
     "understanding": "理解需求",
@@ -1757,5 +1760,14 @@
     "minutesAgo": "{{count}} 分鐘前",
     "hoursAgo": "{{count}} 小時前",
     "daysAgo": "{{count}} 天前"
+  },
+  "optimization": {
+    "parallel": "並行執行",
+    "merge": "合併請求",
+    "remove": "移除冗餘",
+    "reorder": "重新排序",
+    "highImpact": "高影響",
+    "medium": "中等",
+    "low": "低"
   }
 }

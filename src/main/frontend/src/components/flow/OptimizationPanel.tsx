@@ -112,7 +112,7 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
             <Text strong>{suggestion.title}</Text>
           </Space>
           <Tag color={priorityInfo.color} style={{ margin: 0 }}>
-            {priorityInfo.text}
+            {t(priorityInfo.text)}
           </Tag>
         </div>
 
@@ -168,7 +168,7 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
               <span style={{ color: getSuggestionTypeColor(type as OptimizationSuggestion['type']) }}>
                 {getSuggestionIcon(type as OptimizationSuggestion['type'])}
               </span>
-              <span>{getSuggestionTypeName(type as OptimizationSuggestion['type'])}</span>
+              <span>{t(getSuggestionTypeName(type as OptimizationSuggestion['type']))}</span>
               <Badge count={suggestions.length} style={{ backgroundColor: 'var(--color-text-muted)' }} />
             </Space>
           ),

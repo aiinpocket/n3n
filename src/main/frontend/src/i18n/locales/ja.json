@@ -1479,7 +1479,10 @@
     "createFlow": "このフローを作成",
     "nodes": "ノード",
     "edges": "エッジ",
-    "dragHint": "ドラッグで移動 | スクロールでズーム | ノードをクリックで詳細"
+    "dragHint": "ドラッグで移動 | スクロールでズーム | ノードをクリックで詳細",
+    "sizeSmall": "小",
+    "sizeMedium": "中",
+    "sizeLarge": "大"
   },
   "aiThinking": {
     "understanding": "要件を理解",
@@ -1938,5 +1941,14 @@
     "minutesAgo": "{{count}}分前",
     "hoursAgo": "{{count}}時間前",
     "daysAgo": "{{count}}日前"
+  },
+  "optimization": {
+    "parallel": "並列実行",
+    "merge": "リクエスト統合",
+    "remove": "冗長削除",
+    "reorder": "並べ替え",
+    "highImpact": "高影響",
+    "medium": "中程度",
+    "low": "低"
   }
 }
