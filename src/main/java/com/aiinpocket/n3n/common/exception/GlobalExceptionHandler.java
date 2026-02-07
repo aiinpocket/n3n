@@ -139,6 +139,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(jakarta.validation.ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String propertyPath = violation.getPropertyPath().toString();
+            String message = violation.getMessage();
+            errors.put(propertyPath, message);
+        });
+
+        ErrorResponse response = ErrorResponse.builder()
+            .timestamp(Instant.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("VALIDATION_ERROR")
+            .message("Validation failed")
+            .details(errors)
+            .build();
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(CompletionException.class)
     public ResponseEntity<ErrorResponse> handleCompletionException(CompletionException ex) {
         Throwable cause = ex.getCause();
