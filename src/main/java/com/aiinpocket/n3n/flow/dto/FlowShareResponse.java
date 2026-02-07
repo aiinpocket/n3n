@@ -13,6 +13,8 @@ public class FlowShareResponse {
 
     private UUID id;
     private UUID flowId;
+    private String flowName;
+    private String flowDescription;
     private UUID userId;
     private String userName;
     private String userEmail;

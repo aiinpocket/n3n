@@ -32,13 +32,14 @@ import type {
 import ChatMessage from '../components/ai/ChatMessage'
 import ComponentRecommendation from '../components/ai/ComponentRecommendation'
 import FlowPreview from '../components/ai/FlowPreview'
+import { getLocale } from '../utils/locale'
 
 const { Title, Paragraph } = Typography
 const { TextArea } = Input
 
 const AIAssistantPage: React.FC = () => {
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversation, setCurrentConversation] = useState<ConversationDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -46,14 +47,6 @@ const AIAssistantPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [historyVisible, setHistoryVisible] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const getLocale = () => {
-    switch (i18n.language) {
-      case 'ja': return 'ja-JP'
-      case 'en': return 'en-US'
-      default: return 'zh-TW'
-    }
-  }
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -251,7 +244,7 @@ const AIAssistantPage: React.FC = () => {
                 ))}
               {sending && (
                 <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: 'var(--color-primary)' }} />
                   <div style={{ flex: 1, padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
                     <Spin size="small" /> {t('chat.thinking')}
                   </div>

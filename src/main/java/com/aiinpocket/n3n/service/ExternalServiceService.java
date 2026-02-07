@@ -36,17 +36,25 @@ public class ExternalServiceService {
         this.restClient = RestClient.create();
     }
 
-    public Page<ServiceResponse> listServices(Pageable pageable) {
-        return serviceRepository.findByIsDeletedFalseOrderByCreatedAtDesc(pageable)
+    public Page<ServiceResponse> listServices(UUID userId, Pageable pageable) {
+        return serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
                 .map(service -> {
                     int count = endpointRepository.countByServiceId(service.getId());
                     return ServiceResponse.from(service, count);
                 });
     }
 
-    public ServiceDetailResponse getService(UUID id) {
+    private ExternalService findServiceWithOwnerCheck(UUID id, UUID userId) {
         ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + id));
+        if (!service.getCreatedBy().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        return service;
+    }
+
+    public ServiceDetailResponse getService(UUID id, UUID userId) {
+        ExternalService service = findServiceWithOwnerCheck(id, userId);
         List<ServiceEndpoint> endpoints = endpointRepository.findByServiceIdOrderByPathAsc(id);
         return ServiceDetailResponse.from(service, endpoints);
     }
@@ -140,19 +148,16 @@ public class ExternalServiceService {
     }
 
     @Transactional
-    public void deleteService(UUID id) {
-        ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + id));
-
+    public void deleteService(UUID id, UUID userId) {
+        ExternalService service = findServiceWithOwnerCheck(id, userId);
         service.setIsDeleted(true);
         serviceRepository.save(service);
         log.info("Deleted external service: id={}, name={}", id, service.getName());
     }
 
     @Transactional
-    public Map<String, Object> refreshSchema(UUID id) {
-        ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + id));
+    public Map<String, Object> refreshSchema(UUID id, UUID userId) {
+        ExternalService service = findServiceWithOwnerCheck(id, userId);
 
         if (service.getSchemaUrl() == null || service.getSchemaUrl().isBlank()) {
             throw new IllegalArgumentException("Service does not have a schema URL configured");
@@ -201,10 +206,8 @@ public class ExternalServiceService {
         );
     }
 
-    public List<EndpointResponse> getEndpoints(UUID serviceId) {
-        if (!serviceRepository.existsById(serviceId)) {
-            throw new ResourceNotFoundException("Service not found: " + serviceId);
-        }
+    public List<EndpointResponse> getEndpoints(UUID serviceId, UUID userId) {
+        findServiceWithOwnerCheck(serviceId, userId);
         return endpointRepository.findByServiceIdOrderByPathAsc(serviceId)
                 .stream()
                 .map(EndpointResponse::from)
@@ -212,10 +215,8 @@ public class ExternalServiceService {
     }
 
     @Transactional
-    public EndpointResponse createEndpoint(UUID serviceId, CreateEndpointRequest request) {
-        if (!serviceRepository.existsById(serviceId)) {
-            throw new ResourceNotFoundException("Service not found: " + serviceId);
-        }
+    public EndpointResponse createEndpoint(UUID serviceId, CreateEndpointRequest request, UUID userId) {
+        findServiceWithOwnerCheck(serviceId, userId);
 
         if (endpointRepository.findByServiceIdAndMethodAndPath(serviceId, request.getMethod(), request.getPath()).isPresent()) {
             throw new IllegalArgumentException("Endpoint with method " + request.getMethod() + " and path " + request.getPath() + " already exists");
@@ -229,7 +230,8 @@ public class ExternalServiceService {
     }
 
     @Transactional
-    public EndpointResponse updateEndpoint(UUID serviceId, UUID endpointId, CreateEndpointRequest request) {
+    public EndpointResponse updateEndpoint(UUID serviceId, UUID endpointId, CreateEndpointRequest request, UUID userId) {
+        findServiceWithOwnerCheck(serviceId, userId);
         ServiceEndpoint endpoint = endpointRepository.findById(endpointId)
                 .orElseThrow(() -> new ResourceNotFoundException("Endpoint not found: " + endpointId));
 
@@ -254,7 +256,8 @@ public class ExternalServiceService {
     }
 
     @Transactional
-    public void deleteEndpoint(UUID serviceId, UUID endpointId) {
+    public void deleteEndpoint(UUID serviceId, UUID endpointId, UUID userId) {
+        findServiceWithOwnerCheck(serviceId, userId);
         ServiceEndpoint endpoint = endpointRepository.findById(endpointId)
                 .orElseThrow(() -> new ResourceNotFoundException("Endpoint not found: " + endpointId));
 
@@ -266,9 +269,8 @@ public class ExternalServiceService {
         log.info("Deleted endpoint: id={}", endpointId);
     }
 
-    public Map<String, Object> testConnection(UUID id) {
-        ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + id));
+    public Map<String, Object> testConnection(UUID id, UUID userId) {
+        ExternalService service = findServiceWithOwnerCheck(id, userId);
 
         String testUrl = service.getBaseUrl();
         if (service.getHealthCheck() != null && service.getHealthCheck().get("path") != null) {
@@ -323,9 +325,21 @@ public class ExternalServiceService {
     /**
      * Get endpoint schema for flow editor node configuration.
      */
+    /**
+     * Internal use: get endpoint schema without ownership check (for flow engine).
+     */
     public EndpointSchemaResponse getEndpointSchema(UUID serviceId, UUID endpointId) {
         ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + serviceId));
+        return getEndpointSchemaInternal(service, serviceId, endpointId);
+    }
+
+    public EndpointSchemaResponse getEndpointSchema(UUID serviceId, UUID endpointId, UUID userId) {
+        ExternalService service = findServiceWithOwnerCheck(serviceId, userId);
+        return getEndpointSchemaInternal(service, serviceId, endpointId);
+    }
+
+    private EndpointSchemaResponse getEndpointSchemaInternal(ExternalService service, UUID serviceId, UUID endpointId) {
 
         ServiceEndpoint endpoint = endpointRepository.findById(endpointId)
                 .orElseThrow(() -> new ResourceNotFoundException("Endpoint not found: " + endpointId));

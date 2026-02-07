@@ -57,11 +57,31 @@ public class WebhookTriggerController {
         return handleWebhook(path, "DELETE", Map.of(), signature, request);
     }
 
+    private static final int MAX_PAYLOAD_SIZE = 1_048_576; // 1MB
+    private static final java.util.regex.Pattern PATH_PATTERN = java.util.regex.Pattern.compile("^[a-zA-Z0-9_\\-]+$");
+
     private ResponseEntity<Map<String, Object>> handleWebhook(
             String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request) {
+        // Validate webhook path format
+        if (path == null || path.isBlank() || !PATH_PATTERN.matcher(path).matches()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Invalid webhook path"
+            ));
+        }
+
         String sourceIp = getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
         int payloadSize = payload != null ? payload.toString().length() : 0;
+
+        // Validate payload size
+        if (payloadSize > MAX_PAYLOAD_SIZE) {
+            log.warn("Webhook payload too large for path: {}, size={}, sourceIp={}", path, payloadSize, sourceIp);
+            return ResponseEntity.status(413).body(Map.of(
+                "success", false,
+                "error", "Payload too large"
+            ));
+        }
 
         try {
             UUID executionId = webhookService.triggerWebhook(path, method, payload, signature);
@@ -87,7 +107,7 @@ public class WebhookTriggerController {
             activityService.logWebhookTriggerFailed(path, sourceIp, e.getMessage());
             return ResponseEntity.status(404).body(Map.of(
                 "success", false,
-                "error", e.getMessage()
+                "error", "Webhook processing failed"
             ));
         }
     }

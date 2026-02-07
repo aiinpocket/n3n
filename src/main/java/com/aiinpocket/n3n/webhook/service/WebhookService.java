@@ -41,16 +41,25 @@ public class WebhookService {
             .toList();
     }
 
-    public List<WebhookResponse> listWebhooksForFlow(UUID flowId) {
+    public List<WebhookResponse> listWebhooksForFlow(UUID flowId, UUID userId) {
         return webhookRepository.findByFlowIdOrderByCreatedAtDesc(flowId)
             .stream()
+            .filter(w -> w.getCreatedBy().equals(userId))
             .map(w -> WebhookResponse.from(w, baseUrl))
             .toList();
     }
 
-    public WebhookResponse getWebhook(UUID id) {
+    private Webhook findWebhookWithOwnerCheck(UUID id, UUID userId) {
         Webhook webhook = webhookRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Webhook not found: " + id));
+        if (!webhook.getCreatedBy().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        return webhook;
+    }
+
+    public WebhookResponse getWebhook(UUID id, UUID userId) {
+        Webhook webhook = findWebhookWithOwnerCheck(id, userId);
         return WebhookResponse.from(webhook, baseUrl);
     }
 
@@ -77,28 +86,24 @@ public class WebhookService {
     }
 
     @Transactional
-    public WebhookResponse activateWebhook(UUID id) {
-        Webhook webhook = webhookRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Webhook not found: " + id));
+    public WebhookResponse activateWebhook(UUID id, UUID userId) {
+        Webhook webhook = findWebhookWithOwnerCheck(id, userId);
         webhook.setIsActive(true);
         webhook = webhookRepository.save(webhook);
         return WebhookResponse.from(webhook, baseUrl);
     }
 
     @Transactional
-    public WebhookResponse deactivateWebhook(UUID id) {
-        Webhook webhook = webhookRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Webhook not found: " + id));
+    public WebhookResponse deactivateWebhook(UUID id, UUID userId) {
+        Webhook webhook = findWebhookWithOwnerCheck(id, userId);
         webhook.setIsActive(false);
         webhook = webhookRepository.save(webhook);
         return WebhookResponse.from(webhook, baseUrl);
     }
 
     @Transactional
-    public void deleteWebhook(UUID id) {
-        if (!webhookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Webhook not found: " + id);
-        }
+    public void deleteWebhook(UUID id, UUID userId) {
+        findWebhookWithOwnerCheck(id, userId);
         webhookRepository.deleteById(id);
         log.info("Webhook deleted: id={}", id);
     }

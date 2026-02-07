@@ -19,5 +19,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'antd-vendor': ['antd', '@ant-design/icons'],
+          'flow-vendor': ['@xyflow/react'],
+          'state-vendor': ['zustand', 'axios'],
+        },
+      },
+    },
   },
 })

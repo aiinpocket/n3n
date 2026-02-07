@@ -5,6 +5,7 @@ import {
   MobileOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { initiatePairing, listDevices, type PairingInitiation } from '../../api/device'
 
 const { Title, Text, Paragraph } = Typography
@@ -20,6 +21,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
   onClose,
   onPaired,
 }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [pairing, setPairing] = useState<PairingInitiation | null>(null)
   const [timeRemaining, setTimeRemaining] = useState(0)
@@ -41,7 +43,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
       setTimeRemaining(result.expiresIn)
       setCurrentStep(1)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '發起配對失敗'
+      const errorMessage = err instanceof Error ? err.message : t('devicePairing.initFailed')
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -69,7 +71,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          setError('配對碼已過期，請重新開始')
+          setError(t('devicePairing.codeExpired'))
           return 0
         }
         return prev - 1
@@ -89,7 +91,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
         if (devices.length > initialDeviceCount) {
           clearInterval(pollInterval)
           setCurrentStep(2)
-          message.success('設備配對成功！')
+          message.success(t('devicePairing.pairingSuccess'))
           setTimeout(() => {
             onPaired()
             onClose()
@@ -115,7 +117,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
 
   return (
     <Modal
-      title="新增設備"
+      title={t('devicePairing.title')}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -126,16 +128,16 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
         <Steps
           current={currentStep}
           items={[
-            { title: '產生配對碼' },
-            { title: '輸入配對碼' },
-            { title: '完成' },
+            { title: t('devicePairing.stepGenerate') },
+            { title: t('devicePairing.stepInput') },
+            { title: t('devicePairing.stepComplete') },
           ]}
         />
 
         {loading && (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <Spin size="large" />
-            <Paragraph style={{ marginTop: 16 }}>正在產生配對碼...</Paragraph>
+            <Paragraph style={{ marginTop: 16 }}>{t('devicePairing.generating')}</Paragraph>
           </div>
         )}
 
@@ -145,7 +147,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
             message={error}
             showIcon
             action={
-              <a onClick={handleRetry}>重試</a>
+              <a onClick={handleRetry}>{t('common.retry')}</a>
             }
           />
         )}
@@ -186,17 +188,17 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
             <Alert
               type="info"
               icon={<MobileOutlined />}
-              message="在您的設備上輸入此配對碼"
+              message={t('devicePairing.enterCodeOnDevice')}
               description={
                 <ol style={{ paddingLeft: 20, margin: '8px 0 0' }}>
-                  <li>下載並安裝 N3N Agent</li>
+                  <li>{t('devicePairing.step1Install')}</li>
                   <li>
-                    執行命令：
+                    {t('devicePairing.step2Command')}
                     <Text code copyable style={{ marginLeft: 8 }}>
                       n3n-agent pair --code {pairing.pairingCode}
                     </Text>
                   </li>
-                  <li>等待配對完成</li>
+                  <li>{t('devicePairing.step3Wait')}</li>
                 </ol>
               }
             />
@@ -209,9 +211,9 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
               style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }}
             />
             <Title level={3} style={{ margin: 0 }}>
-              配對成功！
+              {t('devicePairing.successTitle')}
             </Title>
-            <Paragraph type="secondary">設備已成功連接到平台</Paragraph>
+            <Paragraph type="secondary">{t('devicePairing.successDesc')}</Paragraph>
           </div>
         )}
       </Space>

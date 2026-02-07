@@ -67,6 +67,14 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
         return true;
     }
 
+    /**
+     * Check if SSRF protection should be enabled.
+     * Default is true; set allowInternalAddresses=true in config to disable (for testing/internal use).
+     */
+    protected boolean isSsrfProtectionEnabled(NodeExecutionContext context) {
+        return !getBooleanConfig(context, "allowInternalAddresses", false);
+    }
+
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
         log.info("HttpRequestNodeHandler.doExecute called for node: {}", context.getNodeId());
@@ -82,6 +90,21 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
         // Validate URL
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             return NodeExecutionResult.failure("URL must start with http:// or https://");
+        }
+
+        // SSRF protection: block internal/private addresses
+        if (isSsrfProtectionEnabled(context)) {
+            try {
+                java.net.URL parsedUrl = new java.net.URL(url);
+                java.net.InetAddress addr = java.net.InetAddress.getByName(parsedUrl.getHost());
+                if (addr.isLoopbackAddress() || addr.isLinkLocalAddress() || addr.isSiteLocalAddress()) {
+                    return NodeExecutionResult.failure("Access to internal network addresses is not allowed");
+                }
+            } catch (java.net.MalformedURLException e) {
+                return NodeExecutionResult.failure("Invalid URL format: " + url);
+            } catch (java.net.UnknownHostException e) {
+                return NodeExecutionResult.failure("Cannot resolve hostname: " + url);
+            }
         }
 
         // Cap timeout

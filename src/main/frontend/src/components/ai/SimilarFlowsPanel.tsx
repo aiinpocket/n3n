@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import logger from '../../utils/logger'
 import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip, Segmented, Badge } from 'antd'
 import {
   FolderOutlined,
@@ -105,10 +106,10 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
         searchMode: mode,
       })))
     } catch (err) {
-      console.error('Failed to fetch similar flows:', err)
+      logger.error('Failed to fetch similar flows:', err)
       // 如果語義搜尋失敗，嘗試降級到關鍵字搜尋
       if (mode === 'semantic') {
-        console.log('Semantic search failed, falling back to keyword search')
+        logger.debug('Semantic search failed, falling back to keyword search')
         try {
           const fallbackResponse = await api.get<SimilarFlow[]>('/ai-assistant/similar-flows', {
             params: { query: searchQuery, limit: maxResults },
@@ -119,11 +120,11 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
           })))
           setError(null)
         } catch {
-          setError('無法載入類似流程')
+          setError(t('aiAssistant.loadSimilarFailed'))
           setFlows([])
         }
       } else {
-        setError('無法載入類似流程')
+        setError(t('aiAssistant.loadSimilarFailed'))
         setFlows([])
       }
     } finally {
@@ -138,9 +139,9 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
   // 格式化相似度顯示
   const formatSimilarity = (similarity: number) => {
     const percent = Math.round(similarity * 100)
-    if (percent >= 80) return { text: `${percent}% 高度相似`, color: 'success' }
-    if (percent >= 50) return { text: `${percent}% 中度相似`, color: 'warning' }
-    return { text: `${percent}% 相似`, color: 'default' }
+    if (percent >= 80) return { text: t('aiAssistant.highSimilarity', { percent }), color: 'success' }
+    if (percent >= 50) return { text: t('aiAssistant.mediumSimilarity', { percent }), color: 'warning' }
+    return { text: t('aiAssistant.lowSimilarity', { percent }), color: 'default' }
   }
 
   // 格式化時間
@@ -149,11 +150,11 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     const now = new Date()
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) return '今天'
-    if (diffDays === 1) return '昨天'
-    if (diffDays < 7) return `${diffDays} 天前`
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} 週前`
-    return date.toLocaleDateString('zh-TW')
+    if (diffDays === 0) return t('aiAssistant.today')
+    if (diffDays === 1) return t('aiAssistant.yesterday')
+    if (diffDays < 7) return t('aiAssistant.daysAgo', { days: diffDays })
+    if (diffDays < 30) return t('aiAssistant.weeksAgo', { weeks: Math.floor(diffDays / 7) })
+    return date.toLocaleDateString()
   }
 
   if (query.length < minQueryLength) {
@@ -164,7 +165,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     return (
       <div className={styles.container}>
         <Text type="secondary" className={styles.title}>
-          <FolderOutlined /> {t('aiAssistant.similarFlows', '類似流程')}
+          <FolderOutlined /> {t('aiAssistant.similarFlows')}
         </Text>
         <Skeleton active paragraph={{ rows: 2 }} />
       </div>
@@ -187,7 +188,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <Text type="secondary" className={styles.title}>
-          <FolderOutlined /> {t('aiAssistant.similarFlows', '類似流程')} ({flows.length})
+          <FolderOutlined /> {t('aiAssistant.similarFlows')} ({flows.length})
         </Text>
 
         {/* Search Mode Selector */}
@@ -201,8 +202,8 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                 value: 'semantic',
                 icon: <RadarChartOutlined />,
                 label: (
-                  <Tooltip title="使用 AI 語義理解搜尋相關流程">
-                    <span>語義</span>
+                  <Tooltip title={t('aiAssistant.semanticSearchTooltip')}>
+                    <span>{t('aiAssistant.semantic')}</span>
                   </Tooltip>
                 ),
               },
@@ -210,8 +211,8 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                 value: 'keyword',
                 icon: <SearchOutlined />,
                 label: (
-                  <Tooltip title="使用關鍵字匹配搜尋">
-                    <span>關鍵字</span>
+                  <Tooltip title={t('aiAssistant.keywordSearchTooltip')}>
+                    <span>{t('aiAssistant.keyword')}</span>
                   </Tooltip>
                 ),
               },
@@ -224,11 +225,11 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
       {searchTime !== null && (
         <div className={styles.searchStats}>
           <Text type="secondary" style={{ fontSize: 11 }}>
-            <ThunderboltOutlined /> 搜尋耗時 {searchTime}ms
+            <ThunderboltOutlined /> {t('aiAssistant.searchTime', { time: searchTime })}
             {searchMode === 'semantic' && (
               <Badge
                 status="processing"
-                text={<Text type="secondary" style={{ fontSize: 11 }}>AI 語義搜尋</Text>}
+                text={<Text type="secondary" style={{ fontSize: 11 }}>{t('aiAssistant.aiSemanticSearch')}</Text>}
                 style={{ marginLeft: 8 }}
               />
             )}
@@ -248,7 +249,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                 <div className={styles.flowHeader}>
                   <div className={styles.flowName}>
                     {flow.isTemplate && (
-                      <Tooltip title="模板">
+                      <Tooltip title={t('aiAssistant.template')}>
                         <StarOutlined className={styles.templateIcon} />
                       </Tooltip>
                     )}
@@ -274,7 +275,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                 <div className={styles.flowMeta}>
                   <Space size={12}>
                     <Text type="secondary" className={styles.metaItem}>
-                      <NodeIndexOutlined /> {flow.nodeCount} 個節點
+                      <NodeIndexOutlined /> {t('aiAssistant.nodeCount', { count: flow.nodeCount })}
                     </Text>
                     <Text type="secondary" className={styles.metaItem}>
                       <ClockCircleOutlined /> {formatDate(flow.createdAt)}
@@ -300,7 +301,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                 {flow.matchedKeywords.length > 0 && (
                   <div className={styles.matchedKeywords}>
                     <Text type="secondary" className={styles.matchLabel}>
-                      匹配：
+                      {t('aiAssistant.matched')}
                     </Text>
                     {flow.matchedKeywords.slice(0, 3).map((keyword) => (
                       <Tag key={keyword} color="purple" className={styles.keywordTag}>
@@ -317,7 +318,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                     icon={<EyeOutlined />}
                     onClick={() => onSelectFlow?.(flow.flowId)}
                   >
-                    查看
+                    {t('aiAssistant.viewFlow')}
                   </Button>
                   <Button
                     type="link"
@@ -325,7 +326,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
                     icon={<CopyOutlined />}
                     onClick={() => onUseAsTemplate?.(flow.flowId)}
                   >
-                    參考此流程
+                    {t('aiAssistant.useAsTemplate')}
                   </Button>
                 </div>
               </Card>

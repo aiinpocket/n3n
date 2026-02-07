@@ -63,6 +63,7 @@ class WebSocketService {
         logger.info('WebSocket disconnected');
         this.connected = false;
         this.subscriptions.clear();
+        this.handlers.clear();
       };
 
       this.client.onWebSocketClose = () => {

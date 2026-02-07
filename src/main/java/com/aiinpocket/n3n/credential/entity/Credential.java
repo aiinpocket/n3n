@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.entity;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,7 +40,7 @@ public class Credential {
 
     @Column(nullable = false)
     @Builder.Default
-    private String visibility = "private";
+    private String visibility = Status.Visibility.PRIVATE;
 
     @Column(name = "encrypted_data", nullable = false)
     private byte[] encryptedData;

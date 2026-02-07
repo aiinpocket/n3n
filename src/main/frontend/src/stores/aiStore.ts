@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as aiApi from '../api/ai'
+import { extractApiError } from '../utils/errorMessages'
 import type {
   AiProviderType,
   AiProviderConfig,
@@ -64,8 +65,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       const types = await aiApi.getProviderTypes()
       set({ providerTypes: types, providerTypesLoading: false })
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to fetch provider types'
+      const message = extractApiError(error, 'Failed to fetch provider types')
       set({ error: message, providerTypesLoading: false })
     }
   },
@@ -83,8 +83,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         set({ selectedConfigId: defaultConfig.id })
       }
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to fetch configs'
+      const message = extractApiError(error, 'Failed to fetch configs')
       set({ error: message, configsLoading: false })
     }
   },
@@ -100,8 +99,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       }))
       return config
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to create config'
+      const message = extractApiError(error, 'Failed to create config')
       set({ error: message })
       throw error
     }
@@ -117,8 +115,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       }))
       return updated
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to update config'
+      const message = extractApiError(error, 'Failed to update config')
       set({ error: message })
       throw error
     }
@@ -134,8 +131,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         selectedConfigId: state.selectedConfigId === id ? null : state.selectedConfigId,
       }))
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to delete config'
+      const message = extractApiError(error, 'Failed to delete config')
       set({ error: message })
       throw error
     }
@@ -153,8 +149,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         })),
       }))
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to set as default'
+      const message = extractApiError(error, 'Failed to set as default')
       set({ error: message })
       throw error
     }
@@ -167,8 +162,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       const result = await aiApi.testConnection(id)
       set({ testResult: result, testLoading: false })
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Connection test failed'
+      const message = extractApiError(error, 'Connection test failed')
       set({
         testResult: { success: false, message },
         testLoading: false,
@@ -183,8 +177,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       const models = await aiApi.getModels(id)
       set({ models, modelsLoading: false })
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to fetch models'
+      const message = extractApiError(error, 'Failed to fetch models')
       set({ error: message, modelsLoading: false })
     }
   },
@@ -196,8 +189,7 @@ export const useAiStore = create<AiState>((set, get) => ({
       const models = await aiApi.fetchModelsWithKey(provider, apiKey, baseUrl)
       set({ models, modelsLoading: false })
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-        || 'Failed to fetch models'
+      const message = extractApiError(error, 'Failed to fetch models')
       set({ error: message, modelsLoading: false, models: [] })
     }
   },

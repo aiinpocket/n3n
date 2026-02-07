@@ -109,7 +109,7 @@ public class SupervisorAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Supervisor execution failed", e);
-            return AgentResult.error("處理失敗: " + e.getMessage());
+            return AgentResult.error("Processing failed: " + e.getMessage());
         }
     }
 

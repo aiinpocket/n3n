@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.skill.entity;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -81,7 +82,7 @@ public class Skill {
 
     @Column(nullable = false)
     @Builder.Default
-    private String visibility = "private";
+    private String visibility = Status.Visibility.PRIVATE;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

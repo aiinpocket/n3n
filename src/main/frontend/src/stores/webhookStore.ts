@@ -51,9 +51,15 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
   },
 
   getWebhook: async (id: string) => {
-    const webhook = await webhookApi.get(id)
-    set({ selectedWebhook: webhook })
-    return webhook
+    try {
+      const webhook = await webhookApi.get(id)
+      set({ selectedWebhook: webhook })
+      return webhook
+    } catch (error) {
+      logger.error('Failed to get webhook:', error)
+      set({ error: (error as Error).message })
+      throw error
+    }
   },
 
   createWebhook: async (request: CreateWebhookRequest) => {

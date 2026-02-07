@@ -95,7 +95,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Builder Agent execution failed", e);
-            return AgentResult.error("建構失敗: " + e.getMessage());
+            return AgentResult.error("Build failed: " + e.getMessage());
         }
     }
 
@@ -256,7 +256,7 @@ public class BuilderAgent implements Agent {
             "builder", context.getUserId());
 
         if (!provider.isAvailable()) {
-            return AgentResult.error("AI 服務不可用，請先透過搜尋選擇節點");
+            return AgentResult.error("AI service unavailable, please select nodes through search first");
         }
 
         try {
@@ -285,7 +285,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("AI planning failed", e);
-            return AgentResult.error("規劃流程失敗: " + e.getMessage());
+            return AgentResult.error("Flow planning failed: " + e.getMessage());
         }
     }
 
@@ -342,7 +342,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Failed to parse build plan", e);
-            return AgentResult.error("解析建構計畫失敗: " + e.getMessage());
+            return AgentResult.error("Failed to parse build plan: " + e.getMessage());
         }
     }
 
@@ -355,7 +355,7 @@ public class BuilderAgent implements Agent {
         String label = (String) entities.get("label");
 
         if (nodeType == null) {
-            return AgentResult.error("請指定要新增的節點類型");
+            return AgentResult.error("Please specify the node type to add");
         }
 
         ToolResult result = addNodeTool.execute(
@@ -451,7 +451,7 @@ public class BuilderAgent implements Agent {
         Map<String, Object> config = (Map<String, Object>) entities.get("config");
 
         if (config == null || config.isEmpty()) {
-            return AgentResult.error("請指定要設定的配置參數");
+            return AgentResult.error("Please specify configuration parameters");
         }
 
         ToolResult result = configureNodeTool.execute(
@@ -489,7 +489,7 @@ public class BuilderAgent implements Agent {
     private AgentResult optimizeFlow(AgentContext context) {
         WorkingFlowDraft draft = context.getFlowDraft();
         if (draft == null || !draft.hasContent()) {
-            return AgentResult.error("沒有可優化的流程");
+            return AgentResult.error("No flow available to optimize");
         }
 
         // 驗證並給出優化建議

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class ExecutionApprovalController {
     @PostMapping("/approval")
     public ResponseEntity<ApprovalResponse> submitApproval(
             @PathVariable UUID executionId,
-            @RequestBody ApprovalRequest request,
+            @Valid @RequestBody ApprovalRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());

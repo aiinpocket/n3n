@@ -1,200 +1,201 @@
 /**
  * AI Quick Actions Configuration
  * Defines common AI-assisted operations for quick access.
+ * Labels, descriptions, prompts and text use i18n keys - call t() when rendering.
  */
 
 export interface QuickAction {
   id: string
-  label: string
-  description: string
+  label: string       // i18n key
+  description: string  // i18n key
   icon: string
-  prompt: string
+  prompt: string       // i18n key
   category: QuickActionCategory
   requiresFlow?: boolean
-  tags?: string[]
+  tags?: string[]      // i18n keys
 }
 
 export type QuickActionCategory = 'create' | 'optimize' | 'analyze' | 'debug' | 'template'
 
 export const QUICK_ACTION_CATEGORIES: Record<QuickActionCategory, { label: string; color: string }> = {
-  create: { label: '建立', color: '#52c41a' },
-  optimize: { label: '優化', color: '#1890ff' },
-  analyze: { label: '分析', color: '#8B5CF6' },
-  debug: { label: '除錯', color: '#fa8c16' },
-  template: { label: '範本', color: '#13c2c2' },
+  create: { label: 'quickActions.category.create', color: '#52c41a' },
+  optimize: { label: 'quickActions.category.optimize', color: '#1890ff' },
+  analyze: { label: 'quickActions.category.analyze', color: '#8B5CF6' },
+  debug: { label: 'quickActions.category.debug', color: '#fa8c16' },
+  template: { label: 'quickActions.category.template', color: '#13c2c2' },
 }
 
 export const AI_QUICK_ACTIONS: QuickAction[] = [
   // Create actions
   {
     id: 'create-basic-flow',
-    label: '建立基本流程',
-    description: '從零開始建立一個新的自動化流程',
+    label: 'quickActions.createBasicFlow.label',
+    description: 'quickActions.createBasicFlow.description',
     icon: 'plus-circle',
-    prompt: '請幫我建立一個新的自動化流程。',
+    prompt: 'quickActions.createBasicFlow.prompt',
     category: 'create',
-    tags: ['新建', '流程'],
+    tags: ['quickActions.tags.new', 'quickActions.tags.flow'],
   },
   {
     id: 'create-schedule-task',
-    label: '建立排程任務',
-    description: '建立定時執行的自動化任務',
+    label: 'quickActions.createScheduleTask.label',
+    description: 'quickActions.createScheduleTask.description',
     icon: 'clock-circle',
-    prompt: '請幫我建立一個每天定時執行的排程任務，',
+    prompt: 'quickActions.createScheduleTask.prompt',
     category: 'create',
-    tags: ['排程', '定時', 'cron'],
+    tags: ['quickActions.tags.schedule', 'quickActions.tags.timer', 'cron'],
   },
   {
     id: 'create-webhook-handler',
-    label: '建立 Webhook 處理',
-    description: '建立接收外部 Webhook 請求的流程',
+    label: 'quickActions.createWebhookHandler.label',
+    description: 'quickActions.createWebhookHandler.description',
     icon: 'api',
-    prompt: '請幫我建立一個 Webhook 接收器，當收到請求時進行處理。',
+    prompt: 'quickActions.createWebhookHandler.prompt',
     category: 'create',
-    tags: ['webhook', 'api', '接收'],
+    tags: ['webhook', 'api', 'quickActions.tags.receive'],
   },
   {
     id: 'create-data-sync',
-    label: '建立資料同步',
-    description: '建立資料來源之間的同步流程',
+    label: 'quickActions.createDataSync.label',
+    description: 'quickActions.createDataSync.description',
     icon: 'sync',
-    prompt: '請幫我建立一個資料同步流程，從來源讀取資料並寫入目標。',
+    prompt: 'quickActions.createDataSync.prompt',
     category: 'create',
-    tags: ['資料', '同步', '匯入'],
+    tags: ['quickActions.tags.data', 'quickActions.tags.sync', 'quickActions.tags.import'],
   },
   {
     id: 'create-notification',
-    label: '建立通知流程',
-    description: '建立多管道通知發送流程',
+    label: 'quickActions.createNotification.label',
+    description: 'quickActions.createNotification.description',
     icon: 'bell',
-    prompt: '請幫我建立一個通知流程，當特定事件發生時發送通知。',
+    prompt: 'quickActions.createNotification.prompt',
     category: 'create',
-    tags: ['通知', '訊息', 'slack', 'email'],
+    tags: ['quickActions.tags.notification', 'quickActions.tags.message', 'slack', 'email'],
   },
 
   // Optimize actions
   {
     id: 'optimize-performance',
-    label: '優化效能',
-    description: '分析並優化流程執行效能',
+    label: 'quickActions.optimizePerformance.label',
+    description: 'quickActions.optimizePerformance.description',
     icon: 'thunderbolt',
-    prompt: '請分析這個流程的效能瓶頸，並建議優化方式。',
+    prompt: 'quickActions.optimizePerformance.prompt',
     category: 'optimize',
     requiresFlow: true,
-    tags: ['效能', '優化', '速度'],
+    tags: ['quickActions.tags.performance', 'quickActions.tags.optimize', 'quickActions.tags.speed'],
   },
   {
     id: 'add-error-handling',
-    label: '加入錯誤處理',
-    description: '為流程加入完整的錯誤處理機制',
+    label: 'quickActions.addErrorHandling.label',
+    description: 'quickActions.addErrorHandling.description',
     icon: 'warning',
-    prompt: '請為這個流程加入完整的錯誤處理，包括重試機制和告警通知。',
+    prompt: 'quickActions.addErrorHandling.prompt',
     category: 'optimize',
     requiresFlow: true,
-    tags: ['錯誤', '處理', '重試'],
+    tags: ['quickActions.tags.error', 'quickActions.tags.handling', 'quickActions.tags.retry'],
   },
   {
     id: 'add-logging',
-    label: '加入日誌記錄',
-    description: '為流程加入詳細的日誌記錄',
+    label: 'quickActions.addLogging.label',
+    description: 'quickActions.addLogging.description',
     icon: 'file-text',
-    prompt: '請為這個流程在關鍵步驟加入日誌記錄，便於追蹤和除錯。',
+    prompt: 'quickActions.addLogging.prompt',
     category: 'optimize',
     requiresFlow: true,
-    tags: ['日誌', '記錄', 'log'],
+    tags: ['quickActions.tags.log', 'quickActions.tags.record', 'log'],
   },
   {
     id: 'parallelize',
-    label: '並行化處理',
-    description: '將可並行的步驟改為同時執行',
+    label: 'quickActions.parallelize.label',
+    description: 'quickActions.parallelize.description',
     icon: 'branches',
-    prompt: '請分析這個流程中可以並行執行的步驟，並建議如何優化。',
+    prompt: 'quickActions.parallelize.prompt',
     category: 'optimize',
     requiresFlow: true,
-    tags: ['並行', '同時', '效率'],
+    tags: ['quickActions.tags.parallel', 'quickActions.tags.concurrent', 'quickActions.tags.efficiency'],
   },
 
   // Analyze actions
   {
     id: 'explain-flow',
-    label: '解釋流程',
-    description: '詳細解釋流程的每個步驟',
+    label: 'quickActions.explainFlow.label',
+    description: 'quickActions.explainFlow.description',
     icon: 'question-circle',
-    prompt: '請詳細解釋這個流程的運作方式，包括每個節點的作用和資料流向。',
+    prompt: 'quickActions.explainFlow.prompt',
     category: 'analyze',
     requiresFlow: true,
-    tags: ['解釋', '說明', '理解'],
+    tags: ['quickActions.tags.explain', 'quickActions.tags.description', 'quickActions.tags.understand'],
   },
   {
     id: 'find-issues',
-    label: '檢查潛在問題',
-    description: '找出流程中可能的問題',
+    label: 'quickActions.findIssues.label',
+    description: 'quickActions.findIssues.description',
     icon: 'bug',
-    prompt: '請檢查這個流程中可能存在的問題，包括潛在的錯誤、效能問題或設計問題。',
+    prompt: 'quickActions.findIssues.prompt',
     category: 'analyze',
     requiresFlow: true,
-    tags: ['問題', '檢查', '審查'],
+    tags: ['quickActions.tags.issue', 'quickActions.tags.check', 'quickActions.tags.review'],
   },
   {
     id: 'suggest-improvements',
-    label: '建議改進',
-    description: '提供流程改進建議',
+    label: 'quickActions.suggestImprovements.label',
+    description: 'quickActions.suggestImprovements.description',
     icon: 'bulb',
-    prompt: '請分析這個流程並提供改進建議，讓它更有效率、更可靠。',
+    prompt: 'quickActions.suggestImprovements.prompt',
     category: 'analyze',
     requiresFlow: true,
-    tags: ['建議', '改進', '優化'],
+    tags: ['quickActions.tags.suggestion', 'quickActions.tags.improvement', 'quickActions.tags.optimize'],
   },
 
   // Debug actions
   {
     id: 'debug-error',
-    label: '除錯錯誤',
-    description: '協助找出並修復流程錯誤',
+    label: 'quickActions.debugError.label',
+    description: 'quickActions.debugError.description',
     icon: 'tool',
-    prompt: '這個流程執行時發生錯誤，請幫我分析可能的原因並提供修復建議。',
+    prompt: 'quickActions.debugError.prompt',
     category: 'debug',
     requiresFlow: true,
-    tags: ['除錯', '錯誤', '修復'],
+    tags: ['quickActions.tags.debug', 'quickActions.tags.error', 'quickActions.tags.fix'],
   },
   {
     id: 'trace-data',
-    label: '追蹤資料流',
-    description: '追蹤資料在流程中的傳遞',
+    label: 'quickActions.traceData.label',
+    description: 'quickActions.traceData.description',
     icon: 'node-index',
-    prompt: '請幫我追蹤資料在這個流程中的傳遞過程，找出資料可能遺失或轉換的地方。',
+    prompt: 'quickActions.traceData.prompt',
     category: 'debug',
     requiresFlow: true,
-    tags: ['追蹤', '資料', '流向'],
+    tags: ['quickActions.tags.trace', 'quickActions.tags.data', 'quickActions.tags.direction'],
   },
 
   // Template actions
   {
     id: 'template-monitor',
-    label: 'API 監控範本',
-    description: '建立 API 健康檢查與告警流程',
+    label: 'quickActions.templateMonitor.label',
+    description: 'quickActions.templateMonitor.description',
     icon: 'monitor',
-    prompt: '請幫我建立一個 API 監控流程，每 5 分鐘檢查 API 狀態，如果異常則發送告警。',
+    prompt: 'quickActions.templateMonitor.prompt',
     category: 'template',
-    tags: ['監控', 'api', '告警'],
+    tags: ['quickActions.tags.monitor', 'api', 'quickActions.tags.alert'],
   },
   {
     id: 'template-etl',
-    label: 'ETL 處理範本',
-    description: '建立資料擷取、轉換、載入流程',
+    label: 'quickActions.templateEtl.label',
+    description: 'quickActions.templateEtl.description',
     icon: 'database',
-    prompt: '請幫我建立一個 ETL 流程，從來源擷取資料、進行轉換處理、然後載入目標資料庫。',
+    prompt: 'quickActions.templateEtl.prompt',
     category: 'template',
-    tags: ['etl', '資料', '轉換'],
+    tags: ['etl', 'quickActions.tags.data', 'quickActions.tags.transform'],
   },
   {
     id: 'template-ai-pipeline',
-    label: 'AI 處理管線',
-    description: '建立包含 AI 處理的流程',
+    label: 'quickActions.templateAiPipeline.label',
+    description: 'quickActions.templateAiPipeline.description',
     icon: 'robot',
-    prompt: '請幫我建立一個包含 AI 處理的流程，可以自動處理和分析資料。',
+    prompt: 'quickActions.templateAiPipeline.prompt',
     category: 'template',
-    tags: ['ai', '處理', '分析'],
+    tags: ['ai', 'quickActions.tags.processing', 'quickActions.tags.analysis'],
   },
 ]
 
@@ -220,14 +221,15 @@ export function getStandaloneActions(): QuickAction[] {
 }
 
 /**
- * Search quick actions by query
+ * Search quick actions by query (searches translated values)
+ * Note: caller should pass t() function to translate keys before searching
  */
-export function searchQuickActions(query: string): QuickAction[] {
+export function searchQuickActions(query: string, t: (key: string) => string): QuickAction[] {
   const lowerQuery = query.toLowerCase()
   return AI_QUICK_ACTIONS.filter(action => {
-    if (action.label.toLowerCase().includes(lowerQuery)) return true
-    if (action.description.toLowerCase().includes(lowerQuery)) return true
-    if (action.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) return true
+    if (t(action.label).toLowerCase().includes(lowerQuery)) return true
+    if (t(action.description).toLowerCase().includes(lowerQuery)) return true
+    if (action.tags?.some(tag => t(tag).toLowerCase().includes(lowerQuery))) return true
     return false
   })
 }
@@ -248,52 +250,52 @@ export type FlowContextType =
  * Context-aware suggestions based on current flow state
  */
 export interface ContextSuggestion {
-  text: string
-  prompt: string
+  text: string    // i18n key
+  prompt: string  // i18n key
   priority: number
 }
 
 export const CONTEXT_AWARE_SUGGESTIONS: Record<FlowContextType, ContextSuggestion[]> = {
   empty_canvas: [
-    { text: '建立新流程', prompt: '請幫我建立一個新的自動化流程', priority: 1 },
-    { text: '從範本開始', prompt: '請推薦適合我需求的流程範本', priority: 2 },
-    { text: '匯入現有流程', prompt: '我想匯入一個現有的流程並進行修改', priority: 3 },
-    { text: '排程任務', prompt: '請幫我建立一個定時執行的排程任務', priority: 4 },
-    { text: 'Webhook 處理', prompt: '請幫我建立一個 Webhook 接收處理流程', priority: 5 },
+    { text: 'contextSuggestions.emptyCanvas.createNew', prompt: 'contextSuggestions.emptyCanvas.createNewPrompt', priority: 1 },
+    { text: 'contextSuggestions.emptyCanvas.fromTemplate', prompt: 'contextSuggestions.emptyCanvas.fromTemplatePrompt', priority: 2 },
+    { text: 'contextSuggestions.emptyCanvas.importFlow', prompt: 'contextSuggestions.emptyCanvas.importFlowPrompt', priority: 3 },
+    { text: 'contextSuggestions.emptyCanvas.scheduleTask', prompt: 'contextSuggestions.emptyCanvas.scheduleTaskPrompt', priority: 4 },
+    { text: 'contextSuggestions.emptyCanvas.webhookHandler', prompt: 'contextSuggestions.emptyCanvas.webhookHandlerPrompt', priority: 5 },
   ],
   has_trigger: [
-    { text: '加入處理邏輯', prompt: '觸發器建立好了，請幫我加入後續的處理邏輯', priority: 1 },
-    { text: '加入條件判斷', prompt: '請在觸發後加入條件判斷，根據不同情況執行不同操作', priority: 2 },
-    { text: '加入資料轉換', prompt: '請加入資料轉換節點，處理觸發器傳入的資料', priority: 3 },
-    { text: '加入通知', prompt: '請在流程最後加入通知，告知執行結果', priority: 4 },
+    { text: 'contextSuggestions.hasTrigger.addLogic', prompt: 'contextSuggestions.hasTrigger.addLogicPrompt', priority: 1 },
+    { text: 'contextSuggestions.hasTrigger.addCondition', prompt: 'contextSuggestions.hasTrigger.addConditionPrompt', priority: 2 },
+    { text: 'contextSuggestions.hasTrigger.addTransform', prompt: 'contextSuggestions.hasTrigger.addTransformPrompt', priority: 3 },
+    { text: 'contextSuggestions.hasTrigger.addNotification', prompt: 'contextSuggestions.hasTrigger.addNotificationPrompt', priority: 4 },
   ],
   has_condition: [
-    { text: '加入分支邏輯', prompt: '請幫我完善條件判斷後的兩個分支處理', priority: 1 },
-    { text: '加入預設處理', prompt: '請加入預設處理，處理不符合任何條件的情況', priority: 2 },
-    { text: '合併分支結果', prompt: '請幫我在分支結束後合併處理結果', priority: 3 },
+    { text: 'contextSuggestions.hasCondition.addBranch', prompt: 'contextSuggestions.hasCondition.addBranchPrompt', priority: 1 },
+    { text: 'contextSuggestions.hasCondition.addDefault', prompt: 'contextSuggestions.hasCondition.addDefaultPrompt', priority: 2 },
+    { text: 'contextSuggestions.hasCondition.mergeBranches', prompt: 'contextSuggestions.hasCondition.mergeBranchesPrompt', priority: 3 },
   ],
   complex_flow: [
-    { text: '優化流程', prompt: '請分析這個流程並提供優化建議', priority: 1 },
-    { text: '拆分子流程', prompt: '這個流程有點複雜，請幫我拆分成多個子流程', priority: 2 },
-    { text: '加入監控', prompt: '請為這個複雜流程加入執行監控和日誌', priority: 3 },
-    { text: '檢查效能', prompt: '請檢查這個流程的效能瓶頸', priority: 4 },
+    { text: 'contextSuggestions.complexFlow.optimize', prompt: 'contextSuggestions.complexFlow.optimizePrompt', priority: 1 },
+    { text: 'contextSuggestions.complexFlow.splitSubflow', prompt: 'contextSuggestions.complexFlow.splitSubflowPrompt', priority: 2 },
+    { text: 'contextSuggestions.complexFlow.addMonitoring', prompt: 'contextSuggestions.complexFlow.addMonitoringPrompt', priority: 3 },
+    { text: 'contextSuggestions.complexFlow.checkPerformance', prompt: 'contextSuggestions.complexFlow.checkPerformancePrompt', priority: 4 },
   ],
   has_http: [
-    { text: '加入重試機制', prompt: '請為 HTTP 請求加入自動重試機制', priority: 1 },
-    { text: '加入逾時處理', prompt: '請加入 HTTP 請求逾時的處理邏輯', priority: 2 },
-    { text: '處理回應', prompt: '請幫我加入處理 HTTP 回應的邏輯', priority: 3 },
-    { text: '加入認證', prompt: '請為 HTTP 請求加入認證機制', priority: 4 },
+    { text: 'contextSuggestions.hasHttp.addRetry', prompt: 'contextSuggestions.hasHttp.addRetryPrompt', priority: 1 },
+    { text: 'contextSuggestions.hasHttp.addTimeout', prompt: 'contextSuggestions.hasHttp.addTimeoutPrompt', priority: 2 },
+    { text: 'contextSuggestions.hasHttp.handleResponse', prompt: 'contextSuggestions.hasHttp.handleResponsePrompt', priority: 3 },
+    { text: 'contextSuggestions.hasHttp.addAuth', prompt: 'contextSuggestions.hasHttp.addAuthPrompt', priority: 4 },
   ],
   has_ai: [
-    { text: '加入提示優化', prompt: '請幫我優化 AI 節點的提示詞', priority: 1 },
-    { text: '處理 AI 輸出', prompt: '請加入處理 AI 輸出結果的邏輯', priority: 2 },
-    { text: '加入快取', prompt: '請為 AI 呼叫加入快取，避免重複處理', priority: 3 },
-    { text: '加入備用方案', prompt: '請加入 AI 呼叫失敗時的備用處理', priority: 4 },
+    { text: 'contextSuggestions.hasAi.optimizePrompts', prompt: 'contextSuggestions.hasAi.optimizePromptsPrompt', priority: 1 },
+    { text: 'contextSuggestions.hasAi.handleOutput', prompt: 'contextSuggestions.hasAi.handleOutputPrompt', priority: 2 },
+    { text: 'contextSuggestions.hasAi.addCache', prompt: 'contextSuggestions.hasAi.addCachePrompt', priority: 3 },
+    { text: 'contextSuggestions.hasAi.addFallback', prompt: 'contextSuggestions.hasAi.addFallbackPrompt', priority: 4 },
   ],
   no_error_handler: [
-    { text: '加入錯誤處理', prompt: '請為這個流程加入完整的錯誤處理機制', priority: 1 },
-    { text: '加入告警通知', prompt: '請加入錯誤發生時的告警通知', priority: 2 },
-    { text: '加入重試邏輯', prompt: '請加入失敗自動重試的機制', priority: 3 },
+    { text: 'contextSuggestions.noErrorHandler.addErrorHandling', prompt: 'contextSuggestions.noErrorHandler.addErrorHandlingPrompt', priority: 1 },
+    { text: 'contextSuggestions.noErrorHandler.addAlert', prompt: 'contextSuggestions.noErrorHandler.addAlertPrompt', priority: 2 },
+    { text: 'contextSuggestions.noErrorHandler.addRetry', prompt: 'contextSuggestions.noErrorHandler.addRetryPrompt', priority: 3 },
   ],
 }
 
@@ -363,15 +365,15 @@ export function getContextSuggestions(
 }
 
 /**
- * Common prompt templates for quick input
+ * Common prompt templates for quick input - i18n keys
  */
 export const PROMPT_TEMPLATES = [
-  '請幫我建立一個{description}的流程',
-  '當{trigger}時，執行{action}',
-  '每{interval}執行一次{task}',
-  '從{source}讀取資料，轉換後存入{target}',
-  '監控{target}，異常時發送{notification}',
-  '接收 Webhook，處理後回傳{response}',
+  'quickActions.promptTemplates.createFlow',
+  'quickActions.promptTemplates.whenTrigger',
+  'quickActions.promptTemplates.everyInterval',
+  'quickActions.promptTemplates.readTransformStore',
+  'quickActions.promptTemplates.monitorAlert',
+  'quickActions.promptTemplates.webhookRespond',
 ]
 
 export default AI_QUICK_ACTIONS

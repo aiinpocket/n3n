@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.service;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
@@ -45,7 +46,7 @@ public class CredentialService {
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
 
         // Check access
-        if (!credential.getOwnerId().equals(userId) && "private".equals(credential.getVisibility())) {
+        if (!credential.getOwnerId().equals(userId) && Status.Visibility.PRIVATE.equals(credential.getVisibility())) {
             throw new ResourceNotFoundException("Credential not found: " + id);
         }
 
@@ -104,7 +105,7 @@ public class CredentialService {
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
 
         // Check access
-        if (!credential.getOwnerId().equals(userId) && "private".equals(credential.getVisibility())) {
+        if (!credential.getOwnerId().equals(userId) && Status.Visibility.PRIVATE.equals(credential.getVisibility())) {
             throw new ResourceNotFoundException("Credential not found: " + id);
         }
 

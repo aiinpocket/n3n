@@ -27,12 +27,11 @@ export default function ErrorFallback({
 }: Props) {
   const { t } = useTranslation()
 
-  // 將錯誤轉換為友善訊息
   const friendlyError: FriendlyError = useMemo(() => {
     if (!error) {
       return {
-        message: t('error.unknown', '發生未知錯誤'),
-        suggestion: t('error.tryReload', '請嘗試重新整理頁面'),
+        message: t('error.unknown'),
+        suggestion: t('error.tryReload'),
         isKnownError: false,
       }
     }
@@ -48,13 +47,12 @@ export default function ErrorFallback({
   }
 
   const handleReportError = () => {
-    // 開啟錯誤回報表單或郵件
-    const subject = encodeURIComponent(`N3N 錯誤報告: ${friendlyError.message}`)
+    const subject = encodeURIComponent(`N3N Error Report: ${friendlyError.message}`)
     const body = encodeURIComponent(
-      `錯誤訊息: ${friendlyError.message}\n\n` +
-      `建議: ${friendlyError.suggestion || '無'}\n\n` +
-      `原始錯誤: ${friendlyError.originalError || '無'}\n\n` +
-      `時間: ${new Date().toISOString()}\n\n` +
+      `Error: ${friendlyError.message}\n\n` +
+      `Suggestion: ${friendlyError.suggestion || 'N/A'}\n\n` +
+      `Original Error: ${friendlyError.originalError || 'N/A'}\n\n` +
+      `Time: ${new Date().toISOString()}\n\n` +
       `URL: ${window.location.href}\n\n` +
       `User Agent: ${navigator.userAgent}`
     )
@@ -75,34 +73,30 @@ export default function ErrorFallback({
       <Result
         status="error"
         title={friendlyError.message}
-        subTitle={friendlyError.suggestion || t('error.subtitle', '請嘗試重新整理頁面或返回首頁。')}
+        subTitle={friendlyError.suggestion || t('error.subtitle')}
         extra={
           <Space wrap>
             {onReset && (
               <Button type="primary" icon={<ReloadOutlined />} onClick={onReset}>
-                {t('error.retry', '重試')}
+                {t('error.retry')}
               </Button>
             )}
             <Button icon={<ReloadOutlined />} onClick={handleReload}>
-              {t('error.reload', '重新整理')}
+              {t('error.reload')}
             </Button>
             <Button icon={<HomeOutlined />} onClick={handleGoHome}>
-              {t('error.goHome', '返回首頁')}
+              {t('error.goHome')}
             </Button>
             <Button icon={<CustomerServiceOutlined />} onClick={handleReportError}>
-              {t('error.report', '回報問題')}
+              {t('error.report')}
             </Button>
           </Space>
         }
       >
-        {/* 錯誤提示 */}
         {!friendlyError.isKnownError && (
           <Alert
-            message={t('error.unknownError', '未知錯誤')}
-            description={t(
-              'error.unknownErrorDesc',
-              '我們記錄了這個錯誤，工程師會盡快處理。如果問題持續發生，請點擊「回報問題」告知我們。'
-            )}
+            message={t('error.unknownError')}
+            description={t('error.unknownErrorDesc')}
             type="info"
             showIcon
             icon={<QuestionCircleOutlined />}
@@ -110,7 +104,6 @@ export default function ErrorFallback({
           />
         )}
 
-        {/* 技術詳情 (可折疊) */}
         {showTechnicalDetails && error && (
           <Collapse
             ghost
@@ -120,13 +113,13 @@ export default function ErrorFallback({
                 label: (
                   <Text type="secondary">
                     <BugOutlined style={{ marginRight: 8 }} />
-                    {t('error.technicalDetails', '技術詳情')}
+                    {t('error.technicalDetails')}
                   </Text>
                 ),
                 children: (
                   <div style={{ textAlign: 'left' }}>
                     <Paragraph>
-                      <Text type="secondary">{t('error.errorMessage', '錯誤訊息')}:</Text>
+                      <Text type="secondary">{t('error.errorMessage')}:</Text>
                     </Paragraph>
                     <Paragraph>
                       <Text type="danger" code style={{ wordBreak: 'break-all' }}>
@@ -136,7 +129,7 @@ export default function ErrorFallback({
                     {errorInfo && (
                       <>
                         <Paragraph>
-                          <Text type="secondary">{t('error.stackTrace', '堆疊追蹤')}:</Text>
+                          <Text type="secondary">{t('error.stackTrace')}:</Text>
                         </Paragraph>
                         <pre
                           style={{
@@ -157,7 +150,7 @@ export default function ErrorFallback({
                     )}
                     <Paragraph style={{ marginTop: 12 }}>
                       <Text type="secondary" style={{ fontSize: 11 }}>
-                        {t('error.timestamp', '時間')}: {new Date().toLocaleString()}
+                        {t('error.timestamp')}: {new Date().toLocaleString()}
                       </Text>
                     </Paragraph>
                   </div>

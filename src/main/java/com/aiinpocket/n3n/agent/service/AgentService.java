@@ -132,7 +132,7 @@ public class AgentService {
 
             } catch (Exception e) {
                 log.error("Error in agent chat: {}", e.getMessage(), e);
-                throw new AiProviderException("AI 處理失敗: " + e.getMessage(), e);
+                throw new AiProviderException("AI processing failed: " + e.getMessage(), e);
             }
         });
     }

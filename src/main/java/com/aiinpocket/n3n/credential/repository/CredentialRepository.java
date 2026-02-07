@@ -21,9 +21,6 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
         SELECT c FROM Credential c
         WHERE c.ownerId = :userId
         OR c.visibility = 'shared'
-        OR (c.workspaceId IN (
-            SELECT wm.workspaceId FROM WorkspaceMember wm WHERE wm.userId = :userId
-        ) AND c.visibility = 'workspace')
         OR c.id IN (
             SELECT cs.credentialId FROM CredentialShare cs WHERE cs.userId = :userId
         )

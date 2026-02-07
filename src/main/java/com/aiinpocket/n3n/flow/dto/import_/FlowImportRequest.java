@@ -22,7 +22,7 @@ public class FlowImportRequest {
     /**
      * 匯出包資料
      */
-    @NotNull(message = "匯出包資料不能為空")
+    @NotNull(message = "Package data cannot be null")
     private FlowExportPackage packageData;
 
     /**

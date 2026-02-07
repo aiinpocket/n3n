@@ -117,7 +117,7 @@ public class SkillController {
     @PostMapping("/{id}/execute")
     public ResponseEntity<Map<String, Object>> executeSkill(
             @PathVariable UUID id,
-            @RequestBody ExecuteSkillRequest request,
+            @Valid @RequestBody ExecuteSkillRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         SkillResult result = skillService.executeSkill(id, request.getInput(), userId);
@@ -142,7 +142,7 @@ public class SkillController {
     @PostMapping("/name/{name}/execute")
     public ResponseEntity<Map<String, Object>> executeSkillByName(
             @PathVariable String name,
-            @RequestBody ExecuteSkillRequest request,
+            @Valid @RequestBody ExecuteSkillRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         SkillResult result = skillService.executeSkillByName(name, request.getInput(), userId);

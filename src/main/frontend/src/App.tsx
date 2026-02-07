@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Spin, ConfigProvider, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
@@ -8,27 +8,34 @@ import jaJP from 'antd/locale/ja_JP'
 import { useAuthStore } from './stores/authStore'
 import { ErrorBoundary } from './components/error'
 import MainLayout from './components/MainLayout'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import SetupPage from './pages/SetupPage'
-import FlowListPage from './pages/FlowListPage'
-import FlowEditorPage from './pages/FlowEditorPage'
-import ExecutionListPage from './pages/ExecutionListPage'
-import ExecutionPage from './pages/ExecutionPage'
-import ComponentListPage from './pages/ComponentListPage'
-import ServiceListPage from './pages/ServiceListPage'
-import ServiceFormPage from './pages/ServiceFormPage'
-import ServiceDetailPage from './pages/ServiceDetailPage'
-import CredentialListPage from './pages/CredentialListPage'
-import AISettingsPage from './pages/AISettingsPage'
-import AIAssistantPage from './pages/AIAssistantPage'
-import SkillsPage from './pages/SkillsPage'
-import WebhooksPage from './pages/WebhooksPage'
-import DeviceManagementPage from './pages/DeviceManagementPage'
-import GatewaySettingsPage from './pages/GatewaySettingsPage'
-import MarketplacePage from './pages/MarketplacePage'
-import MonitoringPage from './pages/MonitoringPage'
-import LogViewerPage from './pages/LogViewerPage'
+
+// Route-level code splitting with React.lazy()
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const SetupPage = lazy(() => import('./pages/SetupPage'))
+const PasswordResetPage = lazy(() => import('./pages/PasswordResetPage'))
+const FlowListPage = lazy(() => import('./pages/FlowListPage'))
+const FlowEditorPage = lazy(() => import('./pages/FlowEditorPage'))
+const ExecutionListPage = lazy(() => import('./pages/ExecutionListPage'))
+const ExecutionPage = lazy(() => import('./pages/ExecutionPage'))
+const ComponentListPage = lazy(() => import('./pages/ComponentListPage'))
+const ServiceListPage = lazy(() => import('./pages/ServiceListPage'))
+const ServiceFormPage = lazy(() => import('./pages/ServiceFormPage'))
+const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'))
+const CredentialListPage = lazy(() => import('./pages/CredentialListPage'))
+const AISettingsPage = lazy(() => import('./pages/AISettingsPage'))
+const AIAssistantPage = lazy(() => import('./pages/AIAssistantPage'))
+const SkillsPage = lazy(() => import('./pages/SkillsPage'))
+const WebhooksPage = lazy(() => import('./pages/WebhooksPage'))
+const DeviceManagementPage = lazy(() => import('./pages/DeviceManagementPage'))
+const GatewaySettingsPage = lazy(() => import('./pages/GatewaySettingsPage'))
+const MarketplacePage = lazy(() => import('./pages/MarketplacePage'))
+const MonitoringPage = lazy(() => import('./pages/MonitoringPage'))
+const LogViewerPage = lazy(() => import('./pages/LogViewerPage'))
+const ActivityHistoryPage = lazy(() => import('./pages/ActivityHistoryPage'))
+const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Map i18n language to Ant Design locale
 const antdLocales = {
@@ -148,6 +155,11 @@ function App() {
       <ErrorBoundary>
         <BrowserRouter>
           <SetupCheck>
+            <Suspense fallback={
+              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Spin size="large" />
+              </div>
+            }>
             <Routes>
             {/* Setup route (first time only) */}
             <Route path="/setup" element={<SetupPage />} />
@@ -155,6 +167,7 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/reset-password" element={<PasswordResetPage />} />
 
           {/* Protected routes */}
           <Route
@@ -165,7 +178,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<FlowListPage />} />
+            <Route index element={<DashboardPage />} />
             <Route path="flows" element={<FlowListPage />} />
             <Route path="flows/:id/edit" element={<FlowEditorPage />} />
             <Route path="executions" element={<ExecutionListPage />} />
@@ -178,6 +191,7 @@ function App() {
             <Route path="services/:id/edit" element={<ServiceFormPage />} />
             <Route path="credentials" element={<CredentialListPage />} />
             <Route path="settings/ai" element={<AISettingsPage />} />
+            <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
@@ -186,8 +200,12 @@ function App() {
             <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="logs" element={<LogViewerPage />} />
+            <Route path="activities" element={<ActivityHistoryPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
+
             </Routes>
+            </Suspense>
           </SetupCheck>
         </BrowserRouter>
       </ErrorBoundary>

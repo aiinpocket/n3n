@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.agent.service.AgentRegistrationService;
 import com.aiinpocket.n3n.agent.service.GatewaySettingsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -30,7 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Agent 註冊管理 REST Controller
+ * Agent registration management REST Controller
  */
 @RestController
 @RequestMapping("/api/agents")
@@ -44,8 +45,8 @@ public class AgentRegistrationController {
     private final ObjectMapper objectMapper;
 
     /**
-     * 產生新的 Agent 註冊 Token
-     * 回傳 JSON Config 檔案
+     * Generate new Agent registration token.
+     * Returns JSON config file download.
      */
     @PostMapping("/tokens")
     public ResponseEntity<?> generateToken(@AuthenticationPrincipal UserDetails userDetails) {
@@ -79,7 +80,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 產生 Token 並取得 JSON 回應（不下載）
+     * Generate token and return JSON response (no download)
      */
     @PostMapping("/tokens/json")
     public ResponseEntity<?> generateTokenJson(@AuthenticationPrincipal UserDetails userDetails) {
@@ -107,8 +108,8 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 產生一鍵安裝命令
-     * 用戶複製貼上這個命令即可完成安裝
+     * Generate one-click install command.
+     * User copies and pastes this command to install.
      */
     @PostMapping("/install-command")
     public ResponseEntity<?> generateInstallCommand(
@@ -126,7 +127,7 @@ public class AgentRegistrationController {
             AgentRegistrationService.TokenGenerationResult result =
                 registrationService.generateToken(userId);
 
-            // 決定 base URL
+            // Determine base URL
             String baseUrl = forwardedHost != null ? forwardedHost : (host != null ? host : "localhost:8080");
             String protocol = baseUrl.contains("localhost") ? "http" : "https";
 
@@ -149,7 +150,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 安裝腳本 - 用戶執行 curl ... | bash
+     * Install script - user runs curl ... | bash
      */
     @GetMapping(value = "/install.sh", produces = "text/plain")
     public ResponseEntity<String> getInstallScript(
@@ -167,47 +168,47 @@ public class AgentRegistrationController {
 
             echo ""
             echo "╔══════════════════════════════════════════════════════════════╗"
-            echo "║              N3N Agent 安裝程式                               ║"
+            echo "║              N3N Agent Installer                             ║"
             echo "╚══════════════════════════════════════════════════════════════╝"
             echo ""
 
-            # 檢測系統
+            # Detect system
             OS="$(uname -s)"
             ARCH="$(uname -m)"
 
             if [ "$OS" != "Darwin" ]; then
-                echo "❌ 目前只支援 macOS"
+                echo "Error: Only macOS is currently supported"
                 exit 1
             fi
 
-            # 停止現有 Agent
+            # Stop existing agent
             pkill -9 -f n3n-agent 2>/dev/null || true
 
-            # 清除舊資料
+            # Clean old data
             rm -rf "$HOME/.n3n-agent" 2>/dev/null
             rm -rf "$HOME/Library/Application Support/N3N Agent" 2>/dev/null
 
-            # 安裝目錄
+            # Install directory
             INSTALL_DIR="$HOME/.n3n-agent"
             mkdir -p "$INSTALL_DIR"
 
-            echo "📥 下載 Agent..."
+            echo "Downloading Agent..."
             curl -fsSL "%s/api/agents/binary/macos" -o "$INSTALL_DIR/n3n-agent"
             chmod +x "$INSTALL_DIR/n3n-agent"
 
-            echo "📝 寫入設定檔..."
+            echo "Writing configuration..."
             curl -fsSL "%s/api/agents/config?token=%s" -o "$INSTALL_DIR/n3n-agent-config.json"
 
-            echo "🚀 啟動 Agent..."
+            echo "Starting Agent..."
             cd "$INSTALL_DIR"
             ./n3n-agent run --log-level info &
 
             echo ""
-            echo "✅ 安裝完成！Agent 已在背景執行。"
+            echo "Installation complete! Agent is running in background."
             echo ""
-            echo "📍 安裝位置: $INSTALL_DIR"
-            echo "📋 查看狀態: $INSTALL_DIR/n3n-agent status"
-            echo "🛑 停止 Agent: pkill -f n3n-agent"
+            echo "Install path: $INSTALL_DIR"
+            echo "Check status: $INSTALL_DIR/n3n-agent status"
+            echo "Stop agent:   pkill -f n3n-agent"
             echo ""
             """.formatted(serverUrl, serverUrl, token);
 
@@ -215,7 +216,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 下載 Agent binary
+     * Download Agent binary
      */
     @GetMapping("/binary/{platform}")
     public ResponseEntity<?> downloadBinary(@PathVariable String platform) {
@@ -246,12 +247,12 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 下載 Agent config
+     * Download Agent config
      */
     @GetMapping("/config")
     public ResponseEntity<?> downloadConfig(@RequestParam String token) {
         try {
-            // 驗證 token 並取得設定
+            // Validate token and get config
             var registration = registrationService.getRegistrationByToken(token);
             if (registration == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -278,7 +279,7 @@ public class AgentRegistrationController {
      * Called by Agent after downloading config file
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerWithToken(@RequestBody TokenRegistrationRequest request) {
+    public ResponseEntity<?> registerWithToken(@Valid @RequestBody TokenRegistrationRequest request) {
         try {
             log.info("Agent registration request: deviceId={}, platform={}",
                 request.deviceId(), request.platform());
@@ -339,7 +340,7 @@ public class AgentRegistrationController {
     ) {}
 
     /**
-     * 一鍵下載：macOS 產生 DMG，Windows 產生 ZIP
+     * One-click download: generates DMG for macOS, ZIP for Windows
      */
     @PostMapping("/download/{platform}")
     public ResponseEntity<?> downloadAgentPackage(
@@ -377,7 +378,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 創建 macOS DMG 檔案
+     * Create macOS DMG file
      */
     private ResponseEntity<?> createMacOSDmg(UUID userId, String configJson) throws IOException, InterruptedException {
         Path tempDir = Files.createTempDirectory("n3n-agent-");
@@ -440,7 +441,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 創建 Windows ZIP 檔案
+     * Create Windows ZIP file
      */
     private ResponseEntity<?> createWindowsZip(UUID userId, String configJson) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -554,7 +555,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 列出所有 Agent 註冊
+     * List all Agent registrations
      */
     @GetMapping("/registrations")
     public ResponseEntity<?> listRegistrations(@AuthenticationPrincipal UserDetails userDetails) {
@@ -581,7 +582,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 封鎖 Agent
+     * Block Agent
      */
     @PutMapping("/{id}/block")
     public ResponseEntity<?> blockAgent(
@@ -612,7 +613,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 解除封鎖 Agent
+     * Unblock Agent
      */
     @PutMapping("/{id}/unblock")
     public ResponseEntity<?> unblockAgent(
@@ -641,7 +642,7 @@ public class AgentRegistrationController {
     }
 
     /**
-     * 刪除 Agent 註冊
+     * Delete Agent registration
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRegistration(

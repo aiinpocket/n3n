@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import i18n from '../i18n'
+import logger from '../utils/logger'
 
 // Types
 export interface ChatMessage {
@@ -157,7 +159,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
         const session: ConversationSession = {
           id: generateId(),
           flowId,
-          title: flowId ? `流程對話 ${new Date().toLocaleTimeString()}` : `新對話 ${new Date().toLocaleTimeString()}`,
+          title: flowId ? `${i18n.t('ai.flowConversation')} ${new Date().toLocaleTimeString()}` : `${i18n.t('ai.newConversation')} ${new Date().toLocaleTimeString()}`,
           messages: [],
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -359,7 +361,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       setStreaming: (isStreaming) => set({
         isStreaming,
         streamingContent: isStreaming ? '' : get().streamingContent,
-        streamingStage: isStreaming ? '思考中...' : '',
+        streamingStage: isStreaming ? i18n.t('ai.thinking') : '',
       }),
 
       // Pending changes
@@ -494,14 +496,14 @@ export const useAIAssistantStore = create<AIAssistantState>()(
           const data = JSON.parse(json)
 
           if (!data.title || !Array.isArray(data.messages)) {
-            console.error('Invalid session format')
+            logger.error('Invalid session format')
             return false
           }
 
           const session: ConversationSession = {
             id: generateId(),
             flowId: data.flowId,
-            title: `${data.title} (匯入)`,
+            title: `${data.title} (${i18n.t('ai.imported')})`,
             messages: data.messages.map((m: ChatMessage) => ({
               ...m,
               id: m.id || generateId(),
@@ -520,7 +522,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
 
           return true
         } catch (e) {
-          console.error('Failed to import session:', e)
+          logger.error('Failed to import session:', e)
           return false
         }
       },

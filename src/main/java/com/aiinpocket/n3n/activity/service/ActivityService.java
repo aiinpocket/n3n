@@ -150,6 +150,22 @@ public class ActivityService {
         logActivity(userId, TOKEN_REFRESH, "user", userId, null, null);
     }
 
+    public void logPasswordChange(UUID userId, String email) {
+        logActivity(userId, PASSWORD_CHANGE, "user", userId, email, null);
+        logStructured("AUTH_PASSWORD_CHANGE", userId, Map.of("email", email));
+    }
+
+    public void logPasswordReset(UUID userId, String email) {
+        logActivity(userId, PASSWORD_RESET, "user", userId, email, null);
+        logStructured("AUTH_PASSWORD_RESET", userId, Map.of("email", email));
+    }
+
+    public void logUserCreate(UUID userId, String email, String roles) {
+        Map<String, Object> details = Map.of("roles", roles);
+        logActivity(userId, USER_CREATE, "user", userId, email, details);
+        logStructured("USER_CREATE", userId, Map.of("email", email, "roles", roles));
+    }
+
     // ===== Flow Logging =====
 
     public void logFlowCreate(UUID userId, UUID flowId, String flowName) {
@@ -191,6 +207,17 @@ public class ActivityService {
         Map<String, Object> details = Map.of("revokedFrom", revokedEmail);
         logActivity(userId, FLOW_SHARE_REVOKE, "flow", flowId, flowName, details);
         logStructured("FLOW_SHARE_REVOKE", userId, Map.of("flowId", flowId, "revokedFrom", revokedEmail));
+    }
+
+    public void logFlowExport(UUID userId, UUID flowId, String flowName, String format) {
+        Map<String, Object> details = Map.of("format", format);
+        logActivity(userId, FLOW_EXPORT, "flow", flowId, flowName, details);
+        logStructured("FLOW_EXPORT", userId, Map.of("flowId", flowId, "format", format));
+    }
+
+    public void logFlowImport(UUID userId, UUID flowId, String flowName) {
+        logActivity(userId, FLOW_IMPORT, "flow", flowId, flowName, null);
+        logStructured("FLOW_IMPORT", userId, Map.of("flowId", flowId, "flowName", flowName));
     }
 
     // ===== Version Logging =====
@@ -264,6 +291,11 @@ public class ActivityService {
         logStructured("CREDENTIAL_CREATE", userId, Map.of("credentialId", credentialId, "type", credentialType));
     }
 
+    public void logCredentialUpdate(UUID userId, UUID credentialId, String credentialName) {
+        logActivity(userId, CREDENTIAL_UPDATE, "credential", credentialId, credentialName, null);
+        logStructured("CREDENTIAL_UPDATE", userId, Map.of("credentialId", credentialId));
+    }
+
     public void logCredentialDelete(UUID userId, UUID credentialId, String credentialName) {
         logActivity(userId, CREDENTIAL_DELETE, "credential", credentialId, credentialName, null);
         logStructured("CREDENTIAL_DELETE", userId, Map.of("credentialId", credentialId));
@@ -321,6 +353,10 @@ public class ActivityService {
 
     public Page<UserActivity> getResourceActivities(String resourceType, UUID resourceId, Pageable pageable) {
         return activityRepository.findByResourceTypeAndResourceIdOrderByCreatedAtDesc(resourceType, resourceId, pageable);
+    }
+
+    public Page<UserActivity> getUserResourceActivities(UUID userId, String resourceType, UUID resourceId, Pageable pageable) {
+        return activityRepository.findByUserIdAndResourceTypeAndResourceIdOrderByCreatedAtDesc(userId, resourceType, resourceId, pageable);
     }
 
     private String getClientIpAddress(HttpServletRequest request) {
@@ -408,5 +444,12 @@ public class ActivityService {
      */
     public Page<UserActivity> getActivitiesByType(String activityType, Pageable pageable) {
         return activityRepository.findByActivityTypeOrderByCreatedAtDesc(activityType, pageable);
+    }
+
+    /**
+     * Get activities by user and type.
+     */
+    public Page<UserActivity> getUserActivitiesByType(UUID userId, String activityType, Pageable pageable) {
+        return activityRepository.findByUserIdAndActivityTypeOrderByCreatedAtDesc(userId, activityType, pageable);
     }
 }

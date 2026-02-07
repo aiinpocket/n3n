@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useExecutionStore, NodeExecutionState } from '../../stores/executionStore'
 import { useExecutionMonitor, useExecutionActions } from '../../hooks/useExecutionMonitor'
+import logger from '../../utils/logger'
 
 interface ExecutionOverlayProps {
   executionId: string | null
@@ -34,7 +35,7 @@ export default function ExecutionOverlay({
       const response = await startExecution({ flowId })
       onExecutionStart?.(response.id)
     } catch (error) {
-      console.error('Failed to start execution:', error)
+      logger.error('Failed to start execution:', error)
     }
   }
 
@@ -166,17 +167,17 @@ export default function ExecutionOverlay({
               }}
             />
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              {nodeStats.completed}/{nodeStats.total} 節點完成
-              {nodeStats.running > 0 && ` (${nodeStats.running} 執行中)`}
+              {t('execution.nodesCompleted', { completed: nodeStats.completed, total: nodeStats.total })}
+              {nodeStats.running > 0 && ` (${nodeStats.running} ${t('execution.running')})`}
             </div>
           </div>
         )}
 
         {/* Node Stats */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <Tag color="success">{nodeStats.completed} 完成</Tag>
-          {nodeStats.running > 0 && <Tag color="processing">{nodeStats.running} 執行中</Tag>}
-          {nodeStats.failed > 0 && <Tag color="error">{nodeStats.failed} 失敗</Tag>}
+          <Tag color="success">{nodeStats.completed} {t('execution.completed')}</Tag>
+          {nodeStats.running > 0 && <Tag color="processing">{nodeStats.running} {t('execution.running')}</Tag>}
+          {nodeStats.failed > 0 && <Tag color="error">{nodeStats.failed} {t('execution.failed')}</Tag>}
         </div>
 
         {/* Error Message */}
@@ -206,7 +207,7 @@ export default function ExecutionOverlay({
             execution?.status === 'failed' ||
             execution?.status === 'cancelled') && (
             <Button size="small" type="primary" icon={<PlayCircleOutlined />} onClick={handleStart}>
-              重新執行
+              {t('execution.reExecute')}
             </Button>
           )}
         </Space>

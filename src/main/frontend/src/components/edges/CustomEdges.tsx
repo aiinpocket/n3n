@@ -265,10 +265,11 @@ export function getEdgeStyle(edgeType?: EdgeType) {
 }
 
 // Edge type options for UI selectors
+// label/description are i18n keys: use t(`edgeConfig.label.${value}`) and t(`edgeConfig.desc.${value}`)
 export const edgeTypeOptions = [
-  { value: 'success', label: '成功路徑', color: '#52c41a', description: '節點成功執行後走這條路線' },
-  { value: 'error', label: '錯誤路徑', color: '#ff4d4f', description: '節點執行失敗時走這條路線' },
-  { value: 'always', label: '總是執行', color: '#1890ff', description: '無論成功失敗都會執行' },
+  { value: 'success', labelKey: 'edgeConfig.label.success', color: '#52c41a', descKey: 'edgeConfig.desc.success' },
+  { value: 'error', labelKey: 'edgeConfig.label.error', color: '#ff4d4f', descKey: 'edgeConfig.desc.error' },
+  { value: 'always', labelKey: 'edgeConfig.label.always', color: '#1890ff', descKey: 'edgeConfig.desc.always' },
 ]
 
 export default customEdgeTypes

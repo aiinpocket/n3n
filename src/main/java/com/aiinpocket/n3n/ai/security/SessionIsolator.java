@@ -72,14 +72,14 @@ public class SessionIsolator {
 
         if (sessionData == null) {
             log.warn("Session not found for conversation {}", conversationId);
-            throw new SessionAccessDeniedException("Session 不存在或已過期");
+            throw new SessionAccessDeniedException("Session does not exist or has expired");
         }
 
         UUID sessionOwnerId = extractUserId(sessionData);
         if (!userId.equals(sessionOwnerId)) {
             log.warn("User {} attempted to access session owned by {}",
                 userId, sessionOwnerId);
-            throw new SessionAccessDeniedException("無權存取此對話");
+            throw new SessionAccessDeniedException("Access denied to this conversation");
         }
 
         // 延長 session 存活時間
@@ -102,7 +102,7 @@ public class SessionIsolator {
         String sessionData = redisTemplate.opsForValue().get(sessionKey);
 
         if (sessionData == null) {
-            throw new SessionAccessDeniedException("Session 不存在或已過期");
+            throw new SessionAccessDeniedException("Session does not exist or has expired");
         }
 
         Instant createdAt = extractCreatedAt(sessionData);

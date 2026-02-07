@@ -1,6 +1,7 @@
 import React from 'react'
 import { Typography, List, Tag, Card } from 'antd'
 import { AppstoreOutlined, PlusCircleOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import type { ComponentRecommendation, NewComponentSuggestion } from '../../api/agent'
 
 const { Title, Text, Paragraph } = Typography
@@ -14,6 +15,7 @@ interface Props {
 }
 
 const ComponentRecommendationList: React.FC<Props> = ({ title, components, type }) => {
+  const { t } = useTranslation()
   if (!components || components.length === 0) return null
 
   return (
@@ -38,7 +40,7 @@ const ComponentRecommendationList: React.FC<Props> = ({ title, components, type 
               <Card size="small" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Tag color={isExisting ? 'green' : 'blue'}>
-                    {isExisting ? '現有' : '新增'}
+                    {isExisting ? t('component.existing') : t('component.new')}
                   </Tag>
                   <Text strong>{comp.name}</Text>
                 </div>

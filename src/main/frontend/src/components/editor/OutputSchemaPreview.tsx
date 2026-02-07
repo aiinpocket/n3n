@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Tree, Typography, Tag, Space, Empty, Card, Alert } from 'antd'
 import { DatabaseOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
@@ -31,6 +32,7 @@ export default function OutputSchemaPreview({
   interfaceDefinition,
   nodeId,
 }: OutputSchemaPreviewProps) {
+  const { t } = useTranslation()
   const outputs = useMemo(
     () => interfaceDefinition?.outputs || [],
     [interfaceDefinition?.outputs]
@@ -44,7 +46,7 @@ export default function OutputSchemaPreview({
     return outputs.map((output, idx): DataNode => {
       const hasSchema = output.schema && output.schema.properties
       const children = hasSchema
-        ? schemaToTreeNodes(output.schema!, output.name, nodeId)
+        ? schemaToTreeNodes(output.schema!, output.name, nodeId, t)
         : []
 
       return {
@@ -64,10 +66,10 @@ export default function OutputSchemaPreview({
         children,
       }
     })
-  }, [outputs, nodeId])
+  }, [outputs, nodeId, t])
 
   if (outputs.length === 0) {
-    return <Empty description="此節點沒有輸出定義" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+    return <Empty description={t('outputSchema.noOutputDef')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
   }
 
   // Check if any output has detailed schema
@@ -77,13 +79,13 @@ export default function OutputSchemaPreview({
     <div>
       <Card size="small" style={{ marginBottom: 12, background: 'var(--color-bg-elevated)' }}>
         <Text type="secondary">
-          下游節點可使用以下輸出欄位。在資料映射中選擇「上游資料」即可引用這些欄位。
+          {t('outputSchema.description')}
         </Text>
       </Card>
 
       {/* Show input/output summary */}
       <div style={{ marginBottom: 12 }}>
-        <Text strong>輸入:</Text>{' '}
+        <Text strong>{t('outputSchema.inputs')}:</Text>{' '}
         {interfaceDefinition.inputs.length > 0 ? (
           interfaceDefinition.inputs.map((input) => (
             <Tag key={input.name} color="blue">
@@ -93,12 +95,12 @@ export default function OutputSchemaPreview({
             </Tag>
           ))
         ) : (
-          <Text type="secondary">無</Text>
+          <Text type="secondary">{t('outputSchema.none')}</Text>
         )}
       </div>
 
       <div style={{ marginBottom: 12 }}>
-        <Text strong>輸出:</Text>{' '}
+        <Text strong>{t('outputSchema.outputs')}:</Text>{' '}
         {outputs.map((output) => (
           <Tag key={output.name} color="green">
             {output.name}
@@ -120,21 +122,21 @@ export default function OutputSchemaPreview({
         <Alert
           type="info"
           icon={<InfoCircleOutlined />}
-          message="輸出結構為動態"
+          message={t('outputSchema.dynamicOutput')}
           description={
             <div>
               <Text type="secondary">
-                此節點的輸出結構取決於執行結果。常見輸出欄位包括:
+                {t('outputSchema.dynamicOutputDesc')}
               </Text>
               <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
                 <li>
-                  <Text code>status</Text> - HTTP 狀態碼
+                  <Text code>status</Text> - {t('outputSchema.httpStatus')}
                 </li>
                 <li>
-                  <Text code>data</Text> - 回應資料（JSON 或文字）
+                  <Text code>data</Text> - {t('outputSchema.responseData')}
                 </li>
                 <li>
-                  <Text code>headers</Text> - 回應標頭
+                  <Text code>headers</Text> - {t('outputSchema.responseHeaders')}
                 </li>
               </ul>
               <Text type="secondary" style={{ fontSize: 12 }}>
@@ -152,7 +154,8 @@ export default function OutputSchemaPreview({
 function schemaToTreeNodes(
   schema: JsonSchema,
   basePath: string,
-  nodeId?: string
+  nodeId?: string,
+  t?: (key: string) => string
 ): DataNode[] {
   if (!schema.properties) {
     return []
@@ -171,14 +174,14 @@ function schemaToTreeNodes(
 
     // Recurse into nested objects
     if (propType === 'object' && propSchema.properties) {
-      children.push(...schemaToTreeNodes(propSchema, path, nodeId))
+      children.push(...schemaToTreeNodes(propSchema, path, nodeId, t))
     }
 
     // Handle arrays
     if (propType === 'array' && propSchema.items) {
       const itemsSchema = propSchema.items as JsonSchema
       if (itemsSchema.type === 'object' && itemsSchema.properties) {
-        children.push(...schemaToTreeNodes(itemsSchema, `${path}[0]`, nodeId))
+        children.push(...schemaToTreeNodes(itemsSchema, `${path}[0]`, nodeId, t))
       }
     }
 
@@ -201,7 +204,7 @@ function schemaToTreeNodes(
             copyable={{ text: expression }}
             style={{ fontSize: 10, color: '#999' }}
           >
-            複製表達式
+            {t ? t('outputSchema.copyExpression') : 'Copy'}
           </Text>
         </Space>
       ),

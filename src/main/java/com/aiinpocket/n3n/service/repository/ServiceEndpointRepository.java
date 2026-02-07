@@ -25,6 +25,6 @@ public interface ServiceEndpointRepository extends JpaRepository<ServiceEndpoint
     @Query("DELETE FROM ServiceEndpoint e WHERE e.serviceId = :serviceId")
     void deleteAllByServiceId(UUID serviceId);
 
-    @Query(value = "SELECT * FROM service_endpoints e WHERE e.service_id = :serviceId AND :tag = ANY(e.tags)", nativeQuery = true)
+    @Query(value = "SELECT * FROM service_endpoints e WHERE e.service_id = :serviceId AND CAST(:tag AS TEXT) = ANY(e.tags)", nativeQuery = true)
     List<ServiceEndpoint> findByServiceIdAndTag(UUID serviceId, String tag);
 }

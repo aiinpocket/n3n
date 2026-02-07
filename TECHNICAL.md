@@ -255,11 +255,13 @@ WebSocket gateway for local agent communication.
 | GET | `/api/auth/me` | Get current user info |
 | GET | `/api/auth/setup-status` | Check if setup is required |
 
+**Password Policy:** Minimum 8 characters, must meet at least 3 of 4 criteria: uppercase letter, lowercase letter, digit, special character.
+
 **Login Request:**
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "Password1!"
 }
 ```
 
@@ -1096,7 +1098,7 @@ All environment variables are **optional** with sensible defaults.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `FLOW_OPTIMIZER_ENABLED` | `false` | Enable local AI optimizer |
+| `FLOW_OPTIMIZER_ENABLED` | `true` | Enable local AI optimizer (default enabled as AI-driven platform) |
 | `FLOW_OPTIMIZER_URL` | `http://localhost:8081` | Optimizer service URL |
 | `FLOW_OPTIMIZER_TIMEOUT` | `30000` | Request timeout in ms |
 
@@ -1130,6 +1132,7 @@ All environment variables are **optional** with sensible defaults.
 |----------|---------|-------------|
 | `HOUSEKEEPING_ENABLED` | `true` | Enable automatic cleanup |
 | `HOUSEKEEPING_RETENTION_DAYS` | `30` | Days to retain execution history |
+| `HOUSEKEEPING_ACTIVITY_RETENTION_DAYS` | `90` | Days to retain activity audit logs |
 | `HOUSEKEEPING_CRON` | `0 0 2 * * ?` | Cleanup schedule (2 AM daily) |
 
 #### Logging

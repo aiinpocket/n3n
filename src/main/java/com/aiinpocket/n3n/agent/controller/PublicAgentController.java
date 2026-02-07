@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class PublicAgentController {
      * 這個端點不需要認證，Token 本身就是認證
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerAgent(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> registerAgent(@Valid @RequestBody RegisterRequest request) {
         try {
             AgentRegistrationService.RegistrationRequest regRequest =
                 new AgentRegistrationService.RegistrationRequest(

@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.flow.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.flow.dto.export.FlowExportPackage;
 import com.aiinpocket.n3n.flow.dto.import_.FlowImportPreviewResponse;
@@ -32,9 +33,10 @@ public class FlowExportController {
 
     private final FlowExportService exportService;
     private final FlowImportService importService;
+    private final ActivityService activityService;
 
     /**
-     * 匯出流程
+     * 匯出流程（指定版本）
      */
     @GetMapping("/{flowId}/versions/{version}/export")
     public ResponseEntity<FlowExportPackage> exportFlow(
@@ -45,8 +47,36 @@ public class FlowExportController {
         UUID userId = UUID.fromString(userDetails.getUsername());
         FlowExportPackage pkg = exportService.exportFlow(flowId, version, userId);
 
+        // Audit log: flow export
+        activityService.logFlowExport(userId, flowId, pkg.getFlow().getName(), "json");
+
         // 設定下載檔名
         String filename = pkg.getFlow().getName() + "_" + version + ".json";
+        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
+                .replace("+", "%20");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + encodedFilename + "\"")
+                .body(pkg);
+    }
+
+    /**
+     * 匯出流程（最新版本）
+     */
+    @GetMapping("/{flowId}/export")
+    public ResponseEntity<FlowExportPackage> exportFlowLatest(
+            @PathVariable UUID flowId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FlowExportPackage pkg = exportService.exportFlowLatest(flowId, userId);
+
+        // Audit log: flow export
+        activityService.logFlowExport(userId, flowId, pkg.getFlow().getName(), "json");
+
+        String filename = pkg.getFlow().getName() + ".json";
         String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
                 .replace("+", "%20");
 
@@ -62,7 +92,7 @@ public class FlowExportController {
      */
     @PostMapping("/import/preview")
     public ResponseEntity<FlowImportPreviewResponse> previewImport(
-            @RequestBody FlowExportPackage pkg,
+            @Valid @RequestBody FlowExportPackage pkg,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -80,6 +110,10 @@ public class FlowExportController {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
         FlowResponse response = importService.importFlow(request, userId);
+
+        // Audit log: flow import
+        activityService.logFlowImport(userId, response.getId(), response.getName());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

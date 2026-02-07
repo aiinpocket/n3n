@@ -51,7 +51,8 @@ import {
   SendOutlined,
 } from '@ant-design/icons'
 import { Tooltip } from 'antd'
-import { useFlowStore } from '../../stores/flowStore'
+import { useTranslation } from 'react-i18next'
+import { useFlowEditorStore } from '../../stores/flowEditorStore'
 import { nodeTypes as nodeTypesConfig, getNodeConfig } from '../../config/nodeTypes'
 
 // Inject global styles for reduced motion and focus states
@@ -178,16 +179,18 @@ interface CustomNodeData {
 }
 
 const BaseNode = memo(({ id, data, selected }: NodeProps) => {
+  const { t } = useTranslation()
   const nodeData = data as CustomNodeData
   const nodeType = nodeData.nodeType || 'action'
   const color = nodeColors[nodeType] || '#4F46E5'
   const icon = nodeIcons[nodeType] || <ThunderboltOutlined />
   const isTrigger = triggerNodeTypes.has(nodeType)
   const isOutput = outputNodeTypes.has(nodeType)
-  const label = nodeData.label || getNodeConfig(nodeType)?.label || nodeType
+  const configLabel = getNodeConfig(nodeType)?.label
+  const label = nodeData.label || (configLabel ? t(configLabel) : nodeType)
 
   // Check if this node has pinned data
-  const isPinned = useFlowStore((state) => id in state.pinnedData)
+  const isPinned = useFlowEditorStore((state) => id in state.pinnedData)
 
   return (
     <Tooltip title={nodeData.description || label}>
@@ -228,7 +231,7 @@ const BaseNode = memo(({ id, data, selected }: NodeProps) => {
               justifyContent: 'center',
               boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
-            title="Pinned data"
+            title={t('nodeTypes.pinnedData')}
           >
             <PushpinFilled style={{ fontSize: 11, color: '#fff' }} />
           </div>
@@ -304,9 +307,10 @@ ActionNode.displayName = 'ActionNode'
 
 // Condition Node with two outputs
 const ConditionNode = memo(({ data, selected }: NodeProps) => {
+  const { t } = useTranslation()
   const nodeData = data as CustomNodeData
   const color = nodeColors.condition
-  const label = nodeData.label || 'Condition'
+  const label = nodeData.label || t('nodeTypes.condition.label')
 
   return (
     <div
@@ -397,8 +401,8 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
           fontWeight: 500,
         }}
       >
-        <span style={{ color: '#BBF7D0' }}>✓ True</span>
-        <span style={{ color: '#FECACA' }}>✗ False</span>
+        <span style={{ color: '#BBF7D0' }}>✓ {t('nodeTypes.condition.true')}</span>
+        <span style={{ color: '#FECACA' }}>✗ {t('nodeTypes.condition.false')}</span>
       </div>
     </div>
   )
@@ -461,9 +465,10 @@ FormNode.displayName = 'FormNode'
 
 // Approval Node with two outputs (approved/rejected)
 const ApprovalNode = memo(({ data, selected }: NodeProps) => {
+  const { t } = useTranslation()
   const nodeData = data as CustomNodeData
   const color = nodeColors.approval
-  const label = nodeData.label || 'Approval'
+  const label = nodeData.label || t('nodeTypes.approval.label')
 
   return (
     <div
@@ -554,8 +559,8 @@ const ApprovalNode = memo(({ data, selected }: NodeProps) => {
           fontWeight: 500,
         }}
       >
-        <span style={{ color: '#BBF7D0' }}>✓ Approved</span>
-        <span style={{ color: '#FECACA' }}>✗ Rejected</span>
+        <span style={{ color: '#BBF7D0' }}>✓ {t('nodeTypes.approval.approved')}</span>
+        <span style={{ color: '#FECACA' }}>✗ {t('nodeTypes.approval.rejected')}</span>
       </div>
     </div>
   )
@@ -564,10 +569,11 @@ ApprovalNode.displayName = 'ApprovalNode'
 
 // Switch Node with multiple outputs
 const SwitchNode = memo(({ data, selected }: NodeProps) => {
+  const { t } = useTranslation()
   const nodeData = data as CustomNodeData & { cases?: Array<{ branch: string }> }
   const color = nodeColors.switch
   const cases = nodeData.cases || [{ branch: 'case_0' }, { branch: 'case_1' }, { branch: 'default' }]
-  const label = nodeData.label || 'Switch'
+  const label = nodeData.label || t('nodeTypes.switch.label')
   const caseCount = Math.min(cases.length, 4)
 
   return (
@@ -676,13 +682,14 @@ SshNode.displayName = 'SshNode'
 
 // External Service Node
 const ExternalServiceNode = memo(({ data, selected }: NodeProps) => {
+  const { t } = useTranslation()
   const nodeData = data as CustomNodeData & {
     serviceName?: string
     endpointName?: string
     method?: string
   }
   const color = nodeColors.externalService
-  const label = nodeData.label || 'External Service'
+  const label = nodeData.label || t('nodeTypes.externalService.label')
 
   return (
     <Tooltip title={nodeData.description || `${nodeData.serviceName} - ${nodeData.endpointName}`}>

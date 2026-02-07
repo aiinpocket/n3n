@@ -26,8 +26,9 @@ import {
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useWebhookStore } from '../stores/webhookStore'
-import { useFlowStore } from '../stores/flowStore'
+import { useFlowListStore } from '../stores/flowListStore'
 import type { Webhook, CreateWebhookRequest } from '../api/webhook'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Text, Paragraph } = Typography
 
@@ -46,7 +47,7 @@ const WebhooksPage: React.FC = () => {
     deleteWebhook,
   } = useWebhookStore()
 
-  const { flows, fetchFlows } = useFlowStore()
+  const { flows, fetchFlows } = useFlowListStore()
 
   useEffect(() => {
     fetchWebhooks()
@@ -60,7 +61,7 @@ const WebhooksPage: React.FC = () => {
       setIsModalOpen(false)
       form.resetFields()
     } catch (error) {
-      message.error((error as Error).message)
+      message.error(extractApiError(error, t('common.createFailed')))
     }
   }
 
@@ -74,7 +75,7 @@ const WebhooksPage: React.FC = () => {
         message.success(t('webhook.activated'))
       }
     } catch (error) {
-      message.error((error as Error).message)
+      message.error(extractApiError(error, t('common.updateFailed')))
     }
   }
 
@@ -90,7 +91,7 @@ const WebhooksPage: React.FC = () => {
           await deleteWebhook(id)
           message.success(t('webhook.deleteSuccess'))
         } catch (error) {
-          message.error((error as Error).message)
+          message.error(extractApiError(error, t('common.deleteFailed')))
         }
       },
     })

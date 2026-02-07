@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.plugin.service;
 
+import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.plugin.dto.*;
 import com.aiinpocket.n3n.plugin.entity.*;
 import com.aiinpocket.n3n.plugin.repository.*;
@@ -64,10 +65,10 @@ public class PluginService {
             UUID userId) {
 
         Sort sort = switch (sortBy != null ? sortBy : "popular") {
-            case "recent" -> Sort.by(Sort.Direction.DESC, "updatedAt");
-            case "rating" -> Sort.by(Sort.Direction.DESC, "displayName"); // Will be sorted after
-            case "name" -> Sort.by(Sort.Direction.ASC, "displayName");
-            default -> Sort.by(Sort.Direction.DESC, "updatedAt"); // popular - will enhance later
+            case "recent" -> Sort.by(Sort.Direction.DESC, "updated_at");
+            case "rating" -> Sort.by(Sort.Direction.DESC, "display_name");
+            case "name" -> Sort.by(Sort.Direction.ASC, "display_name");
+            default -> Sort.by(Sort.Direction.DESC, "updated_at");
         };
 
         Pageable pageable = PageRequest.of(page, pageSize, sort);
@@ -115,7 +116,7 @@ public class PluginService {
      */
     public PluginDetailDto getPluginDetail(UUID pluginId, UUID userId) {
         Plugin plugin = pluginRepository.findById(pluginId)
-                .orElseThrow(() -> new IllegalArgumentException("Plugin not found: " + pluginId));
+                .orElseThrow(() -> new ResourceNotFoundException("Plugin not found: " + pluginId));
 
         Set<UUID> installedPluginIds = getInstalledPluginIds(userId);
         PluginDto pluginDto = toPluginDto(plugin, installedPluginIds, userId);
@@ -185,7 +186,7 @@ public class PluginService {
     @Transactional
     public Map<String, Object> installPlugin(UUID pluginId, UUID userId, InstallPluginRequest request) {
         Plugin plugin = pluginRepository.findById(pluginId)
-                .orElseThrow(() -> new IllegalArgumentException("Plugin not found: " + pluginId));
+                .orElseThrow(() -> new ResourceNotFoundException("Plugin not found: " + pluginId));
 
         // Check if already installed
         if (pluginInstallationRepository.existsByPluginIdAndUserId(pluginId, userId)) {
@@ -234,7 +235,7 @@ public class PluginService {
                 .orElseThrow(() -> new IllegalArgumentException("Plugin not installed"));
 
         Plugin plugin = pluginRepository.findById(pluginId)
-                .orElseThrow(() -> new IllegalArgumentException("Plugin not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Plugin not found"));
 
         // Unregister plugin nodes
         pluginNodeRegistrar.unregisterPluginNodes(plugin, userId);
@@ -259,7 +260,7 @@ public class PluginService {
                 .orElseThrow(() -> new IllegalArgumentException("Plugin not installed"));
 
         Plugin plugin = pluginRepository.findById(pluginId)
-                .orElseThrow(() -> new IllegalArgumentException("Plugin not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Plugin not found"));
 
         PluginVersion latestVersion = pluginVersionRepository.findLatestByPluginId(pluginId)
                 .orElseThrow(() -> new IllegalStateException("No versions available"));

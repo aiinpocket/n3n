@@ -1,11 +1,14 @@
 package com.aiinpocket.n3n.gateway.handler;
 
+import com.aiinpocket.n3n.auth.service.JwtService;
 import com.aiinpocket.n3n.gateway.node.NodeConnection;
 import com.aiinpocket.n3n.gateway.node.NodeRegistry;
 import com.aiinpocket.n3n.gateway.protocol.GatewayEvent;
 import com.aiinpocket.n3n.gateway.protocol.GatewayMessage;
 import com.aiinpocket.n3n.gateway.protocol.GatewayRequest;
 import com.aiinpocket.n3n.gateway.protocol.GatewayResponse;
+import com.aiinpocket.n3n.gateway.security.AgentPairingService;
+import com.aiinpocket.n3n.gateway.security.DeviceKeyStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,9 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
     private final NodeRegistry nodeRegistry;
+    private final JwtService jwtService;
+    private final AgentPairingService agentPairingService;
+    private final DeviceKeyStore deviceKeyStore;
 
     /**
      * Pending requests waiting for responses
@@ -89,7 +95,7 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
 
         } catch (Exception e) {
             log.error("Error processing message from {}: {}", sessionId, e.getMessage());
-            sendError(session, null, "PARSE_ERROR", "Failed to parse message: " + e.getMessage());
+            sendError(session, null, "PARSE_ERROR", "Failed to parse message");
         }
     }
 
@@ -133,7 +139,7 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
 
         } catch (Exception e) {
             log.error("Error handling request {}: {}", method, e.getMessage());
-            sendError(session, request.getId(), "INTERNAL_ERROR", e.getMessage());
+            sendError(session, request.getId(), "INTERNAL_ERROR", "An internal error occurred");
         }
     }
 
@@ -396,37 +402,43 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    // Placeholder authentication methods - implement with actual logic
     private UUID validateDeviceToken(String token) {
-        // In production, validate against database
-        // For now, return a test user ID
         try {
-            // Token format: userId:deviceId:hash
-            String[] parts = token.split(":");
-            if (parts.length >= 1) {
-                return UUID.fromString(parts[0]);
+            return agentPairingService.validateDeviceToken(token).orElse(null);
+        } catch (Exception e) {
+            log.debug("Device token validation failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private UUID validateUserToken(String token) {
+        try {
+            if (jwtService.validateToken(token)) {
+                return jwtService.extractUserId(token);
             }
         } catch (Exception e) {
-            log.debug("Invalid device token format");
+            log.debug("JWT token validation failed: {}", e.getMessage());
         }
         return null;
     }
 
-    private UUID validateUserToken(String token) {
-        // In production, validate JWT
-        // For now, return null (not implemented)
-        return null;
-    }
-
     private UUID validatePairingCode(String code) {
-        // In production, lookup pairing code from database
-        // For now, return null (not implemented)
+        try {
+            Optional<DeviceKeyStore.PairingRequest> pairing = deviceKeyStore.consumePairing(code);
+            if (pairing.isPresent() && pairing.get().getExpiresAt().isAfter(Instant.now())) {
+                return pairing.get().getUserId();
+            }
+        } catch (Exception e) {
+            log.debug("Pairing code validation failed: {}", e.getMessage());
+        }
         return null;
     }
 
     private String generateDeviceToken(UUID userId, String deviceId) {
-        // In production, generate secure token and store in database
-        return userId.toString() + ":" + deviceId + ":" + UUID.randomUUID();
+        long timestamp = System.currentTimeMillis();
+        String signature = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String tokenData = userId.toString() + ":" + deviceId + ":" + timestamp + ":" + signature;
+        return Base64.getEncoder().encodeToString(tokenData.getBytes());
     }
 
     private record AuthChallenge(String nonce, Instant createdAt) {}

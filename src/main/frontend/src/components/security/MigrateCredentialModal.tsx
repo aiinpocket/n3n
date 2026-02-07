@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, Alert, Button, Input, message, Space } from 'antd';
 import { LockOutlined, KeyOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';
 
 interface Credential {
@@ -23,18 +24,19 @@ export default function MigrateCredentialModal({
   onClose,
   onSuccess,
 }: Props) {
+  const { t } = useTranslation();
   const [recoveryKeyPhrase, setRecoveryKeyPhrase] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleMigrate = async () => {
     if (!recoveryKeyPhrase.trim()) {
-      message.error('請輸入 Recovery Key');
+      message.error(t('recovery.pleaseEnterKey'));
       return;
     }
 
     const words = recoveryKeyPhrase.trim().split(/\s+/);
     if (words.length !== 8) {
-      message.error('Recovery Key 必須是 8 個單詞');
+      message.error(t('recovery.mustBe8Words'));
       return;
     }
 
@@ -46,15 +48,15 @@ export default function MigrateCredentialModal({
       );
 
       if (result.success) {
-        message.success('憑證遷移成功');
+        message.success(t('recovery.migrateSuccess'));
         onSuccess();
         onClose();
       } else {
-        message.error(result.message || '遷移失敗');
+        message.error(result.message || t('recovery.migrateFailed'));
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      message.error(err.response?.data?.message || '遷移失敗，請確認 Recovery Key 是否正確');
+      message.error(err.response?.data?.message || t('recovery.migrateFailedCheckKey'));
     } finally {
       setLoading(false);
     }

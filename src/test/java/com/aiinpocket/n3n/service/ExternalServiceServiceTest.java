@@ -43,15 +43,17 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     @Test
     void listServices_returnsPagedServices() {
         // Given
+        UUID userId = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
         ExternalService service = createTestService();
+        service.setCreatedBy(userId);
         Page<ExternalService> servicePage = new PageImpl<>(List.of(service));
 
-        when(serviceRepository.findByIsDeletedFalseOrderByCreatedAtDesc(pageable)).thenReturn(servicePage);
+        when(serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)).thenReturn(servicePage);
         when(endpointRepository.countByServiceId(service.getId())).thenReturn(3);
 
         // When
-        Page<ServiceResponse> result = externalServiceService.listServices(pageable);
+        Page<ServiceResponse> result = externalServiceService.listServices(userId, pageable);
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -64,13 +66,14 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void getService_existingId_returnsServiceDetail() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         ServiceEndpoint endpoint = createTestEndpoint(service.getId());
 
         when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
         when(endpointRepository.findByServiceIdOrderByPathAsc(service.getId())).thenReturn(List.of(endpoint));
 
         // When
-        ServiceDetailResponse result = externalServiceService.getService(service.getId());
+        ServiceDetailResponse result = externalServiceService.getService(service.getId(), userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -82,10 +85,11 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void getService_nonExistingId_throwsException() {
         // Given
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(serviceRepository.findByIdAndIsDeletedFalse(id)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.getService(id))
+        assertThatThrownBy(() -> externalServiceService.getService(id, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
     }
@@ -213,11 +217,12 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void deleteService_existingService_softDeletes() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        externalServiceService.deleteService(service.getId());
+        externalServiceService.deleteService(service.getId(), userId);
 
         // Then
         verify(serviceRepository).save(argThat(ExternalService::getIsDeleted));
@@ -227,10 +232,11 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void deleteService_nonExistingId_throwsException() {
         // Given
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(serviceRepository.findByIdAndIsDeletedFalse(id)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.deleteService(id))
+        assertThatThrownBy(() -> externalServiceService.deleteService(id, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -240,6 +246,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void refreshSchema_withSchemaUrl_refreshesEndpoints() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         service.setSchemaUrl("https://api.example.com/openapi.json");
 
         ServiceEndpoint newEndpoint = createTestEndpoint(service.getId());
@@ -255,7 +262,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        Map<String, Object> result = externalServiceService.refreshSchema(service.getId());
+        Map<String, Object> result = externalServiceService.refreshSchema(service.getId(), userId);
 
         // Then
         assertThat(result).containsEntry("addedEndpoints", 1);
@@ -266,12 +273,13 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void refreshSchema_noSchemaUrl_throwsException() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         service.setSchemaUrl(null);
 
         when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.refreshSchema(service.getId()))
+        assertThatThrownBy(() -> externalServiceService.refreshSchema(service.getId(), userId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("schema URL");
     }
@@ -280,6 +288,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void refreshSchema_existingEndpoints_updatesInstead() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         service.setSchemaUrl("https://api.example.com/openapi.json");
 
         ServiceEndpoint existingEndpoint = createTestEndpoint(service.getId());
@@ -300,7 +309,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        Map<String, Object> result = externalServiceService.refreshSchema(service.getId());
+        Map<String, Object> result = externalServiceService.refreshSchema(service.getId(), userId);
 
         // Then
         assertThat(result).containsEntry("addedEndpoints", 0);
@@ -312,14 +321,15 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     @Test
     void getEndpoints_existingService_returnsEndpoints() {
         // Given
-        UUID serviceId = UUID.randomUUID();
-        ServiceEndpoint endpoint = createTestEndpoint(serviceId);
+        ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
+        ServiceEndpoint endpoint = createTestEndpoint(service.getId());
 
-        when(serviceRepository.existsById(serviceId)).thenReturn(true);
-        when(endpointRepository.findByServiceIdOrderByPathAsc(serviceId)).thenReturn(List.of(endpoint));
+        when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
+        when(endpointRepository.findByServiceIdOrderByPathAsc(service.getId())).thenReturn(List.of(endpoint));
 
         // When
-        List<EndpointResponse> result = externalServiceService.getEndpoints(serviceId);
+        List<EndpointResponse> result = externalServiceService.getEndpoints(service.getId(), userId);
 
         // Then
         assertThat(result).hasSize(1);
@@ -329,24 +339,26 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void getEndpoints_nonExistingService_throwsException() {
         // Given
         UUID serviceId = UUID.randomUUID();
-        when(serviceRepository.existsById(serviceId)).thenReturn(false);
+        UUID userId = UUID.randomUUID();
+        when(serviceRepository.findByIdAndIsDeletedFalse(serviceId)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.getEndpoints(serviceId))
+        assertThatThrownBy(() -> externalServiceService.getEndpoints(serviceId, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void createEndpoint_validRequest_createsEndpoint() {
         // Given
-        UUID serviceId = UUID.randomUUID();
+        ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         CreateEndpointRequest request = new CreateEndpointRequest();
         request.setName("Get Users");
         request.setMethod("GET");
         request.setPath("/users");
 
-        when(serviceRepository.existsById(serviceId)).thenReturn(true);
-        when(endpointRepository.findByServiceIdAndMethodAndPath(serviceId, "GET", "/users"))
+        when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
+        when(endpointRepository.findByServiceIdAndMethodAndPath(service.getId(), "GET", "/users"))
                 .thenReturn(Optional.empty());
         when(endpointRepository.save(any(ServiceEndpoint.class))).thenAnswer(invocation -> {
             ServiceEndpoint e = invocation.getArgument(0);
@@ -355,7 +367,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         });
 
         // When
-        EndpointResponse result = externalServiceService.createEndpoint(serviceId, request);
+        EndpointResponse result = externalServiceService.createEndpoint(service.getId(), request, userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -365,20 +377,21 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     @Test
     void createEndpoint_duplicateMethodPath_throwsException() {
         // Given
-        UUID serviceId = UUID.randomUUID();
+        ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         CreateEndpointRequest request = new CreateEndpointRequest();
         request.setName("Get Users");
         request.setMethod("GET");
         request.setPath("/users");
 
-        ServiceEndpoint existing = createTestEndpoint(serviceId);
+        ServiceEndpoint existing = createTestEndpoint(service.getId());
 
-        when(serviceRepository.existsById(serviceId)).thenReturn(true);
-        when(endpointRepository.findByServiceIdAndMethodAndPath(serviceId, "GET", "/users"))
+        when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
+        when(endpointRepository.findByServiceIdAndMethodAndPath(service.getId(), "GET", "/users"))
                 .thenReturn(Optional.of(existing));
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.createEndpoint(serviceId, request))
+        assertThatThrownBy(() -> externalServiceService.createEndpoint(service.getId(), request, userId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("already exists");
     }
@@ -386,13 +399,15 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     @Test
     void deleteEndpoint_matchingService_deletes() {
         // Given
-        UUID serviceId = UUID.randomUUID();
-        ServiceEndpoint endpoint = createTestEndpoint(serviceId);
+        ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
+        ServiceEndpoint endpoint = createTestEndpoint(service.getId());
 
+        when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
         when(endpointRepository.findById(endpoint.getId())).thenReturn(Optional.of(endpoint));
 
         // When
-        externalServiceService.deleteEndpoint(serviceId, endpoint.getId());
+        externalServiceService.deleteEndpoint(service.getId(), endpoint.getId(), userId);
 
         // Then
         verify(endpointRepository).delete(endpoint);
@@ -401,14 +416,16 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     @Test
     void deleteEndpoint_mismatchedService_throwsException() {
         // Given
-        UUID serviceId = UUID.randomUUID();
+        ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         UUID otherServiceId = UUID.randomUUID();
         ServiceEndpoint endpoint = createTestEndpoint(otherServiceId);
 
+        when(serviceRepository.findByIdAndIsDeletedFalse(service.getId())).thenReturn(Optional.of(service));
         when(endpointRepository.findById(endpoint.getId())).thenReturn(Optional.of(endpoint));
 
         // When/Then
-        assertThatThrownBy(() -> externalServiceService.deleteEndpoint(serviceId, endpoint.getId()))
+        assertThatThrownBy(() -> externalServiceService.deleteEndpoint(service.getId(), endpoint.getId(), userId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not belong");
     }

@@ -14,6 +14,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { aiCodeApi, GenerateCodeResponse } from '../../api/aiCode'
 
 const { TextArea } = Input
@@ -34,6 +35,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
   language = 'javascript',
   sampleInput,
 }) => {
+  const { t } = useTranslation()
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<GenerateCodeResponse | null>(null)
@@ -56,7 +58,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
       setResult({
         success: false,
         aiAvailable: true,
-        error: error instanceof Error ? error.message : '生成失敗',
+        error: error instanceof Error ? error.message : t('codeGenerator.generateFailed'),
       })
     } finally {
       setLoading(false)
@@ -91,7 +93,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
       title={
         <Space>
           <RobotOutlined style={{ color: '#8B5CF6' }} />
-          <span>AI 程式碼生成</span>
+          <span>{t('codeGenerator.title')}</span>
         </Space>
       }
       open={open}
@@ -99,14 +101,14 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
       width={640}
       footer={
         <Space>
-          <Button onClick={handleClose}>取消</Button>
+          <Button onClick={handleClose}>{t('common.cancel')}</Button>
           {result?.success ? (
             <>
               <Button icon={copied ? <CheckOutlined /> : <CopyOutlined />} onClick={handleCopy}>
-                {copied ? '已複製' : '複製程式碼'}
+                {copied ? t('codeGenerator.copied') : t('codeGenerator.copyCode')}
               </Button>
               <Button type="primary" icon={<CodeOutlined />} onClick={handleApply}>
-                套用到編輯器
+                {t('codeGenerator.applyToEditor')}
               </Button>
             </>
           ) : (
@@ -117,7 +119,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
               loading={loading}
               disabled={!description.trim()}
             >
-              生成程式碼
+              {t('codeGenerator.generate')}
             </Button>
           )}
         </Space>
@@ -125,11 +127,11 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
     >
       {/* Description Input */}
       <div style={{ marginBottom: 16 }}>
-        <Text strong>描述您需要的程式邏輯：</Text>
+        <Text strong>{t('codeGenerator.describeLogic')}</Text>
         <TextArea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="例如：過濾出所有價格大於 100 的商品，並計算總價..."
+          placeholder={t('codeGenerator.placeholder')}
           rows={4}
           style={{ marginTop: 8 }}
           disabled={loading}
@@ -141,7 +143,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
         <div style={{ textAlign: 'center', padding: 24 }}>
           <Spin size="large" />
           <Paragraph style={{ marginTop: 16 }}>
-            AI 正在生成程式碼...
+            {t('codeGenerator.generating')}
           </Paragraph>
         </div>
       )}
@@ -151,7 +153,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
         <div>
           {result.success && result.code ? (
             <>
-              <Text strong>生成的程式碼：</Text>
+              <Text strong>{t('codeGenerator.generatedCode')}</Text>
               <div
                 style={{
                   marginTop: 8,
@@ -179,8 +181,8 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
           ) : (
             <Alert
               type={result.aiAvailable ? 'error' : 'warning'}
-              message={result.aiAvailable ? '生成失敗' : 'AI 服務不可用'}
-              description={result.error || '請稍後再試或檢查 AI 設定'}
+              message={result.aiAvailable ? t('codeGenerator.generateFailed') : t('codeGenerator.aiUnavailable')}
+              description={result.error || t('codeGenerator.tryLater')}
               showIcon
             />
           )}
@@ -193,12 +195,12 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
           type="info"
           showIcon
           icon={<RobotOutlined />}
-          message="提示"
+          message={t('codeGenerator.tips')}
           description={
             <ul style={{ margin: 0, paddingLeft: 20 }}>
-              <li>描述越具體，生成的程式碼越準確</li>
-              <li>可以說明輸入資料的格式和預期輸出</li>
-              <li>生成的程式碼會使用 $input 來存取輸入資料</li>
+              <li>{t('codeGenerator.tip1')}</li>
+              <li>{t('codeGenerator.tip2')}</li>
+              <li>{t('codeGenerator.tip3')}</li>
             </ul>
           }
         />

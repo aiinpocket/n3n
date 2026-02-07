@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Button, Table, Space, Tag, message, Popconfirm, Typography, Avatar } from 'antd'
-import { UserOutlined, MailOutlined, DeleteOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { Modal, Form, Input, Select, Button, Table, Space, Tag, message, Popconfirm, Typography, Avatar, Tooltip } from 'antd'
+import { UserOutlined, MailOutlined, DeleteOutlined, ShareAltOutlined, EyeOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { flowShareApi, FlowShare, ShareFlowRequest } from '../../api/flowShare'
 
 const { Text } = Typography
@@ -19,6 +20,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
   flowName,
   onClose
 }) => {
+  const { t } = useTranslation()
   const [form] = Form.useForm()
   const [shares, setShares] = useState<FlowShare[]>([])
   const [loading, setLoading] = useState(false)
@@ -31,7 +33,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       const data = await flowShareApi.getShares(flowId)
       setShares(data)
     } catch {
-      message.error('無法載入分享清單')
+      message.error(t('share.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -60,12 +62,12 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       }
 
       await flowShareApi.share(flowId, request)
-      message.success('分享成功')
+      message.success(t('share.success'))
       form.resetFields()
       fetchShares()
     } catch (error) {
       if (error instanceof Error) {
-        message.error(`分享失敗: ${error.message}`)
+        message.error(t('share.shareFailed'))
       }
     } finally {
       setSharing(false)
@@ -75,26 +77,26 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
   const handleUpdatePermission = async (shareId: string, permission: string) => {
     try {
       await flowShareApi.updatePermission(flowId, shareId, permission)
-      message.success('權限已更新')
+      message.success(t('share.permissionUpdated'))
       fetchShares()
     } catch {
-      message.error('更新失敗')
+      message.error(t('share.updateFailed'))
     }
   }
 
   const handleRemoveShare = async (shareId: string) => {
     try {
       await flowShareApi.removeShare(flowId, shareId)
-      message.success('已移除分享')
+      message.success(t('share.removed'))
       fetchShares()
     } catch {
-      message.error('移除失敗')
+      message.error(t('share.removeFailed'))
     }
   }
 
   const columns = [
     {
-      title: '用戶',
+      title: t('share.user'),
       key: 'user',
       render: (_: unknown, record: FlowShare) => (
         <Space>
@@ -107,14 +109,14 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
               </Text>
             )}
             {record.pending && (
-              <Tag color="orange" style={{ marginLeft: 8 }}>待接受</Tag>
+              <Tag color="orange" style={{ marginLeft: 8 }}>{t('share.pending')}</Tag>
             )}
           </div>
         </Space>
       )
     },
     {
-      title: '權限',
+      title: t('share.permission'),
       key: 'permission',
       width: 120,
       render: (_: unknown, record: FlowShare) => (
@@ -124,28 +126,28 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
           style={{ width: 100 }}
           onChange={(value) => handleUpdatePermission(record.id, value)}
         >
-          <Option value="view">檢視</Option>
-          <Option value="edit">編輯</Option>
-          <Option value="admin">管理</Option>
+          <Option value="view">{t('share.view')}</Option>
+          <Option value="edit">{t('share.edit')}</Option>
+          <Option value="admin">{t('share.admin')}</Option>
         </Select>
       )
     },
     {
-      title: '分享者',
+      title: t('share.sharedBy'),
       dataIndex: 'sharedByName',
       key: 'sharedBy',
       render: (name: string) => name || '-'
     },
     {
-      title: '操作',
+      title: t('share.actions'),
       key: 'actions',
       width: 80,
       render: (_: unknown, record: FlowShare) => (
         <Popconfirm
-          title="確定要移除此分享嗎？"
+          title={t('share.removeConfirm')}
           onConfirm={() => handleRemoveShare(record.id)}
-          okText="移除"
-          cancelText="取消"
+          okText={t('share.remove')}
+          cancelText={t('common.cancel')}
           okButtonProps={{ danger: true }}
         >
           <Button type="link" danger icon={<DeleteOutlined />} />
@@ -159,7 +161,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       title={
         <Space>
           <ShareAltOutlined />
-          <span>分享流程: {flowName}</span>
+          <span>{t('share.shareFlow')}: {flowName}</span>
         </Space>
       }
       open={visible}
@@ -177,26 +179,38 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: '請輸入 Email' },
-              { type: 'email', message: '請輸入有效的 Email' }
+              { required: true, message: t('share.emailRequired') },
+              { type: 'email', message: t('share.emailInvalid') }
             ]}
             style={{ flex: 1, marginRight: 8 }}
           >
             <Input
               prefix={<MailOutlined />}
-              placeholder="輸入用戶 Email"
+              placeholder={t('share.emailPlaceholder')}
             />
           </Form.Item>
 
           <Form.Item
             name="permission"
             initialValue="view"
-            style={{ width: 120 }}
+            style={{ width: 160 }}
           >
             <Select>
-              <Option value="view">檢視</Option>
-              <Option value="edit">編輯</Option>
-              <Option value="admin">管理</Option>
+              <Option value="view">
+                <Tooltip title={t('share.viewDesc')} placement="left">
+                  <Space><EyeOutlined />{t('share.view')}</Space>
+                </Tooltip>
+              </Option>
+              <Option value="edit">
+                <Tooltip title={t('share.editDesc')} placement="left">
+                  <Space><EditOutlined />{t('share.edit')}</Space>
+                </Tooltip>
+              </Option>
+              <Option value="admin">
+                <Tooltip title={t('share.adminDesc')} placement="left">
+                  <Space><CrownOutlined />{t('share.admin')}</Space>
+                </Tooltip>
+              </Option>
             </Select>
           </Form.Item>
 
@@ -206,7 +220,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
               onClick={handleShare}
               loading={sharing}
             >
-              分享
+              {t('share.share')}
             </Button>
           </Form.Item>
         </Form>
@@ -215,9 +229,9 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       {/* Permission explanation */}
       <div style={{ marginBottom: 16 }}>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          <strong>檢視</strong>: 可查看流程但不能修改 |
-          <strong> 編輯</strong>: 可修改流程內容 |
-          <strong> 管理</strong>: 可管理分享設定
+          <strong>{t('share.view')}</strong>: {t('share.viewDesc')} |
+          <strong> {t('share.edit')}</strong>: {t('share.editDesc')} |
+          <strong> {t('share.admin')}</strong>: {t('share.adminDesc')}
         </Text>
       </div>
 
@@ -229,7 +243,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
         loading={loading}
         pagination={false}
         size="small"
-        locale={{ emptyText: '尚未分享給任何人' }}
+        locale={{ emptyText: t('share.noShares') }}
       />
     </Modal>
   )

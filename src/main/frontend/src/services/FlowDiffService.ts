@@ -4,6 +4,7 @@
  */
 
 import type { FlowSnapshot } from '../stores/aiAssistantStore'
+import i18n from '../i18n'
 
 export interface NodeChange {
   id: string
@@ -264,26 +265,27 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * Format diff for display.
  */
 export function formatDiffSummary(diff: FlowDiff): string {
+  const t = i18n.t.bind(i18n)
   const { summary } = diff
   const parts: string[] = []
 
   if (summary.nodesAdded > 0) {
-    parts.push(`+${summary.nodesAdded} 節點`)
+    parts.push(`+${summary.nodesAdded} ${t('diff.nodes')}`)
   }
   if (summary.nodesRemoved > 0) {
-    parts.push(`-${summary.nodesRemoved} 節點`)
+    parts.push(`-${summary.nodesRemoved} ${t('diff.nodes')}`)
   }
   if (summary.nodesModified > 0) {
-    parts.push(`~${summary.nodesModified} 節點修改`)
+    parts.push(`~${summary.nodesModified} ${t('diff.nodesModified')}`)
   }
   if (summary.edgesAdded > 0) {
-    parts.push(`+${summary.edgesAdded} 連線`)
+    parts.push(`+${summary.edgesAdded} ${t('diff.edges')}`)
   }
   if (summary.edgesRemoved > 0) {
-    parts.push(`-${summary.edgesRemoved} 連線`)
+    parts.push(`-${summary.edgesRemoved} ${t('diff.edges')}`)
   }
 
-  return parts.length > 0 ? parts.join(', ') : '無變更'
+  return parts.length > 0 ? parts.join(', ') : t('diff.noChanges')
 }
 
 /**

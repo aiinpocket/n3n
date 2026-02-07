@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.flow.service;
 
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
+import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.common.service.EmailService;
 import com.aiinpocket.n3n.flow.dto.FlowShareRequest;
@@ -219,7 +220,7 @@ public class FlowShareService {
         }
 
         // 公開流程
-        if ("public".equals(flow.getVisibility())) {
+        if (Status.Visibility.PUBLIC.equals(flow.getVisibility())) {
             return true;
         }
 
@@ -273,6 +274,14 @@ public class FlowShareService {
             sharedByName = sharedByUser.getName();
         }
 
-        return FlowShareResponse.from(share, userName, userEmail, sharedByName);
+        FlowShareResponse response = FlowShareResponse.from(share, userName, userEmail, sharedByName);
+
+        // Enrich with flow name and description
+        flowRepository.findById(share.getFlowId()).ifPresent(flow -> {
+            response.setFlowName(flow.getName());
+            response.setFlowDescription(flow.getDescription());
+        });
+
+        return response;
     }
 }

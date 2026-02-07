@@ -58,6 +58,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       set({ categories })
     } catch (error) {
       logger.error('Failed to fetch categories:', error)
+      set({ error: (error as Error).message })
     }
   },
 

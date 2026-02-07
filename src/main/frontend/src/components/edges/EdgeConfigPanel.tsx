@@ -9,6 +9,7 @@ import {
   CloseCircleOutlined,
   SyncOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import type { EdgeType } from '../../types'
 import { edgeTypeOptions } from './CustomEdges'
 
@@ -33,6 +34,7 @@ export default function EdgeConfigPanel({
   onTypeChange,
   onClose,
 }: EdgeConfigPanelProps) {
+  const { t } = useTranslation()
   const handleChange = useCallback(
     (e: RadioChangeEvent) => {
       onTypeChange(edgeId, e.target.value as EdgeType)
@@ -45,21 +47,21 @@ export default function EdgeConfigPanel({
       size="small"
       title={
         <Space>
-          <span>連線設定</span>
+          <span>{t('edgeConfig.title')}</span>
           <Tag color={edgeTypeOptions.find((o) => o.value === currentType)?.color}>
-            {edgeTypeOptions.find((o) => o.value === currentType)?.label}
+            {t(edgeTypeOptions.find((o) => o.value === currentType)?.labelKey ?? '')}
           </Tag>
         </Space>
       }
       style={{ width: 280 }}
       extra={
         <a onClick={onClose} style={{ fontSize: 12 }}>
-          關閉
+          {t('common.close')}
         </a>
       }
     >
       <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 12 }}>
-        選擇連線類型來決定何時執行下游節點
+        {t('edgeConfig.description')}
       </Paragraph>
 
       <Radio.Group
@@ -78,11 +80,11 @@ export default function EdgeConfigPanel({
                 {iconMap[option.value as EdgeType]}
                 <div>
                   <Text strong style={{ color: option.color }}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </Text>
                   <br />
                   <Text type="secondary" style={{ fontSize: 11 }}>
-                    {option.description}
+                    {t(option.descKey)}
                   </Text>
                 </div>
               </Space>
@@ -98,6 +100,7 @@ export default function EdgeConfigPanel({
  * Edge Legend Component - Shows a legend of edge types
  */
 export function EdgeLegend() {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -129,7 +132,7 @@ export function EdgeLegend() {
             }}
           />
           <Text style={{ fontSize: 11, color: option.color }}>
-            {option.label}
+            {t(option.labelKey)}
           </Text>
         </Space>
       ))}

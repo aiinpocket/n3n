@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.auth.service;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.auth.dto.request.LoginRequest;
 import com.aiinpocket.n3n.auth.dto.request.RegisterRequest;
 import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
@@ -14,13 +15,16 @@ import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,10 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final StringRedisTemplate redisTemplate;
+    private final ActivityService activityService;
+
+    private static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
 
     @Value("${app.max-login-attempts}")
     private int maxLoginAttempts;
@@ -109,7 +117,18 @@ public class AuthService {
             log.info("User registered: {}", user.getEmail());
         }
 
+        // Audit log: user registration
+        activityService.logUserCreate(user.getId(), user.getEmail(), String.join(",", roles));
+
+        // Generate tokens so user is auto-logged-in after registration
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getName(), roles);
+        String refreshToken = jwtService.generateRefreshToken();
+        saveRefreshToken(user, refreshToken, null, null);
+
         return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .expiresIn(jwtService.getAccessTokenExpirationMs() / 1000)
             .message(isFirstUser ? "Admin account created successfully" : "Registration successful")
             .user(UserResponse.from(user, roles))
             .build();
@@ -167,6 +186,108 @@ public class AuthService {
      */
     public boolean isSetupRequired() {
         return userRepository.count() == 0;
+    }
+
+    /**
+     * Change password for an authenticated user.
+     */
+    @Transactional
+    public void changePassword(UUID userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        validatePasswordStrength(newPassword);
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setLoginAttempts(0);
+        user.setLockedUntil(null);
+        userRepository.save(user);
+
+        activityService.logPasswordChange(userId, user.getEmail());
+        log.info("Password changed for user: {}", user.getEmail());
+    }
+
+    /**
+     * Request a password reset for the given email.
+     * If the email is not found, silently return to avoid revealing whether the email exists.
+     */
+    public void requestPasswordReset(String email) {
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            // Don't reveal if email exists
+            log.debug("Password reset requested for non-existent email: {}", email);
+            return;
+        }
+
+        User user = userOpt.get();
+        String token = UUID.randomUUID().toString();
+        String redisKey = PASSWORD_RESET_KEY_PREFIX + token;
+
+        // Store token -> userId in Redis with 1 hour TTL
+        redisTemplate.opsForValue().set(redisKey, user.getId().toString(), Duration.ofHours(1));
+
+        // TODO: Send password reset email with link containing token
+        // Current implementation only stores token in Redis but does not send email
+        // When EmailService is configured, uncomment:
+        // emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        log.info("Password reset requested for email: {}", email);
+    }
+
+    /**
+     * Reset the password using a valid reset token.
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        String redisKey = PASSWORD_RESET_KEY_PREFIX + token;
+        String userIdStr = redisTemplate.opsForValue().get(redisKey);
+
+        if (userIdStr == null) {
+            throw new InvalidTokenException("Invalid or expired reset token");
+        }
+
+        UUID userId = UUID.fromString(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        // Validate password (same rules as registration)
+        validatePasswordStrength(newPassword);
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setLoginAttempts(0);
+        user.setLockedUntil(null);
+        userRepository.save(user);
+
+        // Delete the reset token from Redis
+        redisTemplate.delete(redisKey);
+
+        log.info("Password reset completed for user: {}", user.getEmail());
+
+        // Audit log: password reset
+        activityService.logPasswordReset(userId, user.getEmail());
+    }
+
+    /**
+     * Validate password strength: at least 8 chars, with at least 3 of 4 criteria
+     * (uppercase, lowercase, digit, special char).
+     */
+    private void validatePasswordStrength(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters");
+        }
+        int criteria = 0;
+        if (password.matches(".*[A-Z].*")) criteria++;
+        if (password.matches(".*[a-z].*")) criteria++;
+        if (password.matches(".*\\d.*")) criteria++;
+        if (password.matches(".*[^a-zA-Z0-9].*")) criteria++;
+        if (criteria < 3) {
+            throw new IllegalArgumentException("Password must meet at least 3 of 4 criteria: uppercase, lowercase, digit, special character");
+        }
     }
 
     private AuthResponse generateAuthResponse(User user, String ipAddress, String userAgent) {

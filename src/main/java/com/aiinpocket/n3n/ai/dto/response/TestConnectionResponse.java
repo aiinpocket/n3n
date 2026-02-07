@@ -17,7 +17,7 @@ public class TestConnectionResponse {
     public static TestConnectionResponse success(long latencyMs) {
         return TestConnectionResponse.builder()
                 .success(true)
-                .message("連線成功")
+                .message("Connection successful")
                 .latencyMs(latencyMs)
                 .build();
     }

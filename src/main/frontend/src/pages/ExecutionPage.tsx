@@ -13,6 +13,8 @@ import {
   Modal,
   Input,
   Typography,
+  Drawer,
+  Tabs,
 } from 'antd'
 import {
   PlayCircleOutlined,
@@ -23,11 +25,17 @@ import {
   LoadingOutlined,
   ClockCircleOutlined,
   ReloadOutlined,
+  PauseCircleOutlined,
+  RedoOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse } from '../api/execution'
 import { useExecutionMonitor, useExecutionActions } from '../hooks/useExecutionMonitor'
 import { flowApi } from '../api/flow'
+import logger from '../utils/logger'
+import { extractApiError } from '../utils/errorMessages'
+import { getLocale } from '../utils/locale'
 
 const { Text } = Typography
 
@@ -37,6 +45,7 @@ const statusColors: Record<string, string> = {
   completed: 'success',
   failed: 'error',
   cancelled: 'warning',
+  waiting: 'orange',
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -45,22 +54,15 @@ const statusIcons: Record<string, React.ReactNode> = {
   completed: <CheckCircleOutlined />,
   failed: <CloseCircleOutlined />,
   cancelled: <StopOutlined />,
+  waiting: <PauseCircleOutlined />,
 }
 
 export default function ExecutionPage() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const flowId = searchParams.get('flowId')
-
-  const getLocale = () => {
-    switch (i18n.language) {
-      case 'ja': return 'ja-JP'
-      case 'en': return 'en-US'
-      default: return 'zh-TW'
-    }
-  }
 
   const [executionData, setExecutionData] = useState<ExecutionResponse | null>(null)
   const [nodeExecutions, setNodeExecutions] = useState<NodeExecutionResponse[]>([])
@@ -69,6 +71,19 @@ export default function ExecutionPage() {
   const [starting, setStarting] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+  const [pauseModalOpen, setPauseModalOpen] = useState(false)
+  const [pauseReason, setPauseReason] = useState('')
+  const [pausing, setPausing] = useState(false)
+  const [resumeModalOpen, setResumeModalOpen] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const [dataDrawerOpen, setDataDrawerOpen] = useState(false)
+  const [selectedNodeData, setSelectedNodeData] = useState<{
+    nodeId: string;
+    input: Record<string, unknown> | null;
+    output: Record<string, unknown> | null;
+  } | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadingNodeData, setLoadingNodeData] = useState(false)
 
   const { execution, isConnected } = useExecutionMonitor(id)
   const { startExecution, cancelExecution } = useExecutionActions()
@@ -76,6 +91,7 @@ export default function ExecutionPage() {
   // Load execution data
   const loadExecution = useCallback(async () => {
     if (!id) return
+    setLoadError(null)
     try {
       const data = await executionApi.get(id)
       setExecutionData(data)
@@ -84,11 +100,12 @@ export default function ExecutionPage() {
       const nodes = await executionApi.getNodeExecutions(id)
       setNodeExecutions(nodes)
     } catch (error) {
-      console.error('Failed to load execution:', error)
+      logger.error('Failed to load execution:', error)
+      setLoadError(t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [id])
+  }, [id, t])
 
   // Load flow name for new execution
   useEffect(() => {
@@ -99,7 +116,7 @@ export default function ExecutionPage() {
           setFlowName(flow.name)
           setLoading(false)
         } catch (error) {
-          console.error('Failed to load flow:', error)
+          logger.error('Failed to load flow:', error)
           message.error(t('common.loadFailed'))
           navigate('/flows')
         }
@@ -145,8 +162,7 @@ export default function ExecutionPage() {
       message.success(t('execution.started'))
       navigate(`/executions/${response.id}`, { replace: true })
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('execution.startFailed'))
+      message.error(extractApiError(error, t('execution.startFailed')))
     } finally {
       setStarting(false)
     }
@@ -161,8 +177,72 @@ export default function ExecutionPage() {
       setCancelReason('')
       loadExecution()
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('execution.cancelFailed'))
+      message.error(extractApiError(error, t('execution.cancelFailed')))
+    }
+  }
+
+  const handlePauseExecution = async () => {
+    if (!id) return
+    setPausing(true)
+    try {
+      await executionApi.pause(id, pauseReason || undefined)
+      message.success(t('execution.pauseSuccess'))
+      setPauseModalOpen(false)
+      setPauseReason('')
+      loadExecution()
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('execution.pauseFailed')))
+    } finally {
+      setPausing(false)
+    }
+  }
+
+  const handleResumeExecution = async () => {
+    if (!id) return
+    try {
+      await executionApi.resume(id)
+      message.success(t('execution.resumeSuccess'))
+      setResumeModalOpen(false)
+      loadExecution()
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('execution.resumeFailed')))
+    }
+  }
+
+  const handleRetryExecution = async () => {
+    if (!id) return
+    setRetrying(true)
+    try {
+      const response = await executionApi.retry(id)
+      message.success(t('execution.retrySuccess'))
+      navigate(`/executions/${response.id}`, { replace: true })
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('execution.retryFailed')))
+    } finally {
+      setRetrying(false)
+    }
+  }
+
+  const handleViewNodeData = async (node: NodeExecutionResponse) => {
+    if (!id) return
+    setDataDrawerOpen(true)
+    setLoadingNodeData(true)
+    try {
+      const data = await executionApi.getNodeData(id, node.nodeId)
+      setSelectedNodeData({
+        nodeId: node.nodeId,
+        input: data.input,
+        output: data.output,
+      })
+    } catch {
+      // Fallback to inline data if the API call fails
+      setSelectedNodeData({
+        nodeId: node.nodeId,
+        input: node.inputData,
+        output: node.outputData,
+      })
+    } finally {
+      setLoadingNodeData(false)
     }
   }
 
@@ -183,7 +263,7 @@ export default function ExecutionPage() {
           </div>
         ) : (
           <Result
-            icon={<PlayCircleOutlined style={{ color: '#1890ff' }} />}
+            icon={<PlayCircleOutlined style={{ color: 'var(--color-primary)' }} />}
             title={t('execution.readyToRun', { name: flowName })}
             subTitle={t('execution.clickToStart')}
             extra={
@@ -206,6 +286,17 @@ export default function ExecutionPage() {
     )
   }
 
+  if (loadError && !executionData) {
+    return (
+      <Result status="error" title={t('common.loadFailed')} subTitle={loadError} extra={
+        <Space>
+          <Button type="primary" onClick={loadExecution}>{t('common.retry')}</Button>
+          <Button onClick={() => navigate('/flows')}>{t('execution.backToFlows')}</Button>
+        </Space>
+      } />
+    )
+  }
+
   if (!executionData) {
     return (
       <Result status="404" title={t('execution.notFound')} subTitle={t('execution.notFoundDesc')} extra={<Button onClick={() => navigate('/flows')}>{t('execution.backToFlows')}</Button>} />
@@ -213,6 +304,9 @@ export default function ExecutionPage() {
   }
 
   const isRunning = executionData.status === 'running' || executionData.status === 'pending'
+  const isWaiting = executionData.status === 'waiting'
+  const isFailed = executionData.status === 'failed'
+  const isCancelled = executionData.status === 'cancelled'
 
   return (
     <>
@@ -233,6 +327,21 @@ export default function ExecutionPage() {
               {t('execution.reload')}
             </Button>
             {isRunning && (
+              <Button icon={<PauseCircleOutlined />} onClick={() => setPauseModalOpen(true)} loading={pausing}>
+                {t('execution.pause')}
+              </Button>
+            )}
+            {isWaiting && (
+              <Button type="primary" icon={<PlayCircleOutlined />} onClick={() => setResumeModalOpen(true)}>
+                {t('execution.resume')}
+              </Button>
+            )}
+            {(isFailed || isCancelled) && (
+              <Button icon={<RedoOutlined />} onClick={handleRetryExecution} loading={retrying}>
+                {t('execution.retry')}
+              </Button>
+            )}
+            {(isRunning || isWaiting) && (
               <Button danger icon={<StopOutlined />} onClick={() => setCancelModalOpen(true)}>
                 {t('execution.cancel')}
               </Button>
@@ -251,6 +360,9 @@ export default function ExecutionPage() {
             <Descriptions.Item label={t('execution.duration')}>{executionData.durationMs != null ? `${executionData.durationMs} ms` : '-'}</Descriptions.Item>
             <Descriptions.Item label={t('common.createdAt')}>{new Date(executionData.createdAt).toLocaleString(getLocale())}</Descriptions.Item>
             {executionData.cancelReason && <Descriptions.Item label={t('execution.cancelReason')}>{executionData.cancelReason}</Descriptions.Item>}
+            {executionData.pauseReason && <Descriptions.Item label={t('execution.pauseReason')}>{executionData.pauseReason}</Descriptions.Item>}
+            {executionData.waitingNodeId && <Descriptions.Item label={t('execution.waitingNode')}>{executionData.waitingNodeId}</Descriptions.Item>}
+            {executionData.resumeCondition && <Descriptions.Item label={t('execution.resumeCondition')}>{executionData.resumeCondition}</Descriptions.Item>}
           </Descriptions>
 
           <Card title={t('execution.nodeExecutions')} size="small">
@@ -268,6 +380,14 @@ export default function ExecutionPage() {
                         <Tag>{node.componentName}</Tag>
                         <Tag color={statusColors[node.status]}>{node.status}</Tag>
                         {node.durationMs != null && <Text type="secondary">{node.durationMs}ms</Text>}
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<DatabaseOutlined />}
+                          onClick={() => handleViewNodeData(node)}
+                        >
+                          {t('execution.viewData')}
+                        </Button>
                       </Space>
                       {node.errorMessage && (
                         <div style={{ marginTop: 4 }}>
@@ -286,6 +406,101 @@ export default function ExecutionPage() {
       <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => setCancelModalOpen(false)}>
         <Input.TextArea placeholder={t('execution.cancelReasonPlaceholder')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
       </Modal>
+
+      <Modal
+        title={t('execution.pauseExecution')}
+        open={pauseModalOpen}
+        onOk={handlePauseExecution}
+        onCancel={() => { setPauseModalOpen(false); setPauseReason('') }}
+        confirmLoading={pausing}
+        okText={t('execution.pause')}
+      >
+        <p>{t('execution.pauseConfirm')}</p>
+        <Input.TextArea placeholder={t('execution.pauseReasonPlaceholder')} value={pauseReason} onChange={(e) => setPauseReason(e.target.value)} rows={3} />
+      </Modal>
+
+      <Modal
+        title={t('execution.resumeExecution')}
+        open={resumeModalOpen}
+        onOk={handleResumeExecution}
+        onCancel={() => setResumeModalOpen(false)}
+        okText={t('execution.resume')}
+      >
+        {executionData?.pauseReason && (
+          <p><Text strong>{t('execution.pauseReason')}:</Text> {executionData.pauseReason}</p>
+        )}
+        {executionData?.resumeCondition && (
+          <p><Text strong>{t('execution.resumeCondition')}:</Text> {executionData.resumeCondition}</p>
+        )}
+        <p>{t('execution.resumeConfirm')}</p>
+      </Modal>
+
+      <Drawer
+        title={`${t('execution.viewData')} - ${selectedNodeData?.nodeId || ''}`}
+        open={dataDrawerOpen}
+        onClose={() => {
+          setDataDrawerOpen(false)
+          setSelectedNodeData(null)
+        }}
+        width={600}
+        placement="right"
+      >
+        {loadingNodeData ? (
+          <div style={{ textAlign: 'center', padding: 50 }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Tabs
+            defaultActiveKey="input"
+            items={[
+              {
+                key: 'input',
+                label: <span style={{ color: '#3B82F6' }}>{t('execution.inputData')}</span>,
+                children: selectedNodeData?.input ? (
+                  <pre
+                    style={{
+                      background: '#1E293B',
+                      color: '#E2E8F0',
+                      padding: 16,
+                      borderRadius: 8,
+                      overflow: 'auto',
+                      maxHeight: 'calc(100vh - 200px)',
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {JSON.stringify(selectedNodeData.input, null, 2)}
+                  </pre>
+                ) : (
+                  <Text type="secondary">{t('execution.noData')}</Text>
+                ),
+              },
+              {
+                key: 'output',
+                label: <span style={{ color: '#22C55E' }}>{t('execution.outputData')}</span>,
+                children: selectedNodeData?.output ? (
+                  <pre
+                    style={{
+                      background: '#1E293B',
+                      color: '#E2E8F0',
+                      padding: 16,
+                      borderRadius: 8,
+                      overflow: 'auto',
+                      maxHeight: 'calc(100vh - 200px)',
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {JSON.stringify(selectedNodeData.output, null, 2)}
+                  </pre>
+                ) : (
+                  <Text type="secondary">{t('execution.noData')}</Text>
+                ),
+              },
+            ]}
+          />
+        )}
+      </Drawer>
     </>
   )
 }

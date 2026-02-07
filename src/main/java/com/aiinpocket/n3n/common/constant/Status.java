@@ -103,4 +103,14 @@ public final class Status {
 
         private ExternalService() {}
     }
+
+    /**
+     * 可見性常數
+     */
+    public static final class Visibility {
+        public static final String PRIVATE = "private";
+        public static final String PUBLIC = "public";
+
+        private Visibility() {}
+    }
 }

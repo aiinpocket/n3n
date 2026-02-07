@@ -56,10 +56,10 @@ export const MiniFlowDiff: React.FC<Props> = ({
 
   const getChangeIcon = (type: DiffChange['type']) => {
     const icons = {
-      add: <PlusOutlined style={{ color: '#52c41a' }} />,
-      remove: <MinusOutlined style={{ color: '#ff4d4f' }} />,
-      modify: <EditOutlined style={{ color: '#faad14' }} />,
-      move: <SwapOutlined style={{ color: '#1890ff' }} />,
+      add: <PlusOutlined style={{ color: 'var(--color-success)' }} />,
+      remove: <MinusOutlined style={{ color: 'var(--color-danger)' }} />,
+      modify: <EditOutlined style={{ color: 'var(--color-warning)' }} />,
+      move: <SwapOutlined style={{ color: 'var(--color-info)' }} />,
     }
     return icons[type]
   }

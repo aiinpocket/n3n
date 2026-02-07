@@ -203,6 +203,59 @@ export const flowApi = {
   },
 }
 
+// ========== Flow Sharing Types ==========
+
+export interface FlowShare {
+  id: string
+  flowId: string
+  flowName?: string
+  flowDescription?: string
+  userId?: string
+  userEmail?: string
+  userName?: string
+  invitedEmail?: string
+  permission: 'view' | 'edit' | 'admin'
+  sharedBy: string
+  sharedByName?: string
+  sharedAt?: string
+  acceptedAt?: string
+  createdAt: string
+}
+
+export interface FlowShareRequest {
+  userId?: string
+  email?: string
+  permission: 'view' | 'edit' | 'admin'
+}
+
+export const flowShareApi = {
+  getShares: async (flowId: string): Promise<FlowShare[]> => {
+    const response = await apiClient.get(`/flows/${flowId}/shares`)
+    return response.data
+  },
+
+  shareFlow: async (flowId: string, request: FlowShareRequest): Promise<FlowShare> => {
+    const response = await apiClient.post(`/flows/${flowId}/shares`, request)
+    return response.data
+  },
+
+  updatePermission: async (flowId: string, shareId: string, permission: string): Promise<FlowShare> => {
+    const response = await apiClient.put(`/flows/${flowId}/shares/${shareId}`, null, {
+      params: { permission },
+    })
+    return response.data
+  },
+
+  removeShare: async (flowId: string, shareId: string): Promise<void> => {
+    await apiClient.delete(`/flows/${flowId}/shares/${shareId}`)
+  },
+
+  getSharedWithMe: async (): Promise<FlowShare[]> => {
+    const response = await apiClient.get('/flows/shared-with-me')
+    return response.data
+  },
+}
+
 export interface FlowExportData {
   exportVersion: string
   exportedAt: string

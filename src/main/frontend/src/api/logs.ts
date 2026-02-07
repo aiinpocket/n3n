@@ -1,4 +1,5 @@
 import apiClient from './client'
+import { useAuthStore } from '../stores/authStore'
 
 export interface LogEntry {
   timestamp: string
@@ -27,7 +28,7 @@ export function createLogStream(
   onMessage: (entry: LogEntry) => void,
   onError?: (error: Event) => void,
 ): EventSource {
-  const token = localStorage.getItem('accessToken') || ''
+  const token = useAuthStore.getState().accessToken || ''
   const eventSource = new EventSource(`/api/logs/stream?token=${encodeURIComponent(token)}`)
 
   eventSource.onmessage = (event) => {

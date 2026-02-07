@@ -6,15 +6,10 @@ import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
-import com.aiinpocket.n3n.marketplace.entity.Plugin;
 import com.aiinpocket.n3n.skill.service.SkillService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -42,10 +37,6 @@ public class DiscoveryAgent implements Agent {
     private final SkillService skillService;
     private final SearchNodeTool searchNodeTool;
     private final ObjectMapper objectMapper;
-
-    @Autowired(required = false)
-    @Qualifier("marketplacePluginService")
-    private com.aiinpocket.n3n.marketplace.service.PluginService marketplacePluginService;
 
     @PostConstruct
     public void init() {
@@ -98,7 +89,7 @@ public class DiscoveryAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Discovery Agent execution failed", e);
-            return AgentResult.error("探索失敗: " + e.getMessage());
+            return AgentResult.error("Discovery failed: " + e.getMessage());
         }
     }
 
@@ -188,7 +179,7 @@ public class DiscoveryAgent implements Agent {
         log.debug("Getting documentation for: {}", nodeType);
 
         if (nodeType == null) {
-            return AgentResult.error("請指定要查詢的節點類型");
+            return AgentResult.error("Please specify the node type to query");
         }
 
         // 嘗試找到節點
@@ -262,38 +253,6 @@ public class DiscoveryAgent implements Agent {
         StringBuilder sb = new StringBuilder();
         sb.append("## 相關範例\n\n");
 
-        // Query marketplace for relevant plugins/templates
-        List<Map<String, Object>> marketplaceResults = new ArrayList<>();
-        if (marketplacePluginService != null) {
-            try {
-                Page<Plugin> plugins = marketplacePluginService.search(query, PageRequest.of(0, 5));
-                if (!plugins.isEmpty()) {
-                    sb.append("### Marketplace 相關套件\n\n");
-                    for (Plugin plugin : plugins.getContent()) {
-                        sb.append("- **").append(plugin.getDisplayName()).append("** (`")
-                            .append(plugin.getName()).append("`)\n");
-                        if (plugin.getDescription() != null) {
-                            sb.append("  ").append(plugin.getDescription()).append("\n");
-                        }
-                        sb.append("  類別: ").append(plugin.getCategory() != null ? plugin.getCategory() : "N/A")
-                            .append(" | 下載: ").append(plugin.getDownloadCount()).append("\n\n");
-
-                        marketplaceResults.add(Map.of(
-                            "id", plugin.getId().toString(),
-                            "name", plugin.getName(),
-                            "displayName", plugin.getDisplayName(),
-                            "description", plugin.getDescription() != null ? plugin.getDescription() : "",
-                            "category", plugin.getCategory() != null ? plugin.getCategory() : "",
-                            "downloads", plugin.getDownloadCount()
-                        ));
-                    }
-                }
-            } catch (Exception e) {
-                log.debug("Marketplace search failed, using built-in examples: {}", e.getMessage());
-            }
-        }
-
-        // Append built-in example patterns as fallback or supplement
         sb.append("### 常見流程範例模式\n\n");
 
         if (query.contains("郵件") || query.contains("email") || query.contains("報表")) {
@@ -313,15 +272,9 @@ public class DiscoveryAgent implements Agent {
 
         sb.append("如需特定範例，請提供更詳細的需求描述。");
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        if (!marketplaceResults.isEmpty()) {
-            data.put("marketplacePlugins", marketplaceResults);
-        }
-
         return AgentResult.builder()
             .success(true)
             .content(sb.toString())
-            .data(data.isEmpty() ? null : data)
             .requiresFollowUp(true)
             .nextAction("builder")
             .build();

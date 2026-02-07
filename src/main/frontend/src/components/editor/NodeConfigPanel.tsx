@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import logger from '../../utils/logger'
 import {
   Drawer,
   Form,
@@ -36,11 +37,12 @@ import Editor from '@monaco-editor/react'
 import { fetchNodeType, NodeTypeInfo } from '../../api/nodeTypes'
 import { serviceApi } from '../../api/service'
 import { flowApi, UpstreamNodeOutput } from '../../api/flow'
+import { useTranslation } from 'react-i18next'
 import MultiOperationConfig from './MultiOperationConfig'
 import DataMappingEditor from './DataMappingEditor'
 import OutputSchemaPreview from './OutputSchemaPreview'
 import AiCodeGeneratorModal from '../ai/AiCodeGeneratorModal'
-import { useFlowStore } from '../../stores/flowStore'
+import { useFlowEditorStore } from '../../stores/flowEditorStore'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
 const { Text, Title } = Typography
@@ -87,6 +89,7 @@ export default function NodeConfigPanel({
   onDelete,
   onTest,
 }: NodeConfigPanelProps) {
+  const { t } = useTranslation()
   const [form] = Form.useForm()
   const [nodeTypeInfo, setNodeTypeInfo] = useState<NodeTypeInfo | null>(null)
   const [endpointSchema, setEndpointSchema] = useState<EndpointSchemaResponse | null>(null)
@@ -99,7 +102,7 @@ export default function NodeConfigPanel({
   const [aiCodeFieldKey, setAiCodeFieldKey] = useState<string | null>(null)
 
   // Data Pinning
-  const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowStore()
+  const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowEditorStore()
   const isPinned = node?.id ? isNodePinned(node.id) : false
   const pinnedData = node?.id ? getNodePinnedData(node.id) : null
 
@@ -119,11 +122,11 @@ export default function NodeConfigPanel({
           setLoadError(null)
         })
         .catch((err) => {
-          console.warn(`Failed to load node type info for "${nodeType}":`, err)
+          logger.warn(`Failed to load node type info for "${nodeType}":`, err)
           setNodeTypeInfo(null)
           // Only show error if it's not a 404 (handler not found)
           if (err?.response?.status !== 404) {
-            setLoadError(`無法載入節點類型資訊: ${err.message || '未知錯誤'}`)
+            setLoadError(t('editor.loadNodeTypeFailed') + ': ' + (err.message || t('common.error')))
           }
         })
         .finally(() => setLoading(false))
@@ -199,7 +202,7 @@ export default function NodeConfigPanel({
         await pinNodeData(node.id, sampleData)
       }
     } catch (error) {
-      console.error('Failed to toggle pin:', error)
+      logger.error('Failed to toggle pin:', error)
     } finally {
       setPinning(false)
     }
@@ -247,7 +250,7 @@ export default function NodeConfigPanel({
                 onClick={() => handleAiGenerateCode(key)}
                 style={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}
               >
-                AI 生成程式碼
+                {t('editor.aiGenerateCode')}
               </Button>
             </div>
             <div style={{ border: '1px solid #d9d9d9', borderRadius: 6 }}>
@@ -339,7 +342,7 @@ export default function NodeConfigPanel({
           label={property.title || key}
           tooltip={property.description}
         >
-          <TextArea rows={4} placeholder={`輸入 ${property.title || key}...`} />
+          <TextArea rows={4} placeholder={t('editor.enterField', { field: property.title || key })} />
         </Form.Item>
       )
     }
@@ -354,7 +357,7 @@ export default function NodeConfigPanel({
         initialValue={property.default}
       >
         <Input
-          placeholder={property.description || `輸入 ${property.title || key}...`}
+          placeholder={property.description || t('editor.enterField', { field: property.title || key })}
           type={property.format === 'uri' ? 'url' : 'text'}
         />
       </Form.Item>
@@ -426,7 +429,7 @@ export default function NodeConfigPanel({
       }
 
       if (!schema.properties) {
-        return <Text type="secondary">此節點類型沒有額外設定選項</Text>
+        return <Text type="secondary">{t('editor.noExtraConfig')}</Text>
       }
 
       return Object.entries(schema.properties).map(([key, property]) =>
@@ -444,15 +447,15 @@ export default function NodeConfigPanel({
       return (
         <Alert
           type="info"
-          message="節點類型資訊不可用"
-          description={`無法載入節點類型 "${nodeType}" 的設定選項。您仍可編輯節點名稱。`}
+          message={t('editor.nodeTypeUnavailable')}
+          description={t('editor.nodeTypeUnavailableDesc', { type: nodeType })}
           style={{ marginBottom: 16 }}
         />
       )
     }
 
     // nodeTypeInfo is null but no error - show basic message
-    return <Text type="secondary">此節點類型沒有額外設定選項</Text>
+    return <Text type="secondary">{t('editor.noExtraConfig')}</Text>
   }
 
   // Render tabs for all node types
@@ -463,7 +466,7 @@ export default function NodeConfigPanel({
         label: (
           <Space>
             <SettingOutlined />
-            基本設定
+            {t('editor.basicConfig')}
           </Space>
         ),
         children: (
@@ -471,13 +474,13 @@ export default function NodeConfigPanel({
             {/* External service specific info */}
             {isExternalService && endpointSchema && (
               <>
-                <Form.Item label="服務">
+                <Form.Item label={t('editor.service')}>
                   <Space>
                     <ApiOutlined />
                     <Text strong>{endpointSchema.displayName}</Text>
                   </Space>
                 </Form.Item>
-                <Form.Item label="端點">
+                <Form.Item label={t('editor.endpoint')}>
                   <Space>
                     <Tag color={methodColors[endpointSchema.method] || 'default'}>
                       {endpointSchema.method}
@@ -486,7 +489,7 @@ export default function NodeConfigPanel({
                   </Space>
                 </Form.Item>
                 {endpointSchema.description && (
-                  <Form.Item label="描述">
+                  <Form.Item label={t('common.description')}>
                     <Text type="secondary">{endpointSchema.description}</Text>
                   </Form.Item>
                 )}
@@ -503,14 +506,14 @@ export default function NodeConfigPanel({
                     <Text type="secondary">{nodeTypeInfo.description}</Text>
                     <div style={{ marginTop: 8 }}>
                       <Tag color="blue">{nodeTypeInfo.category}</Tag>
-                      {nodeTypeInfo.supportsAsync && <Tag color="purple">非同步</Tag>}
-                      {nodeTypeInfo.trigger && <Tag color="green">觸發器</Tag>}
+                      {nodeTypeInfo.supportsAsync && <Tag color="purple">{t('editor.async')}</Tag>}
+                      {nodeTypeInfo.trigger && <Tag color="green">{t('editor.trigger')}</Tag>}
                     </div>
                   </>
                 ) : (
                   <>
                     <Title level={5}>{nodeData?.label as string || nodeType}</Title>
-                    <Text type="secondary">節點類型: {nodeType}</Text>
+                    <Text type="secondary">{t('editor.nodeType')}: {nodeType}</Text>
                   </>
                 )}
                 <Divider style={{ margin: '16px 0' }} />
@@ -518,8 +521,8 @@ export default function NodeConfigPanel({
             )}
 
             {/* Node label field */}
-            <Form.Item name="label" label="節點名稱">
-              <Input placeholder="輸入節點名稱" />
+            <Form.Item name="label" label={t('editor.nodeName')}>
+              <Input placeholder={t('editor.nodeNamePlaceholder')} />
             </Form.Item>
 
             {/* Node-specific config */}
@@ -527,14 +530,14 @@ export default function NodeConfigPanel({
               <>
                 <Form.Item
                   name={['timeout']}
-                  label="超時時間 (秒)"
+                  label={t('editor.timeoutSeconds')}
                   initialValue={30}
                 >
                   <InputNumber min={1} max={300} style={{ width: '100%' }} />
                 </Form.Item>
                 <Form.Item
                   name={['successOnly']}
-                  label="非 2xx 視為失敗"
+                  label={t('editor.non2xxAsFail')}
                   valuePropName="checked"
                   initialValue={false}
                 >
@@ -552,7 +555,7 @@ export default function NodeConfigPanel({
         label: (
           <Space>
             <LinkOutlined />
-            資料映射
+            {t('editor.dataMapping')}
           </Space>
         ),
         children: configSchema ? (
@@ -565,8 +568,8 @@ export default function NodeConfigPanel({
         ) : (
           <Alert
             type="info"
-            message="無可用的輸入欄位"
-            description="此節點類型沒有定義輸入參數，或節點資訊尚未載入。"
+            message={t('editor.noInputFields')}
+            description={t('editor.noInputFieldsDesc')}
           />
         ),
       },
@@ -575,7 +578,7 @@ export default function NodeConfigPanel({
         label: (
           <Space>
             <DatabaseOutlined />
-            輸出預覽
+            {t('editor.outputPreview')}
           </Space>
         ),
         children: interfaceDefinition ? (
@@ -586,8 +589,8 @@ export default function NodeConfigPanel({
         ) : (
           <Alert
             type="info"
-            message="無輸出定義"
-            description="此節點類型沒有定義輸出結構，或節點資訊尚未載入。"
+            message={t('editor.noOutputDef')}
+            description={t('editor.noOutputDefDesc')}
           />
         ),
       },
@@ -611,9 +614,9 @@ export default function NodeConfigPanel({
     <Drawer
       title={
         <Space>
-          <span>{(node.data?.label as string) || '設定節點'}</span>
-          {nodeTypeInfo?.trigger && <Tag color="green">觸發器</Tag>}
-          {isExternalService && <Tag color="blue">外部服務</Tag>}
+          <span>{(node.data?.label as string) || t('editor.configNode')}</span>
+          {nodeTypeInfo?.trigger && <Tag color="green">{t('editor.trigger')}</Tag>}
+          {isExternalService && <Tag color="blue">{t('editor.externalService')}</Tag>}
         </Space>
       }
       placement="right"
@@ -625,14 +628,14 @@ export default function NodeConfigPanel({
     >
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin tip="載入中..." />
+          <Spin tip={t('common.loading')} />
         </div>
       ) : (
         <>
           {loadError && (
             <Alert
               type="warning"
-              message="載入節點資訊失敗"
+              message={t('editor.loadNodeInfoFailed')}
               description={loadError}
               style={{ marginBottom: 16 }}
             />
@@ -650,10 +653,10 @@ export default function NodeConfigPanel({
           {isPinned && pinnedData && (
             <Alert
               type="success"
-              message="已固定資料"
+              message={t('editor.pinnedData')}
               description={
                 <div>
-                  <Text type="secondary">此節點已固定測試資料，執行時將優先使用固定資料。</Text>
+                  <Text type="secondary">{t('editor.pinnedDataDesc')}</Text>
                   <pre style={{ marginTop: 8, fontSize: 11, maxHeight: 100, overflow: 'auto' }}>
                     {JSON.stringify(pinnedData, null, 2)}
                   </pre>
@@ -674,7 +677,7 @@ export default function NodeConfigPanel({
                   onClick={() => onTest(node.id)}
                   block
                 >
-                  測試節點
+                  {t('editor.testNode')}
                 </Button>
               )}
               <Button
@@ -684,7 +687,7 @@ export default function NodeConfigPanel({
                 type={isPinned ? 'primary' : 'default'}
                 block
               >
-                {isPinned ? '取消固定資料' : '固定測試資料'}
+                {isPinned ? t('editor.unpinData') : t('editor.pinTestData')}
               </Button>
               {onDelete && (
                 <Button
@@ -692,11 +695,11 @@ export default function NodeConfigPanel({
                   icon={<DeleteOutlined />}
                   onClick={() => {
                     Modal.confirm({
-                      title: '確定要刪除此節點？',
-                      content: `將刪除節點「${(node.data?.label as string) || node.id}」，此操作無法復原。`,
-                      okText: '刪除',
+                      title: t('editor.deleteNodeConfirm'),
+                      content: t('editor.deleteNodeContent', { name: (node.data?.label as string) || node.id }),
+                      okText: t('common.delete'),
                       okType: 'danger',
-                      cancelText: '取消',
+                      cancelText: t('common.cancel'),
                       onOk: () => {
                         onDelete(node.id)
                         onClose()
@@ -705,7 +708,7 @@ export default function NodeConfigPanel({
                   }}
                   block
                 >
-                  刪除節點
+                  {t('editor.deleteNode')}
                 </Button>
               )}
             </Space>

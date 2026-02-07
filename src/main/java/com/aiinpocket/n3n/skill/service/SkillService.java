@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.skill.service;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.skill.BuiltinSkill;
 import com.aiinpocket.n3n.skill.SkillResult;
 import com.aiinpocket.n3n.skill.dto.CreateSkillRequest;
@@ -99,7 +100,7 @@ public class SkillService {
             .inputSchema(request.getInputSchema())
             .outputSchema(request.getOutputSchema())
             .ownerId(ownerId)
-            .visibility(request.getVisibility() != null ? request.getVisibility() : "private")
+            .visibility(request.getVisibility() != null ? request.getVisibility() : Status.Visibility.PRIVATE)
             .build();
 
         skill = skillRepository.save(skill);

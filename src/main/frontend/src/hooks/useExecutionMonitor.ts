@@ -69,13 +69,16 @@ export function useExecutionActions() {
 }
 
 export function useAllExecutions() {
-  const { connect, subscribeToAllExecutions, executions, isConnected } = useExecutionStore();
+  const { connect, subscribeToAllExecutions, unsubscribeFromExecution, executions, isConnected } = useExecutionStore();
 
   useEffect(() => {
     connect().then(() => {
       subscribeToAllExecutions();
     });
-  }, [connect, subscribeToAllExecutions]);
+    return () => {
+      unsubscribeFromExecution('__all__');
+    };
+  }, [connect, subscribeToAllExecutions, unsubscribeFromExecution]);
 
   return {
     executions: Array.from(executions.values()),

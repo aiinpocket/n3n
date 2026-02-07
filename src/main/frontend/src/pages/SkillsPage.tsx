@@ -86,7 +86,15 @@ export default function SkillsPage() {
     setTestResult(null)
 
     try {
-      const input = JSON.parse(testInput)
+      let input: Record<string, unknown>
+      try {
+        input = JSON.parse(testInput)
+      } catch {
+        message.error(t('component.jsonFormatError'))
+        setTestResult('Error: Invalid JSON input')
+        setTesting(false)
+        return
+      }
       const result = await executeSkill(selectedSkill.id, input)
 
       if (result.success) {
@@ -94,12 +102,11 @@ export default function SkillsPage() {
         message.success(t('skill.testSuccess'))
       } else {
         setTestResult(`Error: ${result.errorCode || ''} ${result.error}`)
-        message.error(result.error)
+        message.error(t('skill.testFailed'))
       }
-    } catch (error) {
-      const err = error as Error
-      setTestResult(`Error: ${err.message}`)
-      message.error(err.message)
+    } catch {
+      setTestResult(`Error: ${t('skill.testFailed')}`)
+      message.error(t('skill.testFailed'))
     } finally {
       setTesting(false)
     }

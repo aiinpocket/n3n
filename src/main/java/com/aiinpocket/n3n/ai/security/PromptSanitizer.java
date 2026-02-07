@@ -160,7 +160,7 @@ public class PromptSanitizer {
         for (Pattern pattern : INJECTION_PATTERNS) {
             if (pattern.matcher(input).find()) {
                 log.warn("Detected potential prompt injection: pattern={}", pattern.pattern());
-                throw new PromptInjectionException("偵測到可能的安全威脅，請修改輸入內容");
+                throw new PromptInjectionException("Detected potential security threat, please modify your input");
             }
         }
     }

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import apiClient from '../api/client'
+import { extractApiError } from '../utils/errorMessages'
 
 interface User {
   id: string
@@ -76,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
             recoveryKey: recoveryKey || null,
           })
         } catch (error: unknown) {
-          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Login failed'
+          const message = extractApiError(error, 'Login failed')
           set({ error: message, isLoading: false })
           throw error
         }
@@ -93,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
           })
           return isAdminSetup
         } catch (error: unknown) {
-          const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Registration failed'
+          const message = extractApiError(error, 'Registration failed')
           set({ error: message, isLoading: false })
           throw error
         }

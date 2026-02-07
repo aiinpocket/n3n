@@ -3,11 +3,13 @@ package com.aiinpocket.n3n.gateway.controller;
 import com.aiinpocket.n3n.gateway.node.NodeConnection;
 import com.aiinpocket.n3n.gateway.node.NodeInvoker;
 import com.aiinpocket.n3n.gateway.node.NodeRegistry;
+import com.aiinpocket.n3n.gateway.security.AgentPairingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +29,7 @@ public class GatewayController {
 
     private final NodeRegistry nodeRegistry;
     private final NodeInvoker nodeInvoker;
+    private final AgentPairingService agentPairingService;
 
     /**
      * Get all connected nodes for the current user
@@ -65,7 +68,7 @@ public class GatewayController {
     @PostMapping("/nodes/{connectionId}/invoke")
     public CompletableFuture<ResponseEntity<InvokeResponse>> invoke(
             @PathVariable String connectionId,
-            @RequestBody InvokeRequest request,
+            @Valid @RequestBody InvokeRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = getUserId(userDetails);
@@ -90,7 +93,7 @@ public class GatewayController {
      */
     @PostMapping("/invoke")
     public CompletableFuture<ResponseEntity<InvokeResponse>> invokeAny(
-            @RequestBody InvokeRequest request,
+            @Valid @RequestBody InvokeRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = getUserId(userDetails);
@@ -130,13 +133,9 @@ public class GatewayController {
     public ResponseEntity<PairingCodeResponse> generatePairingCode(@AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = getUserId(userDetails);
 
-        // Generate a 6-digit pairing code
-        String code = String.format("%06d", (int) (Math.random() * 1000000));
+        AgentPairingService.PairingInitiation pairing = agentPairingService.initiatePairing(userId);
 
-        // In production, store this in Redis with 5-minute TTL
-        // For now, just return it
-
-        return ResponseEntity.ok(new PairingCodeResponse(code, 300)); // 5 minutes
+        return ResponseEntity.ok(new PairingCodeResponse(pairing.pairingCode(), 300));
     }
 
     private NodeInfo toNodeInfo(NodeConnection conn) {

@@ -17,6 +17,7 @@ import {
   Descriptions,
   Tooltip,
   Alert,
+  Empty,
 } from 'antd'
 import {
   PlusOutlined,
@@ -33,6 +34,8 @@ import {
   CreateComponentRequest,
   CreateVersionRequest,
 } from '../api/component'
+import logger from '../utils/logger'
+import { getLocale } from '../utils/locale'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -62,7 +65,7 @@ const dockerImagePattern = /^(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?
 const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/
 
 export default function ComponentListPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [components, setComponents] = useState<ComponentResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState<TablePaginationConfig>({
@@ -70,14 +73,6 @@ export default function ComponentListPage() {
     pageSize: 20,
     total: 0,
   })
-
-  const getLocale = () => {
-    switch (i18n.language) {
-      case 'ja': return 'ja-JP'
-      case 'en': return 'en-US'
-      default: return 'zh-TW'
-    }
-  }
 
   // Create component modal
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -106,7 +101,7 @@ export default function ComponentListPage() {
         total: data.totalElements,
       })
     } catch (error) {
-      console.error('Failed to load components:', error)
+      logger.error('Failed to load components:', error)
       message.error(t('common.loadFailed'))
     } finally {
       setLoading(false)
@@ -156,7 +151,7 @@ export default function ComponentListPage() {
       const data = await componentApi.listVersions(component.id)
       setVersions(data)
     } catch (error) {
-      console.error('Failed to load versions:', error)
+      logger.error('Failed to load versions:', error)
       message.error(t('component.loadVersionsFailed'))
     } finally {
       setLoadingVersions(false)
@@ -167,11 +162,21 @@ export default function ComponentListPage() {
     if (!selectedComponent) return
     setAddingVersion(true)
     try {
+      let interfaceDef: Record<string, unknown>
+      let configSchema: Record<string, unknown> | undefined
+      try {
+        interfaceDef = JSON.parse(values.interfaceDefJson)
+        configSchema = values.configSchemaJson ? JSON.parse(values.configSchemaJson) : undefined
+      } catch {
+        message.error(t('component.jsonFormatError'))
+        setAddingVersion(false)
+        return
+      }
       const request: CreateVersionRequest = {
         version: values.version,
         image: values.image,
-        interfaceDef: JSON.parse(values.interfaceDefJson),
-        configSchema: values.configSchemaJson ? JSON.parse(values.configSchemaJson) : undefined,
+        interfaceDef,
+        configSchema,
       }
       await componentApi.createVersion(selectedComponent.id, request)
       message.success(t('component.versionCreated'))
@@ -302,7 +307,22 @@ export default function ComponentListPage() {
           </Space>
         }
       >
-        <Table columns={columns} dataSource={components} rowKey="id" loading={loading} pagination={pagination} onChange={handleTableChange} />
+        <Table
+          columns={columns}
+          dataSource={components}
+          rowKey="id"
+          loading={loading}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('component.noComponents')}
+              />
+            )
+          }}
+          pagination={pagination}
+          onChange={handleTableChange}
+        />
       </Card>
 
       {/* Create Component Modal */}
@@ -363,8 +383,8 @@ export default function ComponentListPage() {
       >
         {versions.length === 0 && !loadingVersions && (
           <Alert
-            message={t('component.noVersions', '尚無版本')}
-            description={t('component.noVersionsDesc', '請新增一個版本來啟用此元件')}
+            message={t('component.noVersions')}
+            description={t('component.noVersionsDesc')}
             type="info"
             showIcon
             style={{ marginBottom: 16 }}
@@ -383,8 +403,8 @@ export default function ComponentListPage() {
                   size="small"
                   onChange={(value) => handleStatusChange(version, value)}
                 >
-                  <Select.Option value="active">active</Select.Option>
-                  <Select.Option value="deprecated">deprecated</Select.Option>
+                  <Select.Option value="active">{t('component.statusActive')}</Select.Option>
+                  <Select.Option value="deprecated">{t('component.statusDeprecated')}</Select.Option>
                 </Select>,
               ]}
             >
@@ -392,12 +412,12 @@ export default function ComponentListPage() {
                 title={
                   <Space>
                     <Text strong>{version.version}</Text>
-                    <Tag color={statusColors[version.status]}>{version.status}</Tag>
+                    <Tag color={statusColors[version.status]}>{version.status === 'active' ? t('component.statusActive') : version.status === 'deprecated' ? t('component.statusDeprecated') : version.status}</Tag>
                   </Space>
                 }
                 description={
                   <Descriptions size="small" column={1}>
-                    <Descriptions.Item label="Image">{version.image}</Descriptions.Item>
+                    <Descriptions.Item label={t('component.image')}>{version.image}</Descriptions.Item>
                     <Descriptions.Item label={t('common.createdAt')}>{new Date(version.createdAt).toLocaleString(getLocale())}</Descriptions.Item>
                   </Descriptions>
                 }
@@ -417,24 +437,24 @@ export default function ComponentListPage() {
               { required: true, message: t('component.versionRequired') },
               {
                 pattern: semverPattern,
-                message: t('component.versionFormatError', '版本號格式錯誤，建議使用語意化版本如 1.0.0'),
+                message: t('component.versionFormatError'),
               },
             ]}
-            extra={t('component.versionFormatHint', '建議使用語意化版本號，例如 1.0.0、2.1.0')}
+            extra={t('component.versionFormatHint')}
           >
             <Input placeholder={t('component.versionPlaceholder')} />
           </Form.Item>
           <Form.Item
             name="image"
-            label="Docker Image"
+            label={t('component.dockerImage')}
             rules={[
               { required: true, message: t('component.imageRequired') },
               {
                 pattern: dockerImagePattern,
-                message: t('component.imageFormatError', 'Docker Image 格式錯誤'),
+                message: t('component.imageFormatError'),
               },
             ]}
-            extra={t('component.imageFormatHint', '格式: registry/repo:tag 或 repo:tag')}
+            extra={t('component.imageFormatHint')}
           >
             <Input placeholder={t('component.imagePlaceholder')} />
           </Form.Item>

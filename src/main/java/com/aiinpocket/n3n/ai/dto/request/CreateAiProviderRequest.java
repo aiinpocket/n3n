@@ -13,11 +13,11 @@ import java.util.UUID;
 @Data
 public class CreateAiProviderRequest {
 
-    @NotBlank(message = "供應商類型不可為空")
-    @Pattern(regexp = "^(claude|openai|gemini|ollama)$", message = "不支援的供應商類型")
+    @NotBlank(message = "Provider type cannot be blank")
+    @Pattern(regexp = "^(claude|openai|gemini|ollama)$", message = "Unsupported provider type")
     private String provider;
 
-    @NotBlank(message = "名稱不可為空")
+    @NotBlank(message = "Name cannot be blank")
     private String name;
 
     private String description;

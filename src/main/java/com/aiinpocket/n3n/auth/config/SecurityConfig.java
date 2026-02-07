@@ -21,8 +21,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +38,9 @@ public class SecurityConfig {
 
     @Value("${app.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private String allowedOrigins;
+
+    @Value("${springdoc.swagger-ui.enabled:false}")
+    private boolean swaggerEnabled;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,9 +69,15 @@ public class SecurityConfig {
                 .frameOptions(frame -> frame.deny())
                 .permissionsPolicy(permissions -> permissions.policy("geolocation=(), microphone=(), camera=(), payment=(), usb=()"))
             )
+            .headers(headers -> headers
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)
+                )
+            )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 // Agent pairing completion (uses pairing code for auth)
                 .requestMatchers("/api/agent/pair/complete").permitAll()
@@ -74,8 +87,10 @@ public class SecurityConfig {
                 .requestMatchers("/webhook/**").permitAll()
                 // Actuator endpoints for K8s probes
                 .requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
-                // Swagger UI
-                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                // Swagger UI - only accessible when explicitly enabled
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").access((authentication, context) ->
+                    new org.springframework.security.authorization.AuthorizationDecision(swaggerEnabled)
+                )
                 // WebSocket - authentication handled by interceptor
                 .requestMatchers("/ws/**").permitAll()
                 // Static resources (frontend)
@@ -85,6 +100,14 @@ public class SecurityConfig {
                 // All other API requests require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    new ObjectMapper().writeValue(response.getOutputStream(),
+                        Map.of("error", "UNAUTHORIZED", "message", "Authentication required", "status", 401));
+                })
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .build();

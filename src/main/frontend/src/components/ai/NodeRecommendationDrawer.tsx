@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Drawer,
   Input,
@@ -31,6 +32,7 @@ import {
   NodeRecommendation,
   getCategoryIcon,
 } from '../../api/aiAssistant'
+import logger from '../../utils/logger'
 
 const { Text, Paragraph } = Typography
 
@@ -47,6 +49,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
   currentFlow,
   onAddNode,
 }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [categories, setCategories] = useState<NodeCategoryInfo[]>([])
@@ -60,7 +63,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
       const cats = await aiAssistantApi.getNodeCategories()
       setCategories(cats)
     } catch (error) {
-      console.error('Failed to load categories:', error)
+      logger.error('Failed to load categories:', error)
     }
   }, [])
 
@@ -69,7 +72,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
       const nodes = await aiAssistantApi.getInstalledNodes(category || undefined)
       setInstalledNodes(nodes)
     } catch (error) {
-      console.error('Failed to load installed nodes:', error)
+      logger.error('Failed to load installed nodes:', error)
     }
   }, [])
 
@@ -86,7 +89,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
       setAiAvailable(response.aiAvailable)
       setAiRecommendations(response.aiRecommendations || [])
     } catch (error) {
-      console.error('Failed to load recommendations:', error)
+      logger.error('Failed to load recommendations:', error)
     } finally {
       setLoading(false)
     }
@@ -121,7 +124,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
         color={selectedCategory === null ? 'blue' : undefined}
         onClick={() => setSelectedCategory(null)}
       >
-        全部
+        {t('nodeRecommendation.all')}
       </Tag>
       {categories.map((cat) => (
         <Tag
@@ -148,7 +151,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
           icon={<PlusOutlined />}
           onClick={() => handleAddNode(node.nodeType)}
         >
-          新增到流程
+          {t('nodeRecommendation.addToFlow')}
         </Button>,
       ]}
     >
@@ -157,7 +160,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
           <Space>
             <Text strong>{node.displayName}</Text>
             <Tag color="green" icon={<CheckCircleOutlined />}>
-              已安裝
+              {t('nodeRecommendation.installed')}
             </Tag>
           </Space>
         }
@@ -191,7 +194,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
           icon={<PlusOutlined />}
           onClick={() => handleAddNode(rec.nodeType)}
         >
-          {rec.needsInstall ? '安裝' : '新增到流程'}
+          {rec.needsInstall ? t('nodeRecommendation.install') : t('nodeRecommendation.addToFlow')}
         </Button>,
       ]}
     >
@@ -200,9 +203,9 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
           <Space>
             <Text strong>{rec.displayName}</Text>
             {rec.needsInstall ? (
-              <Tag color="blue">需安裝</Tag>
+              <Tag color="blue">{t('nodeRecommendation.needsInstall')}</Tag>
             ) : (
-              <Tag color="green">可用</Tag>
+              <Tag color="green">{t('nodeRecommendation.available')}</Tag>
             )}
           </Space>
         }
@@ -225,7 +228,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
                 )}
                 {rec.source && rec.source !== 'builtin' && (
                   <Tag style={{ margin: 0 }}>
-                    {rec.source === 'marketplace' ? '市場' : 'Docker'}
+                    {rec.source === 'marketplace' ? t('nodeRecommendation.marketplace') : 'Docker'}
                   </Tag>
                 )}
               </Space>
@@ -253,7 +256,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
                 {rec.cons.map((con, i) => (
                   <Tooltip key={i} title={con}>
                     <Tag color="orange" style={{ marginBottom: 2 }}>
-                      <InfoCircleOutlined /> 注意
+                      <InfoCircleOutlined /> {t('nodeRecommendation.caution')}
                     </Tag>
                   </Tooltip>
                 ))}
@@ -267,19 +270,19 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
 
   return (
     <Drawer
-      title="智慧節點推薦"
+      title={t('nodeRecommendation.title')}
       placement="right"
       width={480}
       open={open}
       onClose={onClose}
       extra={
         <Button type="link" onClick={loadRecommendations}>
-          重新整理
+          {t('common.refresh')}
         </Button>
       }
     >
       <Input
-        placeholder="搜尋節點或描述您需要的功能..."
+        placeholder={t('nodeRecommendation.searchPlaceholder')}
         prefix={<SearchOutlined />}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
@@ -296,14 +299,14 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
             key: 'installed',
             label: (
               <span>
-                <AppstoreOutlined /> 已安裝 ({installedNodes.length})
+                <AppstoreOutlined /> {t('nodeRecommendation.installed')} ({installedNodes.length})
               </span>
             ),
             children: (
               <List
                 dataSource={installedNodes}
                 renderItem={renderInstalledNode}
-                locale={{ emptyText: <Empty description="沒有已安裝的節點" /> }}
+                locale={{ emptyText: <Empty description={t('nodeRecommendation.noInstalledNodes')} /> }}
               />
             ),
           },
@@ -311,22 +314,22 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
             key: 'ai',
             label: (
               <span>
-                <RobotOutlined /> AI 推薦
+                <RobotOutlined /> {t('nodeRecommendation.aiRecommend')}
               </span>
             ),
             children: loading ? (
               <div style={{ textAlign: 'center', padding: 40 }}>
-                <Spin tip="AI 分析中..." />
+                <Spin tip={t('nodeRecommendation.aiAnalyzing')} />
               </div>
             ) : !aiAvailable ? (
               <Alert
                 type="info"
-                message="AI 服務暫時不可用"
-                description="本地 AI 服務 (Llamafile) 未執行。請啟動服務或配置其他 AI 提供者。"
+                message={t('nodeRecommendation.aiUnavailable')}
+                description={t('nodeRecommendation.aiUnavailableDesc')}
                 showIcon
               />
             ) : aiRecommendations.length === 0 ? (
-              <Empty description="暫無推薦" />
+              <Empty description={t('nodeRecommendation.noRecommendations')} />
             ) : (
               <List
                 dataSource={aiRecommendations}

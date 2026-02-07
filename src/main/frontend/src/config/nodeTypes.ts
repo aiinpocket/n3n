@@ -1,686 +1,973 @@
 /**
- * N3N 節點類型配置
- * 參考 n8n 核心節點設計，提供完整的節點分類系統
+ * N3N Node Type Configuration
+ * Reference n8n core node design, providing a complete node classification system.
+ * Labels and descriptions use i18n keys - call t() when rendering.
  */
 
 export interface NodeTypeConfig {
   value: string
-  label: string
-  labelEn: string
+  label: string       // i18n key, e.g. 'nodeTypes.trigger.label'
   color: string
   icon: string
-  description: string
+  description: string  // i18n key, e.g. 'nodeTypes.trigger.description'
   category: NodeCategory
 }
 
 export type NodeCategory =
-  | 'triggers'      // 觸發器
-  | 'ai'            // AI 智能
-  | 'flow'          // 流程控制
-  | 'transform'     // 數據轉換
-  | 'communication' // 通訊
-  | 'tools'         // 工具
-  | 'files'         // 檔案處理
-  | 'interactive'   // 互動
-  | 'output'        // 輸出
+  | 'triggers'      // Triggers
+  | 'ai'            // AI
+  | 'flow'          // Flow Control
+  | 'transform'     // Data Transform
+  | 'communication' // Communication
+  | 'database'      // Database
+  | 'messaging'     // Messaging
+  | 'google'        // Google
+  | 'cloud'         // Cloud
+  | 'tools'         // Tools
+  | 'files'         // Files
+  | 'social'        // Social Media
+  | 'interactive'   // Interactive
+  | 'output'        // Output
 
 export interface NodeCategoryConfig {
   key: NodeCategory
-  label: string
-  labelEn: string
+  label: string       // i18n key
   icon: string
   color: string
-  description: string
+  description: string  // i18n key
 }
 
-// 節點分類定義
+// Node category definitions
 export const nodeCategories: NodeCategoryConfig[] = [
   {
     key: 'triggers',
-    label: '觸發器',
-    labelEn: 'Triggers',
+    label: 'nodeCategories.triggers.label',
     icon: 'ThunderboltOutlined',
     color: '#52c41a',
-    description: '啟動工作流程的觸發條件',
+    description: 'nodeCategories.triggers.description',
   },
   {
     key: 'ai',
-    label: 'AI 智能',
-    labelEn: 'AI',
+    label: 'nodeCategories.ai.label',
     icon: 'RobotOutlined',
     color: '#8B5CF6',
-    description: 'AI 對話、代理、記憶和向量搜尋',
+    description: 'nodeCategories.ai.description',
   },
   {
     key: 'flow',
-    label: '流程控制',
-    labelEn: 'Flow Control',
+    label: 'nodeCategories.flow.label',
     icon: 'BranchesOutlined',
     color: '#faad14',
-    description: '控制流程執行邏輯',
+    description: 'nodeCategories.flow.description',
   },
   {
     key: 'transform',
-    label: '數據轉換',
-    labelEn: 'Data Transform',
+    label: 'nodeCategories.transform.label',
     icon: 'SwapOutlined',
     color: '#13c2c2',
-    description: '轉換和處理數據',
+    description: 'nodeCategories.transform.description',
   },
   {
     key: 'communication',
-    label: '通訊',
-    labelEn: 'Communication',
+    label: 'nodeCategories.communication.label',
     icon: 'MailOutlined',
     color: '#1890ff',
-    description: '發送郵件、通知等',
+    description: 'nodeCategories.communication.description',
+  },
+  {
+    key: 'database',
+    label: 'nodeCategories.database.label',
+    icon: 'DatabaseOutlined',
+    color: '#722ED1',
+    description: 'nodeCategories.database.description',
+  },
+  {
+    key: 'messaging',
+    label: 'nodeCategories.messaging.label',
+    icon: 'MessageOutlined',
+    color: '#13C2C2',
+    description: 'nodeCategories.messaging.description',
+  },
+  {
+    key: 'google',
+    label: 'nodeCategories.google.label',
+    icon: 'GoogleOutlined',
+    color: '#4285F4',
+    description: 'nodeCategories.google.description',
+  },
+  {
+    key: 'cloud',
+    label: 'nodeCategories.cloud.label',
+    icon: 'CloudOutlined',
+    color: '#1890FF',
+    description: 'nodeCategories.cloud.description',
   },
   {
     key: 'tools',
-    label: '工具',
-    labelEn: 'Tools',
+    label: 'nodeCategories.tools.label',
     icon: 'ToolOutlined',
     color: '#8B5CF6',
-    description: '各種實用工具',
+    description: 'nodeCategories.tools.description',
   },
   {
     key: 'files',
-    label: '檔案處理',
-    labelEn: 'Files',
+    label: 'nodeCategories.files.label',
     icon: 'FileOutlined',
     color: '#eb2f96',
-    description: '檔案讀寫和處理',
+    description: 'nodeCategories.files.description',
+  },
+  {
+    key: 'social',
+    label: 'nodeCategories.social.label',
+    icon: 'TeamOutlined',
+    color: '#E91E63',
+    description: 'nodeCategories.social.description',
   },
   {
     key: 'interactive',
-    label: '互動',
-    labelEn: 'Interactive',
+    label: 'nodeCategories.interactive.label',
     icon: 'FormOutlined',
     color: '#fa8c16',
-    description: '需要人工互動的節點',
+    description: 'nodeCategories.interactive.description',
   },
   {
     key: 'output',
-    label: '輸出',
-    labelEn: 'Output',
+    label: 'nodeCategories.output.label',
     icon: 'ExportOutlined',
     color: '#f5222d',
-    description: '輸出結果',
+    description: 'nodeCategories.output.description',
   },
 ]
 
-// 所有節點類型定義
+// All node type definitions
 export const nodeTypes: NodeTypeConfig[] = [
-  // ==================== 觸發器 ====================
+  // ==================== Triggers ====================
   {
     value: 'trigger',
-    label: '手動觸發',
-    labelEn: 'Manual Trigger',
+    label: 'nodeTypes.trigger.label',
     color: '#52c41a',
     icon: 'PlayCircleOutlined',
-    description: '手動啟動工作流程',
+    description: 'nodeTypes.trigger.description',
     category: 'triggers',
   },
   {
     value: 'scheduleTrigger',
-    label: '排程觸發',
-    labelEn: 'Schedule Trigger',
+    label: 'nodeTypes.scheduleTrigger.label',
     color: '#52c41a',
     icon: 'ClockCircleOutlined',
-    description: '定時自動執行',
+    description: 'nodeTypes.scheduleTrigger.description',
     category: 'triggers',
   },
   {
     value: 'webhookTrigger',
-    label: 'Webhook 觸發',
-    labelEn: 'Webhook Trigger',
+    label: 'nodeTypes.webhookTrigger.label',
     color: '#52c41a',
     icon: 'ApiOutlined',
-    description: '接收 HTTP 請求觸發',
+    description: 'nodeTypes.webhookTrigger.description',
     category: 'triggers',
   },
   {
     value: 'formTrigger',
-    label: '表單觸發',
-    labelEn: 'Form Trigger',
+    label: 'nodeTypes.formTrigger.label',
     color: '#52c41a',
     icon: 'FormOutlined',
-    description: '表單提交觸發',
+    description: 'nodeTypes.formTrigger.description',
     category: 'triggers',
   },
   {
     value: 'emailTrigger',
-    label: '郵件觸發',
-    labelEn: 'Email Trigger (IMAP)',
+    label: 'nodeTypes.emailTrigger.label',
     color: '#52c41a',
     icon: 'MailOutlined',
-    description: '收到郵件時觸發',
+    description: 'nodeTypes.emailTrigger.description',
     category: 'triggers',
   },
   {
     value: 'errorTrigger',
-    label: '錯誤觸發',
-    labelEn: 'Error Trigger',
+    label: 'nodeTypes.errorTrigger.label',
     color: '#52c41a',
     icon: 'WarningOutlined',
-    description: '其他流程發生錯誤時觸發',
+    description: 'nodeTypes.errorTrigger.description',
     category: 'triggers',
   },
 
-  // ==================== AI 智能 ====================
+  // ==================== AI ====================
   {
     value: 'aiChat',
-    label: 'AI 對話',
-    labelEn: 'AI Chat',
+    label: 'nodeTypes.aiChat.label',
     color: '#8B5CF6',
     icon: 'MessageOutlined',
-    description: '與 AI 模型對話，支援 OpenAI、Claude、Gemini、Ollama',
+    description: 'nodeTypes.aiChat.description',
     category: 'ai',
   },
   {
     value: 'aiAgent',
-    label: 'AI 代理',
-    labelEn: 'AI Agent',
+    label: 'nodeTypes.aiAgent.label',
     color: '#8B5CF6',
     icon: 'RobotOutlined',
-    description: '智能代理，可自動使用工具完成任務（ReAct 模式）',
+    description: 'nodeTypes.aiAgent.description',
     category: 'ai',
   },
   {
     value: 'aiChain',
-    label: 'AI 處理鏈',
-    labelEn: 'AI Chain',
+    label: 'nodeTypes.aiChain.label',
     color: '#8B5CF6',
     icon: 'LinkOutlined',
-    description: 'RAG、Map-Reduce、摘要等 AI 處理流程',
+    description: 'nodeTypes.aiChain.description',
     category: 'ai',
   },
   {
     value: 'aiMemory',
-    label: 'AI 記憶',
-    labelEn: 'AI Memory',
+    label: 'nodeTypes.aiMemory.label',
     color: '#8B5CF6',
     icon: 'DatabaseOutlined',
-    description: '管理對話記憶，支援儲存、檢索和摘要',
+    description: 'nodeTypes.aiMemory.description',
     category: 'ai',
   },
   {
     value: 'aiEmbedding',
-    label: 'AI 嵌入',
-    labelEn: 'AI Embedding',
+    label: 'nodeTypes.aiEmbedding.label',
     color: '#8B5CF6',
     icon: 'CodeOutlined',
-    description: '將文本轉換為向量嵌入',
+    description: 'nodeTypes.aiEmbedding.description',
     category: 'ai',
   },
   {
     value: 'aiVectorSearch',
-    label: '向量搜尋',
-    labelEn: 'Vector Search',
+    label: 'nodeTypes.aiVectorSearch.label',
     color: '#8B5CF6',
     icon: 'SearchOutlined',
-    description: '向量相似度搜尋，用於語意檢索',
+    description: 'nodeTypes.aiVectorSearch.description',
     category: 'ai',
   },
   {
     value: 'aiRag',
-    label: 'RAG 問答',
-    labelEn: 'RAG Q&A',
+    label: 'nodeTypes.aiRag.label',
     color: '#8B5CF6',
     icon: 'FileSearchOutlined',
-    description: '基於檢索增強生成的文檔問答系統',
+    description: 'nodeTypes.aiRag.description',
     category: 'ai',
   },
   {
     value: 'aiConversation',
-    label: '對話鏈',
-    labelEn: 'Conversation Chain',
+    label: 'nodeTypes.aiConversation.label',
     color: '#8B5CF6',
     icon: 'CommentOutlined',
-    description: '帶記憶的多輪對話處理鏈',
+    description: 'nodeTypes.aiConversation.description',
     category: 'ai',
   },
   {
     value: 'aiRouter',
-    label: 'AI 路由',
-    labelEn: 'AI Router',
+    label: 'nodeTypes.aiRouter.label',
     color: '#8B5CF6',
     icon: 'ForkOutlined',
-    description: '根據輸入內容智能路由到不同處理分支',
+    description: 'nodeTypes.aiRouter.description',
     category: 'ai',
   },
   {
     value: 'aiSequence',
-    label: '順序鏈',
-    labelEn: 'Sequential Chain',
+    label: 'nodeTypes.aiSequence.label',
     color: '#8B5CF6',
     icon: 'OrderedListOutlined',
-    description: '依序執行多個 AI 處理步驟',
+    description: 'nodeTypes.aiSequence.description',
     category: 'ai',
   },
   {
     value: 'aiVectorStore',
-    label: '向量存儲',
-    labelEn: 'Vector Store',
+    label: 'nodeTypes.aiVectorStore.label',
     color: '#8B5CF6',
     icon: 'CloudServerOutlined',
-    description: '管理向量數據庫的索引和存儲',
+    description: 'nodeTypes.aiVectorStore.description',
     category: 'ai',
   },
   {
     value: 'aiDocLoader',
-    label: '文檔載入',
-    labelEn: 'Document Loader',
+    label: 'nodeTypes.aiDocLoader.label',
     color: '#8B5CF6',
     icon: 'FileTextOutlined',
-    description: '載入 PDF、文字、網頁等文檔',
+    description: 'nodeTypes.aiDocLoader.description',
     category: 'ai',
   },
   {
     value: 'aiTextSplitter',
-    label: '文本分割',
-    labelEn: 'Text Splitter',
+    label: 'nodeTypes.aiTextSplitter.label',
     color: '#8B5CF6',
     icon: 'SplitCellsOutlined',
-    description: '將長文檔分割成較小的區塊',
+    description: 'nodeTypes.aiTextSplitter.description',
     category: 'ai',
   },
   {
     value: 'aiSummarize',
-    label: 'AI 摘要',
-    labelEn: 'AI Summarize',
+    label: 'nodeTypes.aiSummarize.label',
     color: '#8B5CF6',
     icon: 'FileSearchOutlined',
-    description: '自動生成文檔或對話摘要',
+    description: 'nodeTypes.aiSummarize.description',
     category: 'ai',
   },
   {
     value: 'aiClassify',
-    label: 'AI 分類',
-    labelEn: 'AI Classify',
+    label: 'nodeTypes.aiClassify.label',
     color: '#8B5CF6',
     icon: 'TagsOutlined',
-    description: '使用 AI 自動分類內容',
+    description: 'nodeTypes.aiClassify.description',
+    category: 'ai',
+  },
+  {
+    value: 'openai',
+    label: 'nodeTypes.openai.label',
+    color: '#8B5CF6',
+    icon: 'OpenAIOutlined',
+    description: 'nodeTypes.openai.description',
+    category: 'ai',
+  },
+  {
+    value: 'claude',
+    label: 'nodeTypes.claude.label',
+    color: '#8B5CF6',
+    icon: 'RobotOutlined',
+    description: 'nodeTypes.claude.description',
+    category: 'ai',
+  },
+  {
+    value: 'gemini',
+    label: 'nodeTypes.gemini.label',
+    color: '#8B5CF6',
+    icon: 'GoogleOutlined',
+    description: 'nodeTypes.gemini.description',
     category: 'ai',
   },
 
-  // ==================== 流程控制 ====================
+  // ==================== Flow Control ====================
   {
     value: 'condition',
-    label: '條件判斷',
-    labelEn: 'If',
+    label: 'nodeTypes.condition.label',
     color: '#faad14',
     icon: 'QuestionCircleOutlined',
-    description: '根據條件分支執行',
+    description: 'nodeTypes.condition.description',
     category: 'flow',
   },
   {
     value: 'switch',
-    label: '多路分支',
-    labelEn: 'Switch',
+    label: 'nodeTypes.switch.label',
     color: '#faad14',
     icon: 'ApartmentOutlined',
-    description: '多條件路由',
+    description: 'nodeTypes.switch.description',
     category: 'flow',
   },
   {
     value: 'merge',
-    label: '合併',
-    labelEn: 'Merge',
+    label: 'nodeTypes.merge.label',
     color: '#faad14',
     icon: 'MergeCellsOutlined',
-    description: '合併多個數據流',
+    description: 'nodeTypes.merge.description',
     category: 'flow',
   },
   {
     value: 'loop',
-    label: '迴圈',
-    labelEn: 'Loop Over Items',
+    label: 'nodeTypes.loop.label',
     color: '#faad14',
     icon: 'SyncOutlined',
-    description: '遍歷數據項目',
+    description: 'nodeTypes.loop.description',
     category: 'flow',
   },
   {
     value: 'filter',
-    label: '過濾',
-    labelEn: 'Filter',
+    label: 'nodeTypes.filter.label',
     color: '#faad14',
     icon: 'FilterOutlined',
-    description: '過濾數據項目',
+    description: 'nodeTypes.filter.description',
     category: 'flow',
   },
   {
     value: 'splitOut',
-    label: '拆分',
-    labelEn: 'Split Out',
+    label: 'nodeTypes.splitOut.label',
     color: '#faad14',
     icon: 'SplitCellsOutlined',
-    description: '將數組拆分為單獨項目',
+    description: 'nodeTypes.splitOut.description',
     category: 'flow',
   },
   {
     value: 'subWorkflow',
-    label: '子工作流',
-    labelEn: 'Execute Sub-workflow',
+    label: 'nodeTypes.subWorkflow.label',
     color: '#faad14',
     icon: 'NodeIndexOutlined',
-    description: '執行另一個工作流',
+    description: 'nodeTypes.subWorkflow.description',
     category: 'flow',
   },
   {
     value: 'stopAndError',
-    label: '停止並報錯',
-    labelEn: 'Stop And Error',
+    label: 'nodeTypes.stopAndError.label',
     color: '#faad14',
     icon: 'StopOutlined',
-    description: '停止執行並拋出錯誤',
+    description: 'nodeTypes.stopAndError.description',
     category: 'flow',
   },
   {
     value: 'wait',
-    label: '等待',
-    labelEn: 'Wait',
+    label: 'nodeTypes.wait.label',
     color: '#faad14',
     icon: 'HourglassOutlined',
-    description: '暫停執行指定時間',
+    description: 'nodeTypes.wait.description',
     category: 'flow',
   },
   {
     value: 'noOp',
-    label: '無操作',
-    labelEn: 'No Operation',
+    label: 'nodeTypes.noOp.label',
     color: '#faad14',
     icon: 'MinusCircleOutlined',
-    description: '佔位符，不做任何操作',
+    description: 'nodeTypes.noOp.description',
     category: 'flow',
   },
 
-  // ==================== 數據轉換 ====================
+  // ==================== Data Transform ====================
   {
     value: 'setFields',
-    label: '設置欄位',
-    labelEn: 'Edit Fields (Set)',
+    label: 'nodeTypes.setFields.label',
     color: '#13c2c2',
     icon: 'EditOutlined',
-    description: '設置或修改數據欄位',
+    description: 'nodeTypes.setFields.description',
     category: 'transform',
   },
   {
     value: 'renameKeys',
-    label: '重命名鍵',
-    labelEn: 'Rename Keys',
+    label: 'nodeTypes.renameKeys.label',
     color: '#13c2c2',
     icon: 'SwapOutlined',
-    description: '重命名 JSON 鍵名',
+    description: 'nodeTypes.renameKeys.description',
     category: 'transform',
   },
   {
     value: 'sort',
-    label: '排序',
-    labelEn: 'Sort',
+    label: 'nodeTypes.sort.label',
     color: '#13c2c2',
     icon: 'SortAscendingOutlined',
-    description: '對數據進行排序',
+    description: 'nodeTypes.sort.description',
     category: 'transform',
   },
   {
     value: 'aggregate',
-    label: '聚合',
-    labelEn: 'Aggregate',
+    label: 'nodeTypes.aggregate.label',
     color: '#13c2c2',
     icon: 'GroupOutlined',
-    description: '聚合多個項目為一個',
+    description: 'nodeTypes.aggregate.description',
     category: 'transform',
   },
   {
     value: 'removeDuplicates',
-    label: '去重',
-    labelEn: 'Remove Duplicates',
+    label: 'nodeTypes.removeDuplicates.label',
     color: '#13c2c2',
     icon: 'DeleteOutlined',
-    description: '移除重複項目',
+    description: 'nodeTypes.removeDuplicates.description',
     category: 'transform',
   },
   {
     value: 'compareDatasets',
-    label: '比較數據集',
-    labelEn: 'Compare Datasets',
+    label: 'nodeTypes.compareDatasets.label',
     color: '#13c2c2',
     icon: 'DiffOutlined',
-    description: '比較兩組數據的差異',
+    description: 'nodeTypes.compareDatasets.description',
     category: 'transform',
   },
   {
     value: 'code',
-    label: '代碼',
-    labelEn: 'Code',
+    label: 'nodeTypes.code.label',
     color: '#13c2c2',
     icon: 'CodeOutlined',
-    description: '執行自定義 JavaScript/Python 代碼',
+    description: 'nodeTypes.code.description',
     category: 'transform',
   },
   {
     value: 'aiTransform',
-    label: 'AI 資料轉換',
-    labelEn: 'AI Transform',
+    label: 'nodeTypes.aiTransform.label',
     color: '#13c2c2',
     icon: 'RobotOutlined',
-    description: '使用自然語言描述資料轉換邏輯，AI 自動生成並執行程式碼',
+    description: 'nodeTypes.aiTransform.description',
     category: 'transform',
   },
 
-  // ==================== 通訊 ====================
+  // ==================== Communication ====================
   {
     value: 'httpRequest',
-    label: 'HTTP 請求',
-    labelEn: 'HTTP Request',
+    label: 'nodeTypes.httpRequest.label',
     color: '#1890ff',
     icon: 'GlobalOutlined',
-    description: '發送 HTTP/REST API 請求',
+    description: 'nodeTypes.httpRequest.description',
     category: 'communication',
   },
   {
     value: 'sendEmail',
-    label: '發送郵件',
-    labelEn: 'Send Email',
+    label: 'nodeTypes.sendEmail.label',
     color: '#1890ff',
     icon: 'MailOutlined',
-    description: '通過 SMTP 發送郵件',
+    description: 'nodeTypes.sendEmail.description',
     category: 'communication',
   },
   {
     value: 'graphql',
-    label: 'GraphQL',
-    labelEn: 'GraphQL',
+    label: 'nodeTypes.graphql.label',
     color: '#1890ff',
     icon: 'ApiOutlined',
-    description: '執行 GraphQL 查詢',
+    description: 'nodeTypes.graphql.description',
     category: 'communication',
   },
   {
     value: 'ssh',
-    label: 'SSH 命令',
-    labelEn: 'SSH',
+    label: 'nodeTypes.ssh.label',
     color: '#1890ff',
     icon: 'CodeOutlined',
-    description: '透過 SSH 執行遠端命令',
+    description: 'nodeTypes.ssh.description',
     category: 'communication',
   },
   {
     value: 'ftp',
-    label: 'FTP',
-    labelEn: 'FTP',
+    label: 'nodeTypes.ftp.label',
     color: '#1890ff',
     icon: 'CloudUploadOutlined',
-    description: '檔案傳輸操作',
+    description: 'nodeTypes.ftp.description',
     category: 'communication',
   },
   {
     value: 'agent',
-    label: 'Agent 執行',
-    labelEn: 'Agent',
+    label: 'nodeTypes.agent.label',
     color: '#1890ff',
     icon: 'DesktopOutlined',
-    description: '在遠端 Agent 上執行命令',
+    description: 'nodeTypes.agent.description',
+    category: 'communication',
+  },
+  {
+    value: 'email',
+    label: 'nodeTypes.email.label',
+    color: '#1890ff',
+    icon: 'MailOutlined',
+    description: 'nodeTypes.email.description',
+    category: 'communication',
+  },
+  {
+    value: 'externalService',
+    label: 'nodeTypes.externalService.label',
+    color: '#1890ff',
+    icon: 'CloudSyncOutlined',
+    description: 'nodeTypes.externalService.description',
     category: 'communication',
   },
 
-  // ==================== 工具 ====================
+  // ==================== Data Transform (supplemental) ====================
   {
-    value: 'dateTime',
-    label: '日期時間',
-    labelEn: 'Date & Time',
+    value: 'json',
+    label: 'nodeTypes.json.label',
+    color: '#13c2c2',
+    icon: 'CodeOutlined',
+    description: 'nodeTypes.json.description',
+    category: 'transform',
+  },
+  {
+    value: 'text',
+    label: 'nodeTypes.text.label',
+    color: '#13c2c2',
+    icon: 'FontSizeOutlined',
+    description: 'nodeTypes.text.description',
+    category: 'transform',
+  },
+  {
+    value: 'regex',
+    label: 'nodeTypes.regex.label',
+    color: '#13c2c2',
+    icon: 'SearchOutlined',
+    description: 'nodeTypes.regex.description',
+    category: 'transform',
+  },
+
+  // ==================== Database ====================
+  {
+    value: 'database',
+    label: 'nodeTypes.database.label',
+    color: '#722ED1',
+    icon: 'DatabaseOutlined',
+    description: 'nodeTypes.database.description',
+    category: 'database',
+  },
+  {
+    value: 'postgres',
+    label: 'nodeTypes.postgres.label',
+    color: '#722ED1',
+    icon: 'DatabaseOutlined',
+    description: 'nodeTypes.postgres.description',
+    category: 'database',
+  },
+  {
+    value: 'mysql',
+    label: 'nodeTypes.mysql.label',
+    color: '#722ED1',
+    icon: 'DatabaseOutlined',
+    description: 'nodeTypes.mysql.description',
+    category: 'database',
+  },
+  {
+    value: 'mongodb',
+    label: 'nodeTypes.mongodb.label',
+    color: '#722ED1',
+    icon: 'ClusterOutlined',
+    description: 'nodeTypes.mongodb.description',
+    category: 'database',
+  },
+  {
+    value: 'redis',
+    label: 'nodeTypes.redis.label',
+    color: '#722ED1',
+    icon: 'ThunderboltOutlined',
+    description: 'nodeTypes.redis.description',
+    category: 'database',
+  },
+  {
+    value: 'elasticsearch',
+    label: 'nodeTypes.elasticsearch.label',
+    color: '#722ED1',
+    icon: 'SearchOutlined',
+    description: 'nodeTypes.elasticsearch.description',
+    category: 'database',
+  },
+
+  // ==================== Messaging ====================
+  {
+    value: 'telegram',
+    label: 'nodeTypes.telegram.label',
+    color: '#13C2C2',
+    icon: 'SendOutlined',
+    description: 'nodeTypes.telegram.description',
+    category: 'messaging',
+  },
+  {
+    value: 'discord',
+    label: 'nodeTypes.discord.label',
+    color: '#13C2C2',
+    icon: 'MessageOutlined',
+    description: 'nodeTypes.discord.description',
+    category: 'messaging',
+  },
+  {
+    value: 'slack',
+    label: 'nodeTypes.slack.label',
+    color: '#13C2C2',
+    icon: 'SlackOutlined',
+    description: 'nodeTypes.slack.description',
+    category: 'messaging',
+  },
+  {
+    value: 'whatsapp',
+    label: 'nodeTypes.whatsapp.label',
+    color: '#13C2C2',
+    icon: 'WhatsAppOutlined',
+    description: 'nodeTypes.whatsapp.description',
+    category: 'messaging',
+  },
+  {
+    value: 'line',
+    label: 'nodeTypes.line.label',
+    color: '#13C2C2',
+    icon: 'MessageOutlined',
+    description: 'nodeTypes.line.description',
+    category: 'messaging',
+  },
+
+  // ==================== Social Media ====================
+  {
+    value: 'facebook',
+    label: 'nodeTypes.facebook.label',
+    color: '#E91E63',
+    icon: 'FacebookOutlined',
+    description: 'nodeTypes.facebook.description',
+    category: 'social',
+  },
+  {
+    value: 'instagram',
+    label: 'nodeTypes.instagram.label',
+    color: '#E91E63',
+    icon: 'InstagramOutlined',
+    description: 'nodeTypes.instagram.description',
+    category: 'social',
+  },
+  {
+    value: 'threads',
+    label: 'nodeTypes.threads.label',
+    color: '#E91E63',
+    icon: 'MessageOutlined',
+    description: 'nodeTypes.threads.description',
+    category: 'social',
+  },
+
+  // ==================== Google ====================
+  {
+    value: 'gmail',
+    label: 'nodeTypes.gmail.label',
+    color: '#4285F4',
+    icon: 'MailOutlined',
+    description: 'nodeTypes.gmail.description',
+    category: 'google',
+  },
+  {
+    value: 'googleSheets',
+    label: 'nodeTypes.googleSheets.label',
+    color: '#4285F4',
+    icon: 'TableOutlined',
+    description: 'nodeTypes.googleSheets.description',
+    category: 'google',
+  },
+  {
+    value: 'googleDrive',
+    label: 'nodeTypes.googleDrive.label',
+    color: '#4285F4',
+    icon: 'CloudOutlined',
+    description: 'nodeTypes.googleDrive.description',
+    category: 'google',
+  },
+  {
+    value: 'googleCalendar',
+    label: 'nodeTypes.googleCalendar.label',
+    color: '#4285F4',
+    icon: 'CalendarOutlined',
+    description: 'nodeTypes.googleCalendar.description',
+    category: 'google',
+  },
+
+  // ==================== Cloud ====================
+  {
+    value: 'bigQuery',
+    label: 'nodeTypes.bigQuery.label',
+    color: '#1890FF',
+    icon: 'FundOutlined',
+    description: 'nodeTypes.bigQuery.description',
+    category: 'cloud',
+  },
+  {
+    value: 'googleCloudStorage',
+    label: 'nodeTypes.googleCloudStorage.label',
+    color: '#1890FF',
+    icon: 'CloudServerOutlined',
+    description: 'nodeTypes.googleCloudStorage.description',
+    category: 'cloud',
+  },
+  {
+    value: 'googlePubSub',
+    label: 'nodeTypes.googlePubSub.label',
+    color: '#1890FF',
+    icon: 'NotificationOutlined',
+    description: 'nodeTypes.googlePubSub.description',
+    category: 'cloud',
+  },
+
+  // ==================== Browser Automation ====================
+  {
+    value: 'browser',
+    label: 'nodeTypes.browser.label',
+    color: '#1890ff',
+    icon: 'ChromeOutlined',
+    description: 'nodeTypes.browser.description',
+    category: 'communication',
+  },
+
+  // ==================== Tools ====================
+  {
+    value: 'datetime',
+    label: 'nodeTypes.datetime.label',
     color: '#8B5CF6',
     icon: 'CalendarOutlined',
-    description: '日期時間格式化和計算',
+    description: 'nodeTypes.datetime.description',
     category: 'tools',
   },
   {
     value: 'crypto',
-    label: '加密',
-    labelEn: 'Crypto',
+    label: 'nodeTypes.crypto.label',
     color: '#8B5CF6',
     icon: 'LockOutlined',
-    description: '加密、解密、雜湊運算',
+    description: 'nodeTypes.crypto.description',
     category: 'tools',
   },
   {
     value: 'jwt',
-    label: 'JWT',
-    labelEn: 'JWT',
+    label: 'nodeTypes.jwt.label',
     color: '#8B5CF6',
     icon: 'SafetyCertificateOutlined',
-    description: 'JSON Web Token 處理',
+    description: 'nodeTypes.jwt.description',
     category: 'tools',
   },
   {
     value: 'html',
-    label: 'HTML 處理',
-    labelEn: 'HTML',
+    label: 'nodeTypes.html.label',
     color: '#8B5CF6',
     icon: 'Html5Outlined',
-    description: 'HTML 解析和操作',
+    description: 'nodeTypes.html.description',
     category: 'tools',
   },
   {
     value: 'xml',
-    label: 'XML 處理',
-    labelEn: 'XML',
+    label: 'nodeTypes.xml.label',
     color: '#8B5CF6',
     icon: 'FileTextOutlined',
-    description: 'XML 解析和轉換',
+    description: 'nodeTypes.xml.description',
     category: 'tools',
   },
   {
     value: 'markdown',
-    label: 'Markdown',
-    labelEn: 'Markdown',
+    label: 'nodeTypes.markdown.label',
     color: '#8B5CF6',
     icon: 'FileMarkdownOutlined',
-    description: 'Markdown 轉換',
+    description: 'nodeTypes.markdown.description',
     category: 'tools',
   },
 
-  // ==================== 檔案處理 ====================
+  // ==================== Files ====================
   {
     value: 'readFile',
-    label: '讀取檔案',
-    labelEn: 'Read File',
+    label: 'nodeTypes.readFile.label',
     color: '#eb2f96',
     icon: 'FileOutlined',
-    description: '讀取本地或遠端檔案',
+    description: 'nodeTypes.readFile.description',
     category: 'files',
   },
   {
     value: 'writeFile',
-    label: '寫入檔案',
-    labelEn: 'Write File',
+    label: 'nodeTypes.writeFile.label',
     color: '#eb2f96',
     icon: 'FileAddOutlined',
-    description: '寫入檔案到磁碟',
+    description: 'nodeTypes.writeFile.description',
     category: 'files',
   },
   {
     value: 'convertFile',
-    label: '轉換檔案',
-    labelEn: 'Convert to File',
+    label: 'nodeTypes.convertFile.label',
     color: '#eb2f96',
     icon: 'FileExcelOutlined',
-    description: '將數據轉換為檔案格式',
+    description: 'nodeTypes.convertFile.description',
     category: 'files',
   },
   {
     value: 'compression',
-    label: '壓縮/解壓',
-    labelEn: 'Compression',
+    label: 'nodeTypes.compression.label',
     color: '#eb2f96',
     icon: 'FileZipOutlined',
-    description: '壓縮或解壓檔案',
+    description: 'nodeTypes.compression.description',
     category: 'files',
   },
 
-  // ==================== 互動 ====================
+  // ==================== Interactive ====================
   {
     value: 'form',
-    label: '表單',
-    labelEn: 'Form',
+    label: 'nodeTypes.form.label',
     color: '#fa8c16',
     icon: 'FormOutlined',
-    description: '收集用戶輸入',
+    description: 'nodeTypes.form.description',
     category: 'interactive',
   },
   {
     value: 'approval',
-    label: '等待審批',
-    labelEn: 'Wait for Approval',
+    label: 'nodeTypes.approval.label',
     color: '#fa8c16',
     icon: 'CheckCircleOutlined',
-    description: '暫停流程等待審批',
+    description: 'nodeTypes.approval.description',
     category: 'interactive',
   },
   {
     value: 'action',
-    label: '自定義動作',
-    labelEn: 'Action',
+    label: 'nodeTypes.action.label',
     color: '#fa8c16',
     icon: 'ThunderboltOutlined',
-    description: '執行自定義動作',
+    description: 'nodeTypes.action.description',
     category: 'interactive',
   },
 
-  // ==================== 輸出 ====================
+  // ==================== Output ====================
   {
     value: 'output',
-    label: '輸出結果',
-    labelEn: 'Output',
+    label: 'nodeTypes.output.label',
     color: '#f5222d',
     icon: 'ExportOutlined',
-    description: '輸出流程執行結果',
+    description: 'nodeTypes.output.description',
     category: 'output',
   },
   {
     value: 'respondWebhook',
-    label: '回應 Webhook',
-    labelEn: 'Respond to Webhook',
+    label: 'nodeTypes.respondWebhook.label',
     color: '#f5222d',
     icon: 'SendOutlined',
-    description: '回應 HTTP 請求',
+    description: 'nodeTypes.respondWebhook.description',
     category: 'output',
+  },
+
+  // ==================== Advanced Flow Control ====================
+  {
+    value: 'retry',
+    label: 'nodeTypes.retry.label',
+    color: '#faad14',
+    icon: 'ReloadOutlined',
+    description: 'nodeTypes.retry.description',
+    category: 'flow',
+  },
+  {
+    value: 'rateLimiter',
+    label: 'nodeTypes.rateLimiter.label',
+    color: '#faad14',
+    icon: 'DashboardOutlined',
+    description: 'nodeTypes.rateLimiter.description',
+    category: 'flow',
+  },
+
+  // ==================== Advanced Data Transform ====================
+  {
+    value: 'itemLists',
+    label: 'nodeTypes.itemLists.label',
+    color: '#13c2c2',
+    icon: 'UnorderedListOutlined',
+    description: 'nodeTypes.itemLists.description',
+    category: 'transform',
+  },
+  {
+    value: 'spreadsheet',
+    label: 'nodeTypes.spreadsheet.label',
+    color: '#13c2c2',
+    icon: 'TableOutlined',
+    description: 'nodeTypes.spreadsheet.description',
+    category: 'transform',
+  },
+  {
+    value: 'base64',
+    label: 'nodeTypes.base64.label',
+    color: '#13c2c2',
+    icon: 'CodeOutlined',
+    description: 'nodeTypes.base64.description',
+    category: 'transform',
+  },
+
+  {
+    value: 'urlParser',
+    label: 'nodeTypes.urlParser.label',
+    color: '#13c2c2',
+    icon: 'LinkOutlined',
+    description: 'nodeTypes.urlParser.description',
+    category: 'transform',
+  },
+
+  // ==================== Advanced Tools ====================
+  {
+    value: 'executeCommand',
+    label: 'nodeTypes.executeCommand.label',
+    color: '#8B5CF6',
+    icon: 'CodeOutlined',
+    description: 'nodeTypes.executeCommand.description',
+    category: 'tools',
   },
 ]
 
-// 按分類獲取節點
+// Get nodes by category
 export function getNodesByCategory(category: NodeCategory): NodeTypeConfig[] {
   return nodeTypes.filter(node => node.category === category)
 }
 
-// 獲取節點配置
+// Get node config
 export function getNodeConfig(nodeType: string): NodeTypeConfig | undefined {
   return nodeTypes.find(node => node.value === nodeType)
 }
 
-// 獲取所有分類及其節點（用於構建選單）
+// Get all categories with their nodes (for building menus)
 export function getGroupedNodes(): { category: NodeCategoryConfig; nodes: NodeTypeConfig[] }[] {
   return nodeCategories.map(category => ({
     category,
@@ -688,7 +975,7 @@ export function getGroupedNodes(): { category: NodeCategoryConfig; nodes: NodeTy
   }))
 }
 
-// 簡化版節點選項（向後兼容）
+// Simplified node options (backward compatible)
 export const nodeTypeOptions = nodeTypes.map(node => ({
   value: node.value,
   label: node.label,

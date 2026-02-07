@@ -41,13 +41,6 @@ interface CommandPaletteProps {
   onAddNode?: () => void
 }
 
-const categoryLabels: Record<string, string> = {
-  navigation: '導航',
-  editor: '編輯器',
-  execution: '執行',
-  settings: '設定',
-}
-
 export default function CommandPalette({
   open,
   onClose,
@@ -62,13 +55,20 @@ export default function CommandPalette({
   const navigate = useNavigate()
   const { t } = useTranslation()
 
+  const categoryLabels: Record<string, string> = {
+    navigation: t('command.category.navigation'),
+    editor: t('command.category.editor'),
+    execution: t('command.category.execution'),
+    settings: t('command.category.settings'),
+  }
+
   // Default commands
   const defaultCommands: Command[] = useMemo(() => [
     // Navigation
     {
       id: 'nav-flows',
-      name: t('nav.flows', '流程列表'),
-      description: t('command.goToFlows', '前往流程列表頁面'),
+      name: t('nav.flows'),
+      description: t('command.goToFlows'),
       shortcut: 'G F',
       icon: <FileTextOutlined />,
       category: 'navigation',
@@ -77,8 +77,8 @@ export default function CommandPalette({
     },
     {
       id: 'nav-executions',
-      name: t('nav.executions', '執行記錄'),
-      description: t('command.goToExecutions', '前往執行記錄頁面'),
+      name: t('nav.executions'),
+      description: t('command.goToExecutions'),
       shortcut: 'G E',
       icon: <HistoryOutlined />,
       category: 'navigation',
@@ -87,8 +87,8 @@ export default function CommandPalette({
     },
     {
       id: 'nav-services',
-      name: t('nav.services', '外部服務'),
-      description: t('command.goToServices', '前往外部服務頁面'),
+      name: t('nav.services'),
+      description: t('command.goToServices'),
       shortcut: 'G S',
       icon: <ApiOutlined />,
       category: 'navigation',
@@ -97,8 +97,8 @@ export default function CommandPalette({
     },
     {
       id: 'nav-credentials',
-      name: t('nav.credentials', '認證管理'),
-      description: t('command.goToCredentials', '前往認證管理頁面'),
+      name: t('nav.credentials'),
+      description: t('command.goToCredentials'),
       shortcut: 'G C',
       icon: <KeyOutlined />,
       category: 'navigation',
@@ -107,8 +107,8 @@ export default function CommandPalette({
     },
     {
       id: 'nav-ai-assistant',
-      name: t('nav.aiAssistant', 'AI 助手'),
-      description: t('command.goToAI', '前往 AI 助手頁面'),
+      name: t('nav.aiAssistant'),
+      description: t('command.goToAI'),
       shortcut: 'G A',
       icon: <RobotOutlined />,
       category: 'navigation',
@@ -117,8 +117,8 @@ export default function CommandPalette({
     },
     {
       id: 'nav-ai-settings',
-      name: t('nav.aiSettings', 'AI 設定'),
-      description: t('command.goToAISettings', '前往 AI 設定頁面'),
+      name: t('nav.aiSettings'),
+      description: t('command.goToAISettings'),
       icon: <SettingOutlined />,
       category: 'settings',
       action: () => navigate('/settings/ai'),
@@ -127,8 +127,8 @@ export default function CommandPalette({
     // Editor commands (only if callbacks provided)
     ...(onSave ? [{
       id: 'editor-save',
-      name: t('common.save', '儲存'),
-      description: t('command.saveFlow', '儲存當前流程'),
+      name: t('common.save'),
+      description: t('command.saveFlow'),
       shortcut: '⌘ S',
       icon: <SaveOutlined />,
       category: 'editor' as const,
@@ -137,8 +137,8 @@ export default function CommandPalette({
     }] : []),
     ...(onPublish ? [{
       id: 'editor-publish',
-      name: t('flow.publishVersion', '發布'),
-      description: t('command.publishFlow', '發布當前流程版本'),
+      name: t('flow.publishVersion'),
+      description: t('command.publishFlow'),
       shortcut: '⌘ ⇧ P',
       icon: <CloudUploadOutlined />,
       category: 'editor' as const,
@@ -147,8 +147,8 @@ export default function CommandPalette({
     }] : []),
     ...(onAddNode ? [{
       id: 'editor-add-node',
-      name: t('flow.addNode', '新增節點'),
-      description: t('command.addNode', '新增一個新節點'),
+      name: t('flow.addNode'),
+      description: t('command.addNode'),
       shortcut: 'N',
       icon: <PlusOutlined />,
       category: 'editor' as const,
@@ -158,8 +158,8 @@ export default function CommandPalette({
     // Execution
     ...(onExecute ? [{
       id: 'execution-run',
-      name: t('flow.execute', '執行'),
-      description: t('command.executeFlow', '執行當前流程'),
+      name: t('flow.execute'),
+      description: t('command.executeFlow'),
       shortcut: '⌘ Enter',
       icon: <PlayCircleOutlined />,
       category: 'execution' as const,
@@ -250,11 +250,11 @@ export default function CommandPalette({
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #334155' }}>
         <Input
           autoFocus
-          placeholder={t('command.placeholder', '輸入命令...')}
+          placeholder={t('command.placeholder')}
           prefix={<SearchOutlined style={{ color: '#64748B' }} />}
           suffix={
             <Text type="secondary" style={{ fontSize: 12 }}>
-              ESC 關閉
+              {t('command.escClose')}
             </Text>
           }
           value={searchValue}
@@ -270,7 +270,7 @@ export default function CommandPalette({
         {filteredCommands.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t('command.noResults', '找不到相關命令')}
+            description={t('command.noResults')}
             style={{ margin: '24px 0' }}
           />
         ) : (
@@ -344,15 +344,15 @@ export default function CommandPalette({
       >
         <Space size="large">
           <Text type="secondary" style={{ fontSize: 11 }}>
-            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>↑↓</kbd> 導航
+            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>↑↓</kbd> {t('command.navigate')}
           </Text>
           <Text type="secondary" style={{ fontSize: 11 }}>
-            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>Enter</kbd> 執行
+            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>Enter</kbd> {t('command.execute')}
           </Text>
         </Space>
         <Text type="secondary" style={{ fontSize: 11 }}>
           <ThunderboltOutlined style={{ marginRight: 4 }} />
-          快速操作
+          {t('command.quickActions')}
         </Text>
       </div>
     </Modal>

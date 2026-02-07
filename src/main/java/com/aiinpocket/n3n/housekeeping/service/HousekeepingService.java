@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.housekeeping.service;
 
+import com.aiinpocket.n3n.activity.repository.UserActivityRepository;
 import com.aiinpocket.n3n.common.logging.LogContext;
 import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.entity.NodeExecution;
@@ -47,6 +48,7 @@ public class HousekeepingService {
     private final ExecutionHistoryRepository executionHistoryRepository;
     private final NodeExecutionHistoryRepository nodeExecutionHistoryRepository;
     private final HousekeepingJobRepository jobRepository;
+    private final UserActivityRepository userActivityRepository;
 
     /**
      * Scheduled cleanup job.
@@ -137,6 +139,12 @@ public class HousekeepingService {
             if (properties.getHistoryRetentionDays() > 0) {
                 int historyDeleted = cleanupOldHistory();
                 log.info("HOUSEKEEPING_HISTORY deleted={}", historyDeleted);
+            }
+
+            // Cleanup old activity logs
+            if (properties.getActivityRetentionDays() > 0) {
+                int activityDeleted = cleanupOldActivities();
+                log.info("HOUSEKEEPING_ACTIVITIES deleted={}", activityDeleted);
             }
 
             // Update job
@@ -280,6 +288,21 @@ public class HousekeepingService {
     }
 
     /**
+     * Cleanup old activity log records.
+     */
+    @Transactional
+    public int cleanupOldActivities() {
+        if (properties.getActivityRetentionDays() <= 0) {
+            return 0;
+        }
+
+        Instant cutoffDate = Instant.now().minus(properties.getActivityRetentionDays(), ChronoUnit.DAYS);
+        log.info("CLEANUP_ACTIVITIES cutoffDate={}", cutoffDate);
+
+        return userActivityRepository.deleteByCreatedAtBefore(cutoffDate);
+    }
+
+    /**
      * Get cleanup statistics.
      */
     public Map<String, Object> getStatistics() {
@@ -293,6 +316,7 @@ public class HousekeepingService {
         stats.put("retentionDays", properties.getRetentionDays());
         stats.put("archiveToHistory", properties.isArchiveToHistory());
         stats.put("historyRetentionDays", properties.getHistoryRetentionDays());
+        stats.put("activityRetentionDays", properties.getActivityRetentionDays());
 
         // Last job
         jobRepository.findFirstByJobTypeOrderByStartedAtDesc("execution_cleanup")

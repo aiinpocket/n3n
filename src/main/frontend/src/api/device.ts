@@ -58,7 +58,7 @@ export interface DownloadInfo {
  * Initiate a new pairing session
  */
 export async function initiatePairing(): Promise<PairingInitiation> {
-  const response = await apiClient.post<PairingInitiation>('/agent/pair/initiate')
+  const response = await apiClient.post<PairingInitiation>('/agents/tokens/json')
   return response.data
 }
 
@@ -66,8 +66,8 @@ export async function initiatePairing(): Promise<PairingInitiation> {
  * List all paired devices
  */
 export async function listDevices(): Promise<Device[]> {
-  const response = await apiClient.get<{ devices: Device[] }>('/agent/devices')
-  return response.data.devices
+  const response = await apiClient.get<{ registrations: Device[] }>('/agents/registrations')
+  return response.data.registrations || []
 }
 
 /**
@@ -77,21 +77,22 @@ export async function updateDevice(
   deviceId: string,
   update: DeviceUpdateRequest
 ): Promise<void> {
-  await apiClient.put(`/agent/devices/${deviceId}`, update)
+  await apiClient.put(`/agents/${deviceId}`, update)
 }
 
 /**
  * Unpair a device
  */
 export async function unpairDevice(deviceId: string): Promise<void> {
-  await apiClient.delete(`/agent/devices/${deviceId}`)
+  await apiClient.delete(`/agents/${deviceId}`)
 }
 
 /**
  * Revoke all devices
  */
 export async function revokeAllDevices(): Promise<void> {
-  await apiClient.post('/agent/devices/revoke-all')
+  // Revoke all is not directly supported - will need backend endpoint
+  await apiClient.post('/agents/revoke-all')
 }
 
 /**

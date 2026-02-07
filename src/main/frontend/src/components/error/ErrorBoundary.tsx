@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
 import ErrorFallback from './ErrorFallback'
+import logger from '../../utils/logger'
 
 interface Props {
   children: ReactNode
@@ -27,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo })
     this.props.onError?.(error, errorInfo)
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    logger.error('ErrorBoundary caught an error:', error, errorInfo)
   }
 
   private handleReset = () => {

@@ -45,4 +45,10 @@ public class HousekeepingProperties {
      * 0 means keep forever.
      */
     private int historyRetentionDays = 365;
+
+    /**
+     * Number of days to retain activity log records.
+     * Default: 90 days. 0 means keep forever.
+     */
+    private int activityRetentionDays = 90;
 }

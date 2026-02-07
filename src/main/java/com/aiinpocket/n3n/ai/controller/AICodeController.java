@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -32,7 +33,7 @@ public class AICodeController {
      */
     @PostMapping("/generate")
     public ResponseEntity<GenerateCodeResponse> generateCode(
-            @RequestBody GenerateCodeRequest request,
+            @Valid @RequestBody GenerateCodeRequest request,
             @AuthenticationPrincipal User user) {
 
         log.info("Code generation request: language={}, description length={}",

@@ -21,11 +21,17 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
 
     Page<Plugin> findByCategory(String category, Pageable pageable);
 
-    @Query("SELECT p FROM Plugin p WHERE " +
-            "(:category IS NULL OR p.category = :category) AND " +
-            "(:pricing IS NULL OR p.pricing = :pricing) AND " +
-            "(:query IS NULL OR LOWER(p.displayName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))")
+    @Query(value = "SELECT * FROM plugins p WHERE " +
+            "(CAST(:category AS TEXT) IS NULL OR p.category = CAST(:category AS TEXT)) AND " +
+            "(CAST(:pricing AS TEXT) IS NULL OR p.pricing = CAST(:pricing AS TEXT)) AND " +
+            "(CAST(:query AS TEXT) IS NULL OR LOWER(p.display_name) LIKE LOWER('%' || CAST(:query AS TEXT) || '%') OR " +
+            "LOWER(p.description) LIKE LOWER('%' || CAST(:query AS TEXT) || '%'))",
+            countQuery = "SELECT COUNT(*) FROM plugins p WHERE " +
+            "(CAST(:category AS TEXT) IS NULL OR p.category = CAST(:category AS TEXT)) AND " +
+            "(CAST(:pricing AS TEXT) IS NULL OR p.pricing = CAST(:pricing AS TEXT)) AND " +
+            "(CAST(:query AS TEXT) IS NULL OR LOWER(p.display_name) LIKE LOWER('%' || CAST(:query AS TEXT) || '%') OR " +
+            "LOWER(p.description) LIKE LOWER('%' || CAST(:query AS TEXT) || '%'))",
+            nativeQuery = true)
     Page<Plugin> searchPlugins(
             @Param("category") String category,
             @Param("pricing") String pricing,
@@ -35,6 +41,6 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
     @Query("SELECT DISTINCT p.category FROM Plugin p ORDER BY p.category")
     List<String> findAllCategories();
 
-    @Query(value = "SELECT * FROM plugins WHERE :tag = ANY(tags)", nativeQuery = true)
+    @Query(value = "SELECT * FROM plugins WHERE CAST(:tag AS TEXT) = ANY(tags)", nativeQuery = true)
     List<Plugin> findByTag(@Param("tag") String tag);
 }

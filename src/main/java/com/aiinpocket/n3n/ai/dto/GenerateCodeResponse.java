@@ -64,7 +64,7 @@ public class GenerateCodeResponse {
         return GenerateCodeResponse.builder()
             .success(false)
             .aiAvailable(false)
-            .error("AI 服務目前不可用，請檢查 AI Provider 設定")
+            .error("AI service currently unavailable, please check AI Provider settings")
             .build();
     }
 

@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import logger from '../utils/logger'
 
 // Web Speech API 類型定義
 interface SpeechRecognitionEvent extends Event {
@@ -101,6 +103,7 @@ export function useSpeechRecognition(
     onEnd,
   } = options
 
+  const { t } = useTranslation()
   const [isSupported, setIsSupported] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -157,26 +160,26 @@ export function useSpeechRecognition(
     }
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      let errorMessage = '語音識別錯誤'
+      let errorMessage = t('speech.error')
 
       switch (event.error) {
         case 'no-speech':
-          errorMessage = '未偵測到語音，請再試一次'
+          errorMessage = t('speech.noSpeech')
           break
         case 'audio-capture':
-          errorMessage = '無法存取麥克風，請檢查權限設定'
+          errorMessage = t('speech.audioCapture')
           break
         case 'not-allowed':
-          errorMessage = '麥克風權限被拒絕，請在瀏覽器設定中允許存取'
+          errorMessage = t('speech.notAllowed')
           break
         case 'network':
-          errorMessage = '網路連線問題，請檢查網路'
+          errorMessage = t('speech.network')
           break
         case 'aborted':
-          errorMessage = '語音識別被中斷'
+          errorMessage = t('speech.aborted')
           break
         default:
-          errorMessage = `語音識別錯誤: ${event.error}`
+          errorMessage = t('speech.errorWithCode', { code: event.error })
       }
 
       setError(errorMessage)
@@ -191,12 +194,12 @@ export function useSpeechRecognition(
     }
 
     return recognition
-  }, [lang, continuous, interimResults, onResult, onError, onEnd])
+  }, [lang, continuous, interimResults, onResult, onError, onEnd, t])
 
   // 開始監聽
   const startListening = useCallback(() => {
     if (!isSupported) {
-      setError('您的瀏覽器不支援語音識別')
+      setError(t('speech.notSupported'))
       return
     }
 
@@ -204,7 +207,7 @@ export function useSpeechRecognition(
 
     const recognition = initRecognition()
     if (!recognition) {
-      setError('無法初始化語音識別')
+      setError(t('speech.initFailed'))
       return
     }
 
@@ -213,10 +216,10 @@ export function useSpeechRecognition(
     try {
       recognition.start()
     } catch (err) {
-      console.error('Failed to start speech recognition:', err)
-      setError('無法啟動語音識別')
+      logger.error('Failed to start speech recognition:', err)
+      setError(t('speech.startFailed'))
     }
-  }, [isSupported, isListening, initRecognition])
+  }, [isSupported, isListening, initRecognition, t])
 
   // 停止監聽
   const stopListening = useCallback(() => {

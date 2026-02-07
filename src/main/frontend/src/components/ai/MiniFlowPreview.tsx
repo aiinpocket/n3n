@@ -12,6 +12,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { useTranslation } from 'react-i18next'
 import { getLayoutedElements } from '../../utils/autoLayout'
 import { getNodeConfig } from '../../config/nodeTypes'
 
@@ -40,6 +41,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
   edges,
   height = 250,
 }) => {
+  const { t } = useTranslation()
   const { layoutedNodes, layoutedEdges } = useMemo(() => {
     // Convert to React Flow format
     const rfNodes: Node[] = nodes.map((node) => {
@@ -49,7 +51,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
         type: 'default',
         position: { x: 0, y: 0 },
         data: {
-          label: node.label || nodeConfig?.label || node.type,
+          label: node.label || (nodeConfig?.label ? t(nodeConfig.label) : node.type),
         },
         style: {
           backgroundColor: nodeConfig?.color || '#1890ff',
@@ -90,7 +92,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
     )
 
     return { layoutedNodes, layoutedEdges }
-  }, [nodes, edges])
+  }, [nodes, edges, t])
 
   if (nodes.length === 0) {
     return (
@@ -105,7 +107,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
           color: '#999',
         }}
       >
-        無節點可預覽
+        {t('diff.noNodesToPreview')}
       </div>
     )
   }

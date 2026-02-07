@@ -145,7 +145,7 @@ public class AiProviderController {
      */
     @PostMapping("/models")
     public ResponseEntity<List<AiModelResponse>> fetchModelsWithKey(
-            @RequestBody FetchModelsRequest request) {
+            @Valid @RequestBody FetchModelsRequest request) {
         return ResponseEntity.ok(providerService.fetchModelsWithKey(
                 request.provider(),
                 request.apiKey(),

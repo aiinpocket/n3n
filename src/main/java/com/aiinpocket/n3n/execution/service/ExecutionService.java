@@ -47,9 +47,26 @@ public class ExecutionService {
     private final CredentialService credentialService;
     private final ActivityService activityService;
 
-    public Page<ExecutionResponse> listExecutions(Pageable pageable) {
-        return executionRepository.findAllByOrderByStartedAtDesc(pageable)
+    public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
+        return executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)
             .map(e -> enrichExecution(e));
+    }
+
+    public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable, String status, String search) {
+        boolean hasStatus = status != null && !status.isBlank();
+        boolean hasSearch = search != null && !search.isBlank();
+
+        Page<Execution> page;
+        if (hasStatus && hasSearch) {
+            page = executionRepository.findByUserAndStatusAndFlowNameContaining(userId, status, search, pageable);
+        } else if (hasStatus) {
+            page = executionRepository.findByTriggeredByAndStatusOrderByStartedAtDesc(userId, status, pageable);
+        } else if (hasSearch) {
+            page = executionRepository.findByUserAndFlowNameContaining(userId, search, pageable);
+        } else {
+            page = executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable);
+        }
+        return page.map(e -> enrichExecution(e));
     }
 
     public Page<ExecutionResponse> listExecutionsByFlow(UUID flowId, Pageable pageable) {
@@ -69,16 +86,38 @@ public class ExecutionService {
             .map(e -> enrichExecution(e));
     }
 
-    public ExecutionResponse getExecution(UUID id) {
+    private Execution findExecutionWithOwnerCheck(UUID id, UUID userId) {
         Execution execution = executionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + id));
+        if (!execution.getTriggeredBy().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+        return execution;
+    }
+
+    public ExecutionResponse getExecution(UUID id, UUID userId) {
+        Execution execution = findExecutionWithOwnerCheck(id, userId);
         return enrichExecution(execution);
     }
 
-    public List<NodeExecutionResponse> getNodeExecutions(UUID executionId) {
-        if (!executionRepository.existsById(executionId)) {
-            throw new ResourceNotFoundException("Execution not found: " + executionId);
-        }
+    @Transactional
+    public void deleteExecution(UUID id, UUID userId) {
+        Execution execution = findExecutionWithOwnerCheck(id, userId);
+        nodeExecutionRepository.deleteByExecutionId(id);
+        executionRepository.delete(execution);
+    }
+
+    public Map<String, Object> getNodeData(UUID executionId, String nodeId, UUID userId) {
+        findExecutionWithOwnerCheck(executionId, userId);
+        Map<String, Object> output = stateManager.getNodeOutput(executionId, nodeId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("input", Map.of());  // Input is derived from upstream outputs
+        result.put("output", output != null ? output : Map.of());
+        return result;
+    }
+
+    public List<NodeExecutionResponse> getNodeExecutions(UUID executionId, UUID userId) {
+        findExecutionWithOwnerCheck(executionId, userId);
         return nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(executionId)
             .stream()
             .map(NodeExecutionResponse::from)
@@ -97,8 +136,15 @@ public class ExecutionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + request.getVersion()));
         } else {
             // Use published version
+            // Try published version first, then latest version
             version = flowVersionRepository.findByFlowIdAndStatus(flow.getId(), "published")
-                .orElseThrow(() -> new IllegalArgumentException("No published version available for flow: " + flow.getName()));
+                .orElseGet(() -> {
+                    List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flow.getId());
+                    if (versions.isEmpty()) {
+                        throw new ResourceNotFoundException("No version available for flow: " + flow.getName());
+                    }
+                    return versions.get(0);
+                });
         }
 
         // Validate DAG
@@ -139,9 +185,33 @@ public class ExecutionService {
     }
 
     @Transactional
+    public ExecutionResponse pauseExecution(UUID id, UUID userId, String reason) {
+        Execution execution = findExecutionWithOwnerCheck(id, userId);
+
+        if (!"running".equals(execution.getStatus())) {
+            throw new IllegalArgumentException("Cannot pause execution in status: " + execution.getStatus());
+        }
+
+        execution.setStatus("waiting");
+        execution.setPausedAt(Instant.now());
+        execution.setPauseReason(reason != null ? reason : "Manually paused by user");
+        execution = executionRepository.save(execution);
+
+        stateManager.updateExecutionStatus(id, "waiting");
+        notificationService.notifyExecutionWaiting(id, null, execution.getPauseReason(), null);
+
+        LogContext.setExecutionContext(id, null, null);
+        log.info("EXECUTION_PAUSED reason={}", reason);
+        LogContext.clearExecutionContext();
+
+        activityService.logExecutionPause(userId, id, null, execution.getPauseReason());
+
+        return enrichExecution(execution);
+    }
+
+    @Transactional
     public ExecutionResponse cancelExecution(UUID id, UUID userId, String reason) {
-        Execution execution = executionRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + id));
+        Execution execution = findExecutionWithOwnerCheck(id, userId);
 
         if (!"running".equals(execution.getStatus()) && !"pending".equals(execution.getStatus()) && !"waiting".equals(execution.getStatus())) {
             throw new IllegalArgumentException("Cannot cancel execution in status: " + execution.getStatus());
@@ -170,17 +240,14 @@ public class ExecutionService {
         return enrichExecution(execution);
     }
 
-    public Map<String, Object> getExecutionOutput(UUID executionId) {
-        if (!executionRepository.existsById(executionId)) {
-            throw new ResourceNotFoundException("Execution not found: " + executionId);
-        }
+    public Map<String, Object> getExecutionOutput(UUID executionId, UUID userId) {
+        findExecutionWithOwnerCheck(executionId, userId);
         return stateManager.getExecutionOutput(executionId);
     }
 
     @Transactional
     public ExecutionResponse retryExecution(UUID originalExecutionId, UUID userId) {
-        Execution original = executionRepository.findById(originalExecutionId)
-            .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + originalExecutionId));
+        Execution original = findExecutionWithOwnerCheck(originalExecutionId, userId);
 
         // Can only retry failed or cancelled executions
         if (!"failed".equals(original.getStatus()) && !"cancelled".equals(original.getStatus())) {
@@ -242,17 +309,18 @@ public class ExecutionService {
         }
     }
 
-    @Transactional
     public void runExecution(UUID executionId) {
         runExecution(executionId, null);
     }
 
     /**
      * Run or resume execution.
+     * Each repository.save() call uses its own implicit transaction.
+     * Removing @Transactional to avoid long-running transactions spanning entire flow execution.
+     *
      * @param executionId The execution ID
      * @param resumeData Optional resume data when resuming from waiting state
      */
-    @Transactional
     public void runExecution(UUID executionId, Map<String, Object> resumeData) {
         Execution execution = executionRepository.findById(executionId)
             .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { Modal, Form, Input, Switch, message } from 'antd'
 import { GlobalOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { updateDevice, type Device, type DeviceUpdateRequest } from '../../api/device'
 
 interface DeviceEditModalProps {
@@ -16,6 +17,7 @@ const DeviceEditModal: React.FC<DeviceEditModalProps> = ({
   onClose,
   onUpdated,
 }) => {
+  const { t } = useTranslation()
   const [form] = Form.useForm()
   const [loading, setLoading] = React.useState(false)
 
@@ -41,11 +43,11 @@ const DeviceEditModal: React.FC<DeviceEditModalProps> = ({
       }
 
       await updateDevice(device.deviceId, update)
-      message.success('設備設定已更新')
+      message.success(t('device.settingsUpdated'))
       onUpdated()
       onClose()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '更新失敗'
+      const errorMessage = err instanceof Error ? err.message : t('common.updateFailed')
       message.error(errorMessage)
     } finally {
       setLoading(false)

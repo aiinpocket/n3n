@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const handleSubmit = async (values: { email: string; password: string; name: string }) => {
     try {
       await register(values.email, values.password, values.name)
-      message.success(t('auth.loginSuccess'))
+      message.success(t('auth.registerSuccess'))
       navigate('/login')
     } catch {
       // Error is handled in store
@@ -95,7 +95,19 @@ export default function RegisterPage() {
               rules={[
                 { required: true, message: t('auth.passwordRequired') },
                 { min: 8, message: t('auth.passwordMinLength') },
+                {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve()
+                    let criteria = 0
+                    if (/[A-Z]/.test(value)) criteria++
+                    if (/[a-z]/.test(value)) criteria++
+                    if (/\d/.test(value)) criteria++
+                    if (/[^a-zA-Z0-9]/.test(value)) criteria++
+                    return criteria >= 3 ? Promise.resolve() : Promise.reject(new Error(t('auth.passwordComplexity')))
+                  },
+                },
               ]}
+              extra={<Text type="secondary" style={{ fontSize: 12 }}>{t('auth.passwordHint')}</Text>}
             >
               <Input.Password
                 prefix={<LockOutlined />}

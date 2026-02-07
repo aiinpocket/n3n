@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.optimizer.service.FlowOptimizerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,7 +23,7 @@ public class FlowOptimizerController {
 
     @PostMapping("/analyze")
     public ResponseEntity<FlowOptimizationResponse> analyzeFlow(
-            @RequestBody FlowOptimizationRequest request) {
+            @Valid @RequestBody FlowOptimizationRequest request) {
         FlowOptimizationResponse response = flowOptimizerService.analyzeFlow(request.getDefinition());
         return ResponseEntity.ok(response);
     }

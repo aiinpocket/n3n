@@ -150,21 +150,21 @@ export default function MonitoringPage() {
               <Statistic
                 title={t('monitoring.flows.running')}
                 value={flowStats?.running ?? '-'}
-                valueStyle={{ color: '#6366F1' }}
+                valueStyle={{ color: 'var(--color-info)' }}
               />
             </Col>
             <Col xs={8} sm={6} md={4}>
               <Statistic
                 title={t('monitoring.flows.completed')}
                 value={flowStats?.completed ?? '-'}
-                valueStyle={{ color: '#22C55E' }}
+                valueStyle={{ color: 'var(--color-success)' }}
               />
             </Col>
             <Col xs={8} sm={6} md={4}>
               <Statistic
                 title={t('monitoring.flows.failed')}
                 value={flowStats?.failed ?? '-'}
-                valueStyle={{ color: '#EF4444' }}
+                valueStyle={{ color: 'var(--color-danger)' }}
               />
             </Col>
             <Col xs={8} sm={6} md={4}>

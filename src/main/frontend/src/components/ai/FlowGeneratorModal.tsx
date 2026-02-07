@@ -29,6 +29,7 @@ import {
   AudioOutlined,
   AudioMutedOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import type { GenerateFlowResponse } from '../../api/aiAssistant'
 import {
   installMissingNodes,
@@ -60,6 +61,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   onClose,
   onCreateFlow,
 }) => {
+  const { t, i18n } = useTranslation()
   const [step, setStep] = useState<Step>('input')
   const [userInput, setUserInput] = useState('')
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
@@ -96,7 +98,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     startListening,
     stopListening,
   } = useSpeechRecognition({
-    lang: 'zh-TW',
+    lang: i18n.language || 'zh-TW',
     continuous: true,
     onResult: (text, isFinal) => {
       if (isFinal) {
@@ -150,9 +152,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         const completed = updatedTasks.filter((t) => t.status === 'COMPLETED').length
         const failed = updatedTasks.filter((t) => t.status === 'FAILED').length
         if (failed > 0) {
-          message.warning(`安裝完成: ${completed} 成功, ${failed} 失敗`)
+          message.warning(t('flowGenerator.installPartial', { completed, failed }))
         } else {
-          message.success(`已成功安裝 ${completed} 個元件`)
+          message.success(t('flowGenerator.installSuccess', { count: completed }))
         }
       }
     }, 2000)
@@ -172,11 +174,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         nodeType: result.missingNodes![i],
         status: 'PENDING' as const,
         progress: 0,
-        stage: '準備中...',
+        stage: t('flowGenerator.preparing'),
       }))
       setInstallTasks(initialTasks)
     } catch (err) {
-      message.error('啟動安裝失敗: ' + (err instanceof Error ? err.message : '未知錯誤'))
+      message.error(t('flowGenerator.installStartFailed') + ': ' + (err instanceof Error ? err.message : t('common.error')))
       setIsInstalling(false)
     }
   }
@@ -282,7 +284,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       )
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError(err instanceof Error ? err.message : '未知錯誤')
+        setError(err instanceof Error ? err.message : t('common.error'))
         setStep('error')
       }
     } finally {
@@ -326,9 +328,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStreamMissingNodes([])
 
     // 建構帶反饋的輸入
+    const originalLabel = t('aiAssistant.originalRequirement')
+    const feedbackLabel = t('aiAssistant.userFeedback')
+    const correctedLabel = t('aiAssistant.correctedUnderstanding')
     const feedbackInput = feedbackText.trim()
-      ? `原始需求：${userInput}\n\n用戶反饋：${feedbackText}\n\n修正後的理解：${editedUnderstanding || result?.understanding}`
-      : `原始需求：${userInput}\n\n修正後的理解：${editedUnderstanding}`
+      ? `${originalLabel}：${userInput}\n\n${feedbackLabel}：${feedbackText}\n\n${correctedLabel}：${editedUnderstanding || result?.understanding}`
+      : `${originalLabel}：${userInput}\n\n${correctedLabel}：${editedUnderstanding}`
 
     const controller = new AbortController()
     setAbortController(controller)
@@ -388,7 +393,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       )
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError(err instanceof Error ? err.message : '未知錯誤')
+        setError(err instanceof Error ? err.message : t('common.error'))
         setStep('error')
       }
     } finally {
@@ -404,7 +409,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
   const handleUseAsTemplate = async (flowId: string) => {
     // 載入流程作為模板
-    message.info('正在載入流程作為模板...')
+    message.info(t('flowGenerator.loadingTemplate'))
     // TODO: 實作載入流程定義並填入當前生成器
     handleSelectSimilarFlow(flowId)
   }
@@ -412,13 +417,13 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const renderInputStep = () => (
     <div>
       <Paragraph style={{ marginBottom: 16 }}>
-        用口語化的方式描述您想要建立的工作流程，AI 會幫您生成對應的節點和連線。
+        {t('flowGenerator.description')}
       </Paragraph>
 
       <div style={{ position: 'relative', marginBottom: 16 }}>
         <TextArea
           rows={6}
-          placeholder="例如：每天早上 9 點檢查 Gmail 是否有新郵件，如果有的話就發送通知到 Slack #general 頻道..."
+          placeholder={t('flowGenerator.placeholder')}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           style={{ paddingRight: isSpeechSupported ? 50 : undefined }}
@@ -437,7 +442,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               cursor: 'pointer',
               transition: 'all 200ms ease',
             }}
-            aria-label={isListening ? '停止語音輸入' : '開始語音輸入'}
+            aria-label={isListening ? t('flowGenerator.stopVoice') : t('flowGenerator.startVoice')}
             aria-pressed={isListening}
           />
         )}
@@ -463,7 +468,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               }}
               className="recording-indicator"
             >●</span>
-            錄音中...
+            {t('flowGenerator.recording')}
           </div>
         )}
       </div>
@@ -472,8 +477,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         type="info"
         showIcon
         icon={<RobotOutlined />}
-        message="提示"
-        description="描述越詳細，生成的流程越準確。您可以提到時間、條件、要連接的服務等。"
+        message={t('flowGenerator.tip')}
+        description={t('flowGenerator.tipDesc')}
       />
 
       {/* 類似流程推薦 */}
@@ -493,7 +498,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text strong>{streamStage || '準備中...'}</Text>
+            <Text strong>{streamStage || t('flowGenerator.preparing')}</Text>
             <Text type="secondary">{streamProgress}%</Text>
           </div>
           <Progress
@@ -528,7 +533,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           title={
             <Space>
               <LoadingOutlined />
-              <span>即時預覽 ({previewNodes.length} 節點)</span>
+              <span>{t('flowGenerator.livePreview')} ({previewNodes.length} {t('flowGenerator.nodes')})</span>
             </Space>
           }
           size="small"
@@ -562,7 +567,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             handleReset()
           }}
         >
-          取消生成
+          {t('flowGenerator.cancelGeneration')}
         </Button>
       </div>
     </div>
@@ -588,14 +593,14 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                 icon={<EditOutlined />}
                 onClick={handleStartEditUnderstanding}
               >
-                修正理解
+                {t('flowGenerator.editUnderstanding')}
               </Button>
             ) : null
           }
         >
           <Space direction="vertical" style={{ width: '100%' }}>
             <Text type="secondary">
-              <RobotOutlined /> AI 的理解：
+              <RobotOutlined /> {t('flowGenerator.aiUnderstanding')}：
             </Text>
 
             {isEditingUnderstanding ? (
@@ -604,14 +609,14 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   value={editedUnderstanding}
                   onChange={(e) => setEditedUnderstanding(e.target.value)}
                   rows={3}
-                  placeholder="編輯 AI 的理解..."
+                  placeholder={t('flowGenerator.editUnderstandingPlaceholder')}
                   style={{ marginBottom: 8 }}
                 />
                 <TextArea
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   rows={2}
-                  placeholder="這不是我要的，我想要的是... (選填反饋)"
+                  placeholder={t('flowGenerator.feedbackPlaceholder')}
                   style={{ marginBottom: 8 }}
                 />
                 <Space>
@@ -623,14 +628,14 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                     onClick={handleRegenerateWithFeedback}
                     disabled={!editedUnderstanding.trim() && !feedbackText.trim()}
                   >
-                    重新生成
+                    {t('flowGenerator.regenerate')}
                   </Button>
                   <Button
                     size="small"
                     onClick={handleCancelEditUnderstanding}
                     disabled={isRegenerating}
                   >
-                    取消
+                    {t('common.cancel')}
                   </Button>
                 </Space>
               </div>
@@ -644,14 +649,14 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   style={{ padding: 0, marginTop: 8, height: 'auto' }}
                   onClick={handleStartEditUnderstanding}
                 >
-                  這不是我要的
+                  {t('flowGenerator.notWhatIWant')}
                 </Button>
               </div>
             )}
           </Space>
         </Card>
 
-        <Card title="生成的流程預覽" size="small" style={{ marginBottom: 16 }}>
+        <Card title={t('flowGenerator.generatedPreview')} size="small" style={{ marginBottom: 16 }}>
           {/* Mini Flow Preview */}
           <MiniFlowPreview nodes={nodes} edges={edges} height={220} />
 
@@ -659,10 +664,10 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
             <Space split={<span style={{ color: '#d9d9d9' }}>|</span>}>
               <Text type="secondary">
-                節點: <Text strong>{nodes.length}</Text> 個
+                {t('flowGenerator.nodesLabel')}: <Text strong>{nodes.length}</Text> {t('flowGenerator.unit')}
               </Text>
               <Text type="secondary">
-                連線: <Text strong>{edges.length}</Text> 條
+                {t('flowGenerator.edgesLabel')}: <Text strong>{edges.length}</Text> {t('flowGenerator.edgeUnit')}
               </Text>
             </Space>
           </div>
@@ -675,11 +680,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             icon={installedNodes.size === missingNodes.length ?
               <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
             message={installedNodes.size === missingNodes.length ?
-              '所有元件已安裝完成' : '缺少部分節點'}
+              t('flowGenerator.allInstalled') : t('flowGenerator.missingNodes')}
             description={
               <div>
                 {installedNodes.size < missingNodes.length && (
-                  <Paragraph>以下節點類型尚未安裝，點擊「一鍵安裝」即可自動安裝：</Paragraph>
+                  <Paragraph>{t('flowGenerator.missingNodesDesc')}</Paragraph>
                 )}
                 <Space wrap style={{ marginBottom: 12 }}>
                   {missingNodes.map((node) => {
@@ -714,18 +719,18 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                         <List.Item.Meta
                           avatar={
                             task.status === 'COMPLETED' ? (
-                              <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+                              <CheckCircleOutlined style={{ color: 'var(--color-success)', fontSize: 16 }} />
                             ) : task.status === 'FAILED' ? (
-                              <CloseOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+                              <CloseOutlined style={{ color: 'var(--color-danger)', fontSize: 16 }} />
                             ) : (
                               <LoadingOutlined style={{ fontSize: 16 }} />
                             )
                           }
                           title={task.nodeType}
                           description={
-                            task.status === 'COMPLETED' ? '安裝完成' :
-                            task.status === 'FAILED' ? (task.error || '安裝失敗') :
-                            task.stage || '準備中...'
+                            task.status === 'COMPLETED' ? t('flowGenerator.installComplete') :
+                            task.status === 'FAILED' ? (task.error || t('flowGenerator.installFailed')) :
+                            task.stage || t('flowGenerator.preparing')
                           }
                         />
                         {!['COMPLETED', 'FAILED', 'CANCELLED'].includes(task.status) && (
@@ -745,7 +750,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                     onClick={handleInstallMissingNodes}
                     style={{ marginTop: 8 }}
                   >
-                    一鍵安裝缺失元件
+                    {t('flowGenerator.installMissing')}
                   </Button>
                 )}
               </div>
@@ -760,11 +765,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const renderErrorStep = () => (
     <Result
       status="warning"
-      title="生成失敗"
+      title={t('flowGenerator.generateFailed')}
       subTitle={error}
       extra={
         <Button type="primary" onClick={handleReset}>
-          重試
+          {t('error.retry')}
         </Button>
       }
     />
@@ -800,7 +805,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       title={
         <Space>
           <ThunderboltOutlined style={{ color: '#8B5CF6' }} />
-          <span>自然語言流程生成</span>
+          <span>{t('flowGenerator.title')}</span>
         </Space>
       }
       open={open}
@@ -809,29 +814,29 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       footer={
         step === 'input' ? (
           <Space>
-            <Button onClick={handleClose}>取消</Button>
+            <Button onClick={handleClose}>{t('common.cancel')}</Button>
             <Button
               type="primary"
               icon={<RobotOutlined />}
               onClick={handleGenerate}
               disabled={!userInput.trim()}
             >
-              開始生成
+              {t('flowGenerator.startGenerate')}
             </Button>
           </Space>
         ) : step === 'preview' ? (
           <Space>
-            <Button onClick={handleReset}>重新描述</Button>
+            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
             <Button
               type="primary"
               icon={<CheckCircleOutlined />}
               onClick={handleCreateFlow}
             >
-              建立此流程
+              {t('flowGenerator.createFlow')}
             </Button>
           </Space>
         ) : step === 'error' ? (
-          <Button onClick={handleClose}>關閉</Button>
+          <Button onClick={handleClose}>{t('common.close')}</Button>
         ) : null
       }
     >
@@ -840,9 +845,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         size="small"
         style={{ marginBottom: 24 }}
         items={[
-          { title: '描述需求' },
-          { title: 'AI 分析' },
-          { title: '確認建立' },
+          { title: t('flowGenerator.stepDescribe') },
+          { title: t('flowGenerator.stepAnalyze') },
+          { title: t('flowGenerator.stepConfirm') },
         ]}
       />
 

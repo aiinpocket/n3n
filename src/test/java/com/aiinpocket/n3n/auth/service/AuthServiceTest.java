@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.auth.service;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.auth.dto.request.LoginRequest;
 import com.aiinpocket.n3n.auth.dto.request.RegisterRequest;
 import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -44,6 +46,12 @@ class AuthServiceTest extends BaseServiceTest {
 
     @Mock
     private JwtService jwtService;
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ActivityService activityService;
 
     @InjectMocks
     private AuthService authService;

@@ -82,10 +82,10 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
   const getTypeName = () => {
     const names: Record<string, string> = {
-      parallel: t('aiAssistant.suggestion.parallel', '並行執行'),
-      merge: t('aiAssistant.suggestion.merge', '合併請求'),
-      remove: t('aiAssistant.suggestion.remove', '移除冗餘'),
-      reorder: t('aiAssistant.suggestion.reorder', '重新排序'),
+      parallel: t('aiAssistant.suggestion.parallel'),
+      merge: t('aiAssistant.suggestion.merge'),
+      remove: t('aiAssistant.suggestion.remove'),
+      reorder: t('aiAssistant.suggestion.reorder'),
     }
     return names[suggestion.type] || suggestion.type
   }
@@ -136,7 +136,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
       {/* Description */}
       <Paragraph
         style={{ marginBottom: 8, color: 'var(--color-text-secondary)' }}
-        ellipsis={{ rows: 2, expandable: true, symbol: t('common.more', '更多') }}
+        ellipsis={{ rows: 2, expandable: true, symbol: t('common.more') }}
       >
         {suggestion.description}
       </Paragraph>
@@ -161,7 +161,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
       {suggestion.affectedNodes.length > 0 && (
         <div style={{ marginBottom: 8 }}>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {t('aiAssistant.affectedNodes', '相關節點')}:
+            {t('aiAssistant.affectedNodes')}:
           </Text>
           <div style={{ marginTop: 4 }}>
             {suggestion.affectedNodes.slice(0, 5).map((nodeId) => (
@@ -186,8 +186,8 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           className={styles.buttonPress}
         >
           {selected
-            ? t('aiAssistant.selected', '已選擇')
-            : t('aiAssistant.applySuggestion', '套用此建議')}
+            ? t('aiAssistant.selected')
+            : t('aiAssistant.applySuggestion')}
         </Button>
 
         {/* Diff Preview */}
@@ -201,7 +201,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             title={
               <Space>
                 <DiffOutlined />
-                <span>{t('aiAssistant.changePreview', '變更預覽')}</span>
+                <span>{t('aiAssistant.changePreview')}</span>
               </Space>
             }
             trigger="hover"
@@ -209,20 +209,20 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             open={diffVisible}
             onOpenChange={setDiffVisible}
           >
-            <Tooltip title={t('aiAssistant.previewChanges', '預覽變更')}>
+            <Tooltip title={t('aiAssistant.previewChanges')}>
               <Button size="small" icon={<DiffOutlined />} />
             </Tooltip>
           </Popover>
         )}
 
         {onViewNodes && (
-          <Tooltip title={t('aiAssistant.viewNodes', '檢視相關節點')}>
+          <Tooltip title={t('aiAssistant.viewNodes')}>
             <Button size="small" icon={<EyeOutlined />} onClick={onViewNodes} />
           </Tooltip>
         )}
         {selected && (
           <Button size="small" icon={<CloseOutlined />} onClick={onToggle}>
-            {t('aiAssistant.deselect', '取消')}
+            {t('aiAssistant.deselect')}
           </Button>
         )}
 

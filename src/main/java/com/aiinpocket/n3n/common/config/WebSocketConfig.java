@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.common.config;
 
+import com.aiinpocket.n3n.auth.security.WebSocketAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

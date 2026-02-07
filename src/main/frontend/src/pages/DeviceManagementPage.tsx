@@ -26,6 +26,7 @@ import {
   AppleOutlined,
   WindowsOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import {
   listRegistrations,
   blockAgent,
@@ -40,6 +41,7 @@ import {
 const { Title, Text, Paragraph } = Typography
 
 const DeviceManagementPage: React.FC = () => {
+  const { t } = useTranslation()
   const [registrations, setRegistrations] = useState<AgentRegistration[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,12 +56,12 @@ const DeviceManagementPage: React.FC = () => {
       const regs = await listRegistrations()
       setRegistrations(regs)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '載入設備列表失敗'
+      const errorMessage = err instanceof Error ? err.message : t('device.loadFailed')
       setError(errorMessage)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchData()
@@ -73,7 +75,7 @@ const DeviceManagementPage: React.FC = () => {
       setInstallModalOpen(true)
       fetchData() // Refresh to show new pending registration
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '產生安裝命令失敗'
+      const errorMessage = err instanceof Error ? err.message : t('device.generateCommandFailed')
       message.error(errorMessage)
     } finally {
       setGeneratingCommand(false)
@@ -83,17 +85,17 @@ const DeviceManagementPage: React.FC = () => {
   const handleCopyCommand = () => {
     if (installCommand) {
       navigator.clipboard.writeText(installCommand)
-      message.success('已複製到剪貼簿')
+      message.success(t('device.copiedToClipboard'))
     }
   }
 
   const handleBlock = async (id: string) => {
     try {
       await blockAgent(id, 'Blocked by user')
-      message.success('Agent 已封鎖')
+      message.success(t('device.agentBlocked'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '封鎖失敗'
+      const errorMessage = err instanceof Error ? err.message : t('device.blockFailed')
       message.error(errorMessage)
     }
   }
@@ -101,10 +103,10 @@ const DeviceManagementPage: React.FC = () => {
   const handleUnblock = async (id: string) => {
     try {
       await unblockAgent(id)
-      message.success('Agent 已解除封鎖')
+      message.success(t('device.agentUnblocked'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '解除封鎖失敗'
+      const errorMessage = err instanceof Error ? err.message : t('device.unblockFailed')
       message.error(errorMessage)
     }
   }
@@ -112,17 +114,17 @@ const DeviceManagementPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteRegistration(id)
-      message.success('Agent 已刪除')
+      message.success(t('device.agentDeleted'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '刪除失敗'
+      const errorMessage = err instanceof Error ? err.message : t('device.deleteFailed')
       message.error(errorMessage)
     }
   }
 
   const columns: ColumnsType<AgentRegistration> = [
     {
-      title: '狀態',
+      title: t('device.status'),
       dataIndex: 'status',
       key: 'status',
       width: 100,
@@ -132,12 +134,12 @@ const DeviceManagementPage: React.FC = () => {
       },
     },
     {
-      title: '裝置名稱',
+      title: t('device.deviceName'),
       dataIndex: 'deviceName',
       key: 'deviceName',
       render: (name: string | null, record: AgentRegistration) => (
         <Space direction="vertical" size={0}>
-          <Text strong>{name || '(待註冊)'}</Text>
+          <Text strong>{name || t('device.pendingRegistration')}</Text>
           {record.platform && (
             <Text type="secondary" style={{ fontSize: 12 }}>
               {record.platform}
@@ -147,21 +149,21 @@ const DeviceManagementPage: React.FC = () => {
       ),
     },
     {
-      title: '建立時間',
+      title: t('device.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
       render: (time: number) => formatTime(time),
     },
     {
-      title: '最後活動',
+      title: t('device.lastActivity'),
       dataIndex: 'lastSeenAt',
       key: 'lastSeenAt',
       width: 180,
       render: (time: number | null) => formatTime(time),
     },
     {
-      title: '操作',
+      title: t('device.actions'),
       key: 'actions',
       width: 200,
       render: (_: unknown, record: AgentRegistration) => (
@@ -172,31 +174,31 @@ const DeviceManagementPage: React.FC = () => {
               icon={<CheckCircleOutlined />}
               onClick={() => handleUnblock(record.id)}
             >
-              解除封鎖
+              {t('device.unblock')}
             </Button>
           ) : record.status === 'REGISTERED' ? (
             <Popconfirm
-              title="封鎖此 Agent"
-              description="封鎖後此 Agent 將無法連線到平台"
+              title={t('device.blockConfirmTitle')}
+              description={t('device.blockConfirmDesc')}
               onConfirm={() => handleBlock(record.id)}
-              okText="確定"
-              cancelText="取消"
+              okText={t('common.ok')}
+              cancelText={t('common.cancel')}
             >
               <Button size="small" icon={<StopOutlined />} danger>
-                封鎖
+                {t('device.block')}
               </Button>
             </Popconfirm>
           ) : null}
           <Popconfirm
-            title="刪除此 Agent"
-            description="刪除後無法復原，需要重新產生 Token"
+            title={t('device.deleteConfirmTitle')}
+            description={t('device.deleteConfirmDesc')}
             onConfirm={() => handleDelete(record.id)}
-            okText="確定"
-            cancelText="取消"
+            okText={t('common.ok')}
+            cancelText={t('common.cancel')}
             okButtonProps={{ danger: true }}
           >
             <Button size="small" icon={<DeleteOutlined />} danger>
-              刪除
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -218,7 +220,7 @@ const DeviceManagementPage: React.FC = () => {
         <Alert
           type="error"
           message={error}
-          action={<Button onClick={fetchData}>重試</Button>}
+          action={<Button onClick={fetchData}>{t('error.retry')}</Button>}
         />
       )
     }
@@ -227,7 +229,7 @@ const DeviceManagementPage: React.FC = () => {
       return (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="尚未新增任何 Agent"
+          description={t('device.noAgents')}
         >
           <Button
             type="primary"
@@ -235,7 +237,7 @@ const DeviceManagementPage: React.FC = () => {
             onClick={handleGenerateInstallCommand}
             loading={generatingCommand}
           >
-            新增 Agent
+            {t('device.addAgent')}
           </Button>
         </Empty>
       )
@@ -254,22 +256,22 @@ const DeviceManagementPage: React.FC = () => {
   const tabItems = [
     {
       key: 'agents',
-      label: `Agent 列表 (${registrations.length})`,
+      label: `${t('device.agentList')} (${registrations.length})`,
       children: renderAgentList(),
     },
     {
       key: 'install',
-      label: '安裝說明',
+      label: t('device.installInstructions'),
       children: (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <Alert
             type="info"
-            message="一鍵安裝"
+            message={t('device.oneClickInstall')}
             description={
               <div>
-                <p>點擊「新增 Agent」按鈕，複製產生的安裝命令，在終端機貼上執行即可。</p>
+                <p>{t('device.oneClickInstallDesc')}</p>
                 <p style={{ marginBottom: 0 }}>
-                  <strong>macOS / Linux：</strong>打開「終端機」(Terminal)
+                  <strong>{t('device.macLinuxTerminal')}</strong>
                 </p>
               </div>
             }
@@ -288,7 +290,7 @@ const DeviceManagementPage: React.FC = () => {
                 loading={generatingCommand}
                 block
               >
-                產生安裝命令
+                {t('device.generateInstallCommand')}
               </Button>
             </Space>
           </Card>
@@ -309,15 +311,15 @@ const DeviceManagementPage: React.FC = () => {
       >
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            設備管理
+            {t('device.title')}
           </Title>
           <Paragraph type="secondary">
-            管理已連接的 Agent，或新增 Agent 到您的電腦
+            {t('device.subtitle')}
           </Paragraph>
         </div>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={fetchData}>
-            重新整理
+            {t('common.refresh')}
           </Button>
           <Button
             type="primary"
@@ -325,7 +327,7 @@ const DeviceManagementPage: React.FC = () => {
             onClick={handleGenerateInstallCommand}
             loading={generatingCommand}
           >
-            新增 Agent
+            {t('device.addAgent')}
           </Button>
         </Space>
       </div>
@@ -333,22 +335,22 @@ const DeviceManagementPage: React.FC = () => {
       <Tabs items={tabItems} />
 
       <Modal
-        title="安裝 N3N Agent"
+        title={t('device.installAgentTitle')}
         open={installModalOpen}
         onCancel={() => setInstallModalOpen(false)}
         footer={[
           <Button key="close" onClick={() => setInstallModalOpen(false)}>
-            關閉
+            {t('common.close')}
           </Button>,
           <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleCopyCommand}>
-            複製命令
+            {t('device.copyCommand')}
           </Button>,
         ]}
         width={600}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Paragraph>
-            在終端機 (Terminal) 中執行以下命令：
+            {t('device.runCommandInTerminal')}
           </Paragraph>
           <Input.TextArea
             value={installCommand || ''}
@@ -358,7 +360,7 @@ const DeviceManagementPage: React.FC = () => {
           />
           <Alert
             type="info"
-            message="安裝完成後，Agent 會自動連線到平台。重新整理此頁面可查看狀態。"
+            message={t('device.installCompleteHint')}
           />
         </Space>
       </Modal>

@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
+import com.aiinpocket.n3n.common.dto.BatchDeleteRequest;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -32,15 +34,23 @@ public class FlowController {
     @GetMapping
     public ResponseEntity<Page<FlowResponse>> listFlows(
             @RequestParam(required = false) String search,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
         if (search != null && !search.isEmpty()) {
-            return ResponseEntity.ok(flowService.searchFlows(search, pageable));
+            return ResponseEntity.ok(flowService.searchFlows(userId, search, pageable));
         }
-        return ResponseEntity.ok(flowService.listFlows(pageable));
+        return ResponseEntity.ok(flowService.listFlows(userId, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FlowResponse> getFlow(@PathVariable UUID id) {
+    public ResponseEntity<FlowResponse> getFlow(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(id, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.getFlow(id));
     }
 
@@ -60,6 +70,9 @@ public class FlowController {
             @Valid @RequestBody UpdateFlowRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasEditAccess(id, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         FlowResponse response = flowService.updateFlow(id, request);
         activityService.logFlowUpdate(userId, response.getId(), response.getName(), null);
         return ResponseEntity.ok(response);
@@ -70,11 +83,36 @@ public class FlowController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        // Get flow info before deleting for audit log
+        // Only owner can delete
         FlowResponse flow = flowService.getFlow(id);
+        if (!flow.getCreatedBy().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         flowService.deleteFlow(id);
         activityService.logFlowDelete(userId, id, flow.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/batch")
+    public ResponseEntity<java.util.Map<String, Object>> batchDeleteFlows(
+            @Valid @RequestBody BatchDeleteRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        List<UUID> ids = request.getIds();
+        int deleted = 0;
+        for (UUID id : ids) {
+            try {
+                FlowResponse flow = flowService.getFlow(id);
+                if (flow.getCreatedBy().equals(userId)) {
+                    flowService.deleteFlow(id);
+                    activityService.logFlowDelete(userId, id, flow.getName());
+                    deleted++;
+                }
+            } catch (Exception ignored) {
+                // Skip flows that don't exist or can't be deleted
+            }
+        }
+        return ResponseEntity.ok(java.util.Map.of("deleted", deleted, "total", ids.size()));
     }
 
     // Version endpoints
@@ -102,6 +140,9 @@ public class FlowController {
             @Valid @RequestBody SaveVersionRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasEditAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         FlowResponse flow = flowService.getFlow(flowId);
         FlowVersionResponse response = flowService.saveVersion(flowId, request, userId);
         activityService.logVersionCreate(userId, flowId, flow.getName(), response.getVersion());
@@ -238,7 +279,12 @@ public class FlowController {
     public ResponseEntity<Void> pinNodeData(
             @PathVariable UUID flowId,
             @PathVariable String version,
-            @Valid @RequestBody PinDataRequest request) {
+            @Valid @RequestBody PinDataRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasEditAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         flowService.pinNodeData(flowId, version, request);
         return ResponseEntity.ok().build();
     }
@@ -250,7 +296,12 @@ public class FlowController {
     public ResponseEntity<Void> unpinNodeData(
             @PathVariable UUID flowId,
             @PathVariable String version,
-            @PathVariable String nodeId) {
+            @PathVariable String nodeId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasEditAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         flowService.unpinNodeData(flowId, version, nodeId);
         return ResponseEntity.noContent().build();
     }

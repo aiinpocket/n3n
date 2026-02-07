@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,7 +61,7 @@ public class AgentPairingController {
      * This endpoint is unauthenticated - the pairing code serves as authentication
      */
     @PostMapping("/pair/complete")
-    public ResponseEntity<?> completePairing(@RequestBody PairCompleteRequest request) {
+    public ResponseEntity<?> completePairing(@Valid @RequestBody PairCompleteRequest request) {
         try {
             AgentPairingService.PairingRequest pairingRequest = new AgentPairingService.PairingRequest(
                 request.pairingCode(),
@@ -135,7 +136,7 @@ public class AgentPairingController {
     @PutMapping("/devices/{deviceId}")
     public ResponseEntity<?> updateDevice(
             @PathVariable String deviceId,
-            @RequestBody DeviceUpdateRequest request,
+            @Valid @RequestBody DeviceUpdateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {

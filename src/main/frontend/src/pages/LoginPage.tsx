@@ -7,9 +7,9 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 
 const { Title, Text } = Typography
 
-const REASON_MESSAGES: Record<string, string> = {
-  login_required: '請先登入後再繼續操作',
-  session_expired: '登入已過期，請重新登入',
+const REASON_KEYS: Record<string, string> = {
+  login_required: 'auth.loginRequired',
+  session_expired: 'auth.sessionExpired',
 }
 
 export default function LoginPage() {
@@ -20,7 +20,8 @@ export default function LoginPage() {
   const { t } = useTranslation()
 
   const reason = searchParams.get('reason')
-  const reasonMessage = reason ? REASON_MESSAGES[reason] : null
+  const reasonKey = reason ? REASON_KEYS[reason] : null
+  const reasonMessage = reasonKey ? t(reasonKey) : null
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
@@ -115,6 +116,12 @@ export default function LoginPage() {
               </Button>
             </Form.Item>
           </Form>
+
+          <div style={{ textAlign: 'center' }}>
+            <Link to="/reset-password" style={{ color: 'var(--color-primary)' }}>
+              {t('auth.forgotPassword')}
+            </Link>
+          </div>
 
           <div style={{ textAlign: 'center' }}>
             <Text style={{ color: 'var(--color-text-secondary)' }}>

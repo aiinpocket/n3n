@@ -25,6 +25,9 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, UUID
     Page<UserActivity> findByResourceTypeAndResourceIdOrderByCreatedAtDesc(
         String resourceType, UUID resourceId, Pageable pageable);
 
+    Page<UserActivity> findByUserIdAndResourceTypeAndResourceIdOrderByCreatedAtDesc(
+        UUID userId, String resourceType, UUID resourceId, Pageable pageable);
+
     List<UserActivity> findByUserIdAndCreatedAtAfter(UUID userId, Instant since);
 
     @Modifying

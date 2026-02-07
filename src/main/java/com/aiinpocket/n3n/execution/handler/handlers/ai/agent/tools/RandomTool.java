@@ -167,7 +167,7 @@ public class RandomTool implements AgentNodeTool {
                 String[] items = itemsStr.split(",");
                 yield items[random.nextInt(items.length)].trim();
             }
-            default -> throw new IllegalArgumentException("不支援的類型: " + type);
+            default -> throw new IllegalArgumentException("Unsupported type: " + type);
         };
     }
 

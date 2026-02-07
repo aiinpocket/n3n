@@ -26,4 +26,11 @@ public interface FlowRepository extends JpaRepository<Flow, UUID> {
            "(LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(f.description) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Flow> searchFlows(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT f FROM Flow f WHERE f.createdBy = :userId AND f.isDeleted = false AND " +
+           "(LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(f.description) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Flow> searchByCreatedByAndQuery(@Param("userId") UUID userId, @Param("query") String query, Pageable pageable);
+
+    long countByCreatedByAndIsDeletedFalse(UUID createdBy);
 }

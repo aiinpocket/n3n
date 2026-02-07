@@ -14,6 +14,8 @@ public interface ExternalServiceRepository extends JpaRepository<ExternalService
 
     Page<ExternalService> findByIsDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 
+    Page<ExternalService> findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(UUID createdBy, Pageable pageable);
+
     Optional<ExternalService> findByIdAndIsDeletedFalse(UUID id);
 
     Optional<ExternalService> findByNameAndIsDeletedFalse(String name);

@@ -7,13 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 /**
- * Gateway 設定 REST Controller
- * 只有管理員可以存取
+ * Gateway settings REST Controller.
+ * Admin access only.
  */
 @RestController
 @RequestMapping("/api/settings/gateway")
@@ -25,7 +26,7 @@ public class GatewaySettingsController {
     private final GatewaySettingsService gatewaySettingsService;
 
     /**
-     * 取得 Gateway 設定
+     * Get gateway settings
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,11 +36,11 @@ public class GatewaySettingsController {
     }
 
     /**
-     * 更新 Gateway 設定
+     * Update gateway settings
      */
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateSettings(@RequestBody UpdateSettingsRequest request) {
+    public ResponseEntity<?> updateSettings(@Valid @RequestBody UpdateSettingsRequest request) {
         try {
             GatewaySettings settings = gatewaySettingsService.updateSettings(
                 request.domain(),

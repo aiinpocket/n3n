@@ -1,5 +1,7 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import client from './client'
+import logger from '../utils/logger'
+import { useAuthStore } from '../stores/authStore'
 
 // Types
 export interface ChatStreamRequest {
@@ -30,18 +32,9 @@ export interface StreamCallbacks {
   onDone?: () => void
 }
 
-// Get auth token from localStorage
+// Get auth token from store
 const getAuthToken = (): string | null => {
-  const authData = localStorage.getItem('n3n-auth')
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData)
-      return parsed.state?.token || null
-    } catch {
-      return null
-    }
-  }
-  return null
+  return useAuthStore.getState().accessToken || null
 }
 
 /**
@@ -97,12 +90,12 @@ export async function chatStream(
             break
         }
       } catch (e) {
-        console.warn('Failed to parse SSE chunk:', e)
+        logger.warn('Failed to parse SSE chunk:', e)
       }
     },
 
     onerror: (error) => {
-      console.error('SSE error:', error)
+      logger.error('SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
       throw error
     },
@@ -274,12 +267,12 @@ export async function generateFlowStream(
             break
         }
       } catch (e) {
-        console.warn('Failed to parse flow generation SSE chunk:', e)
+        logger.warn('Failed to parse flow generation SSE chunk:', e)
       }
     },
 
     onerror: (error) => {
-      console.error('Flow generation SSE error:', error)
+      logger.error('Flow generation SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
       throw error
     },

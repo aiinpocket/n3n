@@ -171,7 +171,7 @@ public class AiRateLimiter {
         if (result == null || result.isEmpty()) {
             if (failClose) {
                 log.error("Rate limit check failed for user {} (Redis unavailable), denying request", userId);
-                throw new RateLimitExceededException("系統繁忙，請稍後再試");
+                throw new RateLimitExceededException("System busy, please try again later");
             }
             log.warn("Rate limit check failed for user {}, allowing request (fail-open mode)", userId);
             return;
@@ -184,7 +184,7 @@ public class AiRateLimiter {
         if (!allowed) {
             log.warn("Rate limit exceeded for user {}, reset in {}ms", userId, resetMs);
             throw new RateLimitExceededException(
-                String.format("請求頻率超過限制，請在 %d 秒後重試", resetMs / 1000 + 1)
+                String.format("Request rate limit exceeded, please try again in %d second(s)", resetMs / 1000 + 1)
             );
         }
 
@@ -224,7 +224,7 @@ public class AiRateLimiter {
         if (result == null || result.isEmpty()) {
             if (failClose) {
                 log.error("Token limit check failed for user {} (Redis unavailable), denying request", userId);
-                throw new RateLimitExceededException("系統繁忙，請稍後再試");
+                throw new RateLimitExceededException("System busy, please try again later");
             }
             log.warn("Token limit check failed for user {}, allowing request (fail-open mode)", userId);
             return;
@@ -238,7 +238,7 @@ public class AiRateLimiter {
             log.warn("Token limit exceeded for user {}, used {} tokens, reset in {}s",
                 userId, tokenCount, resetSeconds);
             throw new RateLimitExceededException(
-                String.format("Token 使用量超過限制，請在 %d 秒後重試", resetSeconds)
+                String.format("Token usage limit exceeded, please try again in %d second(s)", resetSeconds)
             );
         }
 

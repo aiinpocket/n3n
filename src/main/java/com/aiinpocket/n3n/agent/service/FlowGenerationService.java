@@ -59,7 +59,7 @@ public class FlowGenerationService {
             (List<Map<String, Object>>) flowDefinition.get("edges");
 
         if (nodes == null || nodes.isEmpty()) {
-            throw new IllegalArgumentException("流程定義必須包含至少一個節點");
+            throw new IllegalArgumentException("Flow definition must contain at least one node");
         }
 
         // 自動排版

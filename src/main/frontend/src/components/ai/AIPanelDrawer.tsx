@@ -29,6 +29,7 @@ import {
   ExportOutlined,
   ImportOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAIAssistantStore, type ChatMessage, type PendingChange, type FlowSnapshot } from '../../stores/aiAssistantStore'
 import { chatStream } from '../../api/aiAssistantStream'
 import ReactMarkdown from 'react-markdown'
@@ -48,6 +49,7 @@ export default function AIPanelDrawer({
   flowDefinition,
   onApplyFlowChanges,
 }: AIPanelDrawerProps) {
+  const { t } = useTranslation()
   const {
     isPanelOpen,
     panelWidth,
@@ -114,7 +116,7 @@ export default function AIPanelDrawer({
       if (importSession(content)) {
         setShowHistory(false)
       } else {
-        setError('匯入失敗：無效的對話格式')
+        setError(t('aiPanel.importFailed'))
       }
     }
     reader.readAsText(file)
@@ -179,7 +181,7 @@ export default function AIPanelDrawer({
               addPendingChange({
                 id: `change-${Date.now()}`,
                 type: 'modify_node',
-                description: '更新流程定義',
+                description: t('aiPanel.updateFlowDef'),
                 after: data.flowDefinition as Record<string, unknown>,
               })
             }
@@ -206,7 +208,7 @@ export default function AIPanelDrawer({
       )
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError((err as Error).message || '發送訊息失敗')
+        setError(err instanceof Error ? err.message : t('chat.sendFailed'))
       }
       finalizeStreaming()
     }
@@ -272,8 +274,7 @@ export default function AIPanelDrawer({
           {message.flowSnapshot && (
             <div className={styles.flowPreview}>
               <Tag color="purple">
-                流程: {message.flowSnapshot.nodes.length} 節點,{' '}
-                {message.flowSnapshot.edges.length} 連線
+                {t('aiPanel.flowSummary', { nodes: message.flowSnapshot.nodes.length, edges: message.flowSnapshot.edges.length })}
               </Tag>
             </div>
           )}
@@ -324,7 +325,7 @@ export default function AIPanelDrawer({
               label: (
                 <Space>
                   <Badge count={unappliedChanges.length} size="small" />
-                  <span>待確認的變更</span>
+                  <span>{t('aiPanel.pendingChanges')}</span>
                 </Space>
               ),
               children: (
@@ -335,7 +336,7 @@ export default function AIPanelDrawer({
                     renderItem={(change) => (
                       <List.Item
                         actions={[
-                          <Tooltip title="套用" key="apply">
+                          <Tooltip title={t('aiPanel.apply')} key="apply">
                             <Button
                               type="text"
                               size="small"
@@ -343,7 +344,7 @@ export default function AIPanelDrawer({
                               onClick={() => handleApplyChange(change)}
                             />
                           </Tooltip>,
-                          <Tooltip title="忽略" key="reject">
+                          <Tooltip title={t('aiPanel.ignore')} key="reject">
                             <Button
                               type="text"
                               size="small"
@@ -357,7 +358,7 @@ export default function AIPanelDrawer({
                         <List.Item.Meta
                           title={
                             <Tag color={getChangeTypeColor(change.type)}>
-                              {getChangeTypeLabel(change.type)}
+                              {t(`aiPanel.changeType.${changeTypeLabelKeys[change.type] || change.type}`)}
                             </Tag>
                           }
                           description={change.description}
@@ -368,14 +369,14 @@ export default function AIPanelDrawer({
                   <div style={{ marginTop: 8, textAlign: 'right' }}>
                     <Space>
                       <Button size="small" onClick={clearPendingChanges}>
-                        全部忽略
+                        {t('aiPanel.ignoreAll')}
                       </Button>
                       <Button
                         type="primary"
                         size="small"
                         onClick={handleApplyAllChanges}
                       >
-                        全部套用
+                        {t('aiPanel.applyAll')}
                       </Button>
                     </Space>
                   </div>
@@ -391,7 +392,7 @@ export default function AIPanelDrawer({
   const renderHistoryPanel = () => (
     <div className={styles.historyPanel}>
       <div className={styles.historyHeader}>
-        <Text strong>對話歷史</Text>
+        <Text strong>{t('aiPanel.conversationHistory')}</Text>
         <Button
           type="text"
           icon={<CloseOutlined />}
@@ -401,7 +402,7 @@ export default function AIPanelDrawer({
       <List
         size="small"
         dataSource={sessions}
-        locale={{ emptyText: '沒有歷史對話' }}
+        locale={{ emptyText: t('chat.noHistory') }}
         renderItem={(session) => (
           <List.Item
             className={`${styles.historyItem} ${
@@ -414,7 +415,7 @@ export default function AIPanelDrawer({
             actions={[
               <Popconfirm
                 key="delete"
-                title="確定要刪除這個對話嗎？"
+                title={t('aiPanel.deleteConfirm')}
                 onConfirm={(e) => {
                   e?.stopPropagation()
                   deleteSession(session.id)
@@ -432,7 +433,7 @@ export default function AIPanelDrawer({
           >
             <List.Item.Meta
               title={session.title}
-              description={`${session.messages.length} 則訊息`}
+              description={t('aiPanel.messageCount', { count: session.messages.length })}
             />
           </List.Item>
         )}
@@ -445,9 +446,9 @@ export default function AIPanelDrawer({
       title={
         <Space>
           <RobotOutlined />
-          <span>AI 助手</span>
+          <span>{t('aiPanel.title')}</span>
           {currentSession && (
-            <Tag>{currentSession.messages.length} 則訊息</Tag>
+            <Tag>{t('aiPanel.messageCount', { count: currentSession.messages.length })}</Tag>
           )}
         </Space>
       }
@@ -459,7 +460,7 @@ export default function AIPanelDrawer({
       className={styles.drawer}
       extra={
         <Space>
-          <Tooltip title="匯出對話">
+          <Tooltip title={t('aiPanel.exportConversation')}>
             <Button
               type="text"
               icon={<ExportOutlined />}
@@ -467,21 +468,21 @@ export default function AIPanelDrawer({
               disabled={!currentSession?.messages.length}
             />
           </Tooltip>
-          <Tooltip title="匯入對話">
+          <Tooltip title={t('aiPanel.importConversation')}>
             <Button
               type="text"
               icon={<ImportOutlined />}
               onClick={handleImport}
             />
           </Tooltip>
-          <Tooltip title="對話歷史">
+          <Tooltip title={t('aiPanel.conversationHistory')}>
             <Button
               type={showHistory ? 'primary' : 'text'}
               icon={<HistoryOutlined />}
               onClick={() => setShowHistory(!showHistory)}
             />
           </Tooltip>
-          <Tooltip title="新對話">
+          <Tooltip title={t('chat.newConversation')}>
             <Button
               type="text"
               icon={<PlusOutlined />}
@@ -511,36 +512,36 @@ export default function AIPanelDrawer({
                 <div className={styles.emptyState}>
                   <BulbOutlined style={{ fontSize: 48, color: '#8B5CF6' }} />
                   <Paragraph type="secondary" style={{ marginTop: 16 }}>
-                    你好！我是 N3N 流程助手。
+                    {t('aiPanel.greeting')}
                   </Paragraph>
                   <Paragraph type="secondary">
-                    我可以幫你：
+                    {t('aiPanel.canHelp')}
                   </Paragraph>
                   <ul className={styles.suggestions}>
-                    <li>建立新的工作流程</li>
-                    <li>搜尋可用的節點</li>
-                    <li>解釋和優化現有流程</li>
-                    <li>回答關於自動化的問題</li>
+                    <li>{t('aiPanel.helpCreate')}</li>
+                    <li>{t('aiPanel.helpSearch')}</li>
+                    <li>{t('aiPanel.helpExplain')}</li>
+                    <li>{t('aiPanel.helpAnswer')}</li>
                   </ul>
                   <div className={styles.quickActions}>
                     <Button
                       size="small"
-                      onClick={() => setInputValue('幫我建立一個每天發送報表的流程')}
+                      onClick={() => setInputValue(t('aiPanel.quickReport'))}
                     >
-                      建立報表流程
+                      {t('aiPanel.quickReportBtn')}
                     </Button>
                     <Button
                       size="small"
-                      onClick={() => setInputValue('有什麼節點可以發送通知？')}
+                      onClick={() => setInputValue(t('aiPanel.quickNotify'))}
                     >
-                      搜尋通知節點
+                      {t('aiPanel.quickNotifyBtn')}
                     </Button>
                     <Button
                       size="small"
-                      onClick={() => setInputValue('解釋這個流程的功能')}
+                      onClick={() => setInputValue(t('aiPanel.quickExplain'))}
                       disabled={!flowDefinition?.nodes.length}
                     >
-                      解釋流程
+                      {t('aiPanel.quickExplainBtn')}
                     </Button>
                   </div>
                 </div>
@@ -573,13 +574,13 @@ export default function AIPanelDrawer({
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="描述你想做的事情..."
+                placeholder={t('aiPanel.inputPlaceholder')}
                 autoSize={{ minRows: 2, maxRows: 6 }}
                 disabled={isStreaming}
               />
               <div className={styles.inputActions}>
                 <Text type="secondary" className={styles.hint}>
-                  Enter 發送，Shift+Enter 換行
+                  {t('aiPanel.inputHint')}
                 </Text>
                 <Space>
                   {isStreaming ? (
@@ -588,7 +589,7 @@ export default function AIPanelDrawer({
                       icon={<CloseOutlined />}
                       onClick={handleStopStreaming}
                     >
-                      停止
+                      {t('aiPanel.stop')}
                     </Button>
                   ) : (
                     <Button
@@ -597,7 +598,7 @@ export default function AIPanelDrawer({
                       onClick={handleSendMessage}
                       disabled={!inputValue.trim()}
                     >
-                      發送
+                      {t('chat.send')}
                     </Button>
                   )}
                 </Space>
@@ -621,12 +622,18 @@ function getChangeTypeColor(type: PendingChange['type']): string {
   return colors[type] || 'default'
 }
 
-function getChangeTypeLabel(type: PendingChange['type']): string {
-  const labels: Record<string, string> = {
-    add_node: '新增節點',
-    remove_node: '移除節點',
-    modify_node: '修改節點',
-    connect_nodes: '連接節點',
+const changeTypeLabelKeys: Record<string, string> = {
+  add_node: 'addNode',
+  remove_node: 'removeNode',
+  modify_node: 'modifyNode',
+  connect_nodes: 'connectNodes',
+}
+
+export function useChangeTypeLabel() {
+  const { t } = useTranslation()
+  return (type: PendingChange['type']): string => {
+    const key = changeTypeLabelKeys[type]
+    if (!key) return type
+    return t(`aiPanel.changeType.${key}`)
   }
-  return labels[type] || type
 }

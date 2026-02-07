@@ -205,7 +205,7 @@ public class AIAssistantService {
 
         try {
             if (request.getDefinition() == null) {
-                return ApplySuggestionsResponse.error("流程定義不可為空");
+                return ApplySuggestionsResponse.error("Flow definition cannot be null");
             }
 
             // Clone the definition to avoid modifying the original
@@ -244,7 +244,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Error applying suggestions", e);
-            return ApplySuggestionsResponse.error("套用建議時發生錯誤: " + e.getMessage());
+            return ApplySuggestionsResponse.error("Error applying suggestions: " + e.getMessage());
         }
     }
 

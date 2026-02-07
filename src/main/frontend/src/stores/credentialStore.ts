@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { credentialApi, Credential, CredentialType, CreateCredentialRequest, ConnectionTestResult, TestCredentialRequest } from '../api/credential'
+import { extractApiError } from '../utils/errorMessages'
 
 interface CredentialState {
   credentials: Credential[]
@@ -40,8 +41,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to fetch credentials'
-      set({ error: message, loading: false })
+      set({ error: extractApiError(error, 'Failed to fetch credentials'), loading: false })
     }
   },
 
@@ -50,8 +50,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
       const types = await credentialApi.listTypes()
       set({ credentialTypes: types })
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to fetch credential types'
-      set({ error: message })
+      set({ error: extractApiError(error, 'Failed to fetch credential types') })
     }
   },
 
@@ -66,8 +65,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
       })
       return credential
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to create credential'
-      set({ error: message, loading: false })
+      set({ error: extractApiError(error, 'Failed to create credential'), loading: false })
       throw error
     }
   },
@@ -82,8 +80,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to delete credential'
-      set({ error: message, loading: false })
+      set({ error: extractApiError(error, 'Failed to delete credential'), loading: false })
       throw error
     }
   },
@@ -92,10 +89,9 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
     try {
       return await credentialApi.test(id)
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to test credential'
       return {
         success: false,
-        message,
+        message: extractApiError(error, 'Failed to test credential'),
         latencyMs: 0,
         testedAt: new Date().toISOString()
       }
@@ -106,10 +102,9 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
     try {
       return await credentialApi.testUnsaved(request)
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to test connection'
       return {
         success: false,
-        message,
+        message: extractApiError(error, 'Failed to test connection'),
         latencyMs: 0,
         testedAt: new Date().toISOString()
       }

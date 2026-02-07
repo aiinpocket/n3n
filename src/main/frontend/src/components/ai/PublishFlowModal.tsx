@@ -24,6 +24,7 @@ import {
   type PublishAnalysisResponse,
   type OptimizationSuggestion,
 } from '../../api/aiAssistant'
+import logger from '../../utils/logger'
 
 const { Text, Paragraph, Title } = Typography
 
@@ -81,8 +82,8 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
         setSelectedSuggestions(new Set(highPriority))
       }
     } catch (err) {
-      console.error('Analysis failed:', err)
-      setError(t('aiAssistant.analyzeFailed', 'AI 分析失敗'))
+      logger.error('Analysis failed:', err)
+      setError(t('aiAssistant.analyzeFailed'))
       // Allow publishing even if analysis fails
       setStep('review')
     }
@@ -125,7 +126,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           suggestionIds: Array.from(selectedSuggestions),
         })
         message.success(
-          t('aiAssistant.suggestionsApplied', '已套用 {{count}} 項建議', {
+          t('aiAssistant.suggestionsApplied', {
             count: selectedSuggestions.size,
           })
         )
@@ -140,8 +141,8 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
         onClose()
       }, 1500)
     } catch (err) {
-      console.error('Publish failed:', err)
-      message.error(t('flow.publishFailed', '發布失敗'))
+      logger.error('Publish failed:', err)
+      message.error(t('flow.publishFailed'))
       setStep('review')
     } finally {
       setApplying(false)
@@ -157,8 +158,8 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
         onClose()
       }, 1500)
     } catch (err) {
-      console.error('Publish failed:', err)
-      message.error(t('flow.publishFailed', '發布失敗'))
+      logger.error('Publish failed:', err)
+      message.error(t('flow.publishFailed'))
       setStep('review')
     }
   }
@@ -189,7 +190,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       title={
         <Space>
           <RocketOutlined style={{ color: 'var(--color-primary)' }} />
-          <span>{t('flow.publish', '發布流程')}</span>
+          <span>{t('flow.publish')}</span>
         </Space>
       }
       open={open}
@@ -202,9 +203,9 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       <Steps
         current={getStepIndex()}
         items={[
-          { title: t('aiAssistant.analyzing', 'AI 分析') },
-          { title: t('aiAssistant.reviewSuggestions', '確認建議') },
-          { title: t('common.complete', '完成') },
+          { title: t('aiAssistant.analyzing') },
+          { title: t('aiAssistant.reviewSuggestions') },
+          { title: t('common.complete') },
         ]}
         style={{ marginBottom: 24 }}
       />
@@ -214,9 +215,9 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
         <div style={{ textAlign: 'center', padding: 40 }}>
           <Spin size="large" />
           <Paragraph style={{ marginTop: 16 }}>
-            {t('aiAssistant.analyzingFlow', '正在分析流程...')}
+            {t('aiAssistant.analyzingFlow')}
           </Paragraph>
-          <Text type="secondary">{t('aiAssistant.aiThinking', 'AI 正在思考優化建議')}</Text>
+          <Text type="secondary">{t('aiAssistant.aiThinking')}</Text>
         </div>
       )}
 
@@ -227,15 +228,15 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           <Card size="small" style={{ marginBottom: 16 }}>
             <Space split={<Divider type="vertical" />}>
               <span>
-                <Text type="secondary">{t('optimizer.nodes', '節點')}: </Text>
+                <Text type="secondary">{t('optimizer.nodes')}: </Text>
                 <Text strong>{analysis?.summary?.nodeCount || nodeCount}</Text>
               </span>
               <span>
-                <Text type="secondary">{t('optimizer.edges', '連線')}: </Text>
+                <Text type="secondary">{t('optimizer.edges')}: </Text>
                 <Text strong>{analysis?.summary?.edgeCount || edgeCount}</Text>
               </span>
               <span>
-                <Text type="secondary">{t('flow.version', '版本')}: </Text>
+                <Text type="secondary">{t('flow.version')}: </Text>
                 <Text strong>{version}</Text>
               </span>
             </Space>
@@ -246,7 +247,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
             <Alert
               type="warning"
               message={error}
-              description={t('aiAssistant.canStillPublish', '您仍可直接發布流程')}
+              description={t('aiAssistant.canStillPublish')}
               showIcon
               style={{ marginBottom: 16 }}
             />
@@ -256,8 +257,8 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           {analysis?.success && (!analysis.suggestions || analysis.suggestions.length === 0) && (
             <Alert
               type="success"
-              message={t('aiAssistant.noSuggestions', '沒有優化建議')}
-              description={t('aiAssistant.flowIsOptimal', '您的流程已經很優化了！')}
+              message={t('aiAssistant.noSuggestions')}
+              description={t('aiAssistant.flowIsOptimal')}
               icon={<CheckCircleOutlined />}
               showIcon
               style={{ marginBottom: 16 }}
@@ -269,7 +270,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
             <>
               <Alert
                 type="info"
-                message={t('aiAssistant.suggestionsFound', '發現 {{count}} 項優化建議', {
+                message={t('aiAssistant.suggestionsFound', {
                   count: analysis.suggestions.length,
                 })}
                 showIcon
@@ -279,7 +280,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
 
               {analysis.analysisTimeMs && (
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
-                  {t('aiAssistant.analysisTime', '分析耗時 {{time}} 秒', {
+                  {t('aiAssistant.analysisTime', {
                     time: (analysis.analysisTimeMs / 1000).toFixed(1),
                   })}
                 </Text>
@@ -304,10 +305,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
                   <Space>
                     <InfoCircleOutlined />
                     <span>
-                      {t(
-                        'aiAssistant.suggestionHint',
-                        '這些只是建議，您可以選擇套用、忽略，或直接發布。'
-                      )}
+                      {t('aiAssistant.suggestionHint')}
                     </span>
                   </Space>
                 }
@@ -321,7 +319,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <Button onClick={handleSkipAndPublish}>
-              {t('aiAssistant.skipAndPublish', '跳過建議，直接發布')}
+              {t('aiAssistant.skipAndPublish')}
             </Button>
             <Button
               type="primary"
@@ -330,10 +328,10 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
               icon={<RocketOutlined />}
             >
               {selectedSuggestions.size > 0
-                ? t('aiAssistant.applyAndPublish', '套用 {{count}} 項建議並發布', {
+                ? t('aiAssistant.applyAndPublish', {
                     count: selectedSuggestions.size,
                   })
-                : t('flow.publish', '發布')}
+                : t('flow.publish')}
             </Button>
           </div>
         </>
@@ -343,16 +341,16 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       {step === 'publishing' && (
         <div style={{ textAlign: 'center', padding: 40 }}>
           <Spin size="large" />
-          <Paragraph style={{ marginTop: 16 }}>{t('flow.publishing', '正在發布...')}</Paragraph>
+          <Paragraph style={{ marginTop: 16 }}>{t('flow.publishing')}</Paragraph>
         </div>
       )}
 
       {/* Complete state */}
       {step === 'complete' && (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
+          <CheckCircleOutlined style={{ fontSize: 64, color: 'var(--color-success)' }} />
           <Title level={3} style={{ marginTop: 16 }}>
-            {t('flow.publishSuccess', '發布成功！')}
+            {t('flow.publishSuccess')}
           </Title>
         </div>
       )}

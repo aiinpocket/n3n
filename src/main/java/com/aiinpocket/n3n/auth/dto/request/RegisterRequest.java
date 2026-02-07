@@ -14,18 +14,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 12, max = 128, message = "Password must be between 12 and 128 characters")
-    @Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{12,}$",
-        message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&)"
-    )
+    @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
     private String password;
 
     @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
-    @Pattern(
-        regexp = "^[\\p{L}\\p{M}\\s'-]+$",
-        message = "Name can only contain letters, spaces, hyphens, and apostrophes"
-    )
+    @Size(min = 1, max = 100, message = "Name must be between 1 and 100 characters")
     private String name;
 }

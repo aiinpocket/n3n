@@ -33,13 +33,19 @@ public class WebhookController {
     }
 
     @GetMapping("/flow/{flowId}")
-    public ResponseEntity<List<WebhookResponse>> listWebhooksForFlow(@PathVariable UUID flowId) {
-        return ResponseEntity.ok(webhookService.listWebhooksForFlow(flowId));
+    public ResponseEntity<List<WebhookResponse>> listWebhooksForFlow(
+            @PathVariable UUID flowId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(webhookService.listWebhooksForFlow(flowId, userId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WebhookResponse> getWebhook(@PathVariable UUID id) {
-        return ResponseEntity.ok(webhookService.getWebhook(id));
+    public ResponseEntity<WebhookResponse> getWebhook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(webhookService.getWebhook(id, userId));
     }
 
     @PostMapping
@@ -53,13 +59,19 @@ public class WebhookController {
     }
 
     @PostMapping("/{id}/activate")
-    public ResponseEntity<WebhookResponse> activateWebhook(@PathVariable UUID id) {
-        return ResponseEntity.ok(webhookService.activateWebhook(id));
+    public ResponseEntity<WebhookResponse> activateWebhook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(webhookService.activateWebhook(id, userId));
     }
 
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<WebhookResponse> deactivateWebhook(@PathVariable UUID id) {
-        return ResponseEntity.ok(webhookService.deactivateWebhook(id));
+    public ResponseEntity<WebhookResponse> deactivateWebhook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(webhookService.deactivateWebhook(id, userId));
     }
 
     @DeleteMapping("/{id}")
@@ -67,9 +79,8 @@ public class WebhookController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        // Get webhook info before deleting for audit log
-        WebhookResponse webhook = webhookService.getWebhook(id);
-        webhookService.deleteWebhook(id);
+        WebhookResponse webhook = webhookService.getWebhook(id, userId);
+        webhookService.deleteWebhook(id, userId);
         activityService.logActivity(userId, ActivityService.WEBHOOK_DELETE, "webhook", id, webhook.getPath(), null);
         return ResponseEntity.noContent().build();
     }

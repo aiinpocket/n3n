@@ -8,6 +8,7 @@ import {
   CheckCircleOutlined,
   RobotOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import styles from './AIThinkingIndicator.module.css'
 
 const { Text, Paragraph } = Typography
@@ -19,7 +20,7 @@ export interface ThinkingStage {
   description: string
 }
 
-// 預設的思考階段
+// 預設的思考階段 - use hook version below
 export const DEFAULT_STAGES: ThinkingStage[] = [
   {
     key: 'understanding',
@@ -61,13 +62,44 @@ interface Props {
  * 顯示 AI 處理過程中的階段性進度和思考過程
  */
 export const AIThinkingIndicator: React.FC<Props> = ({
-  stages = DEFAULT_STAGES,
+  stages: stagesProp,
   currentStage = 0,
   showProgress = true,
   showThoughts = true,
   thoughts = [],
   animated = true,
 }) => {
+  const { t } = useTranslation()
+
+  const translatedDefaultStages: ThinkingStage[] = useMemo(() => [
+    {
+      key: 'understanding',
+      label: t('aiThinking.understanding'),
+      icon: <BulbOutlined />,
+      description: t('aiThinking.understandingDesc'),
+    },
+    {
+      key: 'analyzing',
+      label: t('aiThinking.analyzing'),
+      icon: <SearchOutlined />,
+      description: t('aiThinking.analyzingDesc'),
+    },
+    {
+      key: 'designing',
+      label: t('aiThinking.designing'),
+      icon: <ToolOutlined />,
+      description: t('aiThinking.designingDesc'),
+    },
+    {
+      key: 'generating',
+      label: t('aiThinking.generating'),
+      icon: <CheckCircleOutlined />,
+      description: t('aiThinking.generatingDesc'),
+    },
+  ], [t])
+
+  const stages = stagesProp ?? translatedDefaultStages
+
   const [dots, setDots] = useState('.')
   const [visibleThoughts, setVisibleThoughts] = useState<string[]>([])
   const [typingThought, setTypingThought] = useState('')
@@ -119,7 +151,7 @@ export const AIThinkingIndicator: React.FC<Props> = ({
       role="status"
       aria-live="polite"
       aria-busy={currentStage < stages.length - 1}
-      aria-label={`AI 處理中：${currentStageData?.label} - ${currentStageData?.description}`}
+      aria-label={t('aiThinking.processing', { label: currentStageData?.label, description: currentStageData?.description })}
     >
       {/* 主要動畫區域 */}
       <div className={styles.mainArea}>
@@ -173,7 +205,7 @@ export const AIThinkingIndicator: React.FC<Props> = ({
       {showThoughts && (thoughts.length > 0 || visibleThoughts.length > 0) && (
         <div className={styles.thoughtsArea}>
           <Text type="secondary" className={styles.thoughtsTitle}>
-            <BulbOutlined /> AI 思考過程：
+            <BulbOutlined /> {t('aiThinking.thoughtProcess')}
           </Text>
           <div className={styles.thoughtsList}>
             {visibleThoughts.map((thought, index) => (

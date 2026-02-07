@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Drawer, Input, Tree, Tag, Empty, Spin, Space, Typography, Tooltip } from 'antd'
+import logger from '../../utils/logger'
+import { useTranslation } from 'react-i18next'
+import { Drawer, Input, Tree, Tag, Empty, Spin, Space, Typography, Tooltip, message } from 'antd'
 import { ApiOutlined, SearchOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
 import { serviceApi } from '../../api/service'
@@ -14,6 +16,7 @@ interface ServiceNodePanelProps {
 }
 
 export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: ServiceNodePanelProps) {
+  const { t } = useTranslation()
   const [services, setServices] = useState<ExternalService[]>([])
   const [endpoints, setEndpoints] = useState<Record<string, ServiceEndpoint[]>>({})
   const [loading, setLoading] = useState(false)
@@ -38,13 +41,15 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
         try {
           const eps = await serviceApi.getEndpoints(service.id)
           endpointsMap[service.id] = eps
-        } catch {
+        } catch (error) {
+          logger.warn(`Failed to load endpoints for service ${service.id}:`, error)
           endpointsMap[service.id] = []
         }
       }
       setEndpoints(endpointsMap)
     } catch (error) {
-      console.error('Failed to load services:', error)
+      logger.error('Failed to load services:', error)
+      message.error(t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -120,7 +125,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
       title={
         <Space>
           <ApiOutlined />
-          選擇外部服務端點
+          {t('editor.selectServiceEndpoint')}
         </Space>
       }
       placement="left"
@@ -129,7 +134,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
       onClose={onClose}
     >
       <Input
-        placeholder="搜尋服務或端點..."
+        placeholder={t('editor.searchServicePlaceholder')}
         prefix={<SearchOutlined />}
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
@@ -142,7 +147,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
           <Spin />
         </div>
       ) : services.length === 0 ? (
-        <Empty description="尚無已註冊的外部服務" />
+        <Empty description={t('service.noServices')} />
       ) : (
         <Tree
           treeData={treeData}
@@ -155,7 +160,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
 
       <div style={{ marginTop: 16, padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
         <Text type="secondary">
-          點擊端點即可將其加入流程中作為節點使用。
+          {t('editor.clickEndpointHint')}
         </Text>
       </div>
     </Drawer>

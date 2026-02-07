@@ -11,10 +11,11 @@ services:
       # Database
       DATABASE_URL: jdbc:postgresql://postgres:5432/n3n
       DATABASE_USERNAME: n3n
-      DATABASE_PASSWORD: n3n
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-n3n_dev_only}
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       # JWT Secret 自動產生，無需設定
       # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
       # CORS
@@ -42,7 +43,8 @@ services:
     environment:
       POSTGRES_DB: n3n
       POSTGRES_USER: n3n
-      POSTGRES_PASSWORD: n3n
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-n3n_dev_only}
+    # Expose for development only
     ports:
       - "5432:5432"
     volumes:
@@ -58,6 +60,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: n3n-redis
+    # Expose for development only
     ports:
       - "6379:6379"
     volumes:
@@ -72,14 +75,14 @@ services:
 
   # MongoDB for testing workflows
   mongodb:
-    image: mongo:7-jammy
+    image: mongo:7
     container_name: n3n-mongodb
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: n3n_admin
-      MONGO_INITDB_ROOT_PASSWORD: n3n_secret_123
-      MONGO_INITDB_DATABASE: n3n_test
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-n3n_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-n3n_secret_123}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-n3n_test}
     volumes:
       - mongodb_data:/data/db
     healthcheck:

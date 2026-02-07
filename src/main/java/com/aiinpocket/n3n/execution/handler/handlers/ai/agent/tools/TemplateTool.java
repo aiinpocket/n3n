@@ -136,7 +136,7 @@ public class TemplateTool implements AgentNodeTool {
 
             if (value == null) {
                 if (strict) {
-                    throw new IllegalArgumentException("未定義的變數: " + varName);
+                    throw new IllegalArgumentException("Undefined variable: " + varName);
                 }
                 value = matcher.group(); // 保留原始變數標記
             }

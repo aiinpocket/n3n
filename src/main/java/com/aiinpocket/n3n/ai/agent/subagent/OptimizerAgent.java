@@ -71,7 +71,7 @@ public class OptimizerAgent implements Agent {
         try {
             WorkingFlowDraft draft = context.getFlowDraft();
             if (draft == null || !draft.hasContent()) {
-                return AgentResult.error("沒有可優化的流程");
+                return AgentResult.error("No flow available to optimize");
             }
 
             // 收集優化分析
@@ -85,7 +85,7 @@ public class OptimizerAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Optimizer Agent execution failed", e);
-            return AgentResult.error("優化分析失敗: " + e.getMessage());
+            return AgentResult.error("Optimization analysis failed: " + e.getMessage());
         }
     }
 
@@ -98,7 +98,7 @@ public class OptimizerAgent implements Agent {
 
                 WorkingFlowDraft draft = context.getFlowDraft();
                 if (draft == null || !draft.hasContent()) {
-                    sink.next(AgentStreamChunk.error("沒有可優化的流程"));
+                    sink.next(AgentStreamChunk.error("No flow available to optimize"));
                     sink.complete();
                     return;
                 }

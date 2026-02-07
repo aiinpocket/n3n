@@ -60,15 +60,17 @@ class WebhookServiceTest extends BaseServiceTest {
     void listWebhooksForFlow_validFlowId_returnsWebhooks() {
         // Given
         UUID flowId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Webhook webhook = createTestWebhook();
         webhook.setFlowId(flowId);
+        webhook.setCreatedBy(userId);
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
         when(webhookRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
                 .thenReturn(List.of(webhook));
 
         // When
-        List<WebhookResponse> result = webhookService.listWebhooksForFlow(flowId);
+        List<WebhookResponse> result = webhookService.listWebhooksForFlow(flowId, userId);
 
         // Then
         assertThat(result).hasSize(1);
@@ -86,7 +88,7 @@ class WebhookServiceTest extends BaseServiceTest {
         when(webhookRepository.findById(webhook.getId())).thenReturn(Optional.of(webhook));
 
         // When
-        WebhookResponse result = webhookService.getWebhook(webhook.getId());
+        WebhookResponse result = webhookService.getWebhook(webhook.getId(), webhook.getCreatedBy());
 
         // Then
         assertThat(result).isNotNull();
@@ -97,10 +99,11 @@ class WebhookServiceTest extends BaseServiceTest {
     void getWebhook_nonExistingId_throwsException() {
         // Given
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(webhookRepository.findById(id)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> webhookService.getWebhook(id))
+        assertThatThrownBy(() -> webhookService.getWebhook(id, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Webhook not found");
     }
@@ -192,7 +195,7 @@ class WebhookServiceTest extends BaseServiceTest {
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        WebhookResponse result = webhookService.activateWebhook(webhook.getId());
+        WebhookResponse result = webhookService.activateWebhook(webhook.getId(), webhook.getCreatedBy());
 
         // Then
         assertThat(result.isActive()).isTrue();
@@ -210,7 +213,7 @@ class WebhookServiceTest extends BaseServiceTest {
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        WebhookResponse result = webhookService.deactivateWebhook(webhook.getId());
+        WebhookResponse result = webhookService.deactivateWebhook(webhook.getId(), webhook.getCreatedBy());
 
         // Then
         assertThat(result.isActive()).isFalse();
@@ -220,10 +223,11 @@ class WebhookServiceTest extends BaseServiceTest {
     void activateWebhook_nonExistingId_throwsException() {
         // Given
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(webhookRepository.findById(id)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> webhookService.activateWebhook(id))
+        assertThatThrownBy(() -> webhookService.activateWebhook(id, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -232,24 +236,25 @@ class WebhookServiceTest extends BaseServiceTest {
     @Test
     void deleteWebhook_existingWebhook_deletes() {
         // Given
-        UUID id = UUID.randomUUID();
-        when(webhookRepository.existsById(id)).thenReturn(true);
+        Webhook webhook = createTestWebhook();
+        when(webhookRepository.findById(webhook.getId())).thenReturn(Optional.of(webhook));
 
         // When
-        webhookService.deleteWebhook(id);
+        webhookService.deleteWebhook(webhook.getId(), webhook.getCreatedBy());
 
         // Then
-        verify(webhookRepository).deleteById(id);
+        verify(webhookRepository).deleteById(webhook.getId());
     }
 
     @Test
     void deleteWebhook_nonExistingId_throwsException() {
         // Given
         UUID id = UUID.randomUUID();
-        when(webhookRepository.existsById(id)).thenReturn(false);
+        UUID userId = UUID.randomUUID();
+        when(webhookRepository.findById(id)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> webhookService.deleteWebhook(id))
+        assertThatThrownBy(() -> webhookService.deleteWebhook(id, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

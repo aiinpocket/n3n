@@ -28,13 +28,18 @@ public class ExternalServiceController {
 
     @GetMapping
     public ResponseEntity<Page<ServiceResponse>> listServices(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(serviceService.listServices(pageable));
+            @PageableDefault(size = 20) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.listServices(userId, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ServiceDetailResponse> getService(@PathVariable UUID id) {
-        return ResponseEntity.ok(serviceService.getService(id));
+    public ResponseEntity<ServiceDetailResponse> getService(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.getService(id, userId));
     }
 
     @PostMapping
@@ -56,26 +61,37 @@ public class ExternalServiceController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteService(@PathVariable UUID id) {
-        serviceService.deleteService(id);
+    public ResponseEntity<Void> deleteService(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        serviceService.deleteService(id, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/refresh-schema")
-    public ResponseEntity<Map<String, Object>> refreshSchema(@PathVariable UUID id) {
-        return ResponseEntity.ok(serviceService.refreshSchema(id));
+    public ResponseEntity<Map<String, Object>> refreshSchema(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.refreshSchema(id, userId));
     }
 
     @GetMapping("/{id}/endpoints")
-    public ResponseEntity<List<EndpointResponse>> getEndpoints(@PathVariable UUID id) {
-        return ResponseEntity.ok(serviceService.getEndpoints(id));
+    public ResponseEntity<List<EndpointResponse>> getEndpoints(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.getEndpoints(id, userId));
     }
 
     @PostMapping("/{id}/endpoints")
     public ResponseEntity<EndpointResponse> createEndpoint(
             @PathVariable UUID id,
-            @Valid @RequestBody CreateEndpointRequest request) {
-        EndpointResponse response = serviceService.createEndpoint(id, request);
+            @Valid @RequestBody CreateEndpointRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        EndpointResponse response = serviceService.createEndpoint(id, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -83,31 +99,36 @@ public class ExternalServiceController {
     public ResponseEntity<EndpointResponse> updateEndpoint(
             @PathVariable UUID serviceId,
             @PathVariable UUID endpointId,
-            @Valid @RequestBody CreateEndpointRequest request) {
-        return ResponseEntity.ok(serviceService.updateEndpoint(serviceId, endpointId, request));
+            @Valid @RequestBody CreateEndpointRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.updateEndpoint(serviceId, endpointId, request, userId));
     }
 
     @DeleteMapping("/{serviceId}/endpoints/{endpointId}")
     public ResponseEntity<Void> deleteEndpoint(
             @PathVariable UUID serviceId,
-            @PathVariable UUID endpointId) {
-        serviceService.deleteEndpoint(serviceId, endpointId);
+            @PathVariable UUID endpointId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        serviceService.deleteEndpoint(serviceId, endpointId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/test")
-    public ResponseEntity<Map<String, Object>> testConnection(@PathVariable UUID id) {
-        return ResponseEntity.ok(serviceService.testConnection(id));
+    public ResponseEntity<Map<String, Object>> testConnection(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.testConnection(id, userId));
     }
 
-    /**
-     * Get endpoint schema for flow editor node configuration.
-     * Returns configSchema and interfaceDefinition for the specified endpoint.
-     */
     @GetMapping("/{serviceId}/endpoints/{endpointId}/schema")
     public ResponseEntity<EndpointSchemaResponse> getEndpointSchema(
             @PathVariable UUID serviceId,
-            @PathVariable UUID endpointId) {
-        return ResponseEntity.ok(serviceService.getEndpointSchema(serviceId, endpointId));
+            @PathVariable UUID endpointId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(serviceService.getEndpointSchema(serviceId, endpointId, userId));
     }
 }

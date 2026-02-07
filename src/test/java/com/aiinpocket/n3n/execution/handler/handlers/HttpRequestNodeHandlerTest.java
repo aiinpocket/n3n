@@ -15,10 +15,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
+@org.junit.jupiter.api.Timeout(value = 30, unit = TimeUnit.SECONDS)
 class HttpRequestNodeHandlerTest {
 
     private HttpRequestNodeHandler handler;
@@ -34,8 +36,12 @@ class HttpRequestNodeHandlerTest {
     }
 
     @AfterEach
-    void tearDown() throws IOException {
-        mockWebServer.shutdown();
+    void tearDown() throws Exception {
+        try {
+            mockWebServer.close();
+        } catch (Exception ignored) {
+            // Best-effort cleanup
+        }
     }
 
     // ========== Basic Properties ==========
@@ -507,10 +513,53 @@ class HttpRequestNodeHandlerTest {
         assertThat(iface).containsKey("outputs");
     }
 
+    // ========== SSRF Protection ==========
+
+    @Test
+    void execute_localhostUrl_blockedByDefault() {
+        // Build context WITHOUT allowInternalAddresses
+        Map<String, Object> nodeConfig = new HashMap<>(Map.of("url", "http://localhost:8080/api"));
+        NodeExecutionContext context = NodeExecutionContext.builder()
+                .executionId(UUID.randomUUID())
+                .nodeId("http-1")
+                .nodeType("httpRequest")
+                .nodeConfig(nodeConfig)
+                .inputData(Map.of())
+                .userId(UUID.randomUUID())
+                .flowId(UUID.randomUUID())
+                .build();
+
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).contains("internal network");
+    }
+
+    @Test
+    void execute_privateIp_blockedByDefault() {
+        Map<String, Object> nodeConfig = new HashMap<>(Map.of("url", "http://192.168.1.1/api"));
+        NodeExecutionContext context = NodeExecutionContext.builder()
+                .executionId(UUID.randomUUID())
+                .nodeId("http-1")
+                .nodeType("httpRequest")
+                .nodeConfig(nodeConfig)
+                .inputData(Map.of())
+                .userId(UUID.randomUUID())
+                .flowId(UUID.randomUUID())
+                .build();
+
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).contains("internal network");
+    }
+
     // ========== Helper ==========
 
     private NodeExecutionContext buildContext(Map<String, Object> config) {
         Map<String, Object> nodeConfig = new HashMap<>(config);
+        // Allow internal addresses for MockWebServer tests
+        nodeConfig.put("allowInternalAddresses", true);
         return NodeExecutionContext.builder()
                 .executionId(UUID.randomUUID())
                 .nodeId("http-1")

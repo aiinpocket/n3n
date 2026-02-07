@@ -32,16 +32,16 @@ public class FlowService {
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final ExternalServiceService externalServiceService;
 
-    public Page<FlowResponse> listFlows(Pageable pageable) {
-        Page<Flow> flowPage = flowRepository.findByIsDeletedFalse(pageable);
+    public Page<FlowResponse> listFlows(UUID userId, Pageable pageable) {
+        Page<Flow> flowPage = flowRepository.findByCreatedByAndIsDeletedFalse(userId, pageable);
         return toFlowResponsePage(flowPage);
     }
 
-    public Page<FlowResponse> searchFlows(String query, Pageable pageable) {
+    public Page<FlowResponse> searchFlows(UUID userId, String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return listFlows(pageable);
+            return listFlows(userId, pageable);
         }
-        Page<Flow> flowPage = flowRepository.searchFlows(query.trim(), pageable);
+        Page<Flow> flowPage = flowRepository.searchByCreatedByAndQuery(userId, query.trim(), pageable);
         return toFlowResponsePage(flowPage);
     }
 

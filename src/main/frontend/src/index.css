@@ -787,10 +787,48 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 
+/* Page content transition */
+.ant-layout-content > * {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Statistic card hover effect */
+.ant-statistic {
+  transition: transform var(--transition-fast);
+}
+
+.ant-card-hoverable:hover .ant-statistic {
+  transform: scale(1.02);
+}
+
 /* Cursor pointer for all interactive elements */
 button,
 [role="button"],
 .clickable,
 .ant-card.ant-card-hoverable {
   cursor: pointer;
+}
+
+/* Responsive Modal - prevent overflow on mobile */
+@media (max-width: 768px) {
+  .ant-modal {
+    max-width: calc(100vw - 32px) !important;
+    margin: 16px auto !important;
+  }
+
+  .ant-modal .ant-modal-content {
+    padding: 16px !important;
+  }
+
+  .ant-drawer .ant-drawer-content-wrapper {
+    max-width: 100vw !important;
+  }
+
+  .ant-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .ant-descriptions-item-label {
+    white-space: nowrap;
+  }
 }

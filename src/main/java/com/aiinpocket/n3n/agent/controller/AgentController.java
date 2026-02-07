@@ -192,21 +192,21 @@ public class AgentController {
     // ==================== DTOs ====================
 
     public record CreateConversationRequest(
-        @Size(max = 255, message = "標題最多 255 字元")
+        @Size(max = 255, message = "Title must not exceed 255 characters")
         String title
     ) {}
 
     public record UpdateConversationRequest(
-        @NotBlank(message = "標題不能為空")
-        @Size(max = 255, message = "標題最多 255 字元")
+        @NotBlank(message = "Title cannot be blank")
+        @Size(max = 255, message = "Title must not exceed 255 characters")
         String title
     ) {}
 
     public record CompleteConversationRequest(UUID flowId) {}
 
     public record SendMessageRequest(
-        @NotBlank(message = "訊息不能為空")
-        @Size(max = 4000, message = "訊息最多 4000 字元")
+        @NotBlank(message = "Message content cannot be blank")
+        @Size(max = 4000, message = "Message content must not exceed 4000 characters")
         String content
     ) {}
 

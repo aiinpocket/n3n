@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -37,7 +38,7 @@ public class AIAssistantController {
      */
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<ChatStreamChunk>> chatStream(
-            @RequestBody ChatStreamRequest request,
+            @Valid @RequestBody ChatStreamRequest request,
             Principal principal) {
         log.info("Chat stream request: message={}",
             request.getMessage() != null ?
@@ -56,7 +57,7 @@ public class AIAssistantController {
      */
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(
-            @RequestBody ChatStreamRequest request,
+            @Valid @RequestBody ChatStreamRequest request,
             Principal principal) {
         log.info("Chat request: message={}",
             request.getMessage() != null ?
@@ -73,7 +74,7 @@ public class AIAssistantController {
      */
     @PostMapping("/analyze-for-publish")
     public ResponseEntity<PublishAnalysisResponse> analyzeForPublish(
-            @RequestBody AnalyzeForPublishRequest request,
+            @Valid @RequestBody AnalyzeForPublishRequest request,
             Principal principal) {
         log.info("Analyzing flow for publish: flowId={}, version={}",
             request.getFlowId(), request.getVersion());
@@ -89,7 +90,7 @@ public class AIAssistantController {
      */
     @PostMapping("/apply-suggestions")
     public ResponseEntity<ApplySuggestionsResponse> applySuggestions(
-            @RequestBody ApplySuggestionsRequest request) {
+            @Valid @RequestBody ApplySuggestionsRequest request) {
         log.info("Applying {} suggestions to flow {}",
             request.getSuggestionIds().size(), request.getFlowId());
 
@@ -127,7 +128,7 @@ public class AIAssistantController {
      */
     @PostMapping("/recommend-nodes")
     public ResponseEntity<NodeRecommendationResponse> recommendNodes(
-            @RequestBody NodeRecommendationRequest request,
+            @Valid @RequestBody NodeRecommendationRequest request,
             Principal principal) {
         log.info("Recommending nodes, searchQuery={}, category={}",
             request.getSearchQuery(), request.getCategory());
@@ -143,7 +144,7 @@ public class AIAssistantController {
      */
     @PostMapping("/generate-flow")
     public ResponseEntity<GenerateFlowResponse> generateFlow(
-            @RequestBody GenerateFlowRequest request,
+            @Valid @RequestBody GenerateFlowRequest request,
             Principal principal) {
         log.info("Generating flow from natural language: {}",
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
@@ -169,7 +170,7 @@ public class AIAssistantController {
      */
     @PostMapping(value = "/generate-flow/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<FlowGenerationChunk>> generateFlowStream(
-            @RequestBody GenerateFlowRequest request,
+            @Valid @RequestBody GenerateFlowRequest request,
             Principal principal) {
         log.info("Starting flow generation stream: {}",
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Tag, Tooltip } from 'antd'
 import { BulbOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { getContextSuggestions, ContextSuggestion } from '../../config/aiQuickActions'
 import styles from './QuickSuggestionChips.module.css'
 
@@ -23,6 +24,7 @@ export const QuickSuggestionChips: React.FC<QuickSuggestionChipsProps> = ({
   onSuggestionClick,
   maxSuggestions = 5,
 }) => {
+  const { t } = useTranslation()
   const suggestions = useMemo(() => {
     return getContextSuggestions(nodeTypes, nodeCount, hasErrorHandler).slice(0, maxSuggestions)
   }, [nodeTypes, nodeCount, hasErrorHandler, maxSuggestions])
@@ -35,14 +37,14 @@ export const QuickSuggestionChips: React.FC<QuickSuggestionChipsProps> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <BulbOutlined className={styles.icon} />
-        <span className={styles.title}>快速建議</span>
+        <span className={styles.title}>{t('quickSuggestions.title')}</span>
       </div>
       <div className={styles.chips}>
         {suggestions.map((suggestion, index) => (
           <SuggestionChip
             key={index}
             suggestion={suggestion}
-            onClick={() => onSuggestionClick(suggestion.prompt)}
+            onClick={() => onSuggestionClick(t(suggestion.prompt))}
           />
         ))}
       </div>
@@ -56,8 +58,9 @@ interface SuggestionChipProps {
 }
 
 const SuggestionChip: React.FC<SuggestionChipProps> = ({ suggestion, onClick }) => {
+  const { t } = useTranslation()
   return (
-    <Tooltip title={suggestion.prompt} placement="top">
+    <Tooltip title={t(suggestion.prompt)} placement="top">
       <Tag
         className={styles.chip}
         onClick={onClick}
@@ -69,9 +72,9 @@ const SuggestionChip: React.FC<SuggestionChipProps> = ({ suggestion, onClick }) 
           }
         }}
         role="button"
-        aria-label={`快速建議: ${suggestion.text}`}
+        aria-label={`${t('quickSuggestions.title')}: ${t(suggestion.text)}`}
       >
-        {suggestion.text}
+        {t(suggestion.text)}
       </Tag>
     </Tooltip>
   )

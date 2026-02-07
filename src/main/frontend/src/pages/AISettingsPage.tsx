@@ -171,11 +171,11 @@ const AISettingsPage: React.FC = () => {
           )}
           {record.hasCredential ? (
             <Tooltip title={t('ai.hasCredential')}>
-              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+              <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
             </Tooltip>
           ) : (
             <Tooltip title={t('ai.noCredential')}>
-              <span style={{ color: '#faad14' }}>{t('ai.noCredential')}</span>
+              <span style={{ color: 'var(--color-warning)' }}>{t('ai.noCredential')}</span>
             </Tooltip>
           )}
         </Space>

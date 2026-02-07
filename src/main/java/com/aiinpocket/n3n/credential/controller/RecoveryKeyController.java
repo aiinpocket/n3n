@@ -89,14 +89,14 @@ public class RecoveryKeyController {
             log.info("Credential migrated: credentialId={}, userId={}", request.getCredentialId(), userId);
             return ResponseEntity.ok(MigrateResponse.builder()
                     .success(true)
-                    .message("憑證遷移成功")
+                    .message("Credential migrated successfully")
                     .build());
 
         } catch (Exception e) {
             log.error("Credential migration failed: {}", e.getMessage());
             return ResponseEntity.ok(MigrateResponse.builder()
                     .success(false)
-                    .message("遷移失敗：" + e.getMessage())
+                    .message("Migration failed: " + e.getMessage())
                     .build());
         }
     }
@@ -115,7 +115,7 @@ public class RecoveryKeyController {
             if (!recoveryKeyService.validate(request.getRecoveryKeyPhrase())) {
                 return ResponseEntity.badRequest().body(MigrateResponse.builder()
                         .success(false)
-                        .message("Recovery Key 格式無效")
+                        .message("Invalid recovery key format")
                         .build());
             }
 
@@ -129,7 +129,7 @@ public class RecoveryKeyController {
             log.warn("Emergency restore performed by user: {}", userId);
             return ResponseEntity.ok(MigrateResponse.builder()
                     .success(true)
-                    .message("緊急還原成功，請備份新的 Recovery Key")
+                    .message("Emergency restore successful, please backup the new recovery key")
                     .newRecoveryKey(newRecoveryKey)
                     .build());
 
@@ -137,7 +137,7 @@ public class RecoveryKeyController {
             log.error("Emergency restore failed: {}", e.getMessage());
             return ResponseEntity.ok(MigrateResponse.builder()
                     .success(false)
-                    .message("還原失敗：" + e.getMessage())
+                    .message("Restore failed: " + e.getMessage())
                     .build());
         }
     }
@@ -154,13 +154,13 @@ public class RecoveryKeyController {
 
     @Data
     public static class ConfirmBackupRequest {
-        @NotBlank(message = "Recovery Key 不能為空")
+        @NotBlank(message = "Recovery key cannot be blank")
         private String recoveryKeyPhrase;
     }
 
     @Data
     public static class MigrateCredentialRequest {
-        @NotBlank(message = "舊 Recovery Key 不能為空")
+        @NotBlank(message = "Old recovery key cannot be blank")
         private String oldRecoveryKeyPhrase;
 
         private UUID credentialId;
@@ -168,10 +168,10 @@ public class RecoveryKeyController {
 
     @Data
     public static class EmergencyRestoreRequest {
-        @NotBlank(message = "Recovery Key 不能為空")
+        @NotBlank(message = "Recovery key cannot be blank")
         private String recoveryKeyPhrase;
 
-        @NotBlank(message = "永久密碼不能為空")
+        @NotBlank(message = "Permanent password cannot be blank")
         private String permanentPassword;
     }
 

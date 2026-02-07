@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty } from 'antd'
+import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert } from 'antd'
 import {
   ReloadOutlined,
   ClearOutlined,
@@ -37,6 +37,7 @@ export default function LogViewerPage() {
   const { t } = useTranslation()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [level, setLevel] = useState<string>('ALL')
   const [search, setSearch] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -45,11 +46,12 @@ export default function LogViewerPage() {
 
   const loadLogs = useCallback(async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const data = await logsApi.getLogs(level, search || undefined, 200)
       setLogs(data)
     } catch {
-      // silent
+      setLoadError(t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -135,6 +137,17 @@ export default function LogViewerPage() {
           allowClear
         />
       </Space>
+
+      {loadError && (
+        <Alert
+          type="error"
+          message={loadError}
+          showIcon
+          closable
+          style={{ marginBottom: 16 }}
+          action={<Button size="small" onClick={loadLogs}>{t('common.retry')}</Button>}
+        />
+      )}
 
       {/* Log List */}
       <div

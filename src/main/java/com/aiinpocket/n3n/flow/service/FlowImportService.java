@@ -167,7 +167,7 @@ public class FlowImportService {
      */
     private void validateChecksum(FlowExportPackage pkg) {
         if (pkg.getChecksum() == null) {
-            throw new IllegalArgumentException("匯出包缺少 checksum");
+            throw new IllegalArgumentException("Export package is missing checksum");
         }
 
         try {
@@ -187,13 +187,13 @@ public class FlowImportService {
             }
 
             if (!hexString.toString().equals(pkg.getChecksum())) {
-                throw new IllegalArgumentException("匯出包 checksum 驗證失敗，檔案可能已被修改");
+                throw new IllegalArgumentException("Export package checksum verification failed, file may have been modified");
             }
 
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Checksum 驗證失敗", e);
+            throw new RuntimeException("Checksum verification failed", e);
         }
     }
 

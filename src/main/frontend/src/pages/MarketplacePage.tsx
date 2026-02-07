@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
+  Alert,
   Card,
   Row,
   Col,
@@ -44,6 +45,7 @@ import {
   uninstallPlugin,
   updatePlugin,
 } from '../api/marketplace'
+import logger from '../utils/logger'
 
 const { Search } = Input
 const { Text, Paragraph, Title } = Typography
@@ -91,7 +93,7 @@ function PluginCard({
         <div
           style={{
             height: 120,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, var(--color-ai) 0%, #5B21B6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -162,7 +164,7 @@ function PluginCard({
         title={
           <Space>
             <span>{plugin.displayName}</span>
-            {plugin.isInstalled && <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 14 }} />}
+            {plugin.isInstalled && <CheckCircleOutlined style={{ color: 'var(--color-success)', fontSize: 14 }} />}
           </Space>
         }
         description={
@@ -181,7 +183,7 @@ function PluginCard({
             </Space>
             <Space size={8}>
               <Space size={4}>
-                <StarFilled style={{ color: '#faad14', fontSize: 12 }} />
+                <StarFilled style={{ color: 'var(--color-warning)', fontSize: 12 }} />
                 <Text style={{ fontSize: 12 }}>{plugin.rating.toFixed(1)}</Text>
               </Space>
               <Space size={4}>
@@ -369,6 +371,7 @@ export default function MarketplacePage() {
   const [pricingFilter, setPricingFilter] = useState<'all' | 'free' | 'paid' | 'freemium'>('all')
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'rating' | 'name'>('popular')
   const [activeTab, setActiveTab] = useState('browse')
+  const [isOffline, setIsOffline] = useState(false)
   const [detailModal, setDetailModal] = useState<{ visible: boolean; plugin: PluginDetail | null }>({
     visible: false,
     plugin: null,
@@ -390,7 +393,8 @@ export default function MarketplacePage() {
       const searchResult = await searchPlugins({ sortBy: 'popular', pageSize: 20 })
       setPlugins(searchResult.plugins)
     } catch (error) {
-      console.error('Failed to load marketplace data:', error)
+      logger.error('Failed to load marketplace data:', error)
+      setIsOffline(true)
       // Use mock data for development
       setCategories([
         { id: 'ai', name: 'ai', displayName: 'AI & ML', description: 'AI integrations', icon: '🤖', count: 15 },
@@ -648,6 +652,22 @@ export default function MarketplacePage() {
   return (
     <div>
       <Title level={3}>{t('marketplace.title')}</Title>
+
+      {isOffline && (
+        <Alert
+          message={t('marketplace.offlineMode')}
+          description={t('marketplace.offlineDesc')}
+          type="warning"
+          showIcon
+          closable
+          style={{ marginBottom: 16 }}
+          action={
+            <Button size="small" onClick={loadData}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      )}
 
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane

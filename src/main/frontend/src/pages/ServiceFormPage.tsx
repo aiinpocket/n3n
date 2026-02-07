@@ -19,6 +19,7 @@ import { useServiceStore } from '../stores/serviceStore'
 import { useCredentialStore } from '../stores/credentialStore'
 import type { CreateServiceRequest, UpdateServiceRequest } from '../types'
 import CredentialFormModal from '../components/credentials/CredentialFormModal'
+import { extractApiError } from '../utils/errorMessages'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -64,9 +65,16 @@ export default function ServiceFormPage() {
   const handleSubmit = async (values: Record<string, unknown>) => {
     setLoading(true)
     try {
-      const authConfig = values.authConfig
-        ? JSON.parse(values.authConfig as string)
-        : undefined
+      let authConfig: Record<string, unknown> | undefined
+      if (values.authConfig) {
+        try {
+          authConfig = JSON.parse(values.authConfig as string)
+        } catch {
+          message.error(t('component.jsonFormatError'))
+          setLoading(false)
+          return
+        }
+      }
 
       if (isEdit && id) {
         const updateData: UpdateServiceRequest = {
@@ -95,8 +103,7 @@ export default function ServiceFormPage() {
         navigate(`/services/${service.id}`)
       }
     } catch (error: unknown) {
-      const err = error as { message?: string }
-      message.error(err.message || t('common.error'))
+      message.error(extractApiError(error, t('common.saveFailed')))
     } finally {
       setLoading(false)
     }

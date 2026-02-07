@@ -4,6 +4,7 @@ import { CheckCircleOutlined, CloseCircleOutlined, ApiOutlined } from '@ant-desi
 import { useCredentialStore } from '../../stores/credentialStore'
 import { CredentialType, CreateCredentialRequest, ConnectionTestResult } from '../../api/credential'
 import { useTranslation } from 'react-i18next'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -71,7 +72,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       const typeName = values.type?.toLowerCase()
 
       if (!typeName || !TESTABLE_TYPES.includes(typeName)) {
-        message.warning(t('credential.testNotSupported', '此類型不支援連線測試'))
+        message.warning(t('credential.testNotSupported'))
         return
       }
 
@@ -86,9 +87,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       setTestResult(result)
 
       if (result.success) {
-        message.success(t('credential.testSuccess', '連線測試成功'))
+        message.success(t('credential.testSuccess'))
       } else {
-        message.error(result.message || t('credential.testFailed', '連線測試失敗'))
+        message.error(result.message || t('credential.testFailed'))
       }
     } catch {
       // Validation failed - don't show error, just let form show validation errors
@@ -111,12 +112,10 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       }
 
       await createCredential(request)
-      message.success('認證建立成功')
+      message.success(t('credential.createSuccess'))
       onSuccess()
     } catch (error) {
-      if (error instanceof Error) {
-        message.error(`建立失敗: ${error.message}`)
-      }
+      message.error(extractApiError(error, t('credential.createFailed')))
     }
   }
 
@@ -139,9 +138,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
             key={key}
             name={['data', key]}
             label={label}
-            rules={isRequired ? [{ required: true, message: `請輸入${label}` }] : []}
+            rules={isRequired ? [{ required: true, message: t('credential.pleaseEnter', { label }) }] : []}
           >
-            <Input.Password placeholder={`請輸入${label}`} />
+            <Input.Password placeholder={t('credential.pleaseEnter', { label })} />
           </Form.Item>
         )
       }
@@ -152,9 +151,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
             key={key}
             name={['data', key]}
             label={label}
-            rules={isRequired ? [{ required: true, message: `請輸入${label}` }] : []}
+            rules={isRequired ? [{ required: true, message: t('credential.pleaseEnter', { label }) }] : []}
           >
-            <TextArea rows={4} placeholder={`請輸入${label}`} />
+            <TextArea rows={4} placeholder={t('credential.pleaseEnter', { label })} />
           </Form.Item>
         )
       }
@@ -166,9 +165,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
             name={['data', key]}
             label={label}
             initialValue={prop.default}
-            rules={isRequired ? [{ required: true, message: `請輸入${label}` }] : []}
+            rules={isRequired ? [{ required: true, message: t('credential.pleaseEnter', { label }) }] : []}
           >
-            <Input type="number" placeholder={`請輸入${label}`} />
+            <Input type="number" placeholder={t('credential.pleaseEnter', { label })} />
           </Form.Item>
         )
       }
@@ -179,9 +178,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
           name={['data', key]}
           label={label}
           initialValue={prop.default}
-          rules={isRequired ? [{ required: true, message: `請輸入${label}` }] : []}
+          rules={isRequired ? [{ required: true, message: t('credential.pleaseEnter', { label }) }] : []}
         >
-          <Input placeholder={`請輸入${label}`} />
+          <Input placeholder={t('credential.pleaseEnter', { label })} />
         </Form.Item>
       )
     })
@@ -189,18 +188,18 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
 
   return (
     <Modal
-      title="新增認證"
+      title={t('credential.newCredential')}
       open={visible}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={loading}
       width={600}
-      okText="建立"
-      cancelText="取消"
+      okText={t('common.create')}
+      cancelText={t('common.cancel')}
     >
       <Alert
-        message="安全提示"
-        description="您的認證資訊將使用 AES-256 加密儲存，只有在執行流程時才會解密使用。"
+        message={t('credential.securityTip')}
+        description={t('credential.securityTipDesc')}
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
@@ -212,19 +211,19 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       >
         <Form.Item
           name="name"
-          label="認證名稱"
-          rules={[{ required: true, message: '請輸入認證名稱' }]}
+          label={t('credential.credentialName')}
+          rules={[{ required: true, message: t('credential.credentialNameRequired') }]}
         >
-          <Input placeholder="例如：Production API Key" />
+          <Input placeholder={t('credential.credentialNamePlaceholder')} />
         </Form.Item>
 
         <Form.Item
           name="type"
-          label="認證類型"
-          rules={[{ required: true, message: '請選擇認證類型' }]}
+          label={t('credential.credentialType')}
+          rules={[{ required: true, message: t('credential.credentialTypeRequired') }]}
         >
           <Select
-            placeholder="選擇認證類型"
+            placeholder={t('credential.selectType')}
             onChange={handleTypeChange}
           >
             {credentialTypes.map(type => (
@@ -238,27 +237,27 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
 
         <Form.Item
           name="description"
-          label="說明"
+          label={t('common.description')}
         >
-          <TextArea rows={2} placeholder="選填，說明此認證的用途" />
+          <TextArea rows={2} placeholder={t('credential.descriptionPlaceholder')} />
         </Form.Item>
 
         <Form.Item
           name="visibility"
-          label="可見性"
+          label={t('credential.visibility')}
           initialValue="private"
         >
           <Select>
-            <Option value="private">私人 - 僅自己可見</Option>
-            <Option value="workspace">工作區 - 工作區成員可見</Option>
-            <Option value="shared">共享 - 可分享給指定用戶</Option>
+            <Option value="private">{t('credential.visibilityPrivateDesc')}</Option>
+            <Option value="workspace">{t('credential.visibilityWorkspaceDesc')}</Option>
+            <Option value="shared">{t('credential.visibilitySharedDesc')}</Option>
           </Select>
         </Form.Item>
 
         {selectedType && (
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16, marginTop: 16 }}>
             <div style={{ fontWeight: 500, marginBottom: 12 }}>
-              {selectedType.displayName} {t('credential.settings', '設定')}
+              {selectedType.displayName} {t('credential.settings')}
             </div>
             {renderDataFields()}
 
@@ -273,7 +272,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
                     loading={testing}
                     disabled={loading}
                   >
-                    {testing ? t('credential.testing', '測試中...') : t('credential.testConnection', '測試連線')}
+                    {testing ? t('credential.testing') : t('credential.testConnection')}
                   </Button>
 
                   {testResult && (
@@ -282,7 +281,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
                       icon={testResult.success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
                       message={
                         <Space>
-                          <span>{testResult.success ? t('credential.connectionSuccess', '連線成功') : t('credential.connectionFailed', '連線失敗')}</span>
+                          <span>{testResult.success ? t('credential.connectionSuccess') : t('credential.connectionFailed')}</span>
                           {testResult.latencyMs > 0 && (
                             <span style={{ color: 'var(--color-text-secondary)', fontSize: 12 }}>
                               ({testResult.latencyMs}ms)
@@ -295,7 +294,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
                           {testResult.message && <div>{testResult.message}</div>}
                           {testResult.serverVersion && (
                             <div style={{ marginTop: 4, color: 'var(--color-text-secondary)', fontSize: 12 }}>
-                              {t('credential.serverVersion', '伺服器版本')}: {testResult.serverVersion}
+                              {t('credential.serverVersion')}: {testResult.serverVersion}
                             </div>
                           )}
                         </div>

@@ -127,7 +127,7 @@ public class LoginRateLimiter {
         } catch (Exception e) {
             log.error("Rate limit check failed: {}", e.getMessage());
             if (!failOpen) {
-                throw new RateLimitException("系統繁忙，請稍後再試");
+                throw new RateLimitException("System busy, please try again later");
             }
             // fail-open: 允許請求繼續
             log.warn("Rate limiter fail-open: allowing request due to Redis error");
@@ -208,7 +208,7 @@ public class LoginRateLimiter {
 
         if (result == null || result.isEmpty()) {
             if (!failOpen) {
-                throw new RateLimitException("系統繁忙，請稍後再試");
+                throw new RateLimitException("System busy, please try again later");
             }
             return;
         }
@@ -219,7 +219,7 @@ public class LoginRateLimiter {
         if (!allowed) {
             log.warn("IP rate limit exceeded for {}", ipAddress);
             throw new RateLimitException(
-                String.format("登入嘗試過於頻繁，請在 %d 秒後重試", resetMs / 1000 + 1)
+                String.format("Too many login attempts, please try again in %d second(s)", resetMs / 1000 + 1)
             );
         }
     }
@@ -231,7 +231,7 @@ public class LoginRateLimiter {
         if (failCount != null && failCount >= accountMaxAttempts) {
             log.warn("Account rate limit exceeded for {}", email);
             throw new RateLimitException(
-                String.format("帳號登入失敗次數過多，請在 %d 分鐘後重試", accountWindowSeconds / 60)
+                String.format("Too many failed login attempts for this account, please try again in %d minute(s)", accountWindowSeconds / 60)
             );
         }
     }
@@ -245,7 +245,7 @@ public class LoginRateLimiter {
             if (remaining > 0) {
                 log.warn("Account {} is locked out", email);
                 throw new RateLimitException(
-                    String.format("帳號已被暫時鎖定，請在 %d 分鐘後重試", remaining / 60000 + 1)
+                    String.format("Account temporarily locked. Please try again in %d minute(s).", remaining / 60000 + 1)
                 );
             }
         }

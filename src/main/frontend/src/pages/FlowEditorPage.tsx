@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge } from 'antd'
+import { useTranslation } from 'react-i18next'
 import {
   SaveOutlined,
   PlayCircleOutlined,
@@ -36,7 +37,7 @@ import {
   Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useFlowStore } from '../stores/flowStore'
+import { useFlowEditorStore } from '../stores/flowEditorStore'
 import NodeConfigPanel from '../components/editor/NodeConfigPanel'
 import ServiceNodePanel from '../components/editor/ServiceNodePanel'
 import { customNodeTypes } from '../components/nodes/CustomNodes'
@@ -65,6 +66,7 @@ export default function FlowEditorPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   const {
     currentFlow,
     currentVersion,
@@ -100,7 +102,7 @@ export default function FlowEditorPage() {
     redo,
     canUndo,
     canRedo,
-  } = useFlowStore()
+  } = useFlowEditorStore()
 
   // Execution mode state
   const [executionMode, setExecutionMode] = useState(false)
@@ -187,7 +189,7 @@ export default function FlowEditorPage() {
         source: e.source,
         target: e.target,
       })))
-      message.success('AI 生成的流程已載入，您可以進一步調整')
+      message.success(t('editor.aiFlowLoaded'))
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
     }
@@ -202,7 +204,7 @@ export default function FlowEditorPage() {
       autoSaveTimerRef.current = setTimeout(async () => {
         const result = await autoSaveDraft()
         if (result) {
-          message.info({ content: '已自動儲存', key: 'autosave', duration: 2 })
+          message.info({ content: t('editor.autoSaved'), key: 'autosave', duration: 2 })
         }
       }, AUTO_SAVE_DELAY)
     }
@@ -244,25 +246,25 @@ export default function FlowEditorPage() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
         e.preventDefault()
         copySelectedNodes()
-        message.info('已複製節點')
+        message.info(t('editor.copied'))
       }
       // Ctrl+X or Cmd+X to cut
       if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
         e.preventDefault()
         cutSelectedNodes()
-        message.info('已剪切節點')
+        message.info(t('editor.cut'))
       }
       // Ctrl+V or Cmd+V to paste
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault()
         pasteNodes()
-        message.info('已貼上節點')
+        message.info(t('editor.pasted'))
       }
       // Ctrl+D or Cmd+D to duplicate
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
         e.preventDefault()
         duplicateSelectedNodes()
-        message.info('已複製節點')
+        message.info(t('editor.duplicated'))
       }
       // Ctrl+A or Cmd+A to select all
       if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
@@ -274,7 +276,7 @@ export default function FlowEditorPage() {
         e.preventDefault()
         if (canUndo()) {
           undo()
-          message.info('已復原')
+          message.info(t('editor.undone'))
         }
       }
       // Ctrl+Shift+Z or Cmd+Shift+Z to redo
@@ -282,7 +284,7 @@ export default function FlowEditorPage() {
         e.preventDefault()
         if (canRedo()) {
           redo()
-          message.info('已重做')
+          message.info(t('editor.redone'))
         }
       }
       // Ctrl+Y or Cmd+Y to redo (alternative)
@@ -290,7 +292,7 @@ export default function FlowEditorPage() {
         e.preventDefault()
         if (canRedo()) {
           redo()
-          message.info('已重做')
+          message.info(t('editor.redone'))
         }
       }
       // Delete or Backspace to delete selected nodes
@@ -298,7 +300,7 @@ export default function FlowEditorPage() {
         e.preventDefault()
         if (selectedNodeIds.length > 0) {
           removeSelectedNodes()
-          message.info('已刪除節點')
+          message.info(t('editor.nodesDeleted'))
         }
       }
       // Ctrl+K or Cmd+K to open command palette
@@ -321,8 +323,8 @@ export default function FlowEditorPage() {
     if (!lastSavedAt) return null
     const now = new Date()
     const diff = Math.floor((now.getTime() - lastSavedAt.getTime()) / 1000)
-    if (diff < 60) return '剛剛儲存'
-    if (diff < 3600) return `${Math.floor(diff / 60)} 分鐘前儲存`
+    if (diff < 60) return t('editor.savedJustNow')
+    if (diff < 3600) return t('editor.savedMinutesAgo', { minutes: Math.floor(diff / 60) })
     return lastSavedAt.toLocaleTimeString()
   }
 
@@ -358,9 +360,9 @@ export default function FlowEditorPage() {
       type: type, // Use the actual type for custom node rendering
       position: { x: 250, y: nodes.length * 100 + 50 },
       data: {
-        label: nodeConfig?.label || type,
+        label: nodeConfig ? t(nodeConfig.label) : type,
         nodeType: type,
-        description: nodeConfig?.description || '',
+        description: nodeConfig ? t(nodeConfig.description) : '',
       },
     }
     setNodes([...nodes, newNode])
@@ -422,7 +424,7 @@ export default function FlowEditorPage() {
             : e
         )
       )
-      message.success(`已將連線類型設為「${newType === 'success' ? '成功路徑' : newType === 'error' ? '錯誤路徑' : '總是執行'}」`)
+      message.success(t('editor.edgeTypeChanged', { type: t(`editor.edgeType.${newType}`) }))
     },
     [edges, setEdges, pushHistory]
   )
@@ -455,28 +457,28 @@ export default function FlowEditorPage() {
   const handleSave = async (values: { version: string }) => {
     try {
       await saveVersion(values.version)
-      message.success('版本儲存成功')
+      message.success(t('editor.versionSaved'))
       setSaveModalOpen(false)
       saveForm.resetFields()
       if (id) loadVersions(id)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || '儲存失敗')
+      message.error(err.response?.data?.message || err.message || t('editor.saveFailed'))
     }
   }
 
   const handlePublish = async () => {
     if (!currentVersion) {
-      message.warning('請先儲存版本')
+      message.warning(t('editor.saveVersionFirst'))
       return
     }
     try {
       await publishVersion(currentVersion.version)
-      message.success('版本發布成功')
+      message.success(t('editor.versionPublished'))
       if (id) loadVersions(id)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } }
-      message.error(err.response?.data?.message || '發布失敗')
+      message.error(err.response?.data?.message || t('editor.publishFailed'))
     }
   }
 
@@ -510,7 +512,7 @@ export default function FlowEditorPage() {
               background: group.category.color,
             }}
           />
-          <strong>{group.category.label}</strong>
+          <strong>{t(group.category.label)}</strong>
         </Space>
       ),
       children: group.nodes.map((node) => ({
@@ -526,10 +528,7 @@ export default function FlowEditorPage() {
                 background: node.color,
               }}
             />
-            {node.label}
-            <span style={{ color: '#999', fontSize: 11 }}>
-              {node.labelEn}
-            </span>
+            {t(node.label)}
           </Space>
         ),
         onClick: () => handleAddNode(node.value),
@@ -543,8 +542,8 @@ export default function FlowEditorPage() {
       label: (
         <Space>
           {v.version}
-          {v.status === 'published' && <Tag color="green">已發布</Tag>}
-          {v.status === 'draft' && <Tag>草稿</Tag>}
+          {v.status === 'published' && <Tag color="green">{t('flow.published')}</Tag>}
+          {v.status === 'draft' && <Tag>{t('flow.draft')}</Tag>}
         </Space>
       ),
       onClick: () => handleLoadVersion(v.version),
@@ -557,7 +556,7 @@ export default function FlowEditorPage() {
         title={
           <Space>
             <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate('/flows')} />
-            <span>{currentFlow?.name || '載入中...'}</span>
+            <span>{currentFlow?.name || t('common.loading')}</span>
             {currentVersion && (
               <Tag color={currentVersion.status === 'published' ? 'green' : 'default'}>
                 {currentVersion.version}
@@ -565,13 +564,13 @@ export default function FlowEditorPage() {
             )}
             {executionMode && (
               <Tag color={isExecuting ? 'processing' : executionStatus === 'completed' ? 'success' : executionStatus === 'failed' ? 'error' : 'default'}>
-                {isExecuting ? '執行中' : executionStatus === 'completed' ? '已完成' : executionStatus === 'failed' ? '失敗' : '監控模式'}
+                {isExecuting ? t('execution.running') : executionStatus === 'completed' ? t('execution.completed') : executionStatus === 'failed' ? t('execution.failed') : t('editor.monitorMode')}
               </Tag>
             )}
-            {!executionMode && isDirty && <Tag color="orange">未儲存</Tag>}
+            {!executionMode && isDirty && <Tag color="orange">{t('editor.unsaved')}</Tag>}
             {!executionMode && saving && (
               <Tag icon={<SyncOutlined spin />} color="processing">
-                儲存中
+                {t('editor.saving')}
               </Tag>
             )}
             {!isDirty && lastSavedAt && !saving && (
@@ -584,32 +583,32 @@ export default function FlowEditorPage() {
         }
         extra={
           <Space>
-            <Tooltip title="復原 (Ctrl+Z)">
+            <Tooltip title={`${t('editor.undo')} (Ctrl+Z)`}>
               <Button
                 icon={<UndoOutlined />}
-                onClick={() => { undo(); message.info('已復原') }}
+                onClick={() => { undo(); message.info(t('editor.undone')) }}
                 disabled={!canUndo()}
               />
             </Tooltip>
-            <Tooltip title="重做 (Ctrl+Shift+Z)">
+            <Tooltip title={`${t('editor.redo')} (Ctrl+Shift+Z)`}>
               <Button
                 icon={<RedoOutlined />}
-                onClick={() => { redo(); message.info('已重做') }}
+                onClick={() => { redo(); message.info(t('editor.redone')) }}
                 disabled={!canRedo()}
               />
             </Tooltip>
-            <Tooltip title="複製 (Ctrl+C)">
+            <Tooltip title={`${t('editor.copy')} (Ctrl+C)`}>
               <Button
                 icon={<CopyOutlined />}
-                onClick={() => { copySelectedNodes(); message.info('已複製節點') }}
+                onClick={() => { copySelectedNodes(); message.info(t('editor.copied')) }}
                 disabled={selectedNodeIds.length === 0}
               />
             </Tooltip>
             <Dropdown menu={addNodeMenu} placement="bottomRight">
-              <Button icon={<PlusOutlined />}>新增節點</Button>
+              <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
             </Dropdown>
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
-              外部服務
+              {t('editor.externalServices')}
             </Button>
             <Dropdown
               menu={{
@@ -619,7 +618,7 @@ export default function FlowEditorPage() {
                     icon: <RobotOutlined />,
                     label: (
                       <Space>
-                        <span>AI 助手</span>
+                        <span>{t('nav.aiAssistant')}</span>
                         <Tag style={{ margin: 0, fontSize: 10 }}>Ctrl+I</Tag>
                       </Space>
                     ),
@@ -628,20 +627,20 @@ export default function FlowEditorPage() {
                   {
                     key: 'generate',
                     icon: <ThunderboltOutlined />,
-                    label: '自然語言生成流程',
+                    label: t('editor.aiGenerateFlow'),
                     onClick: () => setFlowGeneratorOpen(true),
                   },
                   {
                     key: 'recommend',
                     icon: <BulbOutlined />,
-                    label: '智慧節點推薦',
+                    label: t('editor.aiNodeRecommend'),
                     onClick: () => setNodeRecommendationOpen(true),
                   },
                   { type: 'divider' },
                   {
                     key: 'optimize',
                     icon: <RocketOutlined />,
-                    label: 'AI 優化分析',
+                    label: t('editor.aiOptimize'),
                     disabled: nodes.length === 0,
                     onClick: () => setOptimizationPanelOpen(true),
                   },
@@ -654,15 +653,15 @@ export default function FlowEditorPage() {
                 icon={<RobotOutlined />}
                 style={{ background: '#8B5CF6', borderColor: '#8B5CF6' }}
               >
-                AI 功能
+                {t('editor.aiFeatures')}
               </Button>
             </Dropdown>
             <Dropdown menu={versionMenu} placement="bottomRight" disabled={versions.length === 0}>
               <Button icon={<HistoryOutlined />}>
-                版本記錄 ({versions.length})
+                {t('editor.versionHistory')} ({versions.length})
               </Button>
             </Dropdown>
-            <Tooltip title={!isDirty ? '無變更需要儲存' : ''}>
+            <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
               <Button
                 icon={<SaveOutlined />}
                 onClick={() => {
@@ -674,17 +673,17 @@ export default function FlowEditorPage() {
                 disabled={!isDirty && !!currentVersion}
                 loading={saving}
               >
-                儲存
+                {t('common.save')}
               </Button>
             </Tooltip>
-            <Tooltip title={!currentVersion ? '請先儲存版本' : currentVersion.status === 'published' ? '已發布' : ''}>
+            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : currentVersion.status === 'published' ? t('flow.published') : ''}>
               <Button
                 type="primary"
                 icon={<CloudUploadOutlined />}
                 onClick={() => setPublishModalOpen(true)}
                 disabled={!currentVersion || currentVersion.status === 'published'}
               >
-                發布
+                {t('flow.publish')}
               </Button>
             </Tooltip>
             {/* Execution Controls */}
@@ -697,7 +696,7 @@ export default function FlowEditorPage() {
                     icon={<PauseCircleOutlined />}
                     onClick={stopExecution}
                   >
-                    停止執行
+                    {t('editor.stopExecution')}
                   </Button>
                 ) : (
                   <Button
@@ -706,7 +705,7 @@ export default function FlowEditorPage() {
                     onClick={startExecution}
                     disabled={!currentFlow?.publishedVersion}
                   >
-                    重新執行
+                    {t('editor.reExecute')}
                   </Button>
                 )}
                 <Button
@@ -716,11 +715,11 @@ export default function FlowEditorPage() {
                     clearExecution()
                   }}
                 >
-                  退出監控
+                  {t('editor.exitMonitor')}
                 </Button>
               </Space>
             ) : (
-              <Tooltip title={!currentFlow?.publishedVersion ? '尚無已發布版本' : ''}>
+              <Tooltip title={!currentFlow?.publishedVersion ? t('editor.noPublishedVersion') : ''}>
                 <Button
                   type="primary"
                   icon={<PlayCircleOutlined />}
@@ -730,12 +729,12 @@ export default function FlowEditorPage() {
                     try {
                       await startExecution()
                     } catch {
-                      message.error('執行失敗')
+                      message.error(t('execution.executeFailed'))
                       setExecutionMode(false)
                     }
                   }}
                 >
-                  執行並監控
+                  {t('editor.executeAndMonitor')}
                 </Button>
               </Tooltip>
             )}
@@ -784,19 +783,19 @@ export default function FlowEditorPage() {
                 transform: 'translate(-50%, -50%)',
                 textAlign: 'center',
                 zIndex: 10,
-                background: 'rgba(255, 255, 255, 0.95)',
+                background: 'rgba(15, 23, 42, 0.95)',
                 borderRadius: 16,
                 padding: '40px 48px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                 maxWidth: 480,
               }}
             >
               <RobotOutlined style={{ fontSize: 56, color: '#8B5CF6', marginBottom: 16 }} />
-              <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
-                開始建立您的流程
+              <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#E2E8F0' }}>
+                {t('editor.emptyState.title')}
               </Text>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-                選擇以下方式開始：
+              <Text style={{ display: 'block', marginBottom: 24, color: '#94A3B8' }}>
+                {t('editor.emptyState.subtitle')}
               </Text>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                 <Button
@@ -806,7 +805,7 @@ export default function FlowEditorPage() {
                   onClick={() => setFlowGeneratorOpen(true)}
                   style={{ width: '100%', background: '#8B5CF6', borderColor: '#8B5CF6' }}
                 >
-                  用口語描述讓 AI 幫您生成
+                  {t('editor.emptyState.aiGenerate')}
                 </Button>
                 <Button
                   size="large"
@@ -814,7 +813,7 @@ export default function FlowEditorPage() {
                   onClick={openAIPanel}
                   style={{ width: '100%' }}
                 >
-                  與 AI 助手對話建立
+                  {t('editor.emptyState.aiChat')}
                 </Button>
                 <Dropdown menu={addNodeMenu} placement="bottom">
                   <Button
@@ -822,14 +821,14 @@ export default function FlowEditorPage() {
                     icon={<PlusOutlined />}
                     style={{ width: '100%' }}
                   >
-                    手動新增節點
+                    {t('editor.emptyState.manual')}
                   </Button>
                 </Dropdown>
               </Space>
-              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  快捷鍵: <Tag style={{ marginLeft: 4 }}>Ctrl+K</Tag> 命令面板{' '}
-                  <Tag>Ctrl+I</Tag> AI 助手
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <Text style={{ fontSize: 12, color: '#94A3B8' }}>
+                  {t('editor.emptyState.shortcuts')}: <Tag style={{ marginLeft: 4 }}>Ctrl+K</Tag> {t('editor.commandPalette')}{' '}
+                  <Tag>Ctrl+I</Tag> {t('nav.aiAssistant')}
                 </Text>
               </div>
             </div>
@@ -891,7 +890,7 @@ export default function FlowEditorPage() {
       />
 
       <Modal
-        title="儲存版本"
+        title={t('editor.saveVersion')}
         open={saveModalOpen}
         onCancel={() => {
           setSaveModalOpen(false)
@@ -902,11 +901,11 @@ export default function FlowEditorPage() {
         <Form form={saveForm} layout="vertical" onFinish={handleSave}>
           <Form.Item
             name="version"
-            label="版本號"
-            rules={[{ required: true, message: '請輸入版本號' }]}
-            extra="建議使用語意化版本號，例如 1.0.0、1.0.1、2.0.0"
+            label={t('editor.versionNumber')}
+            rules={[{ required: true, message: t('editor.versionRequired') }]}
+            extra={t('editor.versionHint')}
           >
-            <Input placeholder="例如：1.0.0" />
+            <Input placeholder={t('editor.versionPlaceholder')} />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
@@ -914,10 +913,10 @@ export default function FlowEditorPage() {
                 setSaveModalOpen(false)
                 saveForm.resetFields()
               }}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="primary" htmlType="submit" loading={saving}>
-                儲存
+                {t('common.save')}
               </Button>
             </Space>
           </Form.Item>
@@ -1018,7 +1017,7 @@ export default function FlowEditorPage() {
               source: e.source,
               target: e.target,
             })))
-            message.success('流程已建立，您可以進一步調整')
+            message.success(t('flow.createdCanAdjust'))
           }
         }}
       />
@@ -1043,7 +1042,7 @@ export default function FlowEditorPage() {
             try {
               await startExecution()
             } catch {
-              message.error('執行失敗')
+              message.error(t('execution.executeFailed'))
               setExecutionMode(false)
             }
           }
@@ -1088,7 +1087,7 @@ export default function FlowEditorPage() {
             source: e.source,
             target: e.target,
           })))
-          message.success('流程變更已套用')
+          message.success(t('editor.flowChangesApplied'))
         }}
       />
     </>

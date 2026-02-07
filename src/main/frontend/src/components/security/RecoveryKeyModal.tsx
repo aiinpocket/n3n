@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, Alert, Button, Space, Input, message } from 'antd';
 import { CopyOutlined, KeyOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'display' | 'verify'>('display');
   const [verifyInput, setVerifyInput] = useState('');
   const [copied, setCopied] = useState(false);
@@ -18,7 +20,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
   const handleCopy = () => {
     navigator.clipboard.writeText(recoveryKey.join(' '));
     setCopied(true);
-    message.success('Recovery Key 已複製到剪貼簿');
+    message.success(t('recovery.copiedToClipboard'));
     setTimeout(() => setCopied(false), 3000);
   };
 
@@ -30,17 +32,17 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
 
   const handleConfirm = async () => {
     if (!isValidInput()) {
-      message.error('Recovery Key 不正確，請重新輸入');
+      message.error(t('recovery.invalidKey'));
       return;
     }
 
     setLoading(true);
     try {
       await securityApi.confirmRecoveryKeyBackup(verifyInput);
-      message.success('Recovery Key 備份確認成功');
+      message.success(t('recovery.backupConfirmed'));
       onConfirm();
     } catch {
-      message.error('確認失敗，請稍後再試');
+      message.error(t('recovery.confirmFailed'));
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
               onClick={handleCopy}
               block
             >
-              {copied ? '已複製' : '複製到剪貼簿'}
+              {copied ? t('recovery.copied') : t('recovery.copyToClipboard')}
             </Button>
 
             <Button

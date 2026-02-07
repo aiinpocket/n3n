@@ -86,7 +86,7 @@ public class NaturalLanguageModule {
         String sanitizedInput = sanitizeUserInput(userInput);
         if (sanitizedInput == null) {
             log.warn("User input rejected due to security concerns");
-            return FlowGenerationResult.error("輸入內容包含不允許的字符或模式，請重新描述您的需求");
+            return FlowGenerationResult.error("Input contains disallowed characters or patterns, please rephrase your request");
         }
 
         SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
@@ -126,7 +126,7 @@ public class NaturalLanguageModule {
         String sanitizedInput = sanitizeUserInput(userInput);
         if (sanitizedInput == null) {
             log.warn("User input rejected due to security concerns");
-            sink.tryEmitNext(FlowGenerationChunk.error("輸入內容包含不允許的字符或模式，請重新描述您的需求"));
+            sink.tryEmitNext(FlowGenerationChunk.error("Input contains disallowed characters or patterns, please rephrase your request"));
             sink.tryEmitComplete();
             return sink.asFlux();
         }
@@ -143,7 +143,7 @@ public class NaturalLanguageModule {
 
                 SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
                 if (!provider.isAvailable()) {
-                    sink.tryEmitNext(FlowGenerationChunk.error("AI 服務不可用"));
+                    sink.tryEmitNext(FlowGenerationChunk.error("AI service unavailable"));
                     sink.tryEmitComplete();
                     return;
                 }
@@ -249,11 +249,11 @@ public class NaturalLanguageModule {
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                sink.tryEmitNext(FlowGenerationChunk.error("流程生成被中斷"));
+                sink.tryEmitNext(FlowGenerationChunk.error("Flow generation interrupted"));
                 sink.tryEmitComplete();
             } catch (Exception e) {
                 log.error("Flow generation stream failed", e);
-                sink.tryEmitNext(FlowGenerationChunk.error("流程生成失敗: " + e.getMessage()));
+                sink.tryEmitNext(FlowGenerationChunk.error("Flow generation failed: " + e.getMessage()));
                 sink.tryEmitComplete();
             }
         });

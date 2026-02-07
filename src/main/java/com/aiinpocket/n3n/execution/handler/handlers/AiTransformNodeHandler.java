@@ -129,7 +129,7 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
                 log.warn("AI Transform execution failed: {}", result.getErrorMessage());
                 return NodeExecutionResult.builder()
                     .success(false)
-                    .errorMessage("轉換執行失敗: " + result.getErrorMessage())
+                    .errorMessage("Transform execution failed: " + result.getErrorMessage())
                     .metadata(Map.of(
                         "generatedCode", generatedCode,
                         "errorType", result.getErrorType() != null ? result.getErrorType() : "UNKNOWN"

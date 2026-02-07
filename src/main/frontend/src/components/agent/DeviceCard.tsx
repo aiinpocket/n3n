@@ -11,6 +11,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import type { Device } from '../../api/device'
 
 const { Text } = Typography
@@ -22,6 +23,7 @@ interface DeviceCardProps {
 }
 
 const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => {
+  const { t } = useTranslation()
   const getPlatformIcon = () => {
     switch (device.platform) {
       case 'macos':
@@ -52,10 +54,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
 
   const getTimeSince = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000)
-    if (seconds < 60) return '剛剛'
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} 分鐘前`
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} 小時前`
-    return `${Math.floor(seconds / 86400)} 天前`
+    if (seconds < 60) return t('deviceCard.justNow')
+    if (seconds < 3600) return t('deviceCard.minutesAgo', { count: Math.floor(seconds / 60) })
+    if (seconds < 86400) return t('deviceCard.hoursAgo', { count: Math.floor(seconds / 3600) })
+    return t('deviceCard.daysAgo', { count: Math.floor(seconds / 86400) })
   }
 
   const isOnline = Date.now() - device.lastActiveAt < 5 * 60 * 1000 // 5 minutes
@@ -65,7 +67,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
       hoverable
       style={{ marginBottom: 16 }}
       actions={[
-        <Tooltip title="編輯設定" key="edit">
+        <Tooltip title={t('deviceCard.editSettings')} key="edit">
           <Button
             type="text"
             icon={<EditOutlined />}
@@ -74,14 +76,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
         </Tooltip>,
         <Popconfirm
           key="delete"
-          title="解除配對"
-          description="確定要解除此設備的配對嗎？"
+          title={t('deviceCard.unpair')}
+          description={t('deviceCard.unpairConfirm')}
           onConfirm={() => onDelete(device.deviceId)}
-          okText="確定"
-          cancelText="取消"
+          okText={t('common.confirm')}
+          cancelText={t('common.cancel')}
           okButtonProps={{ danger: true }}
         >
-          <Tooltip title="解除配對">
+          <Tooltip title={t('deviceCard.unpair')}>
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Tooltip>
         </Popconfirm>,
@@ -109,15 +111,15 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
             <Tag color={isOnline ? 'green' : 'default'}>
               {isOnline ? (
                 <>
-                  <CheckCircleOutlined /> 在線
+                  <CheckCircleOutlined /> {t('deviceCard.online')}
                 </>
               ) : (
                 <>
-                  <CloseCircleOutlined /> 離線
+                  <CloseCircleOutlined /> {t('deviceCard.offline')}
                 </>
               )}
             </Tag>
-            {device.revoked && <Tag color="red">已撤銷</Tag>}
+            {device.revoked && <Tag color="red">{t('deviceCard.revoked')}</Tag>}
           </Space>
         }
         description={
@@ -126,7 +128,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
               <DesktopOutlined /> {getPlatformName()}
             </Text>
             <Text type="secondary">
-              <ClockCircleOutlined /> 最後活動：{getTimeSince(device.lastActiveAt)}
+              <ClockCircleOutlined /> {t('deviceCard.lastActivity')}{getTimeSince(device.lastActiveAt)}
             </Text>
             {device.directConnectionEnabled && device.externalAddress && (
               <Text type="secondary">
@@ -134,7 +136,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
               </Text>
             )}
             <Text type="secondary" style={{ fontSize: 12 }}>
-              配對時間：{formatDate(device.pairedAt)}
+              {t('deviceCard.pairedAt')}{formatDate(device.pairedAt)}
             </Text>
           </Space>
         }

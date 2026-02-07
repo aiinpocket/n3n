@@ -61,7 +61,7 @@ public class TestDataFactory {
     }
 
     public static LoginRequest createLoginRequest() {
-        return createLoginRequest("test@example.com", "password123");
+        return createLoginRequest("test@example.com", "Password1!");
     }
 
     public static LoginRequest createLoginRequest(String email, String password) {
@@ -72,7 +72,7 @@ public class TestDataFactory {
     }
 
     public static RegisterRequest createRegisterRequest() {
-        return createRegisterRequest("new@example.com", "password123", "New User");
+        return createRegisterRequest("new@example.com", "Password1!", "New User");
     }
 
     public static RegisterRequest createRegisterRequest(String email, String password, String name) {

@@ -79,7 +79,7 @@ public class ResponderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Responder Agent execution failed", e);
-            return AgentResult.error("回應失敗: " + e.getMessage());
+            return AgentResult.error("Response failed: " + e.getMessage());
         }
     }
 

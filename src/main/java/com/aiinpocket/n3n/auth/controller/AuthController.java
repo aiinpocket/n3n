@@ -1,9 +1,7 @@
 package com.aiinpocket.n3n.auth.controller;
 
 import com.aiinpocket.n3n.activity.service.ActivityService;
-import com.aiinpocket.n3n.auth.dto.request.LoginRequest;
-import com.aiinpocket.n3n.auth.dto.request.RefreshTokenRequest;
-import com.aiinpocket.n3n.auth.dto.request.RegisterRequest;
+import com.aiinpocket.n3n.auth.dto.request.*;
 import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.exception.BadCredentialsException;
@@ -19,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -110,6 +109,29 @@ public class AuthController {
     public ResponseEntity<SetupStatusResponse> getSetupStatus() {
         boolean setupRequired = authService.isSetupRequired();
         return ResponseEntity.ok(new SetupStatusResponse(setupRequired));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+        authService.changePassword(UUID.fromString(userDetails.getUsername()), request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully."));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "If this email is registered, a reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password has been reset successfully."));
     }
 
     public record SetupStatusResponse(boolean setupRequired) {}

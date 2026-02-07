@@ -5,20 +5,13 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
 import type { ExternalService } from '../types'
+import { getLocale } from '../utils/locale'
 
 export default function ServiceListPage() {
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { services, totalElements, isLoading, currentPage, pageSize, fetchServices, deleteService, testConnection } = useServiceStore()
   const [testingId, setTestingId] = useState<string | null>(null)
-
-  const getLocale = () => {
-    switch (i18n.language) {
-      case 'ja': return 'ja-JP'
-      case 'en': return 'en-US'
-      default: return 'zh-TW'
-    }
-  }
 
   useEffect(() => {
     fetchServices()

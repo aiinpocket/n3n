@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip } from 'antd'
+import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty } from 'antd'
 import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential } from '../api/credential'
 import CredentialFormModal from '../components/credentials/CredentialFormModal'
+import { extractApiError } from '../utils/errorMessages'
+import { getLocale } from '../utils/locale'
 
 const { Title } = Typography
 
 const CredentialListPage: React.FC = () => {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const {
     credentials,
     loading,
@@ -22,14 +24,6 @@ const CredentialListPage: React.FC = () => {
 
   const [formVisible, setFormVisible] = useState(false)
   const [testingId, setTestingId] = useState<string | null>(null)
-
-  const getLocale = () => {
-    switch (i18n.language) {
-      case 'ja': return 'ja-JP'
-      case 'en': return 'en-US'
-      default: return 'zh-TW'
-    }
-  }
 
   useEffect(() => {
     fetchCredentials()
@@ -51,8 +45,10 @@ const CredentialListPage: React.FC = () => {
       if (result.success) {
         message.success(t('credential.testSuccess'))
       } else {
-        message.error(t('credential.testFailed', { message: result.message || t('common.error') }))
+        message.error(result.message || t('credential.testFailed', { message: t('common.error') }))
       }
+    } catch (error) {
+      message.error(extractApiError(error, t('credential.testFailed', { message: t('common.error') })))
     } finally {
       setTestingId(null)
     }
@@ -76,12 +72,12 @@ const CredentialListPage: React.FC = () => {
 
   const getTypeDisplayName = (type: string) => {
     const names: Record<string, string> = {
-      http_basic: 'HTTP Basic',
-      http_bearer: 'Bearer Token',
-      api_key: 'API Key',
-      oauth2: 'OAuth2',
+      http_basic: t('credential.typeHttpBasic'),
+      http_bearer: t('credential.typeBearerToken'),
+      api_key: t('credential.typeApiKey'),
+      oauth2: t('credential.typeOAuth2'),
       database: t('credential.typeDatabase'),
-      ssh: 'SSH'
+      ssh: t('credential.typeSsh')
     }
     return names[type] || type
   }
@@ -194,6 +190,14 @@ const CredentialListPage: React.FC = () => {
           dataSource={credentials}
           rowKey="id"
           loading={loading}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('credential.noCredentials')}
+              />
+            )
+          }}
           pagination={{
             current: currentPage + 1,
             total: totalElements,

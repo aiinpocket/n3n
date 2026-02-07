@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Form,
   Input,
@@ -43,13 +44,13 @@ interface DataMappingEditorProps {
   onChange: (mappings: Record<string, string>) => void
 }
 
-// Category display names
-const categoryLabels: Record<string, string> = {
-  pathParams: '路徑參數',
-  queryParams: '查詢參數',
-  requestBody: '請求主體',
-  headers: '自訂標頭',
-  config: '配置參數',
+// Category label keys for i18n
+const categoryLabelKeys: Record<string, string> = {
+  pathParams: 'dataMapping.pathParams',
+  queryParams: 'dataMapping.queryParams',
+  requestBody: 'dataMapping.requestBody',
+  headers: 'dataMapping.headers',
+  config: 'dataMapping.config',
 }
 
 // Category colors
@@ -67,6 +68,7 @@ export default function DataMappingEditor({
   inputMappings,
   onChange,
 }: DataMappingEditorProps) {
+  const { t } = useTranslation()
   const [fieldModes, setFieldModes] = useState<Record<string, InputMode>>(() => {
     // Initialize modes from existing mappings
     const modes: Record<string, InputMode> = {}
@@ -107,7 +109,7 @@ export default function DataMappingEditor({
             <span>{field.displayName}</span>
             {field.required && (
               <Tag color="red" style={{ marginLeft: 4 }}>
-                必填
+                {t('dataMapping.required')}
               </Tag>
             )}
             <Tag color="default">{field.type}</Tag>
@@ -126,13 +128,13 @@ export default function DataMappingEditor({
             buttonStyle="solid"
           >
             <Radio.Button value="literal">
-              <EditOutlined /> 字面值
+              <EditOutlined /> {t('dataMapping.literal')}
             </Radio.Button>
             <Radio.Button value="expression">
-              <CodeOutlined /> 表達式
+              <CodeOutlined /> {t('dataMapping.expression')}
             </Radio.Button>
             <Radio.Button value="upstream" disabled={upstreamOutputs.length === 0}>
-              <LinkOutlined /> 上游資料
+              <LinkOutlined /> {t('dataMapping.upstream')}
             </Radio.Button>
           </Radio.Group>
 
@@ -141,7 +143,7 @@ export default function DataMappingEditor({
             <Input
               value={currentValue.startsWith('{{') ? '' : currentValue}
               onChange={(e) => handleFieldChange(field.path, e.target.value, 'literal')}
-              placeholder={field.placeholder || `輸入 ${field.displayName}`}
+              placeholder={field.placeholder || t('dataMapping.enterField', { field: field.displayName })}
             />
           )}
 
@@ -152,12 +154,12 @@ export default function DataMappingEditor({
                 onChange={(e) =>
                   handleFieldChange(field.path, e.target.value, 'expression')
                 }
-                placeholder="例如: {{ $json.fieldName }} 或 {{ $node[&quot;nodeName&quot;].json.field }}"
+                placeholder={t('dataMapping.expressionPlaceholder')}
                 rows={2}
                 style={{ fontFamily: 'monospace' }}
               />
               <Text type="secondary" style={{ fontSize: 12 }}>
-                支援的表達式: {'{{ $json.field }}'}, {'{{ $node["nodeName"].json.field }}'}
+                {t('dataMapping.expressionHelp')}
               </Text>
             </div>
           )}
@@ -196,7 +198,7 @@ export default function DataMappingEditor({
   if (!hasFields) {
     return (
       <Empty
-        description="此節點沒有需要設定的輸入欄位"
+        description={t('dataMapping.noInputFields')}
         image={Empty.PRESENTED_IMAGE_SIMPLE}
       />
     )
@@ -209,7 +211,7 @@ export default function DataMappingEditor({
       key: category,
       label: (
         <Space>
-          <span>{categoryLabels[category] || category}</span>
+          <span>{categoryLabelKeys[category] ? t(categoryLabelKeys[category]) : category}</span>
           <Tag color={categoryColors[category] || 'default'}>{fields.length}</Tag>
         </Space>
       ),
@@ -223,8 +225,8 @@ export default function DataMappingEditor({
       {upstreamOutputs.length === 0 && (
         <Alert
           type="info"
-          message="沒有上游節點"
-          description="連接其他節點到此節點以使用上游資料映射"
+          message={t('dataMapping.noUpstreamNodes')}
+          description={t('dataMapping.noUpstreamNodesDesc')}
           showIcon
           style={{ marginBottom: 16 }}
         />
@@ -251,6 +253,7 @@ function UpstreamFieldSelector({
   value: string
   onChange: (expression: string) => void
 }) {
+  const { t } = useTranslation()
   // Build tree data
   const treeData: DataNode[] = upstreamOutputs.map((node) => ({
     key: node.nodeId,
@@ -280,7 +283,7 @@ function UpstreamFieldSelector({
   if (upstreamOutputs.length === 0) {
     return (
       <Empty
-        description="沒有可用的上游資料"
+        description={t('dataMapping.noUpstreamData')}
         image={Empty.PRESENTED_IMAGE_SIMPLE}
       />
     )
@@ -297,12 +300,12 @@ function UpstreamFieldSelector({
     >
       {value && (
         <div style={{ marginBottom: 8 }}>
-          <Text type="secondary">已選擇: </Text>
+          <Text type="secondary">{t('dataMapping.selected')}: </Text>
           <Text code style={{ fontSize: 12 }}>
             {value}
           </Text>
           <a onClick={() => onChange('')} style={{ marginLeft: 8 }}>
-            清除
+            {t('dataMapping.clear')}
           </a>
         </div>
       )}

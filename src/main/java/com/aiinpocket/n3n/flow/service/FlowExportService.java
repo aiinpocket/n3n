@@ -39,6 +39,23 @@ public class FlowExportService {
     private final ObjectMapper objectMapper;
 
     /**
+     * 匯出流程（最新版本）
+     */
+    @Transactional(readOnly = true)
+    public FlowExportPackage exportFlowLatest(UUID flowId, UUID userId) {
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
+                .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
+
+        List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId);
+        if (versions.isEmpty()) {
+            throw new ResourceNotFoundException("No versions found for flow: " + flowId);
+        }
+        FlowVersion latestVersion = versions.get(0);
+
+        return exportFlow(flowId, latestVersion.getVersion(), userId);
+    }
+
+    /**
      * 匯出流程
      */
     @Transactional(readOnly = true)

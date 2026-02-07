@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.dto;
 
+import com.aiinpocket.n3n.common.constant.Status;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class CreateCredentialRequest {
 
     private UUID workspaceId;
 
-    private String visibility = "private";
+    private String visibility = Status.Visibility.PRIVATE;
 
     @NotNull(message = "Credential data is required")
     private Map<String, Object> data;

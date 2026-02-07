@@ -54,7 +54,7 @@ export default function SetupPage() {
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
             </div>
-            <RocketOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
+            <RocketOutlined style={{ fontSize: 48, color: 'var(--color-primary)', marginBottom: 16 }} />
             <Title level={2} style={{ margin: 0 }}>{t('setup.title')}</Title>
             <Text type="secondary">{t('setup.subtitle')}</Text>
           </div>
@@ -126,7 +126,19 @@ export default function SetupPage() {
                   rules={[
                     { required: true, message: t('auth.passwordRequired') },
                     { min: 8, message: t('auth.passwordMinLength') },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve()
+                        let criteria = 0
+                        if (/[A-Z]/.test(value)) criteria++
+                        if (/[a-z]/.test(value)) criteria++
+                        if (/\d/.test(value)) criteria++
+                        if (/[^a-zA-Z0-9]/.test(value)) criteria++
+                        return criteria >= 3 ? Promise.resolve() : Promise.reject(new Error(t('auth.passwordComplexity')))
+                      },
+                    },
                   ]}
+                  extra={<span style={{ color: 'var(--color-text-tertiary)', fontSize: 12 }}>{t('auth.passwordHint')}</span>}
                 >
                   <Input.Password
                     prefix={<LockOutlined />}
@@ -173,7 +185,7 @@ export default function SetupPage() {
             </>
           ) : (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 24 }} />
+              <CheckCircleOutlined style={{ fontSize: 64, color: 'var(--color-success)', marginBottom: 24 }} />
               <Title level={3}>{t('setup.setupComplete')}</Title>
               <Paragraph type="secondary">
                 {t('auth.email')}: <Text strong>{registeredEmail}</Text>

@@ -375,10 +375,10 @@ public class CronTool implements AgentNodeTool {
             int num = Integer.parseInt(value);
             if (num < min || num > max) {
                 throw new IllegalArgumentException(
-                        String.format("%s 值 %d 超出範圍 [%d-%d]", name, num, min, max));
+                        String.format("%s value %d is out of range [%d-%d]", name, num, min, max));
             }
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(String.format("%s 值 '%s' 不是有效數字", name, value));
+            throw new IllegalArgumentException(String.format("%s value '%s' is not a valid number", name, value));
         }
     }
 
