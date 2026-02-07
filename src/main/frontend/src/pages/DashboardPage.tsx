@@ -241,7 +241,7 @@ export default function DashboardPage() {
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card hoverable size="small" onClick={() => navigate('/account')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <Card hoverable size="small" onClick={() => navigate('/settings/account')} style={{ cursor: 'pointer', textAlign: 'center' }}>
               <SafetyOutlined style={{ fontSize: 28, color: 'var(--color-ai)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickSecurity')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickSecurityDesc')}</Text>

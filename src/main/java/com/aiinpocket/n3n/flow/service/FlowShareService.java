@@ -36,7 +36,7 @@ public class FlowShareService {
     @Transactional
     public FlowShareResponse shareFlow(UUID flowId, FlowShareRequest request, UUID sharedBy) {
         // 驗證流程存在且有權限分享
-        Flow flow = flowRepository.findById(flowId)
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
         // 檢查是否為流程擁有者或有 admin 權限
@@ -116,7 +116,7 @@ public class FlowShareService {
      * 取得流程的所有分享記錄
      */
     public List<FlowShareResponse> getFlowShares(UUID flowId, UUID userId) {
-        Flow flow = flowRepository.findById(flowId)
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
         // 檢查是否為流程擁有者或有權限
@@ -134,7 +134,7 @@ public class FlowShareService {
      */
     @Transactional
     public FlowShareResponse updateSharePermission(UUID flowId, UUID shareId, String permission, UUID userId) {
-        Flow flow = flowRepository.findById(flowId)
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
         // 檢查是否為流程擁有者或有 admin 權限
@@ -162,7 +162,7 @@ public class FlowShareService {
      */
     @Transactional
     public void removeShare(UUID flowId, UUID shareId, UUID userId) {
-        Flow flow = flowRepository.findById(flowId)
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
         // 檢查是否為流程擁有者或有 admin 權限
@@ -209,7 +209,7 @@ public class FlowShareService {
      * 檢查用戶是否有流程的存取權
      */
     public boolean hasAccess(UUID flowId, UUID userId) {
-        Flow flow = flowRepository.findById(flowId).orElse(null);
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
         if (flow == null) {
             return false;
         }
@@ -232,7 +232,7 @@ public class FlowShareService {
      * 檢查用戶是否有編輯權限
      */
     public boolean hasEditAccess(UUID flowId, UUID userId) {
-        Flow flow = flowRepository.findById(flowId).orElse(null);
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
         if (flow == null) {
             return false;
         }

@@ -70,7 +70,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             request.setUserId(otherUserId);
             request.setPermission("edit");
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(targetUser));
             when(flowShareRepository.findByFlowIdAndUserId(flowId, otherUserId)).thenReturn(Optional.empty());
             when(flowShareRepository.save(any(FlowShare.class))).thenAnswer(inv -> {
@@ -98,7 +98,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             User targetUser = User.builder().id(otherUserId).email("other@test.com").name("Other").build();
             FlowShare existingShare = FlowShare.builder().flowId(flowId).userId(otherUserId).build();
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(userRepository.findById(otherUserId)).thenReturn(Optional.of(targetUser));
             when(flowShareRepository.findByFlowIdAndUserId(flowId, otherUserId)).thenReturn(Optional.of(existingShare));
 
@@ -111,7 +111,7 @@ class FlowShareServiceTest extends BaseServiceTest {
         void shareFlow_nonExistingFlow_throwsException() {
             FlowShareRequest request = new FlowShareRequest();
             request.setUserId(otherUserId);
-            when(flowRepository.findById(flowId)).thenReturn(Optional.empty());
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> flowShareService.shareFlow(flowId, request, ownerId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -123,7 +123,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             FlowShareRequest request = new FlowShareRequest();
             request.setUserId(otherUserId);
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowShareRepository.findPermissionByFlowIdAndUserId(flowId, nonOwnerId))
                 .thenReturn(Optional.empty());
 
@@ -139,7 +139,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             request.setEmail("existing@test.com");
             request.setPermission("view");
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(userRepository.findByEmail("existing@test.com")).thenReturn(Optional.of(existingUser));
             when(flowShareRepository.findByFlowIdAndUserId(flowId, otherUserId)).thenReturn(Optional.empty());
             when(flowShareRepository.save(any(FlowShare.class))).thenAnswer(inv -> {
@@ -162,7 +162,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             request.setEmail("newuser@test.com");
             request.setPermission("view");
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(userRepository.findByEmail("newuser@test.com")).thenReturn(Optional.empty());
             when(flowShareRepository.findByFlowIdAndInvitedEmail(flowId, "newuser@test.com")).thenReturn(Optional.empty());
             when(flowShareRepository.save(any(FlowShare.class))).thenAnswer(inv -> {
@@ -184,7 +184,7 @@ class FlowShareServiceTest extends BaseServiceTest {
         void shareFlow_noUserIdOrEmail_throwsException() {
             FlowShareRequest request = new FlowShareRequest();
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
 
             assertThatThrownBy(() -> flowShareService.shareFlow(flowId, request, ownerId))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -198,7 +198,7 @@ class FlowShareServiceTest extends BaseServiceTest {
 
         @Test
         void hasAccess_owner_returnsTrue() {
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
 
             boolean result = flowShareService.hasAccess(flowId, ownerId);
 
@@ -208,7 +208,7 @@ class FlowShareServiceTest extends BaseServiceTest {
         @Test
         void hasAccess_sharedUser_returnsTrue() {
             FlowShare share = FlowShare.builder().flowId(flowId).userId(otherUserId).build();
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowShareRepository.findByFlowIdAndUserId(flowId, otherUserId)).thenReturn(Optional.of(share));
 
             boolean result = flowShareService.hasAccess(flowId, otherUserId);
@@ -219,7 +219,7 @@ class FlowShareServiceTest extends BaseServiceTest {
         @Test
         void hasAccess_nonSharedUser_returnsFalse() {
             UUID randomUser = UUID.randomUUID();
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowShareRepository.findByFlowIdAndUserId(flowId, randomUser)).thenReturn(Optional.empty());
 
             boolean result = flowShareService.hasAccess(flowId, randomUser);
@@ -229,7 +229,7 @@ class FlowShareServiceTest extends BaseServiceTest {
 
         @Test
         void hasAccess_nonExistingFlow_returnsFalse() {
-            when(flowRepository.findById(flowId)).thenReturn(Optional.empty());
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.empty());
 
             boolean result = flowShareService.hasAccess(flowId, ownerId);
 
@@ -239,7 +239,7 @@ class FlowShareServiceTest extends BaseServiceTest {
         @Test
         void hasAccess_publicFlow_returnsTrue() {
             testFlow.setVisibility("public");
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
 
             boolean result = flowShareService.hasAccess(flowId, UUID.randomUUID());
 
@@ -253,7 +253,7 @@ class FlowShareServiceTest extends BaseServiceTest {
 
         @Test
         void hasEditAccess_owner_returnsTrue() {
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
 
             boolean result = flowShareService.hasEditAccess(flowId, ownerId);
 
@@ -262,7 +262,7 @@ class FlowShareServiceTest extends BaseServiceTest {
 
         @Test
         void hasEditAccess_nonExistingFlow_returnsFalse() {
-            when(flowRepository.findById(flowId)).thenReturn(Optional.empty());
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.empty());
 
             boolean result = flowShareService.hasEditAccess(flowId, ownerId);
 
@@ -279,7 +279,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             UUID shareId = UUID.randomUUID();
             FlowShare share = FlowShare.builder().id(shareId).flowId(flowId).userId(otherUserId).build();
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowShareRepository.findById(shareId)).thenReturn(Optional.of(share));
 
             flowShareService.removeShare(flowId, shareId, ownerId);
@@ -293,7 +293,7 @@ class FlowShareServiceTest extends BaseServiceTest {
             UUID otherFlowId = UUID.randomUUID();
             FlowShare share = FlowShare.builder().id(shareId).flowId(otherFlowId).userId(otherUserId).build();
 
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowShareRepository.findById(shareId)).thenReturn(Optional.of(share));
 
             assertThatThrownBy(() -> flowShareService.removeShare(flowId, shareId, ownerId))

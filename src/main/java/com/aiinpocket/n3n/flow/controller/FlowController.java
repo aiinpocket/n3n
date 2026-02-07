@@ -251,7 +251,7 @@ public class FlowController {
     public ResponseEntity<FlowShareResponse> updateShare(
             @PathVariable UUID flowId,
             @PathVariable UUID shareId,
-            @RequestParam String permission,
+            @RequestParam @jakarta.validation.constraints.Pattern(regexp = "^(view|edit|admin)$", message = "Permission must be view, edit, or admin") String permission,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         FlowResponse flow = flowService.getFlow(flowId);
