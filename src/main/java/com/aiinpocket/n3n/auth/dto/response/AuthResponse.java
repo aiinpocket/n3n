@@ -11,4 +11,5 @@ public class AuthResponse {
     private Long expiresIn;
     private UserResponse user;
     private String message;
+    private Boolean isFirstUser;
 }

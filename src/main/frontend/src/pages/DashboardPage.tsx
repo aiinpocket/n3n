@@ -117,18 +117,18 @@ export default function DashboardPage() {
       <div>
         <Card
           style={{
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+            background: 'linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%)',
             border: '1px solid rgba(20, 184, 166, 0.3)',
             borderRadius: 16,
             marginBottom: 24,
           }}
         >
           <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-            <RocketOutlined style={{ fontSize: 64, color: '#14B8A6', marginBottom: 16 }} />
-            <Title level={2} style={{ color: '#E2E8F0', margin: '0 0 8px 0' }}>
+            <RocketOutlined style={{ fontSize: 64, color: 'var(--color-primary)', marginBottom: 16 }} />
+            <Title level={2} style={{ color: 'var(--color-text-primary)', margin: '0 0 8px 0' }}>
               {t('dashboard.welcomeTitle')}
             </Title>
-            <Paragraph style={{ color: '#94A3B8', fontSize: 16, marginBottom: 32 }}>
+            <Paragraph style={{ color: 'var(--color-text-secondary)', fontSize: 16, marginBottom: 32 }}>
               {t('dashboard.welcomeSubtitle')}
             </Paragraph>
 
@@ -139,19 +139,19 @@ export default function DashboardPage() {
               style={{ maxWidth: 700, margin: '0 auto 40px' }}
               items={[
                 {
-                  title: <span style={{ color: '#E2E8F0' }}>{t('dashboard.step1Title')}</span>,
-                  description: <span style={{ color: '#94A3B8' }}>{t('dashboard.step1Desc')}</span>,
-                  icon: <ApartmentOutlined style={{ color: '#14B8A6' }} />,
+                  title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step1Title')}</span>,
+                  description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step1Desc')}</span>,
+                  icon: <ApartmentOutlined style={{ color: 'var(--color-primary)' }} />,
                 },
                 {
-                  title: <span style={{ color: '#E2E8F0' }}>{t('dashboard.step2Title')}</span>,
-                  description: <span style={{ color: '#94A3B8' }}>{t('dashboard.step2Desc')}</span>,
-                  icon: <AppstoreAddOutlined style={{ color: '#3B82F6' }} />,
+                  title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step2Title')}</span>,
+                  description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step2Desc')}</span>,
+                  icon: <AppstoreAddOutlined style={{ color: 'var(--color-info)' }} />,
                 },
                 {
-                  title: <span style={{ color: '#E2E8F0' }}>{t('dashboard.step3Title')}</span>,
-                  description: <span style={{ color: '#94A3B8' }}>{t('dashboard.step3Desc')}</span>,
-                  icon: <PlayCircleOutlined style={{ color: '#22C55E' }} />,
+                  title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step3Title')}</span>,
+                  description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step3Desc')}</span>,
+                  icon: <PlayCircleOutlined style={{ color: 'var(--color-success)' }} />,
                 },
               ]}
             />
@@ -174,9 +174,9 @@ export default function DashboardPage() {
                   height: 48,
                   paddingInline: 24,
                   fontSize: 16,
-                  background: 'rgba(30, 41, 59, 0.8)',
-                  borderColor: 'rgba(148, 163, 184, 0.3)',
-                  color: '#E2E8F0',
+                  background: 'var(--color-bg-elevated)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
                 }}
               >
                 {t('dashboard.startFromTemplate')}
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   fontSize: 16,
                   background: 'rgba(139, 92, 246, 0.15)',
                   borderColor: 'rgba(139, 92, 246, 0.5)',
-                  color: '#A78BFA',
+                  color: 'var(--color-ai)',
                 }}
               >
                 {t('dashboard.aiGenerate')}

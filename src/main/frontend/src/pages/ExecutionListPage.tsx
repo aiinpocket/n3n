@@ -19,7 +19,7 @@ import { executionApi, ExecutionResponse } from '../api/execution'
 import { useAllExecutions } from '../hooks/useExecutionMonitor'
 import apiClient from '../api/client'
 import logger from '../utils/logger'
-import { getLocale } from '../utils/locale'
+import { getLocale, formatDuration } from '../utils/locale'
 
 const { Text } = Typography
 
@@ -183,7 +183,7 @@ export default function ExecutionListPage() {
       dataIndex: 'durationMs',
       key: 'durationMs',
       width: 100,
-      render: (ms: number) => (ms != null ? `${ms}ms` : '-'),
+      render: (ms: number) => formatDuration(ms),
     },
     {
       title: t('execution.triggerType'),

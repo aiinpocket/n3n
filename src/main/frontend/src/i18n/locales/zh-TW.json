@@ -451,6 +451,8 @@
     "triggerType": "觸發類型",
     "view": "查看",
     "realtime": "即時連線",
+    "live": "已連線",
+    "disconnected": "已斷線",
     "detail": "執行詳情",
     "reload": "重新載入",
     "cancel": "取消執行",

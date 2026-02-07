@@ -451,6 +451,8 @@
     "triggerType": "Trigger Type",
     "view": "View",
     "realtime": "Live Connection",
+    "live": "Live",
+    "disconnected": "Disconnected",
     "detail": "Execution Details",
     "reload": "Reload",
     "cancel": "Cancel Execution",

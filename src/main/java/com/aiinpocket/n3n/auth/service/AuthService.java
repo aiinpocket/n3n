@@ -129,6 +129,7 @@ public class AuthService {
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .expiresIn(jwtService.getAccessTokenExpirationMs() / 1000)
+            .isFirstUser(isFirstUser)
             .message(isFirstUser ? "Admin account created successfully" : "Registration successful")
             .user(UserResponse.from(user, roles))
             .build();
@@ -319,7 +320,10 @@ public class AuthService {
 
     private void checkAccountLock(User user) {
         if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(Instant.now())) {
-            throw new AccountLockedException("Account is locked. Try again later.");
+            long remainingSeconds = java.time.Duration.between(Instant.now(), user.getLockedUntil()).getSeconds();
+            long remainingMinutes = (remainingSeconds + 59) / 60;
+            throw new AccountLockedException(
+                String.format("Account is locked due to too many failed attempts. Try again in %d minute(s).", remainingMinutes));
         }
     }
 

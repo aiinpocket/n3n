@@ -127,7 +127,7 @@ public class LoginRateLimiter {
         } catch (Exception e) {
             log.error("Rate limit check failed: {}", e.getMessage());
             if (!failOpen) {
-                throw new RateLimitException("System busy, please try again later");
+                throw new RateLimitException("Too many requests, please try again later");
             }
             // fail-open: 允許請求繼續
             log.warn("Rate limiter fail-open: allowing request due to Redis error");
@@ -208,7 +208,7 @@ public class LoginRateLimiter {
 
         if (result == null || result.isEmpty()) {
             if (!failOpen) {
-                throw new RateLimitException("System busy, please try again later");
+                throw new RateLimitException("Too many requests, please try again later");
             }
             return;
         }

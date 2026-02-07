@@ -151,7 +151,7 @@ export default function ExecutionOverlay({
         {/* Connection Status */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
           <span>{t('execution.realtime')}</span>
-          <Badge status={isConnected ? 'success' : 'error'} text={isConnected ? 'Live' : 'Disconnected'} />
+          <Badge status={isConnected ? 'success' : 'error'} text={isConnected ? t('execution.live') : t('execution.disconnected')} />
         </div>
 
         {/* Progress */}

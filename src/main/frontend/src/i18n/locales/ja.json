@@ -450,6 +450,8 @@
     "triggerType": "トリガータイプ",
     "view": "表示",
     "realtime": "リアルタイム接続",
+    "live": "接続中",
+    "disconnected": "切断",
     "detail": "実行詳細",
     "reload": "再読み込み",
     "cancel": "実行をキャンセル",

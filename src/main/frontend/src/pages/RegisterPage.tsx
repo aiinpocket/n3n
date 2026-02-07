@@ -17,7 +17,7 @@ export default function RegisterPage() {
     try {
       await register(values.email, values.password, values.name)
       message.success(t('auth.registerSuccess'))
-      navigate('/login')
+      navigate('/')
     } catch {
       // Error is handled in store
     }

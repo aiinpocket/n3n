@@ -87,12 +87,29 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/register', { email, password, name })
-          const isAdminSetup = response.data.message === 'Admin account created successfully'
-          set({
-            isLoading: false,
-            setupRequired: false,  // Setup is complete after registration
-          })
-          return isAdminSetup
+          const { accessToken, refreshToken, user, isFirstUser } = response.data
+
+          // Auto-login after registration
+          if (accessToken) {
+            localStorage.setItem('accessToken', accessToken)
+            if (refreshToken) {
+              localStorage.setItem('refreshToken', refreshToken)
+            }
+            set({
+              accessToken,
+              refreshToken,
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+              setupRequired: false,
+            })
+          } else {
+            set({
+              isLoading: false,
+              setupRequired: false,
+            })
+          }
+          return isFirstUser || false
         } catch (error: unknown) {
           const message = extractApiError(error, 'Registration failed')
           set({ error: message, isLoading: false })

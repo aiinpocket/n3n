@@ -73,6 +73,9 @@ class ExecutionServiceTest extends BaseServiceTest {
     @Mock
     private ActivityService activityService;
 
+    @Mock
+    private com.aiinpocket.n3n.flow.service.FlowShareService flowShareService;
+
     @InjectMocks
     private ExecutionService executionService;
 
@@ -95,6 +98,9 @@ class ExecutionServiceTest extends BaseServiceTest {
 
         testVersion = TestDataFactory.createPublishedVersion(flowId, "1.0.0");
         testVersion.setId(versionId);
+
+        // Default: user has access to the flow (owner)
+        lenient().when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
     }
 
     @Nested
@@ -144,11 +150,12 @@ class ExecutionServiceTest extends BaseServiceTest {
         void listExecutionsByFlow_noVersions_returnsEmpty() {
             // Given
             Pageable pageable = PageRequest.of(0, 10);
+            when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
             when(flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
                     .thenReturn(List.of());
 
             // When
-            Page<ExecutionResponse> result = executionService.listExecutionsByFlow(flowId, pageable);
+            Page<ExecutionResponse> result = executionService.listExecutionsByFlow(flowId, userId, pageable);
 
             // Then
             assertThat(result.getContent()).isEmpty();
@@ -161,13 +168,14 @@ class ExecutionServiceTest extends BaseServiceTest {
             FlowVersion draft = TestDataFactory.createFlowVersion(flowId, "2.0.0");
             draft.setId(UUID.randomUUID());
 
+            when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
             when(flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
                     .thenReturn(List.of(draft, testVersion));
             when(executionRepository.findByFlowVersionIdOrderByStartedAtDesc(testVersion.getId(), pageable))
                     .thenReturn(Page.empty());
 
             // When
-            executionService.listExecutionsByFlow(flowId, pageable);
+            executionService.listExecutionsByFlow(flowId, userId, pageable);
 
             // Then
             verify(executionRepository).findByFlowVersionIdOrderByStartedAtDesc(testVersion.getId(), pageable);

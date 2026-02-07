@@ -118,19 +118,36 @@ public class FlowController {
     // Version endpoints
 
     @GetMapping("/{flowId}/versions")
-    public ResponseEntity<List<FlowVersionResponse>> listVersions(@PathVariable UUID flowId) {
+    public ResponseEntity<List<FlowVersionResponse>> listVersions(
+            @PathVariable UUID flowId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.listVersions(flowId));
     }
 
     @GetMapping("/{flowId}/versions/{version}")
     public ResponseEntity<FlowVersionResponse> getVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version) {
+            @PathVariable String version,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.getVersion(flowId, version));
     }
 
     @GetMapping("/{flowId}/versions/published")
-    public ResponseEntity<FlowVersionResponse> getPublishedVersion(@PathVariable UUID flowId) {
+    public ResponseEntity<FlowVersionResponse> getPublishedVersion(
+            @PathVariable UUID flowId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.getPublishedVersion(flowId));
     }
 
@@ -155,6 +172,9 @@ public class FlowController {
             @PathVariable String version,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasEditAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         FlowResponse flow = flowService.getFlow(flowId);
         // Get current published version for audit log
         String previousVersion = null;
@@ -174,7 +194,12 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}/validate")
     public ResponseEntity<FlowValidationResponse> validateVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version) {
+            @PathVariable String version,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.validateFlow(flowId, version));
     }
 
@@ -256,7 +281,12 @@ public class FlowController {
     public ResponseEntity<List<UpstreamNodeOutput>> getUpstreamOutputs(
             @PathVariable UUID flowId,
             @PathVariable String version,
-            @PathVariable String nodeId) {
+            @PathVariable String nodeId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.getUpstreamOutputs(flowId, version, nodeId));
     }
 
@@ -268,7 +298,12 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}/pinned-data")
     public ResponseEntity<java.util.Map<String, Object>> getPinnedData(
             @PathVariable UUID flowId,
-            @PathVariable String version) {
+            @PathVariable String version,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(flowService.getPinnedData(flowId, version));
     }
 

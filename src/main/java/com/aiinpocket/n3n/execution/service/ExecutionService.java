@@ -18,6 +18,7 @@ import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.flow.service.DagParser;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,6 +47,7 @@ public class ExecutionService {
     private final N3nExpressionEvaluator expressionEvaluator;
     private final CredentialService credentialService;
     private final ActivityService activityService;
+    private final FlowShareService flowShareService;
 
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
         return executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)
@@ -69,7 +71,11 @@ public class ExecutionService {
         return page.map(e -> enrichExecution(e));
     }
 
-    public Page<ExecutionResponse> listExecutionsByFlow(UUID flowId, Pageable pageable) {
+    public Page<ExecutionResponse> listExecutionsByFlow(UUID flowId, UUID userId, Pageable pageable) {
+        // Verify user has access to this flow
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied to flow: " + flowId);
+        }
         // Find all versions of the flow, then find executions for those versions
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId);
         if (versions.isEmpty()) {
@@ -129,6 +135,11 @@ public class ExecutionService {
         // Find flow and version
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));
+
+        // Verify user has at least view access to execute (edit access for non-owner)
+        if (!flowShareService.hasAccess(flow.getId(), userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied to flow: " + flow.getId());
+        }
 
         FlowVersion version;
         if (request.getVersion() != null) {

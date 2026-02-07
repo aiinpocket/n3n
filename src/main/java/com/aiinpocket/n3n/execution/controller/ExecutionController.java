@@ -45,8 +45,10 @@ public class ExecutionController {
     @GetMapping("/by-flow/{flowId}")
     public ResponseEntity<Page<ExecutionResponse>> listExecutionsByFlow(
             @PathVariable UUID flowId,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(executionService.listExecutionsByFlow(flowId, pageable));
+            @PageableDefault(size = 20) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(executionService.listExecutionsByFlow(flowId, userId, pageable));
     }
 
     @GetMapping("/{id}")
