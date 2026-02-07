@@ -11,10 +11,10 @@ import { logsApi, createLogStream, type LogEntry } from '../api/logs'
 const { Text } = Typography
 
 const levelColors: Record<string, string> = {
-  ERROR: '#EF4444',
-  WARN: '#F59E0B',
-  INFO: '#6366F1',
-  DEBUG: '#64748B',
+  ERROR: 'var(--color-danger)',
+  WARN: 'var(--color-warning)',
+  INFO: 'var(--color-info)',
+  DEBUG: 'var(--color-text-muted)',
 }
 
 const levelTagColors: Record<string, string> = {
@@ -155,7 +155,7 @@ export default function LogViewerPage() {
         style={{
           maxHeight: 'calc(100vh - 320px)',
           overflow: 'auto',
-          background: '#020617',
+          background: 'var(--color-bg-primary)',
           borderRadius: 8,
           padding: '8px 0',
         }}
@@ -170,7 +170,7 @@ export default function LogViewerPage() {
               <List.Item
                 style={{
                   padding: '4px 12px',
-                  borderBottom: '1px solid #1E293B',
+                  borderBottom: '1px solid var(--color-bg-elevated)',
                   alignItems: 'flex-start',
                 }}
               >
@@ -179,7 +179,7 @@ export default function LogViewerPage() {
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: 12,
-                      color: '#64748B',
+                      color: 'var(--color-text-muted)',
                       flexShrink: 0,
                     }}
                   >
@@ -195,7 +195,7 @@ export default function LogViewerPage() {
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: 12,
-                      color: '#94A3B8',
+                      color: 'var(--color-text-secondary)',
                       flexShrink: 0,
                       minWidth: 120,
                     }}
@@ -206,7 +206,7 @@ export default function LogViewerPage() {
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: 12,
-                      color: levelColors[entry.level] || '#F8FAFC',
+                      color: levelColors[entry.level] || 'var(--color-text-primary)',
                       wordBreak: 'break-all',
                     }}
                   >

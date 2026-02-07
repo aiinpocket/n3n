@@ -221,28 +221,28 @@ export default function DashboardPage() {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Card hoverable size="small" onClick={() => navigate('/credentials')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-              <KeyOutlined style={{ fontSize: 28, color: '#F59E0B', marginBottom: 8 }} />
+              <KeyOutlined style={{ fontSize: 28, color: 'var(--color-warning)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickCredentials')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickCredentialsDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card hoverable size="small" onClick={() => navigate('/services')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-              <ApiOutlined style={{ fontSize: 28, color: '#3B82F6', marginBottom: 8 }} />
+              <ApiOutlined style={{ fontSize: 28, color: 'var(--color-info)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickServices')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickServicesDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card hoverable size="small" onClick={() => navigate('/webhooks')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-              <ThunderboltOutlined style={{ fontSize: 28, color: '#14B8A6', marginBottom: 8 }} />
+              <ThunderboltOutlined style={{ fontSize: 28, color: 'var(--color-primary)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickWebhooks')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickWebhooksDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card hoverable size="small" onClick={() => navigate('/account')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-              <SafetyOutlined style={{ fontSize: 28, color: '#8B5CF6', marginBottom: 8 }} />
+              <SafetyOutlined style={{ fontSize: 28, color: 'var(--color-ai)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickSecurity')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickSecurityDesc')}</Text>
             </Card>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/flows')}>
             {t('flow.newFlow')}
           </Button>
-          <Button icon={<ThunderboltOutlined />} onClick={() => navigate('/ai-assistant')} style={{ background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff' }}>
+          <Button icon={<ThunderboltOutlined />} onClick={() => navigate('/ai-assistant')} style={{ background: 'var(--color-ai)', borderColor: 'var(--color-ai)', color: '#fff' }}>
             {t('nav.aiAssistant')}
           </Button>
         </Space>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
             <Statistic
               title={t('dashboard.totalFlows')}
               value={stats?.totalFlows || 0}
-              prefix={<ApartmentOutlined style={{ color: '#14B8A6' }} />}
+              prefix={<ApartmentOutlined style={{ color: 'var(--color-primary)' }} />}
             />
           </Card>
         </Col>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
             <Statistic
               title={t('dashboard.totalExecutions')}
               value={stats?.totalExecutions || 0}
-              prefix={<PlayCircleOutlined style={{ color: '#3B82F6' }} />}
+              prefix={<PlayCircleOutlined style={{ color: 'var(--color-info)' }} />}
             />
           </Card>
         </Col>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
             <Statistic
               title={t('dashboard.successful')}
               value={stats?.successfulExecutions || 0}
-              prefix={<CheckCircleOutlined style={{ color: '#22C55E' }} />}
+              prefix={<CheckCircleOutlined style={{ color: 'var(--color-success)' }} />}
             />
           </Card>
         </Col>
@@ -302,7 +302,7 @@ export default function DashboardPage() {
             <Statistic
               title={t('dashboard.failed')}
               value={stats?.failedExecutions || 0}
-              prefix={<CloseCircleOutlined style={{ color: '#EF4444' }} />}
+              prefix={<CloseCircleOutlined style={{ color: 'var(--color-danger)' }} />}
             />
           </Card>
         </Col>
@@ -314,8 +314,8 @@ export default function DashboardPage() {
           <Col span={24}>
             <Card size="small" style={{ borderColor: 'rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)' }}>
               <Space>
-                <SyncOutlined spin style={{ color: '#3B82F6' }} />
-                <Text style={{ color: '#93C5FD' }}>
+                <SyncOutlined spin style={{ color: 'var(--color-info)' }} />
+                <Text style={{ color: 'var(--color-text-secondary)' }}>
                   {t('dashboard.running')}: {stats.runningExecutions}
                 </Text>
                 <Button type="link" size="small" onClick={() => navigate('/executions?status=running')}>

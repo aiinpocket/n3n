@@ -32,7 +32,9 @@ export default function RegisterPage() {
       background: 'var(--color-bg-primary)',
     }}>
       <Card style={{
-        width: 400,
+        width: '100%',
+        maxWidth: 400,
+        margin: '0 16px',
         background: 'var(--color-bg-secondary)',
         border: '1px solid var(--color-border)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',

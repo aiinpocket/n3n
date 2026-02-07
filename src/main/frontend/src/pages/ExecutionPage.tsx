@@ -497,12 +497,12 @@ export default function ExecutionPage() {
             items={[
               {
                 key: 'input',
-                label: <span style={{ color: '#3B82F6' }}>{t('execution.inputData')}</span>,
+                label: <span style={{ color: 'var(--color-info)' }}>{t('execution.inputData')}</span>,
                 children: selectedNodeData?.input ? (
                   <pre
                     style={{
-                      background: '#1E293B',
-                      color: '#E2E8F0',
+                      background: 'var(--color-bg-elevated)',
+                      color: 'var(--color-text-primary)',
                       padding: 16,
                       borderRadius: 8,
                       overflow: 'auto',
@@ -519,12 +519,12 @@ export default function ExecutionPage() {
               },
               {
                 key: 'output',
-                label: <span style={{ color: '#22C55E' }}>{t('execution.outputData')}</span>,
+                label: <span style={{ color: 'var(--color-success)' }}>{t('execution.outputData')}</span>,
                 children: selectedNodeData?.output ? (
                   <pre
                     style={{
-                      background: '#1E293B',
-                      color: '#E2E8F0',
+                      background: 'var(--color-bg-elevated)',
+                      color: 'var(--color-text-primary)',
                       padding: 16,
                       borderRadius: 8,
                       overflow: 'auto',

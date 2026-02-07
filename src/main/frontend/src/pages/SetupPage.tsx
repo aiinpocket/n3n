@@ -40,7 +40,7 @@ export default function SetupPage() {
       justifyContent: 'center',
       background: 'var(--color-bg-primary)',
     }}>
-      <Card style={{ width: 480, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+      <Card style={{ width: '100%', maxWidth: 480, margin: '0 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, right: 0 }}>

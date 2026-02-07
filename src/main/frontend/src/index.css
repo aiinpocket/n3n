@@ -29,6 +29,7 @@
   /* Text Colors */
   --color-text-primary: #F8FAFC;
   --color-text-secondary: #94A3B8;
+  --color-text-tertiary: #64748B;
   --color-text-muted: #64748B;
   --color-text-inverse: #0F172A;
 
@@ -118,7 +119,7 @@
 html {
   height: 100%;
   width: 100%;
-  background-color: #020617 !important;
+  background-color: var(--color-bg-primary) !important;
 }
 
 body {
@@ -126,8 +127,8 @@ body {
   width: 100%;
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #020617 !important;
-  color: #F8FAFC !important;
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -136,7 +137,7 @@ body {
 #root {
   height: 100%;
   width: 100%;
-  background-color: #020617;
+  background-color: var(--color-bg-primary);
 }
 
 /* Scrollbar Styling */

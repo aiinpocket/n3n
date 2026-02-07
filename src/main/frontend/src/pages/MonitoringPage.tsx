@@ -202,9 +202,9 @@ export default function MonitoringPage() {
                 />
                 <Text strong>{t('monitoring.health.database')}</Text>
                 {healthStatus?.database === 'UP' ? (
-                  <CheckCircleOutlined style={{ color: '#22C55E' }} />
+                  <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
                 ) : (
-                  <CloseCircleOutlined style={{ color: '#EF4444' }} />
+                  <CloseCircleOutlined style={{ color: 'var(--color-danger)' }} />
                 )}
                 {healthStatus && (
                   <Text type="secondary">({healthStatus.dbResponseMs}ms)</Text>
@@ -218,9 +218,9 @@ export default function MonitoringPage() {
                 />
                 <Text strong>{t('monitoring.health.redis')}</Text>
                 {healthStatus?.redis === 'UP' ? (
-                  <CheckCircleOutlined style={{ color: '#22C55E' }} />
+                  <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
                 ) : (
-                  <CloseCircleOutlined style={{ color: '#EF4444' }} />
+                  <CloseCircleOutlined style={{ color: 'var(--color-danger)' }} />
                 )}
                 {healthStatus && (
                   <Text type="secondary">({healthStatus.redisResponseMs}ms)</Text>
