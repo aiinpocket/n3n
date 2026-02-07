@@ -99,6 +99,14 @@ export default function DashboardPage() {
     cancelled: 'warning',
   }
 
+  const statusIcons: Record<string, React.ReactNode> = {
+    completed: <CheckCircleOutlined />,
+    failed: <CloseCircleOutlined />,
+    running: <SyncOutlined spin />,
+    pending: <ClockCircleOutlined />,
+    cancelled: <CloseCircleOutlined />,
+  }
+
   if (loading) {
     return (
       <div>
@@ -134,8 +142,11 @@ export default function DashboardPage() {
             <Title level={2} style={{ color: 'var(--color-text-primary)', margin: '0 0 8px 0' }}>
               {t('dashboard.welcomeTitle')}
             </Title>
-            <Paragraph style={{ color: 'var(--color-text-secondary)', fontSize: 16, marginBottom: 32 }}>
+            <Paragraph style={{ color: 'var(--color-text-secondary)', fontSize: 16, marginBottom: 8 }}>
               {t('dashboard.welcomeSubtitle')}
+            </Paragraph>
+            <Paragraph style={{ color: 'var(--color-text-tertiary)', fontSize: 14, marginBottom: 32, maxWidth: 500, margin: '0 auto 32px' }}>
+              {t('dashboard.welcomeExplanation')}
             </Paragraph>
 
             <Steps
@@ -339,7 +350,7 @@ export default function DashboardPage() {
                     title={item.flowName || item.id.substring(0, 8)}
                     description={
                       <Space>
-                        <Tag color={statusColors[item.status] || 'default'}>{t(`execution.${item.status}`, { defaultValue: item.status })}</Tag>
+                        <Tag icon={statusIcons[item.status]} color={statusColors[item.status] || 'default'}>{t(`execution.${item.status}`, { defaultValue: item.status })}</Tag>
                         {item.durationMs != null && <Text type="secondary">{item.durationMs}ms</Text>}
                         <Text type="secondary">{item.startedAt ? new Date(item.startedAt).toLocaleString(getLocale()) : '-'}</Text>
                       </Space>

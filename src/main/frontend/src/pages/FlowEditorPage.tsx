@@ -329,6 +329,11 @@ export default function FlowEditorPage() {
         e.preventDefault()
         openAIPanel()
       }
+      // Ctrl+F or Cmd+F to open node search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        setNodeSearchOpen(true)
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)

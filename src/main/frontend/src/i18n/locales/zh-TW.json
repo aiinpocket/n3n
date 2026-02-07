@@ -1440,7 +1440,8 @@
     "quickSecurity": "安全性",
     "quickSecurityDesc": "Recovery Key 與帳戶設定",
     "loadFailed": "載入儀表板資料失敗",
-    "welcomeBack": "歡迎回來，{{name}}"
+    "welcomeBack": "歡迎回來，{{name}}",
+    "welcomeExplanation": "將您的應用程式和服務串接在一起，自動化重複性工作 — 完全不需要寫程式。"
   },
   "diff": {
     "nodes": "節點",

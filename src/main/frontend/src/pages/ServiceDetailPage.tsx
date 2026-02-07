@@ -95,15 +95,28 @@ export default function ServiceDetailPage() {
   const handleEndpointSubmit = async (values: Record<string, unknown>) => {
     if (!id) return
     try {
+      let pathParams: Record<string, unknown> | undefined
+      let queryParams: Record<string, unknown> | undefined
+      let requestBody: Record<string, unknown> | undefined
+      let responseSchema: Record<string, unknown> | undefined
+      try {
+        pathParams = values.pathParams ? JSON.parse(values.pathParams as string) : undefined
+        queryParams = values.queryParams ? JSON.parse(values.queryParams as string) : undefined
+        requestBody = values.requestBody ? JSON.parse(values.requestBody as string) : undefined
+        responseSchema = values.responseSchema ? JSON.parse(values.responseSchema as string) : undefined
+      } catch {
+        message.error(t('component.jsonFormatError'))
+        return
+      }
       const data: CreateEndpointRequest = {
         name: values.name as string,
         description: values.description as string,
         method: values.method as string,
         path: values.path as string,
-        pathParams: values.pathParams ? JSON.parse(values.pathParams as string) : undefined,
-        queryParams: values.queryParams ? JSON.parse(values.queryParams as string) : undefined,
-        requestBody: values.requestBody ? JSON.parse(values.requestBody as string) : undefined,
-        responseSchema: values.responseSchema ? JSON.parse(values.responseSchema as string) : undefined,
+        pathParams,
+        queryParams,
+        requestBody,
+        responseSchema,
         tags: values.tags ? (values.tags as string).split(',').map((tag) => tag.trim()) : undefined,
       }
 

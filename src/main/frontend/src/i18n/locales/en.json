@@ -1440,7 +1440,8 @@
     "quickSecurity": "Security",
     "quickSecurityDesc": "Recovery key and account settings",
     "loadFailed": "Failed to load dashboard data",
-    "welcomeBack": "Welcome back, {{name}}"
+    "welcomeBack": "Welcome back, {{name}}",
+    "welcomeExplanation": "Automate repetitive tasks by connecting your apps and services together — no coding required."
   },
   "diff": {
     "nodes": "nodes",

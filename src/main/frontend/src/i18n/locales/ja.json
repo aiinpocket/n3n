@@ -1440,7 +1440,8 @@
     "quickSecurity": "セキュリティ",
     "quickSecurityDesc": "Recovery Keyとアカウント設定",
     "loadFailed": "ダッシュボードデータの読み込みに失敗しました",
-    "welcomeBack": "おかえりなさい、{{name}}さん"
+    "welcomeBack": "おかえりなさい、{{name}}さん",
+    "welcomeExplanation": "アプリやサービスを連携して、繰り返しの作業を自動化 — コーディング不要です。"
   },
   "diff": {
     "nodes": "ノード",

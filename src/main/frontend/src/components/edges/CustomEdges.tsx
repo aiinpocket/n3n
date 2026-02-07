@@ -51,10 +51,18 @@ interface CustomEdgeProps {
   targetY: number
   sourcePosition: Position
   targetPosition: Position
+  sourceHandleId?: string | null
   style?: CSSProperties
   markerEnd?: string
   data?: CustomEdgeData
   selected?: boolean
+}
+
+// Get auto-label for condition node handles
+function getConditionLabel(sourceHandleId?: string | null): string {
+  if (sourceHandleId === 'true') return 'True'
+  if (sourceHandleId === 'false') return 'False'
+  return ''
 }
 
 /**
@@ -68,6 +76,7 @@ export const CustomBezierEdge = memo(function CustomBezierEdge({
   targetY,
   sourcePosition,
   targetPosition,
+  sourceHandleId,
   style,
   markerEnd,
   data,
@@ -75,7 +84,7 @@ export const CustomBezierEdge = memo(function CustomBezierEdge({
 }: CustomEdgeProps) {
   const edgeType = data?.edgeType || 'success'
   const edgeStyle = EDGE_STYLES[edgeType] || DEFAULT_EDGE_STYLE
-  const label = data?.label || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
+  const label = data?.label || getConditionLabel(sourceHandleId) || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -137,6 +146,7 @@ export const CustomStepEdge = memo(function CustomStepEdge({
   targetY,
   sourcePosition,
   targetPosition,
+  sourceHandleId,
   style,
   markerEnd,
   data,
@@ -144,7 +154,7 @@ export const CustomStepEdge = memo(function CustomStepEdge({
 }: CustomEdgeProps) {
   const edgeType = data?.edgeType || 'success'
   const edgeStyle = EDGE_STYLES[edgeType] || DEFAULT_EDGE_STYLE
-  const label = data?.label || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
+  const label = data?.label || getConditionLabel(sourceHandleId) || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
