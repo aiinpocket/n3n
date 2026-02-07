@@ -28,13 +28,16 @@ public class ApprovalController {
     private final ExecutionApprovalService approvalService;
 
     /**
-     * Get all pending approvals.
+     * Get all pending approvals for the current user.
      */
     @GetMapping("/pending")
     public ResponseEntity<List<ApprovalSummary>> getPendingApprovals(
             @AuthenticationPrincipal UserDetails userDetails) {
-        // Return all pending approvals - user filtering happens at service layer
-        List<ExecutionApproval> approvals = approvalService.getAllPendingApprovals();
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        // Filter approvals to only show those belonging to the current user's executions
+        List<ExecutionApproval> approvals = approvalService.getAllPendingApprovals().stream()
+            .filter(a -> approvalService.isUserAuthorizedForApproval(a, userId))
+            .toList();
         List<ApprovalSummary> summaries = approvals.stream()
             .map(ApprovalSummary::from)
             .toList();
@@ -45,8 +48,14 @@ public class ApprovalController {
      * Get approval by ID.
      */
     @GetMapping("/{approvalId}")
-    public ResponseEntity<ApprovalDetail> getApproval(@PathVariable UUID approvalId) {
+    public ResponseEntity<ApprovalDetail> getApproval(
+            @PathVariable UUID approvalId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
         ExecutionApproval approval = approvalService.getApproval(approvalId);
+        if (!approvalService.isUserAuthorizedForApproval(approval, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Approval not found: " + approvalId);
+        }
         return ResponseEntity.ok(ApprovalDetail.from(approval,
             approvalService.getActionsForApproval(approvalId)));
     }

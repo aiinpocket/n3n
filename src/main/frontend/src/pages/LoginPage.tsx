@@ -85,7 +85,7 @@ export default function LoginPage() {
               name="email"
               rules={[
                 { required: true, message: t('auth.emailRequired') },
-                { type: 'email', message: t('auth.emailRequired') },
+                { type: 'email', message: t('auth.emailInvalid') },
               ]}
             >
               <Input

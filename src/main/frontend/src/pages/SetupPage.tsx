@@ -102,7 +102,7 @@ export default function SetupPage() {
                   label={t('auth.email')}
                   rules={[
                     { required: true, message: t('auth.emailRequired') },
-                    { type: 'email', message: t('auth.emailRequired') },
+                    { type: 'email', message: t('auth.emailInvalid') },
                   ]}
                 >
                   <Input

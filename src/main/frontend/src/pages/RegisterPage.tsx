@@ -101,7 +101,7 @@ export default function RegisterPage() {
               name="email"
               rules={[
                 { required: true, message: t('auth.emailRequired') },
-                { type: 'email', message: t('auth.emailRequired') },
+                { type: 'email', message: t('auth.emailInvalid') },
               ]}
             >
               <Input

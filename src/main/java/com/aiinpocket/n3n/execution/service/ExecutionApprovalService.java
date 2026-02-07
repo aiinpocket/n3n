@@ -2,9 +2,11 @@ package com.aiinpocket.n3n.execution.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.execution.entity.ApprovalAction;
+import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.entity.ExecutionApproval;
 import com.aiinpocket.n3n.execution.repository.ApprovalActionRepository;
 import com.aiinpocket.n3n.execution.repository.ExecutionApprovalRepository;
+import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class ExecutionApprovalService {
     private final ExecutionApprovalRepository approvalRepository;
     private final ApprovalActionRepository actionRepository;
     private final ExecutionNotificationService notificationService;
+    private final ExecutionRepository executionRepository;
 
     /**
      * Create an approval request for an execution.
@@ -182,6 +185,16 @@ public class ExecutionApprovalService {
      */
     public List<ExecutionApproval> getAllPendingApprovals() {
         return approvalRepository.findAllPending();
+    }
+
+    /**
+     * Check if a user is authorized to view/interact with an approval.
+     * A user is authorized if they triggered the execution associated with the approval.
+     */
+    public boolean isUserAuthorizedForApproval(ExecutionApproval approval, UUID userId) {
+        return executionRepository.findById(approval.getExecutionId())
+            .map(execution -> userId.equals(execution.getTriggeredBy()))
+            .orElse(false);
     }
 
     /**

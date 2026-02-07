@@ -122,6 +122,7 @@ public class GatewayController {
      * Get gateway statistics (admin only)
      */
     @GetMapping("/stats")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getStats() {
         return ResponseEntity.ok(nodeRegistry.getStats());
     }

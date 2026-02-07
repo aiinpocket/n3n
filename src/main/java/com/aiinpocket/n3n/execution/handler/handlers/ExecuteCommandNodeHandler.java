@@ -2,16 +2,20 @@ package com.aiinpocket.n3n.execution.handler.handlers;
 
 import com.aiinpocket.n3n.execution.handler.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 
 /**
  * Handler for execute command nodes.
  * Executes system commands in a sandboxed environment with timeout.
+ * SECURITY: Disabled by default. Must be explicitly enabled via configuration.
+ * Only intended for flows running on trusted agent machines, NOT the platform server.
  */
 @Component
 @Slf4j
@@ -19,10 +23,33 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
 
     private static final int MAX_OUTPUT_SIZE = 1024 * 1024; // 1MB max output
     private static final int DEFAULT_TIMEOUT_SECONDS = 30;
-    private static final Set<String> BLOCKED_COMMANDS = Set.of(
-        "rm -rf /", "mkfs", "dd if=/dev/zero", ":(){ :|:& };:",
-        "shutdown", "reboot", "halt", "poweroff", "init 0", "init 6"
+
+    // Comprehensive blocklist using patterns for better coverage
+    private static final List<Pattern> BLOCKED_PATTERNS = List.of(
+        Pattern.compile("\\brm\\s+.*-[^\\s]*[rR][^\\s]*[fF]", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\brm\\s+.*-[^\\s]*[fF][^\\s]*[rR]", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\brm\\s+(-\\w+\\s+)*.*-r\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bmkfs\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bdd\\s+if=/dev/", Pattern.CASE_INSENSITIVE),
+        Pattern.compile(":\\(\\)\\s*\\{", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bshutdown\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\breboot\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bhalt\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bpoweroff\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\binit\\s+[06]\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bcurl\\b.*\\|\\s*\\b(sh|bash|zsh)\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bwget\\b.*\\|\\s*\\b(sh|bash|zsh)\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bchmod\\s+.*[0-7]{3,4}\\s+/", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\bchown\\s+.*\\s+/", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("/etc/passwd", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("/etc/shadow", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("\\beval\\b", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("`.*`"),  // backtick command substitution
+        Pattern.compile("\\$\\(.*\\)")  // $() command substitution
     );
+
+    @Value("${n3n.handler.execute-command.enabled:false}")
+    private boolean enabled;
 
     @Override
     public String getType() {
@@ -51,6 +78,12 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
 
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
+        // Security: this handler must be explicitly enabled
+        if (!enabled) {
+            return NodeExecutionResult.failure(
+                "Execute Command node is disabled. Enable via n3n.handler.execute-command.enabled=true in configuration.");
+        }
+
         String command = getStringConfig(context, "command", "");
         if (command.isBlank()) {
             // Try from input data
@@ -63,11 +96,10 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("Command is required.");
         }
 
-        // Security check: block dangerous commands
-        String lowerCmd = command.toLowerCase().trim();
-        for (String blocked : BLOCKED_COMMANDS) {
-            if (lowerCmd.contains(blocked)) {
-                return NodeExecutionResult.failure("Command blocked for security reasons: " + blocked);
+        // Security check: block dangerous commands using regex patterns
+        for (Pattern blocked : BLOCKED_PATTERNS) {
+            if (blocked.matcher(command).find()) {
+                return NodeExecutionResult.failure("Command blocked for security reasons.");
             }
         }
 

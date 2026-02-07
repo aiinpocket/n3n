@@ -34,6 +34,7 @@ public class FlowExportController {
     private final FlowExportService exportService;
     private final FlowImportService importService;
     private final ActivityService activityService;
+    private final com.aiinpocket.n3n.flow.service.FlowShareService flowShareService;
 
     /**
      * 匯出流程（指定版本）
@@ -45,6 +46,9 @@ public class FlowExportController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
+        }
         FlowExportPackage pkg = exportService.exportFlow(flowId, version, userId);
 
         // Audit log: flow export
@@ -71,6 +75,9 @@ public class FlowExportController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
+        }
         FlowExportPackage pkg = exportService.exportFlowLatest(flowId, userId);
 
         // Audit log: flow export

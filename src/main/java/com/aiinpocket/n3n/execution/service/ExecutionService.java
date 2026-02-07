@@ -573,12 +573,28 @@ public class ExecutionService {
     }
 
     /**
+     * Verify the caller has access to the execution (is the owner).
+     */
+    public void verifyExecutionAccess(UUID executionId, UUID userId) {
+        Execution execution = executionRepository.findById(executionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));
+        if (!userId.equals(execution.getTriggeredBy())) {
+            throw new ResourceNotFoundException("Execution not found: " + executionId);
+        }
+    }
+
+    /**
      * Resume a waiting execution with provided data.
      */
     @Transactional
     public ExecutionResponse resumeExecution(UUID executionId, Map<String, Object> resumeData, UUID userId) {
         Execution execution = executionRepository.findById(executionId)
             .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));
+
+        // Verify ownership - only the execution owner can resume
+        if (userId != null && !userId.equals(execution.getTriggeredBy())) {
+            throw new ResourceNotFoundException("Execution not found: " + executionId);
+        }
 
         if (!"waiting".equals(execution.getStatus())) {
             throw new IllegalArgumentException("Cannot resume execution in status: " + execution.getStatus());

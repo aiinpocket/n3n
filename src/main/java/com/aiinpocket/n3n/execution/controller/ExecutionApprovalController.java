@@ -33,7 +33,11 @@ public class ExecutionApprovalController {
      * Get approval information for an execution.
      */
     @GetMapping("/approval")
-    public ResponseEntity<ApprovalResponse> getApproval(@PathVariable UUID executionId) {
+    public ResponseEntity<ApprovalResponse> getApproval(
+            @PathVariable UUID executionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        executionService.verifyExecutionAccess(executionId, userId);
         return approvalService.getPendingApprovalForExecution(executionId)
             .map(approval -> ResponseEntity.ok(ApprovalResponse.from(approval,
                 approvalService.getActionsForApproval(approval.getId()))))
@@ -44,7 +48,11 @@ public class ExecutionApprovalController {
      * Get all approvals for an execution.
      */
     @GetMapping("/approvals")
-    public ResponseEntity<List<ApprovalResponse>> getApprovals(@PathVariable UUID executionId) {
+    public ResponseEntity<List<ApprovalResponse>> getApprovals(
+            @PathVariable UUID executionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        executionService.verifyExecutionAccess(executionId, userId);
         List<ExecutionApproval> approvals = approvalService.getApprovalsForExecution(executionId);
         List<ApprovalResponse> responses = approvals.stream()
             .map(approval -> ApprovalResponse.from(approval,
