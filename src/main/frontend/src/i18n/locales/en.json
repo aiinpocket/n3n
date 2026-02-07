@@ -111,7 +111,8 @@
     "groupAI": "AI",
     "groupSystem": "System",
     "accountSettings": "Account Settings",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "adminUsers": "User Management"
   },
   "auth": {
     "login": "Login",
@@ -1453,6 +1454,31 @@
     "resolveKeyMismatch": "Resolve",
     "encryptionVersion": "Encryption Key Version"
   },
+  "admin": {
+    "title": "User Management",
+    "createUser": "Create User",
+    "userName": "User",
+    "roles": "Roles",
+    "lastLogin": "Last Login",
+    "editRoles": "Edit Roles",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "resetPassword": "Reset Password",
+    "confirmResetPassword": "Reset user password?",
+    "resetPasswordDesc": "A new random password will be generated and sent to the user via email.",
+    "userCreated": "User created successfully",
+    "statusUpdated": "User status updated",
+    "rolesUpdated": "User roles updated",
+    "passwordReset": "Password has been reset",
+    "namePlaceholder": "Enter user name",
+    "password": "Password (optional)",
+    "passwordPlaceholder": "Leave empty to auto-generate",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "blocked": "Blocked"
+    }
+  },
   "nodeRecommendation": {
     "title": "Smart Node Recommendation",
     "all": "All",
@@ -2008,5 +2034,17 @@
     "documentation": "API Documentation",
     "keyboardShortcuts": "Keyboard Shortcuts",
     "reportIssue": "Report an Issue"
+  },
+  "shortcuts": {
+    "commandPalette": "Command Palette",
+    "saveFlow": "Save Flow",
+    "undo": "Undo",
+    "redo": "Redo",
+    "deleteSelected": "Delete Selected",
+    "selectAll": "Select All",
+    "copy": "Copy",
+    "paste": "Paste",
+    "panCanvas": "Pan Canvas",
+    "zoom": "Zoom In / Out"
   }
 }

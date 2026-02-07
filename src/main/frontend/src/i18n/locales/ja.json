@@ -111,7 +111,8 @@
     "groupAI": "AI",
     "groupSystem": "システム",
     "accountSettings": "アカウント設定",
-    "dashboard": "ダッシュボード"
+    "dashboard": "ダッシュボード",
+    "adminUsers": "ユーザー管理"
   },
   "auth": {
     "login": "ログイン",
@@ -1453,6 +1454,31 @@
     "resolveKeyMismatch": "解決",
     "encryptionVersion": "暗号化キーバージョン"
   },
+  "admin": {
+    "title": "ユーザー管理",
+    "createUser": "ユーザーを作成",
+    "userName": "ユーザー",
+    "roles": "ロール",
+    "lastLogin": "最終ログイン",
+    "editRoles": "ロール編集",
+    "suspend": "一時停止",
+    "activate": "有効化",
+    "resetPassword": "パスワードリセット",
+    "confirmResetPassword": "ユーザーのパスワードをリセットしますか？",
+    "resetPasswordDesc": "新しいランダムパスワードが生成され、メールでユーザーに送信されます。",
+    "userCreated": "ユーザーが正常に作成されました",
+    "statusUpdated": "ユーザーステータスが更新されました",
+    "rolesUpdated": "ユーザーロールが更新されました",
+    "passwordReset": "パスワードがリセットされました",
+    "namePlaceholder": "ユーザー名を入力",
+    "password": "パスワード（任意）",
+    "passwordPlaceholder": "空欄の場合は自動生成",
+    "status": {
+      "active": "有効",
+      "suspended": "一時停止",
+      "blocked": "ブロック"
+    }
+  },
   "nodeRecommendation": {
     "title": "スマートノード推薦",
     "all": "すべて",
@@ -2008,5 +2034,17 @@
     "documentation": "APIドキュメント",
     "keyboardShortcuts": "キーボードショートカット",
     "reportIssue": "問題を報告"
+  },
+  "shortcuts": {
+    "commandPalette": "コマンドパレット",
+    "saveFlow": "フローを保存",
+    "undo": "元に戻す",
+    "redo": "やり直し",
+    "deleteSelected": "選択項目を削除",
+    "selectAll": "すべて選択",
+    "copy": "コピー",
+    "paste": "貼り付け",
+    "panCanvas": "キャンバスをパン",
+    "zoom": "ズームイン / ズームアウト"
   }
 }

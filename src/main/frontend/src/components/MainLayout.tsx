@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Dropdown, Avatar, Space } from 'antd'
+import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography } from 'antd'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -22,6 +22,7 @@ import {
   QuestionCircleOutlined,
   BookOutlined,
   BugOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -31,6 +32,7 @@ const { Header, Sider, Content } = Layout
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const [shortcutsVisible, setShortcutsVisible] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
@@ -56,6 +58,7 @@ export default function MainLayout() {
       '/monitoring': t('nav.monitoring'),
       '/logs': t('nav.logs'),
       '/activities': t('nav.activities'),
+      '/admin/users': t('nav.adminUsers'),
     }
     const pageTitle = Object.entries(titles).find(([path]) =>
       path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -172,6 +175,11 @@ export default function MainLayout() {
           icon: <CloudServerOutlined />,
           label: t('nav.gatewaySettings'),
         },
+        ...(user?.roles?.includes('ADMIN') ? [{
+          key: '/admin/users',
+          icon: <TeamOutlined />,
+          label: t('nav.adminUsers'),
+        }] : []),
       ],
     },
   ]
@@ -291,7 +299,7 @@ export default function MainLayout() {
                     key: 'shortcuts',
                     icon: <ToolOutlined />,
                     label: t('help.keyboardShortcuts'),
-                    onClick: () => navigate('/flows'),
+                    onClick: () => setShortcutsVisible(true),
                   },
                   { type: 'divider' as const },
                   {
@@ -319,6 +327,32 @@ export default function MainLayout() {
           <Outlet />
         </Content>
       </Layout>
+
+      <Modal
+        title={t('help.keyboardShortcuts')}
+        open={shortcutsVisible}
+        onCancel={() => setShortcutsVisible(false)}
+        footer={null}
+        width={480}
+      >
+        {[
+          { key: 'Ctrl/⌘ + K', action: t('shortcuts.commandPalette') },
+          { key: 'Ctrl/⌘ + S', action: t('shortcuts.saveFlow') },
+          { key: 'Ctrl/⌘ + Z', action: t('shortcuts.undo') },
+          { key: 'Ctrl/⌘ + Shift + Z', action: t('shortcuts.redo') },
+          { key: 'Delete / Backspace', action: t('shortcuts.deleteSelected') },
+          { key: 'Ctrl/⌘ + A', action: t('shortcuts.selectAll') },
+          { key: 'Ctrl/⌘ + C', action: t('shortcuts.copy') },
+          { key: 'Ctrl/⌘ + V', action: t('shortcuts.paste') },
+          { key: 'Space (drag)', action: t('shortcuts.panCanvas') },
+          { key: 'Scroll', action: t('shortcuts.zoom') },
+        ].map(({ key, action }) => (
+          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
+            <Typography.Text>{action}</Typography.Text>
+            <Typography.Text keyboard>{key}</Typography.Text>
+          </div>
+        ))}
+      </Modal>
     </Layout>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space } from 'antd'
 import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import apiClient from '../api/client'
 import { extractApiError } from '../utils/errorMessages'
@@ -11,6 +12,7 @@ const { Title, Text } = Typography
 
 export default function AccountSettingsPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [form] = Form.useForm()
   const [profileForm] = Form.useForm()
@@ -145,7 +147,7 @@ export default function AccountSettingsPage() {
                 message={t('account.recoveryKeyNotSet')}
                 description={t('account.recoveryKeyNotSetDesc')}
                 action={
-                  <Button size="small" type="primary" onClick={() => window.location.href = '/credentials'}>
+                  <Button size="small" type="primary" onClick={() => navigate('/credentials')}>
                     {t('account.setupRecoveryKey')}
                   </Button>
                 }
@@ -168,7 +170,7 @@ export default function AccountSettingsPage() {
                 message={t('account.keyMismatch')}
                 description={t('account.keyMismatchDesc')}
                 action={
-                  <Button size="small" danger onClick={() => window.location.href = '/credentials'}>
+                  <Button size="small" danger onClick={() => navigate('/credentials')}>
                     {t('account.resolveKeyMismatch')}
                   </Button>
                 }

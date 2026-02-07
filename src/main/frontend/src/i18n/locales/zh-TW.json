@@ -111,7 +111,8 @@
     "groupAI": "AI 智慧",
     "groupSystem": "系統",
     "accountSettings": "帳戶設定",
-    "dashboard": "儀表板"
+    "dashboard": "儀表板",
+    "adminUsers": "使用者管理"
   },
   "auth": {
     "login": "登入",
@@ -1453,6 +1454,31 @@
     "resolveKeyMismatch": "處理",
     "encryptionVersion": "加密金鑰版本"
   },
+  "admin": {
+    "title": "使用者管理",
+    "createUser": "建立使用者",
+    "userName": "使用者",
+    "roles": "角色",
+    "lastLogin": "最近登入",
+    "editRoles": "編輯角色",
+    "suspend": "停權",
+    "activate": "啟用",
+    "resetPassword": "重設密碼",
+    "confirmResetPassword": "確定要重設使用者密碼？",
+    "resetPasswordDesc": "將產生新的隨機密碼，並透過電子郵件傳送給使用者。",
+    "userCreated": "使用者建立成功",
+    "statusUpdated": "使用者狀態已更新",
+    "rolesUpdated": "使用者角色已更新",
+    "passwordReset": "密碼已重設",
+    "namePlaceholder": "輸入使用者名稱",
+    "password": "密碼（選填）",
+    "passwordPlaceholder": "留空則自動產生",
+    "status": {
+      "active": "啟用",
+      "suspended": "已停權",
+      "blocked": "已封鎖"
+    }
+  },
   "nodeRecommendation": {
     "title": "智慧節點推薦",
     "all": "全部",
@@ -1827,5 +1853,17 @@
     "documentation": "API 文件",
     "keyboardShortcuts": "鍵盤快捷鍵",
     "reportIssue": "回報問題"
+  },
+  "shortcuts": {
+    "commandPalette": "命令面板",
+    "saveFlow": "儲存流程",
+    "undo": "復原",
+    "redo": "重做",
+    "deleteSelected": "刪除選取項目",
+    "selectAll": "全選",
+    "copy": "複製",
+    "paste": "貼上",
+    "panCanvas": "平移畫布",
+    "zoom": "縮放"
   }
 }
