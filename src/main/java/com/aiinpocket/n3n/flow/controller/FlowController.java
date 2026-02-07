@@ -51,7 +51,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(id, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }
         return ResponseEntity.ok(flowService.getFlow(id));
     }
@@ -73,7 +73,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(id, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }
         FlowResponse response = flowService.updateFlow(id, request);
         activityService.logFlowUpdate(userId, response.getId(), response.getName(), null);
@@ -85,10 +85,9 @@ public class FlowController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        // Only owner can delete
         FlowResponse flow = flowService.getFlow(id);
         if (!flow.getCreatedBy().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }
         flowService.deleteFlow(id);
         activityService.logFlowDelete(userId, id, flow.getName());
@@ -125,7 +124,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.listVersions(flowId));
     }
@@ -137,7 +136,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.getVersion(flowId, version));
     }
@@ -148,7 +147,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.getPublishedVersion(flowId));
     }
@@ -160,7 +159,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         FlowResponse flow = flowService.getFlow(flowId);
         FlowVersionResponse response = flowService.saveVersion(flowId, request, userId);
@@ -175,7 +174,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         FlowResponse flow = flowService.getFlow(flowId);
         // Get current published version for audit log
@@ -200,7 +199,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.validateFlow(flowId, version));
     }
@@ -287,7 +286,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.getUpstreamOutputs(flowId, version, nodeId));
     }
@@ -304,7 +303,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         return ResponseEntity.ok(flowService.getPinnedData(flowId, version));
     }
@@ -320,7 +319,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         flowService.pinNodeData(flowId, version, request);
         return ResponseEntity.ok().build();
@@ -337,7 +336,7 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         flowService.unpinNodeData(flowId, version, nodeId);
         return ResponseEntity.noContent().build();

@@ -345,7 +345,7 @@ export default function FlowListPage() {
             <Button
               icon={<ThunderboltOutlined />}
               onClick={() => setAiGeneratorOpen(true)}
-              style={{ background: '#8B5CF6', borderColor: '#8B5CF6', color: '#fff' }}
+              style={{ background: 'var(--color-ai)', borderColor: 'var(--color-ai)', color: '#fff' }}
             >
               {t('flow.aiCreate')}
             </Button>
@@ -406,7 +406,7 @@ export default function FlowListPage() {
                   locale={{
                     emptyText: (
                       <Result
-                        icon={<BulbOutlined style={{ color: '#8B5CF6' }} />}
+                        icon={<BulbOutlined style={{ color: 'var(--color-ai)' }} />}
                         title={t('flow.emptyTitle')}
                         subTitle={t('flow.emptySubtitle')}
                         extra={
@@ -416,7 +416,7 @@ export default function FlowListPage() {
                               size="large"
                               icon={<ThunderboltOutlined />}
                               onClick={() => setAiGeneratorOpen(true)}
-                              style={{ width: '100%', background: '#8B5CF6', borderColor: '#8B5CF6' }}
+                              style={{ width: '100%', background: 'var(--color-ai)', borderColor: 'var(--color-ai)' }}
                             >
                               {t('flow.aiCreateRecommended')}
                             </Button>

@@ -651,7 +651,7 @@ export default function FlowEditorPage() {
               <Button
                 type="primary"
                 icon={<RobotOutlined />}
-                style={{ background: '#8B5CF6', borderColor: '#8B5CF6' }}
+                style={{ background: 'var(--color-ai)', borderColor: 'var(--color-ai)' }}
               >
                 {t('editor.aiFeatures')}
               </Button>
@@ -790,11 +790,11 @@ export default function FlowEditorPage() {
                 maxWidth: 480,
               }}
             >
-              <RobotOutlined style={{ fontSize: 56, color: '#8B5CF6', marginBottom: 16 }} />
-              <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#E2E8F0' }}>
+              <RobotOutlined style={{ fontSize: 56, color: 'var(--color-ai)', marginBottom: 16 }} />
+              <Text style={{ display: 'block', fontSize: 20, fontWeight: 600, marginBottom: 8, color: 'var(--color-text-primary)' }}>
                 {t('editor.emptyState.title')}
               </Text>
-              <Text style={{ display: 'block', marginBottom: 24, color: '#94A3B8' }}>
+              <Text style={{ display: 'block', marginBottom: 24, color: 'var(--color-text-secondary)' }}>
                 {t('editor.emptyState.subtitle')}
               </Text>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -803,7 +803,7 @@ export default function FlowEditorPage() {
                   size="large"
                   icon={<ThunderboltOutlined />}
                   onClick={() => setFlowGeneratorOpen(true)}
-                  style={{ width: '100%', background: '#8B5CF6', borderColor: '#8B5CF6' }}
+                  style={{ width: '100%', background: 'var(--color-ai)', borderColor: 'var(--color-ai)' }}
                 >
                   {t('editor.emptyState.aiGenerate')}
                 </Button>
@@ -826,7 +826,7 @@ export default function FlowEditorPage() {
                 </Dropdown>
               </Space>
               <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <Text style={{ fontSize: 12, color: '#94A3B8' }}>
+                <Text style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                   {t('editor.emptyState.shortcuts')}: <Tag style={{ marginLeft: 4 }}>Ctrl+K</Tag> {t('editor.commandPalette')}{' '}
                   <Tag>Ctrl+I</Tag> {t('nav.aiAssistant')}
                 </Text>
