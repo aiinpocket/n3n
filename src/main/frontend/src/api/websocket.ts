@@ -28,6 +28,7 @@ class WebSocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
+  onReconnectFailed: (() => void) | null = null;
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -51,6 +52,8 @@ class WebSocketService {
         logger.info('WebSocket connected');
         this.connected = true;
         this.reconnectAttempts = 0;
+        // Re-subscribe to all topics that have handlers
+        this.resubscribeAll();
         resolve();
       };
 
@@ -62,15 +65,19 @@ class WebSocketService {
       this.client.onDisconnect = () => {
         logger.info('WebSocket disconnected');
         this.connected = false;
+        // Clear STOMP subscriptions but KEEP handlers for reconnect
         this.subscriptions.clear();
-        this.handlers.clear();
       };
 
       this.client.onWebSocketClose = () => {
         this.connected = false;
+        this.subscriptions.clear();
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           logger.info(`WebSocket reconnecting... attempt ${this.reconnectAttempts}`);
+        } else {
+          logger.error('WebSocket reconnection failed after max attempts');
+          this.onReconnectFailed?.();
         }
       };
 
@@ -141,6 +148,24 @@ class WebSocketService {
         this.handlers.delete(topic);
       }
     };
+  }
+
+  private resubscribeAll(): void {
+    if (!this.client || !this.connected) return;
+    for (const [topic, handlers] of this.handlers.entries()) {
+      if (handlers.size > 0 && !this.subscriptions.has(topic)) {
+        const subscription = this.client.subscribe(topic, (message: IMessage) => {
+          try {
+            const event: ExecutionEvent = JSON.parse(message.body);
+            this.handlers.get(topic)?.forEach((h) => h(event));
+          } catch (error) {
+            logger.error('Failed to parse WebSocket message:', error);
+          }
+        });
+        this.subscriptions.set(topic, subscription);
+        logger.info(`Re-subscribed to ${topic}`);
+      }
+    }
   }
 
   isConnected(): boolean {

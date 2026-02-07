@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
@@ -10,7 +10,7 @@ import { getLocale } from '../utils/locale'
 export default function ServiceListPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { services, totalElements, isLoading, currentPage, pageSize, fetchServices, deleteService, testConnection } = useServiceStore()
+  const { services, totalElements, isLoading, error, currentPage, pageSize, fetchServices, deleteService, testConnection, clearError } = useServiceStore()
   const [testingId, setTestingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -160,6 +160,21 @@ export default function ServiceListPage() {
         </Button>
       }
     >
+      {error && (
+        <Alert
+          message={error}
+          type="error"
+          showIcon
+          closable
+          onClose={clearError}
+          style={{ marginBottom: 16 }}
+          action={
+            <Button size="small" icon={<ReloadOutlined />} onClick={() => fetchServices()}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      )}
       <Table
         columns={columns}
         dataSource={services}

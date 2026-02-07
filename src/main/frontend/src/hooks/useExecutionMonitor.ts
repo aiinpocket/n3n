@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi, CreateExecutionRequest, ExecutionResponse } from '../api/execution';
+import { logger } from '../utils/logger';
 
 export function useExecutionMonitor(executionId?: string) {
   const {
@@ -15,7 +16,7 @@ export function useExecutionMonitor(executionId?: string) {
 
   // Connect to WebSocket on mount
   useEffect(() => {
-    connect();
+    connect().catch((err) => logger.error('WebSocket connect failed:', err));
     return () => {
       // Don't disconnect on unmount - let the connection persist
     };
@@ -72,9 +73,9 @@ export function useAllExecutions() {
   const { connect, subscribeToAllExecutions, unsubscribeFromExecution, executions, isConnected } = useExecutionStore();
 
   useEffect(() => {
-    connect().then(() => {
-      subscribeToAllExecutions();
-    });
+    connect()
+      .then(() => { subscribeToAllExecutions(); })
+      .catch((err) => logger.error('WebSocket connect failed:', err));
     return () => {
       unsubscribeFromExecution('__all__');
     };

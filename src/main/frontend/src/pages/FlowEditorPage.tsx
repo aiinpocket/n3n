@@ -23,6 +23,7 @@ import {
   CopyOutlined,
   RobotOutlined,
   SearchOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -522,7 +523,10 @@ export default function FlowEditorPage() {
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', gap: 16 }}>
         <Typography.Title level={4} type="danger">{t('flow.loadError')}</Typography.Title>
         <Typography.Text type="secondary">{flowError}</Typography.Text>
-        <Button type="primary" onClick={() => navigate('/flows')}>{t('flow.backToList')}</Button>
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={() => id && loadFlow(id)}>{t('common.retry')}</Button>
+          <Button type="primary" onClick={() => navigate('/flows')}>{t('flow.backToList')}</Button>
+        </Space>
       </div>
     )
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert } from 'antd'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential } from '../api/credential'
@@ -15,11 +15,13 @@ const CredentialListPage: React.FC = () => {
   const {
     credentials,
     loading,
+    error,
     totalElements,
     currentPage,
     fetchCredentials,
     deleteCredential,
-    testCredential
+    testCredential,
+    clearError
   } = useCredentialStore()
 
   const [formVisible, setFormVisible] = useState(false)
@@ -184,6 +186,22 @@ const CredentialListPage: React.FC = () => {
             {t('credential.securityInfo')}
           </span>
         </div>
+
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            closable
+            onClose={clearError}
+            style={{ marginBottom: 16 }}
+            action={
+              <Button size="small" icon={<ReloadOutlined />} onClick={() => fetchCredentials()}>
+                {t('common.retry')}
+              </Button>
+            }
+          />
+        )}
 
         <Table
           columns={columns}

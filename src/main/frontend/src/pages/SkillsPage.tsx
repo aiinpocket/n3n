@@ -14,6 +14,7 @@ import {
   Tabs,
   Empty,
   Badge,
+  Alert,
 } from 'antd'
 import {
   PlusOutlined,
@@ -26,6 +27,7 @@ import {
   GlobalOutlined,
   BellOutlined,
   DatabaseOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useSkillStore } from '../stores/skillStore'
@@ -67,10 +69,12 @@ export default function SkillsPage() {
     builtinSkills,
     categories,
     isLoading,
+    error,
     fetchSkills,
     fetchBuiltinSkills,
     fetchCategories,
     executeSkill,
+    clearError,
   } = useSkillStore()
 
   useEffect(() => {
@@ -271,6 +275,22 @@ export default function SkillsPage() {
             })),
           ]}
         />
+
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            closable
+            onClose={clearError}
+            style={{ marginBottom: 16 }}
+            action={
+              <Button size="small" icon={<ReloadOutlined />} onClick={() => { fetchSkills(); fetchBuiltinSkills(); }}>
+                {t('common.retry')}
+              </Button>
+            }
+          />
+        )}
 
         <Table
           columns={columns}
