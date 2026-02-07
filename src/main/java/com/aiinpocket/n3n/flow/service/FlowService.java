@@ -8,6 +8,7 @@ import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
+import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class FlowService {
 
     private final FlowRepository flowRepository;
+    private final FlowShareRepository flowShareRepository;
     private final FlowVersionRepository flowVersionRepository;
     private final DagParser dagParser;
     private final NodeHandlerRegistry nodeHandlerRegistry;
@@ -150,9 +152,12 @@ public class FlowService {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + id));
 
+        // Clean up related data
+        flowShareRepository.deleteByFlowId(id);
+
         flow.setIsDeleted(true);
         flowRepository.save(flow);
-        log.info("Flow deleted: id={}", id);
+        log.info("Flow deleted: id={}, shares cleaned up", id);
     }
 
     // Version management

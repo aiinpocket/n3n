@@ -9,6 +9,7 @@ import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
+import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class FlowServiceTest extends BaseServiceTest {
 
     @Mock
     private FlowRepository flowRepository;
+
+    @Mock
+    private FlowShareRepository flowShareRepository;
 
     @Mock
     private FlowVersionRepository flowVersionRepository;

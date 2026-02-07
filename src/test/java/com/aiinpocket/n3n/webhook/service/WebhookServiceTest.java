@@ -122,7 +122,7 @@ class WebhookServiceTest extends BaseServiceTest {
 
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
-        when(webhookRepository.existsByPath("test-hook")).thenReturn(false);
+        when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);
             w.setId(UUID.randomUUID());
@@ -147,7 +147,7 @@ class WebhookServiceTest extends BaseServiceTest {
         request.setName("Test Webhook");
         request.setPath("existing-path");
 
-        when(webhookRepository.existsByPath("existing-path")).thenReturn(true);
+        when(webhookRepository.existsByPathAndMethod("existing-path", "POST")).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> webhookService.createWebhook(request, userId))
@@ -167,7 +167,7 @@ class WebhookServiceTest extends BaseServiceTest {
 
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
-        when(webhookRepository.existsByPath("test-hook")).thenReturn(false);
+        when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);
             w.setId(UUID.randomUUID());

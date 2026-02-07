@@ -18,4 +18,6 @@ public interface WebhookRepository extends JpaRepository<Webhook, UUID> {
     List<Webhook> findByCreatedByOrderByCreatedAtDesc(UUID createdBy);
 
     boolean existsByPath(String path);
+
+    boolean existsByPathAndMethod(String path, String method);
 }

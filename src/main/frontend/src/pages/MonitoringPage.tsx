@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
-import { Card, Row, Col, Statistic, Progress, Badge, Button, Switch, Space, Typography } from 'antd'
+import { Alert, Card, Row, Col, Statistic, Progress, Badge, Button, Switch, Space, Typography } from 'antd'
 import {
   ReloadOutlined,
   CheckCircleOutlined,
@@ -37,7 +37,7 @@ function formatDuration(ms: number | null): string {
 
 export default function MonitoringPage() {
   const { t } = useTranslation()
-  const { systemMetrics, flowStats, healthStatus, loading, fetchAll } = useMonitoringStore()
+  const { systemMetrics, flowStats, healthStatus, loading, error, fetchAll } = useMonitoringStore()
   const [autoRefresh, setAutoRefresh] = useState(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -88,6 +88,16 @@ export default function MonitoringPage() {
         }
         style={{ marginBottom: 16 }}
       >
+        {error && (
+          <Alert
+            type="error"
+            message={t('monitoring.loadFailed')}
+            showIcon
+            closable
+            style={{ marginBottom: 16 }}
+            action={<Button size="small" onClick={loadData}>{t('common.retry')}</Button>}
+          />
+        )}
         {/* JVM Metrics */}
         <Card type="inner" title={t('monitoring.jvm.title')} style={{ marginBottom: 16 }}>
           <Row gutter={[24, 16]}>

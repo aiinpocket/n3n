@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.execution.dto.ExecutionResponse;
 import com.aiinpocket.n3n.execution.dto.NodeExecutionResponse;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Executions", description = "Flow execution management")
+@org.springframework.validation.annotation.Validated
 public class ExecutionController {
 
     private final ExecutionService executionService;
@@ -98,7 +100,7 @@ public class ExecutionController {
     @PostMapping("/{id}/pause")
     public ResponseEntity<ExecutionResponse> pauseExecution(
             @PathVariable UUID id,
-            @RequestParam(required = false) String reason,
+            @RequestParam(required = false) @Size(max = 500) String reason,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(executionService.pauseExecution(id, userId, reason));
@@ -107,7 +109,7 @@ public class ExecutionController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ExecutionResponse> cancelExecution(
             @PathVariable UUID id,
-            @RequestParam(required = false) String reason,
+            @RequestParam(required = false) @Size(max = 500) String reason,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(executionService.cancelExecution(id, userId, reason));

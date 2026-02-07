@@ -65,15 +65,16 @@ public class WebhookService {
 
     @Transactional
     public WebhookResponse createWebhook(CreateWebhookRequest request, UUID userId) {
-        if (webhookRepository.existsByPath(request.getPath())) {
-            throw new IllegalArgumentException("Webhook path already exists: " + request.getPath());
+        String method = request.getMethod() != null ? request.getMethod() : "POST";
+        if (webhookRepository.existsByPathAndMethod(request.getPath(), method)) {
+            throw new IllegalArgumentException("Webhook path already exists for method " + method + ": " + request.getPath());
         }
 
         Webhook webhook = Webhook.builder()
             .flowId(request.getFlowId())
             .name(request.getName())
             .path(request.getPath())
-            .method(request.getMethod() != null ? request.getMethod() : "POST")
+            .method(method)
             .authType(request.getAuthType())
             .authConfig(request.getAuthConfig())
             .createdBy(userId)

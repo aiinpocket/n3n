@@ -442,7 +442,7 @@ export default function ExecutionPage() {
           setDataDrawerOpen(false)
           setSelectedNodeData(null)
         }}
-        width={600}
+        width={window.innerWidth < 768 ? '100%' : 600}
         placement="right"
       >
         {loadingNodeData ? (

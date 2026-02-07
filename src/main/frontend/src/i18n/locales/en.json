@@ -914,7 +914,8 @@
       "up": "UP",
       "down": "DOWN",
       "responseTime": "Response Time"
-    }
+    },
+    "loadFailed": "Failed to load monitoring data"
   },
   "logs": {
     "title": "System Logs",

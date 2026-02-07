@@ -914,7 +914,8 @@
       "up": "正常",
       "down": "異常",
       "responseTime": "回應時間"
-    }
+    },
+    "loadFailed": "監控資料載入失敗"
   },
   "logs": {
     "title": "系統日誌",
