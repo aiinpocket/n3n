@@ -10,7 +10,7 @@ const { Title, Text, Paragraph } = Typography
 
 export default function SetupPage() {
   const navigate = useNavigate()
-  const { register, login, isLoading, error, clearError } = useAuthStore()
+  const { register, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
   const [step, setStep] = useState(0)
   const [registeredEmail, setRegisteredEmail] = useState('')
@@ -22,18 +22,10 @@ export default function SetupPage() {
       if (isAdminSetup) {
         setRegisteredEmail(values.email)
         setStep(1)
-        // Auto login after 2 seconds
-        setTimeout(async () => {
-          try {
-            await login(values.email, values.password)
-            navigate('/')
-          } catch {
-            // If auto-login fails, user can login manually
-            navigate('/login')
-          }
-        }, 2000)
+        // Register already handles auto-login via authStore
+        setTimeout(() => navigate('/'), 2000)
       } else {
-        navigate('/login')
+        navigate('/')
       }
     } catch {
       // Error is handled in store
@@ -142,7 +134,7 @@ export default function SetupPage() {
                 >
                   <Input.Password
                     prefix={<LockOutlined />}
-                    placeholder={t('auth.passwordMinLength')}
+                    placeholder={t('auth.password')}
                     size="large"
                   />
                 </Form.Item>

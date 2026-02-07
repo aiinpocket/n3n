@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.ai.service.AIAssistantService;
 import com.aiinpocket.n3n.ai.service.SimilarFlowsService;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.service.AuthService;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -29,6 +30,7 @@ public class AIAssistantController {
     private final AIAssistantService aiAssistantService;
     private final AuthService authService;
     private final SimilarFlowsService similarFlowsService;
+    private final FlowShareService flowShareService;
 
     /**
      * AI 對話串流 API
@@ -90,9 +92,18 @@ public class AIAssistantController {
      */
     @PostMapping("/apply-suggestions")
     public ResponseEntity<ApplySuggestionsResponse> applySuggestions(
-            @Valid @RequestBody ApplySuggestionsRequest request) {
+            @Valid @RequestBody ApplySuggestionsRequest request,
+            Principal principal) {
         log.info("Applying {} suggestions to flow {}",
             request.getSuggestionIds().size(), request.getFlowId());
+
+        UUID userId = getUserId(principal);
+        if (request.getFlowId() != null && userId != null) {
+            UUID flowId = UUID.fromString(request.getFlowId());
+            if (!flowShareService.hasEditAccess(flowId, userId)) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+            }
+        }
 
         ApplySuggestionsResponse response = aiAssistantService.applySuggestions(request);
         return ResponseEntity.ok(response);
@@ -199,7 +210,8 @@ public class AIAssistantController {
             return ResponseEntity.ok(List.of());
         }
 
-        List<SimilarFlow> flows = similarFlowsService.findSimilarFlows(userId, query, limit);
+        int safeLimit = Math.min(Math.max(limit, 1), 50);
+        List<SimilarFlow> flows = similarFlowsService.findSimilarFlows(userId, query, safeLimit);
         return ResponseEntity.ok(flows);
     }
 

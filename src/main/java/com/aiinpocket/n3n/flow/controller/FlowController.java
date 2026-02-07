@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.flow.service.FlowService;
 import com.aiinpocket.n3n.flow.service.FlowShareService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/flows")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Flows", description = "Flow CRUD and management")
 public class FlowController {
 
@@ -108,8 +110,8 @@ public class FlowController {
                     activityService.logFlowDelete(userId, id, flow.getName());
                     deleted++;
                 }
-            } catch (Exception ignored) {
-                // Skip flows that don't exist or can't be deleted
+            } catch (com.aiinpocket.n3n.common.exception.ResourceNotFoundException e) {
+                log.debug("Skipping batch delete for flow {}: {}", id, e.getMessage());
             }
         }
         return ResponseEntity.ok(java.util.Map.of("deleted", deleted, "total", ids.size()));

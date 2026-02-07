@@ -106,6 +106,7 @@
     "groupWorkflow": "Workflow",
     "groupConnect": "Connect",
     "groupResource": "Resource",
+    "groupAI": "AI",
     "groupSystem": "System",
     "accountSettings": "Account Settings",
     "dashboard": "Dashboard"

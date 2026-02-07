@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.execution.dto.NodeExecutionResponse;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/executions")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Executions", description = "Flow execution management")
 public class ExecutionController {
 
@@ -141,8 +143,9 @@ public class ExecutionController {
             try {
                 executionService.deleteExecution(id, userId);
                 deleted++;
-            } catch (Exception ignored) {
-                // Skip executions that don't exist or aren't owned by user
+            } catch (com.aiinpocket.n3n.common.exception.ResourceNotFoundException
+                     | org.springframework.security.access.AccessDeniedException e) {
+                log.debug("Skipping batch delete for execution {}: {}", id, e.getMessage());
             }
         }
         return ResponseEntity.ok(Map.of("deleted", deleted, "total", ids.size()));

@@ -739,65 +739,6 @@ public class ExecutionService {
         }
     }
 
-    /**
-     * Legacy method for backwards compatibility.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> executeNode(UUID executionId, String nodeId, Map<String, Object> definition,
-                                             Map<String, Object> context, Map<String, Object> nodeOutputs) {
-        // Find node in definition
-        List<Map<String, Object>> nodes = (List<Map<String, Object>>) definition.get("nodes");
-        Map<String, Object> nodeData = nodes.stream()
-            .filter(n -> nodeId.equals(n.get("id")))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Node not found: " + nodeId));
-
-        String nodeType = (String) nodeData.get("type");
-        Map<String, Object> data = (Map<String, Object>) nodeData.getOrDefault("data", Map.of());
-
-        // Create node execution record
-        NodeExecution nodeExecution = NodeExecution.builder()
-            .executionId(executionId)
-            .nodeId(nodeId)
-            .componentName(nodeType != null ? nodeType : "action")
-            .componentVersion("1.0.0")
-            .status("running")
-            .startedAt(Instant.now())
-            .build();
-        nodeExecution = nodeExecutionRepository.save(nodeExecution);
-        stateManager.markNodeStarted(executionId, nodeId);
-        notificationService.notifyNodeStarted(executionId, nodeId);
-
-        try {
-            // Execute using handler registry
-            NodeExecutionResult result = executeNodeHandler(
-                executionId, nodeId, nodeType, data, context, nodeOutputs);
-            Map<String, Object> output = result.getOutput() != null ? result.getOutput() : new HashMap<>();
-
-            // Update node execution
-            nodeExecution.setStatus("completed");
-            nodeExecution.setCompletedAt(Instant.now());
-            nodeExecution.setDurationMs((int) (nodeExecution.getCompletedAt().toEpochMilli() - nodeExecution.getStartedAt().toEpochMilli()));
-            nodeExecutionRepository.save(nodeExecution);
-
-            stateManager.markNodeCompleted(executionId, nodeId, output);
-            notificationService.notifyNodeCompleted(executionId, nodeId, output);
-
-            return output;
-        } catch (Exception e) {
-            nodeExecution.setStatus("failed");
-            nodeExecution.setCompletedAt(Instant.now());
-            nodeExecution.setDurationMs((int) (nodeExecution.getCompletedAt().toEpochMilli() - nodeExecution.getStartedAt().toEpochMilli()));
-            nodeExecution.setErrorMessage(e.getMessage());
-            nodeExecution.setErrorStack(e.getClass().getName());
-            nodeExecutionRepository.save(nodeExecution);
-
-            stateManager.markNodeFailed(executionId, nodeId, e.getMessage());
-            notificationService.notifyNodeFailed(executionId, nodeId, e.getMessage());
-            throw e;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private NodeExecutionResult executeNodeHandler(UUID executionId, String nodeId, String nodeType,
                                                     Map<String, Object> data, Map<String, Object> context,

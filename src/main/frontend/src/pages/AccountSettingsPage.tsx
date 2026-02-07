@@ -4,6 +4,7 @@ import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined } f
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import apiClient from '../api/client'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Title } = Typography
 
@@ -23,8 +24,7 @@ export default function AccountSettingsPage() {
       message.success(t('account.passwordChanged'))
       form.resetFields()
     } catch (error: unknown) {
-      const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-      message.error(msg || t('account.passwordChangeFailed'))
+      message.error(extractApiError(error, t('account.passwordChangeFailed')))
     } finally {
       setLoading(false)
     }

@@ -130,7 +130,7 @@ export default function MainLayout() {
     // AI 功能
     {
       type: 'group' as const,
-      label: collapsed ? null : 'AI',
+      label: collapsed ? null : t('nav.groupAI'),
       children: [
         {
           key: '/ai-assistant',
