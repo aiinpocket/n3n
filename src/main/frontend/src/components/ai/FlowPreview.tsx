@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Typography, Button, Card, Space, Tag, Empty, Modal, Tooltip, Divider, Segmented } from 'antd'
 import {
   CheckOutlined,
@@ -46,6 +47,7 @@ interface NodeTooltipProps {
 }
 
 const NodeTooltip: React.FC<NodeTooltipProps> = ({ node, flowDefinition }) => {
+  const { t } = useTranslation()
   const originalNode = flowDefinition.nodes.find(n => n.id === node.id)
   if (!originalNode) return null
 
@@ -60,9 +62,9 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({ node, flowDefinition }) => {
       <Divider style={{ margin: '8px 0' }} />
       <div style={{ fontSize: 12 }}>
         <div><Text type="secondary">ID:</Text> {node.id}</div>
-        <div><Text type="secondary">類型:</Text> {originalNode.type || 'default'}</div>
+        <div><Text type="secondary">{t('flowPreview.type')}:</Text> {originalNode.type || 'default'}</div>
         {componentName && (
-          <div><Text type="secondary">組件:</Text> {componentName}</div>
+          <div><Text type="secondary">{t('flowPreview.component')}:</Text> {componentName}</div>
         )}
         {description && (
           <div style={{ marginTop: 4 }}>
@@ -125,6 +127,7 @@ const FlowPreview: React.FC<Props> = ({
   initialSize = 'normal',
   onSizeChange,
 }) => {
+  const { t } = useTranslation()
   const [previewSize, setPreviewSize] = useState<PreviewSize>(initialSize)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null)
@@ -186,7 +189,7 @@ const FlowPreview: React.FC<Props> = ({
   if (!flowDefinition || !flowDefinition.nodes || flowDefinition.nodes.length === 0) {
     return (
       <Empty
-        description="尚未生成流程"
+        description={t('flowPreview.noFlowGenerated')}
         image={<ApartmentOutlined style={{ fontSize: 48, color: '#ccc' }} />}
       />
     )
@@ -197,7 +200,7 @@ const FlowPreview: React.FC<Props> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={5} style={{ margin: 0 }}>
           <ApartmentOutlined style={{ marginRight: 8 }} />
-          流程預覽
+          {t('flowPreview.title')}
         </Title>
         <Space>
           <Segmented
@@ -258,7 +261,7 @@ const FlowPreview: React.FC<Props> = ({
             icon={<CheckOutlined />}
             onClick={() => onApply('preview-flow-id')}
           >
-            建立此流程
+            {t('flowPreview.createFlow')}
           </Button>
         )}
       </div>
@@ -268,9 +271,9 @@ const FlowPreview: React.FC<Props> = ({
         title={
           <Space>
             <ApartmentOutlined />
-            <span>流程預覽</span>
-            <Tag color="blue">{nodes.length} 個節點</Tag>
-            <Tag color="purple">{edges.length} 條連線</Tag>
+            <span>{t('flowPreview.title')}</span>
+            <Tag color="blue">{nodes.length} {t('flowPreview.nodes')}</Tag>
+            <Tag color="purple">{edges.length} {t('flowPreview.edges')}</Tag>
           </Space>
         }
         open={isFullscreen}
@@ -281,12 +284,12 @@ const FlowPreview: React.FC<Props> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <Space>
               <Text type="secondary">
-                拖曳平移 | 滾輪縮放 | 點擊節點查看詳情
+                {t('flowPreview.dragHint')}
               </Text>
             </Space>
             <Space>
               <Button onClick={() => setIsFullscreen(false)}>
-                關閉
+                {t('common.close')}
               </Button>
               {onApply && (
                 <Button
@@ -297,7 +300,7 @@ const FlowPreview: React.FC<Props> = ({
                     setIsFullscreen(false)
                   }}
                 >
-                  建立此流程
+                  {t('flowPreview.createFlow')}
                 </Button>
               )}
             </Space>

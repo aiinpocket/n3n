@@ -81,8 +81,8 @@ public class KubernetesContainerOrchestrator implements ContainerOrchestrator {
             throw new SecurityException("Image " + image + " is not from a trusted registry. " +
                     "Allowed registries: " + registryValidator.getTrustedRegistries());
         }
-        progressCallback.accept(0.5, "映像將由 Kubernetes 自動拉取");
-        progressCallback.accept(1.0, "映像驗證完成");
+        progressCallback.accept(0.5, "Image will be pulled automatically by Kubernetes");
+        progressCallback.accept(1.0, "Image verification complete");
     }
 
     @Override

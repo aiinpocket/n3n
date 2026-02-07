@@ -1471,6 +1471,16 @@
     "responseHeaders": "回應標頭",
     "copyExpression": "複製表達式"
   },
+  "flowPreview": {
+    "title": "流程預覽",
+    "type": "類型",
+    "component": "組件",
+    "noFlowGenerated": "尚未生成流程",
+    "createFlow": "建立此流程",
+    "nodes": "個節點",
+    "edges": "條連線",
+    "dragHint": "拖曳平移 | 滾輪縮放 | 點擊節點查看詳情"
+  },
   "aiThinking": {
     "understanding": "理解需求",
     "understandingDesc": "正在分析您的描述...",

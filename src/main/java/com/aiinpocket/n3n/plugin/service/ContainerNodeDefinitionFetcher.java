@@ -138,7 +138,7 @@ public class ContainerNodeDefinitionFetcher {
         return ContainerNodeDefinition.builder()
                 .type(nodeType)
                 .displayName(formatDisplayName(nodeType))
-                .description("由容器提供的節點: " + nodeType)
+                .description("Container-provided node: " + nodeType)
                 .category("plugin")
                 .icon("plugin")
                 .isTrigger(false)
@@ -191,7 +191,7 @@ public class ContainerNodeDefinitionFetcher {
 
     private String formatDisplayName(String nodeType) {
         if (nodeType == null || nodeType.isBlank()) {
-            return "未知節點";
+            return "Unknown Node";
         }
         String formatted = nodeType
                 .replaceAll("([a-z])([A-Z])", "$1 $2")

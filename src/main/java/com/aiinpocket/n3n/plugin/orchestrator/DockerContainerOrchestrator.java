@@ -103,15 +103,15 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
                 while ((line = reader.readLine()) != null) {
                     log.debug("Docker pull: {}", line);
                     if (line.contains("Pulling")) {
-                        progressCallback.accept(0.1, "開始拉取映像");
+                        progressCallback.accept(0.1, "Pulling image");
                     } else if (line.contains("Downloading")) {
                         progress = Math.min(progress + 0.1, 0.7);
-                        progressCallback.accept(progress, "下載中...");
+                        progressCallback.accept(progress, "Downloading...");
                     } else if (line.contains("Extracting")) {
                         progress = Math.min(progress + 0.1, 0.9);
-                        progressCallback.accept(progress, "解壓中...");
+                        progressCallback.accept(progress, "Extracting...");
                     } else if (line.contains("Pull complete") || line.contains("Downloaded newer")) {
-                        progressCallback.accept(1.0, "拉取完成");
+                        progressCallback.accept(1.0, "Pull complete");
                     }
                 }
             }

@@ -42,7 +42,7 @@ public class ConversationManager {
         Conversation conversation = Conversation.builder()
                 .userId(userId)
                 .flowId(flowId)
-                .title(title != null ? title : "新對話")
+                .title(title != null ? title : "New Conversation")
                 .messages(new ArrayList<>())
                 .messageCount(0)
                 .build();
@@ -108,7 +108,7 @@ public class ConversationManager {
             if (existingSummary != null && !existingSummary.isBlank()) {
                 Map<String, Object> summaryContext = new HashMap<>();
                 summaryContext.put("role", "system");
-                summaryContext.put("content", "先前對話摘要：" + existingSummary);
+                summaryContext.put("content", "Previous conversation summary:" + existingSummary);
                 contentToSummarize.add(summaryContext);
             }
 
@@ -202,7 +202,7 @@ public class ConversationManager {
             Conversation conversation = Conversation.builder()
                     .userId(userId)
                     .flowId(flowId)
-                    .title(title != null ? title + " (匯入)" : "匯入的對話")
+                    .title(title != null ? title + " (Imported)" : "Imported Conversation")
                     .messages(messages != null ? messages : new ArrayList<>())
                     .summary(summary)
                     .messageCount(messages != null ? messages.size() : 0)
@@ -231,7 +231,7 @@ public class ConversationManager {
         if (conversation.getSummary() != null && !conversation.getSummary().isBlank()) {
             Map<String, Object> summaryMessage = new HashMap<>();
             summaryMessage.put("role", "system");
-            summaryMessage.put("content", "先前對話摘要：\n" + conversation.getSummary());
+            summaryMessage.put("content", "Previous conversation summary:\n" + conversation.getSummary());
             context.add(summaryMessage);
         }
 

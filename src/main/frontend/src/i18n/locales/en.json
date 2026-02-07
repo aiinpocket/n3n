@@ -1471,6 +1471,16 @@
     "responseHeaders": "Response headers",
     "copyExpression": "Copy Expression"
   },
+  "flowPreview": {
+    "title": "Flow Preview",
+    "type": "Type",
+    "component": "Component",
+    "noFlowGenerated": "No flow generated yet",
+    "createFlow": "Create This Flow",
+    "nodes": "nodes",
+    "edges": "edges",
+    "dragHint": "Drag to pan | Scroll to zoom | Click node for details"
+  },
   "aiThinking": {
     "understanding": "Understanding",
     "understandingDesc": "Analyzing your description...",

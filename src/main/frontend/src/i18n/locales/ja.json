@@ -1471,6 +1471,16 @@
     "responseHeaders": "レスポンスヘッダー",
     "copyExpression": "式をコピー"
   },
+  "flowPreview": {
+    "title": "フロープレビュー",
+    "type": "タイプ",
+    "component": "コンポーネント",
+    "noFlowGenerated": "フローがまだ生成されていません",
+    "createFlow": "このフローを作成",
+    "nodes": "ノード",
+    "edges": "エッジ",
+    "dragHint": "ドラッグで移動 | スクロールでズーム | ノードをクリックで詳細"
+  },
   "aiThinking": {
     "understanding": "要件を理解",
     "understandingDesc": "あなたの説明を分析中...",

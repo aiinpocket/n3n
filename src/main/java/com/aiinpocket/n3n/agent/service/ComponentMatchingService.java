@@ -187,18 +187,18 @@ public class ComponentMatchingService {
     private String inferPurpose(String requirement, ComponentMatch match) {
         String category = match.category();
         if (category == null) {
-            return "處理資料";
+            return "Process data";
         }
 
         return switch (category.toLowerCase()) {
-            case "trigger" -> "作為流程觸發點";
-            case "action" -> "執行操作";
-            case "integration" -> "與外部系統整合";
-            case "database" -> "資料庫操作";
-            case "transform" -> "資料轉換處理";
-            case "condition" -> "條件判斷分支";
-            case "notification" -> "發送通知";
-            default -> "處理相關邏輯";
+            case "trigger" -> "Flow trigger point";
+            case "action" -> "Execute action";
+            case "integration" -> "Integrate with external system";
+            case "database" -> "Database operation";
+            case "transform" -> "Data transformation";
+            case "condition" -> "Conditional branching";
+            case "notification" -> "Send notification";
+            default -> "Handle related logic";
         };
     }
 

@@ -20,32 +20,12 @@ export interface ThinkingStage {
   description: string
 }
 
-// 預設的思考階段 - use hook version below
-export const DEFAULT_STAGES: ThinkingStage[] = [
-  {
-    key: 'understanding',
-    label: '理解需求',
-    icon: <BulbOutlined />,
-    description: '正在分析您的描述...',
-  },
-  {
-    key: 'analyzing',
-    label: '分析元件',
-    icon: <SearchOutlined />,
-    description: '識別所需的節點類型...',
-  },
-  {
-    key: 'designing',
-    label: '設計流程',
-    icon: <ToolOutlined />,
-    description: '規劃節點連接和邏輯...',
-  },
-  {
-    key: 'generating',
-    label: '生成結果',
-    icon: <CheckCircleOutlined />,
-    description: '完成流程定義...',
-  },
+// Default stage keys - labels resolved via i18n in component
+export const DEFAULT_STAGE_KEYS = [
+  { key: 'understanding', labelKey: 'aiThinking.understanding', descKey: 'aiThinking.understandingDesc', icon: <BulbOutlined /> },
+  { key: 'analyzing', labelKey: 'aiThinking.analyzing', descKey: 'aiThinking.analyzingDesc', icon: <SearchOutlined /> },
+  { key: 'designing', labelKey: 'aiThinking.designing', descKey: 'aiThinking.designingDesc', icon: <ToolOutlined /> },
+  { key: 'generating', labelKey: 'aiThinking.generating', descKey: 'aiThinking.generatingDesc', icon: <CheckCircleOutlined /> },
 ]
 
 interface Props {
