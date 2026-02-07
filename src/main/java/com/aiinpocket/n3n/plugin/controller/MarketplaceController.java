@@ -187,8 +187,21 @@ public class MarketplaceController {
         }
 
         try {
-            int rating = ((Number) body.get("rating")).intValue();
-            String review = (String) body.get("review");
+            Object ratingObj = body.get("rating");
+            if (!(ratingObj instanceof Number)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Rating must be a number"
+                ));
+            }
+            int rating = ((Number) ratingObj).intValue();
+            if (rating < 1 || rating > 5) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Rating must be between 1 and 5"
+                ));
+            }
+            String review = body.get("review") instanceof String s ? s : null;
             Map<String, Object> result = pluginService.ratePlugin(id, user.getId(), rating, review);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {

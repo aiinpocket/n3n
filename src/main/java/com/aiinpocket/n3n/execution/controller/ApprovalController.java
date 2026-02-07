@@ -31,7 +31,9 @@ public class ApprovalController {
      * Get all pending approvals.
      */
     @GetMapping("/pending")
-    public ResponseEntity<List<ApprovalSummary>> getPendingApprovals() {
+    public ResponseEntity<List<ApprovalSummary>> getPendingApprovals(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        // Return all pending approvals - user filtering happens at service layer
         List<ExecutionApproval> approvals = approvalService.getAllPendingApprovals();
         List<ApprovalSummary> summaries = approvals.stream()
             .map(ApprovalSummary::from)

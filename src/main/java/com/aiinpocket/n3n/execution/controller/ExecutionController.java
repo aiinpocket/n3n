@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -31,6 +32,9 @@ import java.util.UUID;
 @org.springframework.validation.annotation.Validated
 public class ExecutionController {
 
+    private static final Set<String> VALID_STATUSES = Set.of(
+            "pending", "running", "completed", "failed", "cancelled", "waiting", "paused");
+
     private final ExecutionService executionService;
 
     @GetMapping
@@ -40,8 +44,13 @@ public class ExecutionController {
             @RequestParam(required = false) String search,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        if ((status != null && !status.isBlank()) || (search != null && !search.isBlank())) {
-            return ResponseEntity.ok(executionService.listExecutions(userId, pageable, status, search));
+        // Validate status if provided
+        String validatedStatus = status;
+        if (status != null && !status.isBlank() && !VALID_STATUSES.contains(status.toLowerCase())) {
+            validatedStatus = null; // Ignore invalid status
+        }
+        if ((validatedStatus != null && !validatedStatus.isBlank()) || (search != null && !search.isBlank())) {
+            return ResponseEntity.ok(executionService.listExecutions(userId, pageable, validatedStatus, search));
         }
         return ResponseEntity.ok(executionService.listExecutions(userId, pageable));
     }

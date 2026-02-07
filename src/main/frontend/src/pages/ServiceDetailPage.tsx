@@ -283,7 +283,7 @@ export default function ServiceDetailPage() {
           <Descriptions.Item label={t('service.baseUrl')} span={2}>
             <Text copyable>{currentService.baseUrl}</Text>
           </Descriptions.Item>
-          <Descriptions.Item label="Schema URL">
+          <Descriptions.Item label={t('service.schemaUrl')}>
             {currentService.schemaUrl || '-'}
           </Descriptions.Item>
           <Descriptions.Item label={t('service.authType')}>
