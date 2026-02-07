@@ -1084,7 +1084,16 @@
     "mustBe8Words": "Recovery Keyは8つの単語である必要があります",
     "migrateSuccess": "認証情報の移行に成功しました",
     "migrateFailed": "移行に失敗しました",
-    "migrateFailedCheckKey": "移行に失敗しました。Recovery Keyが正しいか確認してください"
+    "migrateFailedCheckKey": "移行に失敗しました。Recovery Keyが正しいか確認してください",
+    "backupTitle": "Recovery Key をバックアップ",
+    "importantWarning": "重要：この Recovery Key は一度だけ表示されます",
+    "writeDownInstructions": "この8つの単語を紙に書き留めて安全に保管してください。このキーを紛失すると、暗号化データを復元できなくなります。",
+    "backupDoneVerify": "バックアップ完了、検証に進む",
+    "verifyPrompt": "バックアップした Recovery Key を入力して検証",
+    "verifyDescription": "8つの単語をスペースで区切って入力",
+    "verifyPlaceholder": "8つの単語をスペースで区切って入力（例：apple banana cherry ...）",
+    "goBack": "戻る",
+    "verifyComplete": "検証"
   },
   "activity": {
     "title": "アクティビティ履歴",

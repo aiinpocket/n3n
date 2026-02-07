@@ -1084,7 +1084,16 @@
     "mustBe8Words": "Recovery Key must be 8 words",
     "migrateSuccess": "Credential migration successful",
     "migrateFailed": "Migration failed",
-    "migrateFailedCheckKey": "Migration failed, please verify your Recovery Key is correct"
+    "migrateFailedCheckKey": "Migration failed, please verify your Recovery Key is correct",
+    "backupTitle": "Backup Your Recovery Key",
+    "importantWarning": "Important: This Recovery Key will only be displayed once",
+    "writeDownInstructions": "Write down these 8 words on paper and store them safely. If you lose this key, you will not be able to recover your encrypted data.",
+    "backupDoneVerify": "I have backed up, proceed to verify",
+    "verifyPrompt": "Enter your Recovery Key to verify the backup",
+    "verifyDescription": "Enter 8 words separated by spaces",
+    "verifyPlaceholder": "Enter 8 words separated by spaces, e.g.: apple banana cherry ...",
+    "goBack": "Go Back",
+    "verifyComplete": "Verify"
   },
   "activity": {
     "title": "Activity History",

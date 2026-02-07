@@ -56,7 +56,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
       title={
         <Space>
           <KeyOutlined style={{ color: '#faad14' }} />
-          <span>備份您的 Recovery Key</span>
+          <span>{t('recovery.backupTitle')}</span>
         </Space>
       }
       width={600}
@@ -67,8 +67,8 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
           <Alert
             type="warning"
             showIcon
-            message="重要：此 Recovery Key 只會顯示一次"
-            description="請將這 8 個單詞抄寫在紙上並妥善保管。遺失此 Key 將無法還原您的加密資料。"
+            message={t('recovery.importantWarning')}
+            description={t('recovery.writeDownInstructions')}
             style={{ marginBottom: 24 }}
           />
 
@@ -125,7 +125,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
               onClick={() => setStep('verify')}
               block
             >
-              我已經備份完成，進行驗證
+              {t('recovery.backupDoneVerify')}
             </Button>
           </Space>
         </>
@@ -134,14 +134,14 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
           <Alert
             type="info"
             showIcon
-            message="請輸入您剛才備份的 Recovery Key 以驗證"
-            description="輸入 8 個單詞，以空格分隔"
+            message={t('recovery.verifyPrompt')}
+            description={t('recovery.verifyDescription')}
             style={{ marginBottom: 24 }}
           />
 
           <Input.TextArea
             rows={3}
-            placeholder="請輸入 8 個單詞，以空格分隔，例如：apple banana cherry ..."
+            placeholder={t('recovery.verifyPlaceholder')}
             value={verifyInput}
             onChange={(e) => setVerifyInput(e.target.value)}
             style={{ marginBottom: 16, fontFamily: 'monospace' }}
@@ -149,7 +149,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
 
           <Space style={{ width: '100%', justifyContent: 'space-between' }}>
             <Button onClick={() => setStep('display')}>
-              返回查看
+              {t('recovery.goBack')}
             </Button>
             <Button
               type="primary"
@@ -157,7 +157,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
               loading={loading}
               disabled={!verifyInput.trim()}
             >
-              驗證完成
+              {t('recovery.verifyComplete')}
             </Button>
           </Space>
         </>

@@ -1084,7 +1084,16 @@
     "mustBe8Words": "Recovery Key 必須是 8 個單詞",
     "migrateSuccess": "憑證遷移成功",
     "migrateFailed": "遷移失敗",
-    "migrateFailedCheckKey": "遷移失敗，請確認 Recovery Key 是否正確"
+    "migrateFailedCheckKey": "遷移失敗，請確認 Recovery Key 是否正確",
+    "backupTitle": "備份您的 Recovery Key",
+    "importantWarning": "重要：此 Recovery Key 只會顯示一次",
+    "writeDownInstructions": "請將這 8 個單詞抄寫在紙上並妥善保管。遺失此 Key 將無法還原您的加密資料。",
+    "backupDoneVerify": "我已經備份完成，進行驗證",
+    "verifyPrompt": "請輸入您剛才備份的 Recovery Key 以驗證",
+    "verifyDescription": "輸入 8 個單詞，以空格分隔",
+    "verifyPlaceholder": "請輸入 8 個單詞，以空格分隔，例如：apple banana cherry ...",
+    "goBack": "返回查看",
+    "verifyComplete": "驗證完成"
   },
   "activity": {
     "title": "活動記錄",
