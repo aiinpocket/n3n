@@ -1042,7 +1042,14 @@
     "copyCommand": "コマンドをコピー",
     "runCommandInTerminal": "ターミナルで以下のコマンドを実行してください：",
     "installCompleteHint": "インストール完了後、Agent は自動的にプラットフォームに接続します。このページを更新してステータスを確認してください。",
-    "settingsUpdated": "デバイス設定が更新されました"
+    "settingsUpdated": "デバイス設定が更新されました",
+    "editDevice": "デバイスを編集",
+    "directConnection": "直接接続を有効化",
+    "directConnectionExtra": "ゲートウェイを経由せず、プラットフォームからこのデバイスに直接接続することを許可します",
+    "externalAddress": "外部アドレス",
+    "externalAddressExtra": "形式：IP:Port またはホスト名:Port。プラットフォームがこのデバイスに直接接続する際に使用されます。",
+    "invalidAddressFormat": "有効なアドレス形式を入力してください（IP:Port）",
+    "externalAddressPlaceholder": "例：203.0.113.50:9999"
   },
   "gateway": {
     "loadFailed": "設定の読み込みに失敗しました",
@@ -1093,7 +1100,13 @@
     "verifyDescription": "8つの単語をスペースで区切って入力",
     "verifyPlaceholder": "8つの単語をスペースで区切って入力（例：apple banana cherry ...）",
     "goBack": "戻る",
-    "verifyComplete": "検証"
+    "verifyComplete": "検証",
+    "migrateTitle": "Recovery Key で認証情報を移行",
+    "migrateAction": "認証情報を移行",
+    "keyMismatch": "認証情報「{{name}}」の暗号化キーが一致しません",
+    "keyMismatchDescription": "システム環境の変更が原因の可能性があります。元の Recovery Key を使用して、現在のシステムキーで再暗号化してください。",
+    "originalKeyLabel": "元の Recovery Key（8つの単語）",
+    "reEncryptInfo": "移行後、認証情報は現在のシステム暗号化キーで再暗号化されます。"
   },
   "activity": {
     "title": "アクティビティ履歴",

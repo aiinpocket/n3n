@@ -56,20 +56,20 @@ const DeviceEditModal: React.FC<DeviceEditModalProps> = ({
 
   return (
     <Modal
-      title={`編輯設備 - ${device?.deviceName || ''}`}
+      title={`${t('device.editDevice')} - ${device?.deviceName || ''}`}
       open={open}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={loading}
-      okText="儲存"
-      cancelText="取消"
+      okText={t('common.save')}
+      cancelText={t('common.cancel')}
     >
       <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
         <Form.Item
           name="directConnectionEnabled"
-          label="啟用直接連線"
+          label={t('device.directConnection')}
           valuePropName="checked"
-          extra="允許平台直接連接到此設備（需要設備有固定 IP 或 Port Forwarding）"
+          extra={t('device.directConnectionExtra')}
         >
           <Switch />
         </Form.Item>
@@ -84,18 +84,18 @@ const DeviceEditModal: React.FC<DeviceEditModalProps> = ({
             getFieldValue('directConnectionEnabled') && (
               <Form.Item
                 name="externalAddress"
-                label="外部位址"
-                extra="格式：IP:Port（例如：203.0.113.50:9999）"
+                label={t('device.externalAddress')}
+                extra={t('device.externalAddressExtra')}
                 rules={[
                   {
                     pattern: /^[\w.-]+:\d+$/,
-                    message: '請輸入有效的位址格式（IP:Port）',
+                    message: t('device.invalidAddressFormat'),
                   },
                 ]}
               >
                 <Input
                   prefix={<GlobalOutlined />}
-                  placeholder="例如：203.0.113.50:9999"
+                  placeholder={t('device.externalAddressPlaceholder')}
                 />
               </Form.Item>
             )

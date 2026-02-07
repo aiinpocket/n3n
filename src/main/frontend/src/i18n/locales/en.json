@@ -1042,7 +1042,14 @@
     "copyCommand": "Copy Command",
     "runCommandInTerminal": "Run the following command in your terminal:",
     "installCompleteHint": "After installation, the Agent will automatically connect to the platform. Refresh this page to check the status.",
-    "settingsUpdated": "Device settings updated"
+    "settingsUpdated": "Device settings updated",
+    "editDevice": "Edit Device",
+    "directConnection": "Enable Direct Connection",
+    "directConnectionExtra": "Allow the platform to connect directly to this device instead of through the gateway",
+    "externalAddress": "External Address",
+    "externalAddressExtra": "Format: IP:Port or Hostname:Port. Used when the platform connects directly to this device.",
+    "invalidAddressFormat": "Please enter a valid address format (IP:Port)",
+    "externalAddressPlaceholder": "e.g. 203.0.113.50:9999"
   },
   "gateway": {
     "loadFailed": "Failed to load settings",
@@ -1093,7 +1100,13 @@
     "verifyDescription": "Enter 8 words separated by spaces",
     "verifyPlaceholder": "Enter 8 words separated by spaces, e.g.: apple banana cherry ...",
     "goBack": "Go Back",
-    "verifyComplete": "Verify"
+    "verifyComplete": "Verify",
+    "migrateTitle": "Migrate Credential with Recovery Key",
+    "migrateAction": "Migrate Credential",
+    "keyMismatch": "Encryption key mismatch for credential \"{{name}}\"",
+    "keyMismatchDescription": "This may be due to a system environment change. Use your original Recovery Key to re-encrypt this credential with the current system key.",
+    "originalKeyLabel": "Original Recovery Key (8 words)",
+    "reEncryptInfo": "After migration, the credential will be re-encrypted using the current system encryption key."
   },
   "activity": {
     "title": "Activity History",

@@ -1042,7 +1042,14 @@
     "copyCommand": "複製命令",
     "runCommandInTerminal": "在終端機 (Terminal) 中執行以下命令：",
     "installCompleteHint": "安裝完成後，Agent 會自動連線到平台。重新整理此頁面可查看狀態。",
-    "settingsUpdated": "設備設定已更新"
+    "settingsUpdated": "設備設定已更新",
+    "editDevice": "編輯設備",
+    "directConnection": "啟用直接連線",
+    "directConnectionExtra": "允許平台直接連接到此設備，而非透過 Gateway 轉發",
+    "externalAddress": "外部位址",
+    "externalAddressExtra": "格式：IP:Port 或 主機名稱:Port，用於平台直接連接此設備時使用",
+    "invalidAddressFormat": "請輸入有效的位址格式（IP:Port）",
+    "externalAddressPlaceholder": "例如：203.0.113.50:9999"
   },
   "gateway": {
     "loadFailed": "載入設定失敗",
@@ -1093,7 +1100,13 @@
     "verifyDescription": "輸入 8 個單詞，以空格分隔",
     "verifyPlaceholder": "請輸入 8 個單詞，以空格分隔，例如：apple banana cherry ...",
     "goBack": "返回查看",
-    "verifyComplete": "驗證完成"
+    "verifyComplete": "驗證完成",
+    "migrateTitle": "使用 Recovery Key 還原憑證",
+    "migrateAction": "還原憑證",
+    "keyMismatch": "憑證「{{name}}」的加密金鑰不匹配",
+    "keyMismatchDescription": "這可能是因為系統環境變更導致。請使用原始 Recovery Key 將此憑證重新加密為當前系統金鑰。",
+    "originalKeyLabel": "原始 Recovery Key（8 個單詞）",
+    "reEncryptInfo": "還原後，憑證將使用當前系統的加密金鑰重新加密。"
   },
   "activity": {
     "title": "活動記錄",

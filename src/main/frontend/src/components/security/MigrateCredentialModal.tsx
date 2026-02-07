@@ -67,14 +67,14 @@ export default function MigrateCredentialModal({
       title={
         <Space>
           <KeyOutlined style={{ color: '#faad14' }} />
-          <span>使用 Recovery Key 還原憑證</span>
+          <span>{t('recovery.migrateTitle')}</span>
         </Space>
       }
       open={open}
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          取消
+          {t('common.cancel')}
         </Button>,
         <Button
           key="migrate"
@@ -83,7 +83,7 @@ export default function MigrateCredentialModal({
           loading={loading}
           disabled={!recoveryKeyPhrase.trim()}
         >
-          還原憑證
+          {t('recovery.migrateAction')}
         </Button>,
       ]}
     >
@@ -91,18 +91,18 @@ export default function MigrateCredentialModal({
         type="warning"
         showIcon
         icon={<LockOutlined />}
-        message={`憑證「${credential.name}」的加密金鑰不匹配`}
-        description="這可能是因為系統環境變更或資料遷移導致。請輸入原始的 Recovery Key 來還原此憑證。"
+        message={t('recovery.keyMismatch', { name: credential.name })}
+        description={t('recovery.keyMismatchDescription')}
         style={{ marginBottom: 24 }}
       />
 
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-          原始 Recovery Key（8 個單詞）
+          {t('recovery.originalKeyLabel')}
         </label>
         <Input.TextArea
           rows={2}
-          placeholder="請輸入 8 個單詞，以空格分隔"
+          placeholder={t('recovery.verifyPlaceholder')}
           value={recoveryKeyPhrase}
           onChange={(e) => setRecoveryKeyPhrase(e.target.value)}
           style={{ fontFamily: 'monospace' }}
@@ -111,7 +111,7 @@ export default function MigrateCredentialModal({
 
       <Alert
         type="info"
-        message="還原後，憑證將使用當前系統的加密金鑰重新加密"
+        message={t('recovery.reEncryptInfo')}
       />
     </Modal>
   );
