@@ -318,7 +318,7 @@ export default function MainLayout() {
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer', color: 'var(--color-text-primary)' }}>
                 <Avatar icon={<UserOutlined />} style={{ background: 'var(--color-primary)' }} />
-                <span>{user?.name || 'User'}</span>
+                <span>{user?.name || t('common.user')}</span>
               </Space>
             </Dropdown>
           </Space>

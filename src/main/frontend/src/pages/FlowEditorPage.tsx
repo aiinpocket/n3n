@@ -78,6 +78,7 @@ export default function FlowEditorPage() {
     selectedNodeIds,
     isDirty,
     loading,
+    error: flowError,
     saving,
     lastSavedAt,
     loadFlow,
@@ -504,6 +505,16 @@ export default function FlowEditorPage() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Spin size="large" />
+      </div>
+    )
+  }
+
+  if (!loading && flowError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', gap: 16 }}>
+        <Typography.Title level={4} type="danger">{t('flow.loadError')}</Typography.Title>
+        <Typography.Text type="secondary">{flowError}</Typography.Text>
+        <Button type="primary" onClick={() => navigate('/flows')}>{t('flow.backToList')}</Button>
       </div>
     )
   }

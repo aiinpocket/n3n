@@ -9,6 +9,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '../stores/authStore'
 import apiClient from '../api/client'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
@@ -28,6 +29,7 @@ interface AdminUser {
 
 export default function AdminUsersPage() {
   const { t } = useTranslation()
+  const { user: currentUser } = useAuthStore()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -160,49 +162,56 @@ export default function AdminUsersPage() {
     {
       title: t('common.actions'),
       key: 'actions',
-      render: (_: unknown, record: AdminUser) => (
-        <Space size="small">
-          <Tooltip title={t('admin.editRoles')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => {
-                setSelectedUser(record)
-                rolesForm.setFieldsValue({ roles: record.roles })
-                setRolesModalOpen(true)
-              }}
-            />
-          </Tooltip>
-          {record.status === 'active' ? (
-            <Tooltip title={t('admin.suspend')}>
+      render: (_: unknown, record: AdminUser) => {
+        const isSelf = currentUser?.id === record.id
+        return (
+          <Space size="small">
+            <Tooltip title={t('admin.editRoles')}>
               <Button
                 type="text"
                 size="small"
-                icon={<StopOutlined />}
-                onClick={() => handleStatusChange(record.id, 'suspended')}
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setSelectedUser(record)
+                  rolesForm.setFieldsValue({ roles: record.roles })
+                  setRolesModalOpen(true)
+                }}
               />
             </Tooltip>
-          ) : (
-            <Tooltip title={t('admin.activate')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleStatusChange(record.id, 'active')}
-              />
-            </Tooltip>
-          )}
-          <Tooltip title={t('admin.resetPassword')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<LockOutlined />}
-              onClick={() => handleResetPassword(record.id)}
-            />
-          </Tooltip>
-        </Space>
-      ),
+            {!isSelf && (
+              record.status === 'active' ? (
+                <Tooltip title={t('admin.suspend')}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<StopOutlined />}
+                    onClick={() => handleStatusChange(record.id, 'suspended')}
+                  />
+                </Tooltip>
+              ) : (
+                <Tooltip title={t('admin.activate')}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleStatusChange(record.id, 'active')}
+                  />
+                </Tooltip>
+              )
+            )}
+            {!isSelf && (
+              <Tooltip title={t('admin.resetPassword')}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<LockOutlined />}
+                  onClick={() => handleResetPassword(record.id)}
+                />
+              </Tooltip>
+            )}
+          </Space>
+        )
+      },
     },
   ]
 
@@ -233,7 +242,7 @@ export default function AdminUsersPage() {
             total,
             pageSize: 20,
             onChange: (p) => loadUsers(p - 1),
-            showTotal: (t) => `${t}`,
+            showTotal: (total) => t('common.total', { count: total }),
           }}
         />
       </Card>

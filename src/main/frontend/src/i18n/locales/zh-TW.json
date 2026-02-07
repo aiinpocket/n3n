@@ -1,5 +1,6 @@
 {
   "common": {
+    "user": "使用者",
     "save": "儲存",
     "cancel": "取消",
     "delete": "刪除",
@@ -243,7 +244,9 @@
     "publishing": "發布中...",
     "clone": "複製",
     "cloneSuccess": "流程複製成功",
-    "cloneFailed": "流程複製失敗"
+    "cloneFailed": "流程複製失敗",
+    "loadError": "載入流程失敗",
+    "backToList": "返回流程列表"
   },
   "editor": {
     "savedJustNow": "剛剛儲存",
@@ -1391,7 +1394,8 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "設定事件驅動觸發器",
     "quickSecurity": "安全性",
-    "quickSecurityDesc": "Recovery Key 與帳戶設定"
+    "quickSecurityDesc": "Recovery Key 與帳戶設定",
+    "loadFailed": "載入儀表板資料失敗"
   },
   "diff": {
     "nodes": "節點",

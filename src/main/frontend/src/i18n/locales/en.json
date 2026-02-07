@@ -1,5 +1,6 @@
 {
   "common": {
+    "user": "User",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -243,7 +244,9 @@
     "publishing": "Publishing...",
     "clone": "Clone",
     "cloneSuccess": "Flow cloned successfully",
-    "cloneFailed": "Failed to clone flow"
+    "cloneFailed": "Failed to clone flow",
+    "loadError": "Failed to Load Flow",
+    "backToList": "Back to Flow List"
   },
   "editor": {
     "savedJustNow": "Just saved",
@@ -1391,7 +1394,8 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "Set up event-driven triggers",
     "quickSecurity": "Security",
-    "quickSecurityDesc": "Recovery key and account settings"
+    "quickSecurityDesc": "Recovery key and account settings",
+    "loadFailed": "Failed to load dashboard data"
   },
   "diff": {
     "nodes": "nodes",

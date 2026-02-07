@@ -1,5 +1,6 @@
 {
   "common": {
+    "user": "ユーザー",
     "save": "保存",
     "cancel": "キャンセル",
     "delete": "削除",
@@ -243,7 +244,9 @@
     "publishing": "公開中...",
     "clone": "複製",
     "cloneSuccess": "フローの複製に成功しました",
-    "cloneFailed": "フローの複製に失敗しました"
+    "cloneFailed": "フローの複製に失敗しました",
+    "loadError": "フローの読み込みに失敗しました",
+    "backToList": "フロー一覧に戻る"
   },
   "editor": {
     "savedJustNow": "保存済み",
@@ -1391,7 +1394,8 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "イベント駆動トリガーを設定",
     "quickSecurity": "セキュリティ",
-    "quickSecurityDesc": "Recovery Keyとアカウント設定"
+    "quickSecurityDesc": "Recovery Keyとアカウント設定",
+    "loadFailed": "ダッシュボードデータの読み込みに失敗しました"
   },
   "diff": {
     "nodes": "ノード",

@@ -83,6 +83,37 @@ public class FlowService {
     /**
      * 單一 Flow 轉換（用於 getFlow 等單一查詢場景）
      */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> deepCopyMap(Map<String, Object> original) {
+        Map<String, Object> copy = new HashMap<>();
+        for (Map.Entry<String, Object> entry : original.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                copy.put(entry.getKey(), deepCopyMap((Map<String, Object>) value));
+            } else if (value instanceof java.util.List<?> list) {
+                copy.put(entry.getKey(), deepCopyList(list));
+            } else {
+                copy.put(entry.getKey(), value);
+            }
+        }
+        return copy;
+    }
+
+    @SuppressWarnings("unchecked")
+    private java.util.List<Object> deepCopyList(java.util.List<?> original) {
+        java.util.List<Object> copy = new java.util.ArrayList<>();
+        for (Object item : original) {
+            if (item instanceof Map) {
+                copy.add(deepCopyMap((Map<String, Object>) item));
+            } else if (item instanceof java.util.List<?> list) {
+                copy.add(deepCopyList(list));
+            } else {
+                copy.add(item);
+            }
+        }
+        return copy;
+    }
+
     private FlowResponse toFlowResponse(Flow flow) {
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flow.getId());
         String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
@@ -111,7 +142,7 @@ public class FlowService {
 
     @Transactional
     public FlowResponse createFlow(CreateFlowRequest request, UUID userId) {
-        if (flowRepository.existsByNameAndIsDeletedFalse(request.getName())) {
+        if (flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(request.getName(), userId)) {
             throw new IllegalArgumentException("Flow with name '" + request.getName() + "' already exists");
         }
 
@@ -133,7 +164,7 @@ public class FlowService {
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + id));
 
         if (request.getName() != null && !request.getName().equals(flow.getName())) {
-            if (flowRepository.existsByNameAndIsDeletedFalse(request.getName())) {
+            if (flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(request.getName(), flow.getCreatedBy())) {
                 throw new IllegalArgumentException("Flow with name '" + request.getName() + "' already exists");
             }
             flow.setName(request.getName());
@@ -170,7 +201,7 @@ public class FlowService {
         // Ensure unique name (with safety limit)
         int counter = 1;
         String baseName = clonedName;
-        while (flowRepository.existsByNameAndIsDeletedFalse(clonedName) && counter <= 100) {
+        while (flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(clonedName, userId) && counter <= 100) {
             clonedName = baseName + " (" + counter + ")";
             counter++;
         }
@@ -189,8 +220,8 @@ public class FlowService {
             FlowVersion clonedVersion = FlowVersion.builder()
                 .flowId(cloned.getId())
                 .version("1.0.0")
-                .definition(latest.getDefinition() != null ? new HashMap<>(latest.getDefinition()) : null)
-                .settings(latest.getSettings() != null ? new HashMap<>(latest.getSettings()) : Map.of())
+                .definition(latest.getDefinition() != null ? deepCopyMap(latest.getDefinition()) : null)
+                .settings(latest.getSettings() != null ? deepCopyMap(latest.getSettings()) : Map.of())
                 .status(Status.FlowVersion.DRAFT)
                 .createdBy(userId)
                 .build();

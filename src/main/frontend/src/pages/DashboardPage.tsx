@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps } from 'antd'
+import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, message } from 'antd'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -72,6 +72,7 @@ export default function DashboardPage() {
         const activities = (activitiesRes.data.content || activitiesRes.data || []).slice(0, 5)
         setRecentActivities(activities)
       } catch {
+        message.error(t('dashboard.loadFailed'))
         setStats({
           totalFlows: 0,
           totalExecutions: 0,

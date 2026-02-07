@@ -24,6 +24,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -242,7 +243,7 @@ class FlowServiceTest extends BaseServiceTest {
         CreateFlowRequest request = TestDataFactory.createFlowRequest("New Flow");
         UUID userId = UUID.randomUUID();
 
-        when(flowRepository.existsByNameAndIsDeletedFalse("New Flow")).thenReturn(false);
+        when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(eq("New Flow"), eq(userId))).thenReturn(false);
         when(flowRepository.save(any(Flow.class))).thenAnswer(invocation -> {
             Flow f = invocation.getArgument(0);
             f.setId(UUID.randomUUID());
@@ -264,7 +265,7 @@ class FlowServiceTest extends BaseServiceTest {
         CreateFlowRequest request = TestDataFactory.createFlowRequest("Existing Flow");
         UUID userId = UUID.randomUUID();
 
-        when(flowRepository.existsByNameAndIsDeletedFalse("Existing Flow")).thenReturn(true);
+        when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(eq("Existing Flow"), eq(userId))).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> flowService.createFlow(request, userId))
@@ -278,7 +279,7 @@ class FlowServiceTest extends BaseServiceTest {
         CreateFlowRequest request = TestDataFactory.createFlowRequest("Created Flow");
         UUID userId = UUID.randomUUID();
 
-        when(flowRepository.existsByNameAndIsDeletedFalse("Created Flow")).thenReturn(false);
+        when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(eq("Created Flow"), eq(userId))).thenReturn(false);
         when(flowRepository.save(any(Flow.class))).thenAnswer(inv -> {
             Flow f = inv.getArgument(0);
             f.setId(UUID.randomUUID());
@@ -302,7 +303,7 @@ class FlowServiceTest extends BaseServiceTest {
         request.setName("New Name");
 
         when(flowRepository.findByIdAndIsDeletedFalse(flow.getId())).thenReturn(Optional.of(flow));
-        when(flowRepository.existsByNameAndIsDeletedFalse("New Name")).thenReturn(false);
+        when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(eq("New Name"), any(UUID.class))).thenReturn(false);
         when(flowRepository.save(any(Flow.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -320,7 +321,7 @@ class FlowServiceTest extends BaseServiceTest {
         request.setName("Existing Name");
 
         when(flowRepository.findByIdAndIsDeletedFalse(flow.getId())).thenReturn(Optional.of(flow));
-        when(flowRepository.existsByNameAndIsDeletedFalse("Existing Name")).thenReturn(true);
+        when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(eq("Existing Name"), any(UUID.class))).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> flowService.updateFlow(flow.getId(), request))
@@ -342,7 +343,7 @@ class FlowServiceTest extends BaseServiceTest {
         FlowResponse result = flowService.updateFlow(flow.getId(), request);
 
         // Then
-        verify(flowRepository, never()).existsByNameAndIsDeletedFalse(anyString());
+        verify(flowRepository, never()).existsByNameAndCreatedByAndIsDeletedFalse(anyString(), any(UUID.class));
         assertThat(result.getName()).isEqualTo("Same Name");
     }
 

@@ -22,6 +22,8 @@ public interface FlowRepository extends JpaRepository<Flow, UUID> {
 
     boolean existsByNameAndIsDeletedFalse(String name);
 
+    boolean existsByNameAndCreatedByAndIsDeletedFalse(String name, UUID createdBy);
+
     @Query("SELECT f FROM Flow f WHERE f.isDeleted = false AND " +
            "(LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(f.description) LIKE LOWER(CONCAT('%', :query, '%')))")

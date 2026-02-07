@@ -23,10 +23,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.Set.of;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AdminUserService {
+
+    private static final Set<String> VALID_STATUSES = Set.of("active", "suspended", "deleted");
+    private static final Set<String> VALID_ROLES = Set.of("USER", "ADMIN");
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
@@ -81,8 +86,13 @@ public class AdminUserService {
 
         user = userRepository.save(user);
 
-        // Assign roles
-        for (String role : request.getRoles()) {
+        // Validate and assign roles
+        Set<String> roles = request.getRoles();
+        if (roles == null || roles.isEmpty()) {
+            roles = Set.of("USER");
+        }
+        validateRoles(roles);
+        for (String role : roles) {
             UserRole userRole = UserRole.builder()
                 .userId(user.getId())
                 .role(role.toUpperCase())
@@ -101,6 +111,13 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse updateUserStatus(UUID id, String status, UUID adminId) {
+        if (id.equals(adminId)) {
+            throw new IllegalArgumentException("Cannot change your own account status");
+        }
+        if (!VALID_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + VALID_STATUSES);
+        }
+
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
@@ -121,6 +138,15 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse updateUserRoles(UUID id, Set<String> newRoles, UUID adminId) {
+        if (newRoles == null || newRoles.isEmpty()) {
+            throw new IllegalArgumentException("Roles cannot be empty");
+        }
+        validateRoles(newRoles);
+
+        if (id.equals(adminId) && !newRoles.stream().map(String::toUpperCase).collect(Collectors.toSet()).contains("ADMIN")) {
+            throw new IllegalArgumentException("Cannot remove ADMIN role from your own account");
+        }
+
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
@@ -145,6 +171,10 @@ public class AdminUserService {
 
     @Transactional
     public void resetUserPassword(UUID id, UUID adminId) {
+        if (id.equals(adminId)) {
+            throw new IllegalArgumentException("Cannot reset your own password via admin endpoint. Use the change password feature instead.");
+        }
+
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
@@ -158,6 +188,14 @@ public class AdminUserService {
 
         // Send password reset email
         emailService.sendPasswordReset(user.getEmail(), newPassword);
+    }
+
+    private void validateRoles(Set<String> roles) {
+        for (String role : roles) {
+            if (!VALID_ROLES.contains(role.toUpperCase())) {
+                throw new IllegalArgumentException("Invalid role: " + role + ". Must be one of: " + VALID_ROLES);
+            }
+        }
     }
 
     private String generateRandomPassword() {

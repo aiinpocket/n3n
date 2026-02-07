@@ -16,6 +16,7 @@ interface FlowEditorState {
   saving: boolean
   lastSavedAt: Date | null
   loading: boolean
+  error: string | null
   // Clipboard
   clipboard: ClipboardData | null
   // History (Undo/Redo)
@@ -73,6 +74,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   saving: false,
   lastSavedAt: null,
   loading: false,
+  error: null,
   // Clipboard
   clipboard: null,
   // History
@@ -83,7 +85,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   pinnedData: {},
 
   loadFlow: async (flowId: string, version?: string) => {
-    set({ loading: true })
+    set({ loading: true, error: null })
     try {
       const flow = await flowApi.getFlow(flowId)
       set({ currentFlow: flow })
@@ -116,14 +118,22 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           isDirty: false,
         })
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to load flow'
+      logger.error('Failed to load flow:', msg)
+      set({ error: msg, currentFlow: null })
     } finally {
       set({ loading: false })
     }
   },
 
   loadVersions: async (flowId: string) => {
-    const versions = await flowApi.listVersions(flowId)
-    set({ versions })
+    try {
+      const versions = await flowApi.listVersions(flowId)
+      set({ versions })
+    } catch (err) {
+      logger.error('Failed to load versions:', err)
+    }
   },
 
   setNodes: (nodes) => set({ nodes, isDirty: true }),
