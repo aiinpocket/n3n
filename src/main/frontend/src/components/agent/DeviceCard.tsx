@@ -1,4 +1,5 @@
 import React from 'react'
+import { getLocale } from '../../utils/locale'
 import { Card, Tag, Button, Space, Tooltip, Typography, Popconfirm } from 'antd'
 import {
   AppleOutlined,
@@ -49,7 +50,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onEdit, onDelete }) => 
   }
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString()
+    return new Date(timestamp).toLocaleString(getLocale())
   }
 
   const getTimeSince = (timestamp: number) => {

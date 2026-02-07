@@ -9,6 +9,7 @@ import {
   CaretRightOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { getLocale } from '../../utils/locale'
 import styles from './InstallProgressPanel.module.css'
 
 const { Text } = Typography
@@ -210,7 +211,7 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
                   className={`${styles.logEntry} ${styles[`log${log.level.charAt(0).toUpperCase() + log.level.slice(1)}`]}`}
                 >
                   <Text type="secondary" className={styles.logTime}>
-                    {new Date(log.timestamp).toLocaleTimeString()}
+                    {new Date(log.timestamp).toLocaleTimeString(getLocale())}
                   </Text>
                   <Text className={styles.logMessage}>{log.message}</Text>
                 </div>

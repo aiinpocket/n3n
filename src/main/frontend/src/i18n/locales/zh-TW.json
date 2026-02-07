@@ -1080,6 +1080,13 @@
     "webSocketUrl": "WebSocket 連線網址",
     "httpUrl": "HTTP 連線網址"
   },
+  "agent": {
+    "status": {
+      "pending": "待註冊",
+      "registered": "已連線",
+      "blocked": "已封鎖"
+    }
+  },
   "recovery": {
     "copiedToClipboard": "Recovery Key 已複製到剪貼簿",
     "copied": "已複製",

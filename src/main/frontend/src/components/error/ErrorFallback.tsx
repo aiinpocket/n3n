@@ -8,6 +8,7 @@ import {
   CustomerServiceOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { getLocale } from '../../utils/locale'
 import { getFriendlyError, type FriendlyError } from '../../utils/errorMessages'
 
 const { Paragraph, Text } = Typography
@@ -150,7 +151,7 @@ export default function ErrorFallback({
                     )}
                     <Paragraph style={{ marginTop: 12 }}>
                       <Text type="secondary" style={{ fontSize: 11 }}>
-                        {t('error.timestamp')}: {new Date().toLocaleString()}
+                        {t('error.timestamp')}: {new Date().toLocaleString(getLocale())}
                       </Text>
                     </Paragraph>
                   </div>

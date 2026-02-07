@@ -13,6 +13,7 @@ import {
   message,
   Descriptions,
 } from 'antd'
+import { getLocale } from '../utils/locale'
 import {
   SaveOutlined,
   ReloadOutlined,
@@ -34,7 +35,7 @@ interface FormValues {
 }
 
 const GatewaySettingsPage: React.FC = () => {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [form] = Form.useForm<FormValues>()
   const [settings, setSettings] = useState<GatewaySettings | null>(null)
   const [loading, setLoading] = useState(true)
@@ -204,7 +205,7 @@ const GatewaySettingsPage: React.FC = () => {
               </Text>
             </Descriptions.Item>
             <Descriptions.Item label={t('gateway.lastUpdated')}>
-              {new Date(settings.updatedAt).toLocaleString(i18n.language)}
+              {new Date(settings.updatedAt).toLocaleString(getLocale())}
             </Descriptions.Item>
           </Descriptions>
         </Card>

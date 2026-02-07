@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { getLocale } from '../../utils/locale'
 import {
   Drawer,
   Input,
@@ -279,7 +280,7 @@ export default function AIPanelDrawer({
             </div>
           )}
           <Text type="secondary" className={styles.timestamp}>
-            {new Date(message.timestamp).toLocaleTimeString()}
+            {new Date(message.timestamp).toLocaleTimeString(getLocale())}
           </Text>
         </div>
       </div>

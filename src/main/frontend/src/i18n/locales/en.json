@@ -1080,6 +1080,13 @@
     "webSocketUrl": "WebSocket URL",
     "httpUrl": "HTTP URL"
   },
+  "agent": {
+    "status": {
+      "pending": "Pending",
+      "registered": "Connected",
+      "blocked": "Blocked"
+    }
+  },
   "recovery": {
     "copiedToClipboard": "Recovery key copied to clipboard",
     "copied": "Copied",

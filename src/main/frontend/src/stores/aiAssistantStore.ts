@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import i18n from '../i18n'
 import logger from '../utils/logger'
+import { getLocale } from '../utils/locale'
 
 // Types
 export interface ChatMessage {
@@ -159,7 +160,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
         const session: ConversationSession = {
           id: generateId(),
           flowId,
-          title: flowId ? `${i18n.t('ai.flowConversation')} ${new Date().toLocaleTimeString()}` : `${i18n.t('ai.newConversation')} ${new Date().toLocaleTimeString()}`,
+          title: flowId ? `${i18n.t('ai.flowConversation')} ${new Date().toLocaleTimeString(getLocale())}` : `${i18n.t('ai.newConversation')} ${new Date().toLocaleTimeString(getLocale())}`,
           messages: [],
           createdAt: new Date(),
           updatedAt: new Date(),

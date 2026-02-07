@@ -1,4 +1,5 @@
 import apiClient from './client'
+import { getLocale } from '../utils/locale'
 
 // ==================== Types ====================
 
@@ -167,11 +168,11 @@ export function getStatusInfo(status: AgentRegistration['status']): {
 } {
   switch (status) {
     case 'PENDING':
-      return { label: '待註冊', color: 'orange' }
+      return { label: 'agent.status.pending', color: 'orange' }
     case 'REGISTERED':
-      return { label: '已連線', color: 'green' }
+      return { label: 'agent.status.registered', color: 'green' }
     case 'BLOCKED':
-      return { label: '已封鎖', color: 'red' }
+      return { label: 'agent.status.blocked', color: 'red' }
     default:
       return { label: status, color: 'default' }
   }
@@ -182,5 +183,5 @@ export function getStatusInfo(status: AgentRegistration['status']): {
  */
 export function formatTime(timestamp: number | null): string {
   if (!timestamp) return '-'
-  return new Date(timestamp).toLocaleString('zh-TW')
+  return new Date(timestamp).toLocaleString(getLocale())
 }

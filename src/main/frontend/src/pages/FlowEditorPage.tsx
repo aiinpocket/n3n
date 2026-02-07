@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
+import { getLocale } from '../utils/locale'
 import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge } from 'antd'
 import { useTranslation } from 'react-i18next'
 import {
@@ -336,7 +337,7 @@ export default function FlowEditorPage() {
     const diff = Math.floor((now.getTime() - lastSavedAt.getTime()) / 1000)
     if (diff < 60) return t('editor.savedJustNow')
     if (diff < 3600) return t('editor.savedMinutesAgo', { minutes: Math.floor(diff / 60) })
-    return lastSavedAt.toLocaleTimeString()
+    return lastSavedAt.toLocaleTimeString(getLocale())
   }
 
   const onNodesChange = useCallback(

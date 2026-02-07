@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import logger from '../../utils/logger'
+import { getLocale } from '../../utils/locale'
 import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip, Segmented, Badge } from 'antd'
 import {
   FolderOutlined,
@@ -154,7 +155,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     if (diffDays === 1) return t('aiAssistant.yesterday')
     if (diffDays < 7) return t('aiAssistant.daysAgo', { days: diffDays })
     if (diffDays < 30) return t('aiAssistant.weeksAgo', { weeks: Math.floor(diffDays / 7) })
-    return date.toLocaleDateString()
+    return date.toLocaleDateString(getLocale())
   }
 
   if (query.length < minQueryLength) {

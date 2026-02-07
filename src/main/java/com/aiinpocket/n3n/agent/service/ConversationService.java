@@ -62,7 +62,7 @@ public class ConversationService {
         // 建立對話
         AgentConversation conversation = AgentConversation.builder()
             .user(user)
-            .title(title != null ? title : "新對話")
+            .title(title != null ? title : "New Conversation")
             .status(ConversationStatus.ACTIVE)
             .contextSnapshot(contextSnapshot)
             .build();

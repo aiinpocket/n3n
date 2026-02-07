@@ -63,12 +63,12 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getDisplayName() {
-        return "AI 資料轉換";
+        return "AI Data Transform";
     }
 
     @Override
     public String getDescription() {
-        return "使用自然語言描述資料轉換邏輯，AI 自動生成並執行程式碼";
+        return "Describe data transformation logic in natural language; AI generates and executes code automatically";
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/node-types")
 @RequiredArgsConstructor
+@Tag(name = "Node Types", description = "Node type registry and information")
 public class NodeTypesController {
 
     private final NodeHandlerRegistry registry;

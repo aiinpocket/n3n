@@ -130,7 +130,7 @@ const DeviceManagementPage: React.FC = () => {
       width: 100,
       render: (status: AgentRegistration['status']) => {
         const info = getStatusInfo(status)
-        return <Tag color={info.color}>{info.label}</Tag>
+        return <Tag color={info.color}>{t(info.label)}</Tag>
       },
     },
     {

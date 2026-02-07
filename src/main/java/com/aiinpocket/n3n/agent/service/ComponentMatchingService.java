@@ -48,7 +48,7 @@ public class ComponentMatchingService {
             (List<Map<String, Object>>) context.get("registeredComponents");
 
         if (registeredComponents == null || registeredComponents.isEmpty()) {
-            return new MatchResult(List.of(), true, "系統中沒有已註冊的元件");
+            return new MatchResult(List.of(), true, "No registered components found in the system");
         }
 
         List<ComponentMatch> matches = new ArrayList<>();
@@ -76,8 +76,8 @@ public class ComponentMatchingService {
         // 判斷是否需要新元件
         boolean needsNewComponent = matches.stream().noneMatch(m -> m.score() > 0.6);
         String suggestion = needsNewComponent
-            ? "現有元件可能無法完全滿足需求，建議考慮新增專用元件"
-            : "找到適合的現有元件";
+            ? "Existing components may not fully meet the requirements; consider creating a dedicated component"
+            : "Found suitable existing components";
 
         return new MatchResult(matches, needsNewComponent, suggestion);
     }
@@ -142,12 +142,12 @@ public class ComponentMatchingService {
         String description = (String) component.get("description");
 
         if (score > 0.7) {
-            return String.format("「%s」高度匹配您的需求", name);
+            return String.format("\"%s\" is a strong match for your requirements", name);
         } else if (score > 0.4) {
-            return String.format("「%s」可能適用：%s",
-                name, description != null ? description : "可處理相關功能");
+            return String.format("\"%s\" may be applicable: %s",
+                name, description != null ? description : "can handle related functionality");
         } else {
-            return String.format("「%s」或許可參考", name);
+            return String.format("\"%s\" may be worth considering", name);
         }
     }
 
