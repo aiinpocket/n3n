@@ -151,7 +151,9 @@ export default function ExecutionPage() {
         )
         // Reload node executions when status changes
         if (id) {
-          executionApi.getNodeExecutions(id).then(setNodeExecutions)
+          executionApi.getNodeExecutions(id).then(setNodeExecutions).catch(() => {
+            // Silently handle - node data will refresh on next update
+          })
         }
       }
     }

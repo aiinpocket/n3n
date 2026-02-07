@@ -561,7 +561,8 @@
     "baseUrl": "Base URL",
     "baseUrlRequired": "Please enter base URL",
     "baseUrlInvalid": "Please enter a valid URL",
-    "baseUrlTooltip": "Base URL of the service, e.g., http://localhost:8080",
+    "baseUrlPlaceholder": "https://api.example.com",
+    "baseUrlTooltip": "Base URL of the service, e.g., https://api.example.com",
     "schemaUrl": "OpenAPI/Swagger Schema Path",
     "schemaUrlTooltip": "If the service has an OpenAPI document, the system will automatically parse API endpoints",
     "schemaUrlPlaceholder": "e.g., /v3/api-docs or /swagger.json",
@@ -671,7 +672,11 @@
     "visibilityWorkspaceDesc": "Workspace - Visible to workspace members",
     "visibilitySharedDesc": "Shared - Can be shared with specific users",
     "securityTip": "Security Tip",
-    "securityTipDesc": "Your credentials will be stored with AES-256 encryption and only decrypted during flow execution."
+    "securityTipDesc": "Your credentials will be stored with AES-256 encryption and only decrypted during flow execution.",
+    "loadFailed": "Failed to load credentials",
+    "noTypeCredentials": "No {{type}} credentials found",
+    "createNew": "Create new credential",
+    "typeRequired": "{{type}} credential required"
   },
   "component": {
     "title": "Components",

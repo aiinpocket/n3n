@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Select, Space, Typography, Button, Tooltip } from 'antd'
 import { PlusOutlined, ReloadOutlined, SafetyOutlined, WarningOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { credentialApi, Credential } from '../../api/credential'
 import { logger } from '../../utils/logger'
 
@@ -25,6 +26,7 @@ export default function CredentialSelect({
   allowClear = true,
   onCreateNew,
 }: CredentialSelectProps) {
+  const { t } = useTranslation()
   const [credentials, setCredentials] = useState<Credential[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +46,7 @@ export default function CredentialSelect({
       setCredentials(filtered)
     } catch (err) {
       logger.error('Failed to fetch credentials', err)
-      setError('Failed to load credentials')
+      setError(t('credential.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -79,8 +81,8 @@ export default function CredentialSelect({
               <div style={{ padding: 8, textAlign: 'center' }}>
                 <Text type="secondary">
                   {credentialType
-                    ? `No ${credentialType} credentials found`
-                    : 'No credentials found'}
+                    ? t('credential.noTypeCredentials', { type: credentialType })
+                    : t('credential.noCredentials')}
                 </Text>
                 {onCreateNew && (
                   <Button
@@ -89,7 +91,7 @@ export default function CredentialSelect({
                     icon={<PlusOutlined />}
                     onClick={onCreateNew}
                   >
-                    Create new
+                    {t('credential.createNew')}
                   </Button>
                 )}
               </div>
@@ -111,7 +113,7 @@ export default function CredentialSelect({
             searchLabel: cred.name,
           }))}
         />
-        <Tooltip title="Refresh">
+        <Tooltip title={t('common.refresh')}>
           <Button
             icon={<ReloadOutlined />}
             onClick={fetchCredentials}
@@ -119,7 +121,7 @@ export default function CredentialSelect({
           />
         </Tooltip>
         {onCreateNew && (
-          <Tooltip title="Create new credential">
+          <Tooltip title={t('credential.createNew')}>
             <Button
               icon={<PlusOutlined />}
               onClick={onCreateNew}
@@ -131,7 +133,7 @@ export default function CredentialSelect({
       {!value && credentialType && (
         <div style={{ marginTop: 4 }}>
           <Text type="warning" style={{ fontSize: 12 }}>
-            <WarningOutlined /> {credentialType} credential required
+            <WarningOutlined /> {t('credential.typeRequired', { type: credentialType })}
           </Text>
         </div>
       )}

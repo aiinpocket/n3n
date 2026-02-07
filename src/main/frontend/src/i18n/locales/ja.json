@@ -561,7 +561,8 @@
     "baseUrl": "ベースURL",
     "baseUrlRequired": "ベースURLを入力してください",
     "baseUrlInvalid": "有効なURLを入力してください",
-    "baseUrlTooltip": "サービスのベースURL（例: http://localhost:8080）",
+    "baseUrlPlaceholder": "https://api.example.com",
+    "baseUrlTooltip": "サービスのベースURL（例: https://api.example.com）",
     "schemaUrl": "OpenAPI/Swaggerスキーマパス",
     "schemaUrlTooltip": "サービスにOpenAPIドキュメントがある場合、システムが自動的にAPIエンドポイントを解析します",
     "schemaUrlPlaceholder": "例: /v3/api-docs または /swagger.json",
@@ -671,7 +672,11 @@
     "visibilityWorkspaceDesc": "ワークスペース - メンバーに表示",
     "visibilitySharedDesc": "共有 - 特定ユーザーと共有可能",
     "securityTip": "セキュリティ情報",
-    "securityTipDesc": "認証情報はAES-256で暗号化して保存され、フロー実行時のみ復号化されます。"
+    "securityTipDesc": "認証情報はAES-256で暗号化して保存され、フロー実行時のみ復号化されます。",
+    "loadFailed": "認証情報の読み込みに失敗しました",
+    "noTypeCredentials": "{{type}}タイプの認証情報が見つかりません",
+    "createNew": "新規認証を作成",
+    "typeRequired": "{{type}}の認証情報が必要です"
   },
   "component": {
     "title": "コンポーネント",

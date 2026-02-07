@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { skillApi, type Skill, type CreateSkillRequest, type UpdateSkillRequest, type ExecuteSkillResponse } from '../api/skill'
+import { extractApiError } from '../utils/errorMessages'
 import { logger } from '../utils/logger'
 
 interface SkillState {
@@ -38,7 +39,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       const skills = await skillApi.list()
       set({ skills, isLoading: false })
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false })
+      set({ error: extractApiError(error), isLoading: false })
     }
   },
 
@@ -48,7 +49,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       const builtinSkills = await skillApi.listBuiltin()
       set({ builtinSkills, isLoading: false })
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false })
+      set({ error: extractApiError(error), isLoading: false })
     }
   },
 
@@ -58,7 +59,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       set({ categories })
     } catch (error) {
       logger.error('Failed to fetch categories:', error)
-      set({ error: (error as Error).message })
+      set({ error: extractApiError(error) })
     }
   },
 

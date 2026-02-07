@@ -189,7 +189,7 @@ export default function ServiceFormPage() {
           ]}
           tooltip={t('service.baseUrlTooltip')}
         >
-          <Input placeholder="http://localhost:8080" />
+          <Input placeholder={t('service.baseUrlPlaceholder')} />
         </Form.Item>
 
         <Form.Item

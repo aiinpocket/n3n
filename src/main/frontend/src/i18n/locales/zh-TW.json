@@ -561,7 +561,8 @@
     "baseUrl": "服務地址",
     "baseUrlRequired": "請輸入服務地址",
     "baseUrlInvalid": "請輸入有效的 URL",
-    "baseUrlTooltip": "服務的基礎 URL，例如 http://localhost:8080",
+    "baseUrlPlaceholder": "https://api.example.com",
+    "baseUrlTooltip": "服務的基礎 URL，例如 https://api.example.com",
     "schemaUrl": "OpenAPI/Swagger 文檔路徑",
     "schemaUrlTooltip": "如果服務有 OpenAPI 文檔，填入路徑後系統會自動解析 API 端點",
     "schemaUrlPlaceholder": "例如: /v3/api-docs 或 /swagger.json",
@@ -671,7 +672,11 @@
     "visibilityWorkspaceDesc": "工作區 - 工作區成員可見",
     "visibilitySharedDesc": "共享 - 可分享給指定用戶",
     "securityTip": "安全提示",
-    "securityTipDesc": "您的認證資訊將使用 AES-256 加密儲存，只有在執行流程時才會解密使用。"
+    "securityTipDesc": "您的認證資訊將使用 AES-256 加密儲存，只有在執行流程時才會解密使用。",
+    "loadFailed": "載入認證失敗",
+    "noTypeCredentials": "找不到 {{type}} 類型的認證",
+    "createNew": "建立新認證",
+    "typeRequired": "需要 {{type}} 認證"
   },
   "component": {
     "title": "元件管理",

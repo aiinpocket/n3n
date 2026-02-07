@@ -420,6 +420,9 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       })
 
       return flowVersion
+    } catch (error) {
+      set({ error: (error as Error).message })
+      throw error
     } finally {
       set({ saving: false })
     }
@@ -476,19 +479,24 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
     const { currentFlow } = get()
     if (!currentFlow) throw new Error(i18n.t('flow.noFlowLoaded'))
 
-    const flowVersion = await flowApi.publishVersion(currentFlow.id, version)
-    set((state) => ({
-      currentVersion: flowVersion,
-      versions: state.versions.map((v) =>
-        v.version === version
-          ? flowVersion
-          : v.status === 'published'
-          ? { ...v, status: 'deprecated' as const }
-          : v
-      ),
-    }))
+    try {
+      const flowVersion = await flowApi.publishVersion(currentFlow.id, version)
+      set((state) => ({
+        currentVersion: flowVersion,
+        versions: state.versions.map((v) =>
+          v.version === version
+            ? flowVersion
+            : v.status === 'published'
+            ? { ...v, status: 'deprecated' as const }
+            : v
+        ),
+      }))
 
-    return flowVersion
+      return flowVersion
+    } catch (error) {
+      set({ error: (error as Error).message })
+      throw error
+    }
   },
 
   clearEditor: () =>
