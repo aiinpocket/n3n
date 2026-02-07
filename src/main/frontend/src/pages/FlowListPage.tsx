@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
@@ -19,7 +19,7 @@ const { Text } = Typography
 export default function FlowListPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { flows, totalElements, loading, currentPage, pageSize, searchQuery, fetchFlows, setSearchQuery, createFlow, deleteFlow } = useFlowListStore()
+  const { flows, totalElements, loading, currentPage, pageSize, searchQuery, fetchFlows, setSearchQuery, createFlow, deleteFlow, cloneFlow } = useFlowListStore()
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [form] = Form.useForm()
   const [creating, setCreating] = useState(false)
@@ -95,6 +95,16 @@ export default function FlowListPage() {
         }
       },
     })
+  }
+
+  const handleClone = async (record: Flow) => {
+    try {
+      const cloned = await cloneFlow(record.id)
+      message.success(t('flow.cloneSuccess'))
+      navigate(`/flows/${cloned.id}/edit`)
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('flow.cloneFailed')))
+    }
   }
 
   const handleBatchDelete = async () => {
@@ -221,6 +231,12 @@ export default function FlowListPage() {
                   icon: <ShareAltOutlined />,
                   label: t('share.share'),
                   onClick: () => handleOpenShare(record),
+                },
+                {
+                  key: 'clone',
+                  icon: <CopyOutlined />,
+                  label: t('flow.clone'),
+                  onClick: () => handleClone(record),
                 },
                 {
                   key: 'export',

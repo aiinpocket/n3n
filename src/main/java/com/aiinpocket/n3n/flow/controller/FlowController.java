@@ -116,6 +116,20 @@ public class FlowController {
         return ResponseEntity.ok(java.util.Map.of("deleted", deleted, "total", ids.size()));
     }
 
+    @PostMapping("/{id}/clone")
+    public ResponseEntity<FlowResponse> cloneFlow(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String name,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(id, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
+        }
+        FlowResponse response = flowService.cloneFlow(id, name, userId);
+        activityService.logFlowCreate(userId, response.getId(), response.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     // Version endpoints
 
     @GetMapping("/{flowId}/versions")

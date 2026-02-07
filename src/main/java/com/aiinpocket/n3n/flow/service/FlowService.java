@@ -160,6 +160,47 @@ public class FlowService {
         log.info("Flow deleted: id={}, shares cleaned up", id);
     }
 
+    @Transactional
+    public FlowResponse cloneFlow(UUID flowId, String newName, UUID userId) {
+        Flow original = flowRepository.findByIdAndIsDeletedFalse(flowId)
+            .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
+
+        String clonedName = newName != null ? newName : original.getName() + " (Copy)";
+
+        // Ensure unique name
+        int counter = 1;
+        String baseName = clonedName;
+        while (flowRepository.existsByNameAndIsDeletedFalse(clonedName)) {
+            clonedName = baseName + " (" + counter + ")";
+            counter++;
+        }
+
+        Flow cloned = Flow.builder()
+            .name(clonedName)
+            .description(original.getDescription())
+            .createdBy(userId)
+            .build();
+        cloned = flowRepository.save(cloned);
+
+        // Clone the latest version if exists
+        List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId);
+        if (!versions.isEmpty()) {
+            FlowVersion latest = versions.get(0);
+            FlowVersion clonedVersion = FlowVersion.builder()
+                .flowId(cloned.getId())
+                .version("1.0.0")
+                .definition(latest.getDefinition() != null ? new HashMap<>(latest.getDefinition()) : null)
+                .settings(latest.getSettings() != null ? new HashMap<>(latest.getSettings()) : Map.of())
+                .status(Status.FlowVersion.DRAFT)
+                .createdBy(userId)
+                .build();
+            flowVersionRepository.save(clonedVersion);
+        }
+
+        log.info("Flow cloned: originalId={}, newId={}, name={}", flowId, cloned.getId(), clonedName);
+        return toFlowResponse(cloned);
+    }
+
     // Version management
 
     public List<FlowVersionResponse> listVersions(UUID flowId) {

@@ -235,7 +235,10 @@
     "execute": "執行",
     "publishVersion": "發布版本",
     "publishFailed": "發布失敗",
-    "publishing": "發布中..."
+    "publishing": "發布中...",
+    "clone": "複製",
+    "cloneSuccess": "流程複製成功",
+    "cloneFailed": "流程複製失敗"
   },
   "editor": {
     "savedJustNow": "剛剛儲存",
@@ -1420,7 +1423,13 @@
     "confirmPasswordRequired": "請確認新密碼",
     "updatePassword": "更新密碼",
     "passwordChanged": "密碼已成功更新",
-    "passwordChangeFailed": "密碼變更失敗"
+    "passwordChangeFailed": "密碼變更失敗",
+    "editProfile": "編輯個人資料",
+    "updateProfile": "更新個人資料",
+    "profileUpdated": "個人資料更新成功",
+    "profileUpdateFailed": "個人資料更新失敗",
+    "displayName": "顯示名稱",
+    "displayNamePlaceholder": "請輸入您的顯示名稱"
   },
   "nodeRecommendation": {
     "title": "智慧節點推薦",
@@ -1791,5 +1800,10 @@
     "highImpact": "高影響",
     "medium": "中等",
     "low": "低"
+  },
+  "help": {
+    "documentation": "API 文件",
+    "keyboardShortcuts": "鍵盤快捷鍵",
+    "reportIssue": "回報問題"
   }
 }

@@ -111,6 +111,18 @@ public class AuthController {
         return ResponseEntity.ok(new SetupStatusResponse(setupRequired));
     }
 
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        UserResponse updated = authService.updateProfile(userId, request.get("name"));
+        return ResponseEntity.ok(updated);
+    }
+
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,

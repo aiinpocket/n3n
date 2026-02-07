@@ -189,6 +189,19 @@ public class AuthService {
         return userRepository.count() == 0;
     }
 
+    @Transactional
+    public UserResponse updateProfile(UUID userId, String name) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (name != null && !name.isBlank()) {
+            user.setName(name.trim());
+        }
+        user = userRepository.save(user);
+        List<String> roles = userRoleRepository.findByUserId(user.getId())
+                .stream().map(UserRole::getRole).toList();
+        return UserResponse.from(user, roles);
+    }
+
     /**
      * Change password for an authenticated user.
      */

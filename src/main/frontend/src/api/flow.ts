@@ -115,6 +115,13 @@ export const flowApi = {
     await apiClient.delete(`/flows/${id}`)
   },
 
+  cloneFlow: async (id: string, name?: string): Promise<Flow> => {
+    const params: Record<string, string> = {}
+    if (name) params.name = name
+    const response = await apiClient.post(`/flows/${id}/clone`, null, { params })
+    return response.data
+  },
+
   listVersions: async (flowId: string): Promise<FlowVersion[]> => {
     const response = await apiClient.get(`/flows/${flowId}/versions`)
     return response.data

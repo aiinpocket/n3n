@@ -15,6 +15,7 @@ interface FlowListState {
   createFlow: (name: string, description?: string) => Promise<Flow>
   updateFlow: (id: string, name?: string, description?: string) => Promise<Flow>
   deleteFlow: (id: string) => Promise<void>
+  cloneFlow: (id: string, name?: string) => Promise<Flow>
   clearError: () => void
 }
 
@@ -76,6 +77,12 @@ export const useFlowListStore = create<FlowListState>((set, get) => ({
     set((state) => ({
       flows: state.flows.filter((f) => f.id !== id),
     }))
+  },
+
+  cloneFlow: async (id: string, name?: string) => {
+    const flow = await flowApi.cloneFlow(id, name)
+    set((state) => ({ flows: [flow, ...state.flows] }))
+    return flow
   },
 
   clearError: () => set({ error: null }),

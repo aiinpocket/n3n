@@ -235,7 +235,10 @@
     "execute": "実行",
     "publishVersion": "バージョンを公開",
     "publishFailed": "公開に失敗",
-    "publishing": "公開中..."
+    "publishing": "公開中...",
+    "clone": "複製",
+    "cloneSuccess": "フローの複製に成功しました",
+    "cloneFailed": "フローの複製に失敗しました"
   },
   "editor": {
     "savedJustNow": "保存済み",
@@ -1420,7 +1423,13 @@
     "confirmPasswordRequired": "新しいパスワードを確認してください",
     "updatePassword": "パスワードを更新",
     "passwordChanged": "パスワードが正常に更新されました",
-    "passwordChangeFailed": "パスワードの変更に失敗しました"
+    "passwordChangeFailed": "パスワードの変更に失敗しました",
+    "editProfile": "プロフィール編集",
+    "updateProfile": "プロフィールを更新",
+    "profileUpdated": "プロフィールが正常に更新されました",
+    "profileUpdateFailed": "プロフィールの更新に失敗しました",
+    "displayName": "表示名",
+    "displayNamePlaceholder": "表示名を入力してください"
   },
   "nodeRecommendation": {
     "title": "スマートノード推薦",
@@ -1972,5 +1981,10 @@
     "highImpact": "高影響",
     "medium": "中程度",
     "low": "低"
+  },
+  "help": {
+    "documentation": "APIドキュメント",
+    "keyboardShortcuts": "キーボードショートカット",
+    "reportIssue": "問題を報告"
   }
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag } from 'antd'
-import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import apiClient from '../api/client'
@@ -12,7 +12,24 @@ export default function AccountSettingsPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [form] = Form.useForm()
+  const [profileForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
+
+  const handleUpdateProfile = async (values: { name: string }) => {
+    setProfileLoading(true)
+    try {
+      const response = await apiClient.put('/auth/profile', { name: values.name })
+      useAuthStore.setState({ user: response.data })
+      message.success(t('account.profileUpdated'))
+      setEditingProfile(false)
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('account.profileUpdateFailed')))
+    } finally {
+      setProfileLoading(false)
+    }
+  }
 
   const handleChangePassword = async (values: { currentPassword: string; newPassword: string }) => {
     setLoading(true)
@@ -39,22 +56,68 @@ export default function AccountSettingsPage() {
 
       {/* Profile Info */}
       <Card style={{ marginBottom: 24 }}>
-        <Title level={5} style={{ color: 'var(--color-text-primary)', marginBottom: 16 }}>
-          {t('account.profileInfo')}
-        </Title>
-        <Descriptions column={1} labelStyle={{ color: 'var(--color-text-secondary)' }}>
-          <Descriptions.Item label={<><MailOutlined style={{ marginRight: 4 }} />{t('auth.email')}</>}>
-            {user?.email}
-          </Descriptions.Item>
-          <Descriptions.Item label={<><UserOutlined style={{ marginRight: 4 }} />{t('auth.name')}</>}>
-            {user?.name}
-          </Descriptions.Item>
-          <Descriptions.Item label={<><SafetyCertificateOutlined style={{ marginRight: 4 }} />{t('account.roles')}</>}>
-            {user?.roles?.map(role => (
-              <Tag key={role} color={role === 'ADMIN' ? 'gold' : 'blue'}>{role}</Tag>
-            ))}
-          </Descriptions.Item>
-        </Descriptions>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={5} style={{ color: 'var(--color-text-primary)', margin: 0 }}>
+            {t('account.profileInfo')}
+          </Title>
+          {!editingProfile && (
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingProfile(true)
+                profileForm.setFieldsValue({ name: user?.name })
+              }}
+            >
+              {t('account.editProfile')}
+            </Button>
+          )}
+        </div>
+
+        {editingProfile ? (
+          <Form
+            form={profileForm}
+            layout="vertical"
+            onFinish={handleUpdateProfile}
+            style={{ maxWidth: 400 }}
+          >
+            <Descriptions column={1} labelStyle={{ color: 'var(--color-text-secondary)' }}>
+              <Descriptions.Item label={<><MailOutlined style={{ marginRight: 4 }} />{t('auth.email')}</>}>
+                {user?.email}
+              </Descriptions.Item>
+            </Descriptions>
+            <Form.Item
+              name="name"
+              label={t('account.displayName')}
+              rules={[{ required: true, message: t('account.displayNamePlaceholder') }]}
+              style={{ marginTop: 16 }}
+            >
+              <Input placeholder={t('account.displayNamePlaceholder')} />
+            </Form.Item>
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Button type="primary" htmlType="submit" loading={profileLoading} style={{ marginRight: 8 }}>
+                {t('account.updateProfile')}
+              </Button>
+              <Button onClick={() => setEditingProfile(false)}>
+                {t('common.cancel')}
+              </Button>
+            </Form.Item>
+          </Form>
+        ) : (
+          <Descriptions column={1} labelStyle={{ color: 'var(--color-text-secondary)' }}>
+            <Descriptions.Item label={<><MailOutlined style={{ marginRight: 4 }} />{t('auth.email')}</>}>
+              {user?.email}
+            </Descriptions.Item>
+            <Descriptions.Item label={<><UserOutlined style={{ marginRight: 4 }} />{t('auth.name')}</>}>
+              {user?.name}
+            </Descriptions.Item>
+            <Descriptions.Item label={<><SafetyCertificateOutlined style={{ marginRight: 4 }} />{t('account.roles')}</>}>
+              {user?.roles?.map(role => (
+                <Tag key={role} color={role === 'ADMIN' ? 'gold' : 'blue'}>{role}</Tag>
+              ))}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Card>
 
       {/* Change Password */}

@@ -19,6 +19,9 @@ import {
   FileTextOutlined,
   HistoryOutlined,
   HomeOutlined,
+  QuestionCircleOutlined,
+  BookOutlined,
+  BugOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -275,6 +278,34 @@ export default function MainLayout() {
             {document.title.replace(' - N3N Flow', '')}
           </h2>
           <Space size="large">
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: 'docs',
+                    icon: <BookOutlined />,
+                    label: t('help.documentation'),
+                    onClick: () => window.open('/swagger-ui.html', '_blank'),
+                  },
+                  {
+                    key: 'shortcuts',
+                    icon: <ToolOutlined />,
+                    label: t('help.keyboardShortcuts'),
+                    onClick: () => navigate('/flows'),
+                  },
+                  { type: 'divider' as const },
+                  {
+                    key: 'feedback',
+                    icon: <BugOutlined />,
+                    label: t('help.reportIssue'),
+                    onClick: () => window.open('https://github.com/aiinpocket/n3n/issues', '_blank'),
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <QuestionCircleOutlined style={{ fontSize: 18, color: 'var(--color-text-secondary)', cursor: 'pointer' }} />
+            </Dropdown>
             <LanguageSwitcher />
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer', color: 'var(--color-text-primary)' }}>

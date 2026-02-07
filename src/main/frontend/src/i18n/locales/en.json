@@ -235,7 +235,10 @@
     "execute": "Execute",
     "publishVersion": "Publish Version",
     "publishFailed": "Publish Failed",
-    "publishing": "Publishing..."
+    "publishing": "Publishing...",
+    "clone": "Clone",
+    "cloneSuccess": "Flow cloned successfully",
+    "cloneFailed": "Failed to clone flow"
   },
   "editor": {
     "savedJustNow": "Just saved",
@@ -1420,7 +1423,13 @@
     "confirmPasswordRequired": "Please confirm your new password",
     "updatePassword": "Update Password",
     "passwordChanged": "Password updated successfully",
-    "passwordChangeFailed": "Failed to change password"
+    "passwordChangeFailed": "Failed to change password",
+    "editProfile": "Edit Profile",
+    "updateProfile": "Update Profile",
+    "profileUpdated": "Profile updated successfully",
+    "profileUpdateFailed": "Failed to update profile",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Enter your display name"
   },
   "nodeRecommendation": {
     "title": "Smart Node Recommendation",
@@ -1972,5 +1981,10 @@
     "highImpact": "High Impact",
     "medium": "Medium",
     "low": "Low"
+  },
+  "help": {
+    "documentation": "API Documentation",
+    "keyboardShortcuts": "Keyboard Shortcuts",
+    "reportIssue": "Report an Issue"
   }
 }
