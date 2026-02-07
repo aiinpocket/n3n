@@ -177,7 +177,7 @@ const activityTypeIcons: Record<string, React.ReactNode> = {
   CONFIG_CHANGE: <SettingOutlined />,
 }
 
-function getRelativeTime(dateStr: string, locale: string): string {
+function getRelativeTime(dateStr: string, locale: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const now = new Date()
   const date = new Date(dateStr)
   const diffMs = now.getTime() - date.getTime()
@@ -186,25 +186,11 @@ function getRelativeTime(dateStr: string, locale: string): string {
   const diffHours = Math.floor(diffMinutes / 60)
   const diffDays = Math.floor(diffHours / 24)
 
-  if (locale === 'zh-TW') {
-    if (diffSeconds < 60) return `${diffSeconds} 秒前`
-    if (diffMinutes < 60) return `${diffMinutes} 分鐘前`
-    if (diffHours < 24) return `${diffHours} 小時前`
-    if (diffDays < 30) return `${diffDays} 天前`
-    return date.toLocaleDateString('zh-TW')
-  } else if (locale === 'ja-JP') {
-    if (diffSeconds < 60) return `${diffSeconds}秒前`
-    if (diffMinutes < 60) return `${diffMinutes}分前`
-    if (diffHours < 24) return `${diffHours}時間前`
-    if (diffDays < 30) return `${diffDays}日前`
-    return date.toLocaleDateString('ja-JP')
-  } else {
-    if (diffSeconds < 60) return `${diffSeconds}s ago`
-    if (diffMinutes < 60) return `${diffMinutes}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 30) return `${diffDays}d ago`
-    return date.toLocaleDateString('en-US')
-  }
+  if (diffSeconds < 60) return t('relativeTime.secondsAgo', { count: diffSeconds })
+  if (diffMinutes < 60) return t('relativeTime.minutesAgo', { count: diffMinutes })
+  if (diffHours < 24) return t('relativeTime.hoursAgo', { count: diffHours })
+  if (diffDays < 30) return t('relativeTime.daysAgo', { count: diffDays })
+  return date.toLocaleDateString(locale)
 }
 
 export default function ActivityHistoryPage() {
@@ -281,7 +267,7 @@ export default function ActivityHistoryPage() {
       width: 160,
       render: (createdAt: string) => (
         <Tooltip title={new Date(createdAt).toLocaleString(getLocale())}>
-          <Text>{getRelativeTime(createdAt, getLocale())}</Text>
+          <Text>{getRelativeTime(createdAt, getLocale(), t)}</Text>
         </Tooltip>
       ),
     },

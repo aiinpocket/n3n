@@ -1721,5 +1721,24 @@
     "API_ERROR": "API 錯誤",
     "ADMIN_ACTION": "管理員操作",
     "CONFIG_CHANGE": "設定已變更"
+  },
+  "install": {
+    "installing": "安裝中...",
+    "completed": "安裝完成",
+    "failed": "安裝失敗",
+    "preparing": "準備中...",
+    "estimatedSeconds": "約 {{count}} 秒",
+    "estimatedMinutes": "約 {{count}} 分鐘",
+    "progressLabel": "{{name}} 安裝進度",
+    "progressPercent": "安裝進度: {{percent}}%",
+    "estimatedTimeLeft": "預計剩餘時間",
+    "steps": "安裝步驟",
+    "logs": "安裝日誌"
+  },
+  "relativeTime": {
+    "secondsAgo": "{{count}} 秒前",
+    "minutesAgo": "{{count}} 分鐘前",
+    "hoursAgo": "{{count}} 小時前",
+    "daysAgo": "{{count}} 天前"
   }
 }

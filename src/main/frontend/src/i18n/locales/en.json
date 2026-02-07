@@ -1902,5 +1902,24 @@
     "API_ERROR": "API Error",
     "ADMIN_ACTION": "Admin Action",
     "CONFIG_CHANGE": "Configuration Changed"
+  },
+  "install": {
+    "installing": "Installing...",
+    "completed": "Installed",
+    "failed": "Install Failed",
+    "preparing": "Preparing...",
+    "estimatedSeconds": "~{{count}} seconds",
+    "estimatedMinutes": "~{{count}} minutes",
+    "progressLabel": "{{name}} install progress",
+    "progressPercent": "Install progress: {{percent}}%",
+    "estimatedTimeLeft": "Estimated time remaining",
+    "steps": "Installation Steps",
+    "logs": "Install Logs"
+  },
+  "relativeTime": {
+    "secondsAgo": "{{count}}s ago",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
   }
 }

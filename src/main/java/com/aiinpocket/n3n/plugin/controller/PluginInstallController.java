@@ -45,7 +45,7 @@ public class PluginInstallController {
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "開始安裝 " + taskIds.size() + " 個元件",
+            "message", "Installing " + taskIds.size() + " components",
             "taskIds", taskIds
         ));
     }
@@ -71,7 +71,7 @@ public class PluginInstallController {
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "開始安裝 Plugin",
+            "message", "Installing plugin",
             "taskId", taskId
         ));
     }
@@ -124,7 +124,7 @@ public class PluginInstallController {
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "安裝任務已取消"
+            "message", "Installation task cancelled"
         ));
     }
 

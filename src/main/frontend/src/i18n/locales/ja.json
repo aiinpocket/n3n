@@ -1902,5 +1902,24 @@
     "API_ERROR": "APIエラー",
     "ADMIN_ACTION": "管理者操作",
     "CONFIG_CHANGE": "設定変更"
+  },
+  "install": {
+    "installing": "インストール中...",
+    "completed": "インストール完了",
+    "failed": "インストール失敗",
+    "preparing": "準備中...",
+    "estimatedSeconds": "約 {{count}} 秒",
+    "estimatedMinutes": "約 {{count}} 分",
+    "progressLabel": "{{name}} インストール進捗",
+    "progressPercent": "インストール進捗: {{percent}}%",
+    "estimatedTimeLeft": "推定残り時間",
+    "steps": "インストール手順",
+    "logs": "インストールログ"
+  },
+  "relativeTime": {
+    "secondsAgo": "{{count}}秒前",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "daysAgo": "{{count}}日前"
   }
 }

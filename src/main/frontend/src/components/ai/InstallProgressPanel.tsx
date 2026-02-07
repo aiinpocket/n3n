@@ -8,6 +8,7 @@ import {
   WarningOutlined,
   CaretRightOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import styles from './InstallProgressPanel.module.css'
 
 const { Text } = Typography
@@ -54,6 +55,7 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
   estimatedTimeLeft,
   errorMessage,
 }) => {
+  const { t } = useTranslation()
 
   const getStatusIcon = (stepStatus: InstallStep['status']) => {
     switch (stepStatus) {
@@ -71,13 +73,13 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
   const getStatusText = () => {
     switch (status) {
       case 'installing':
-        return '安裝中...'
+        return t('install.installing')
       case 'completed':
-        return '安裝完成'
+        return t('install.completed')
       case 'error':
-        return '安裝失敗'
+        return t('install.failed')
       default:
-        return '準備中...'
+        return t('install.preparing')
     }
   }
 
@@ -95,15 +97,15 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
 
   const formatEstimatedTime = (seconds?: number): string => {
     if (!seconds) return ''
-    if (seconds < 60) return `約 ${seconds} 秒`
-    return `約 ${Math.ceil(seconds / 60)} 分鐘`
+    if (seconds < 60) return t('install.estimatedSeconds', { count: seconds })
+    return t('install.estimatedMinutes', { count: Math.ceil(seconds / 60) })
   }
 
   return (
     <div
       className={styles.container}
       role="region"
-      aria-label={`${nodeLabel} 安裝進度`}
+      aria-label={t('install.progressLabel', { name: nodeLabel })}
       aria-live="polite"
     >
       {/* Header */}
@@ -129,11 +131,11 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
             '0%': '#108ee9',
             '100%': '#87d068',
           }}
-          aria-label={`安裝進度: ${overallProgress}%`}
+          aria-label={t('install.progressPercent', { percent: overallProgress })}
         />
         {estimatedTimeLeft !== undefined && status === 'installing' && (
           <Text type="secondary" className={styles.estimatedTime}>
-            預計剩餘時間: {formatEstimatedTime(estimatedTimeLeft)}
+            {t('install.estimatedTimeLeft')}: {formatEstimatedTime(estimatedTimeLeft)}
           </Text>
         )}
       </div>
@@ -149,7 +151,7 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
       {/* Steps */}
       <div className={styles.stepsSection}>
         <Text strong className={styles.sectionTitle}>
-          安裝步驟
+          {t('install.steps')}
         </Text>
         <div className={styles.stepsList}>
           {steps.map((step) => (
@@ -195,8 +197,8 @@ export const InstallProgressPanel: React.FC<InstallProgressPanelProps> = ({
           <Panel
             header={
               <Space>
-                <Text type="secondary">安裝日誌</Text>
-                <Tag>{logs.length} 條</Tag>
+                <Text type="secondary">{t('install.logs')}</Text>
+                <Tag>{logs.length}</Tag>
               </Space>
             }
             key="logs"

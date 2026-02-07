@@ -3,6 +3,7 @@ import { Avatar, Typography, Tag } from 'antd'
 import { UserOutlined, RobotOutlined } from '@ant-design/icons'
 import type { Message } from '../../api/agent'
 import ReactMarkdown from 'react-markdown'
+import { getLocale } from '../../utils/locale'
 
 const { Text } = Typography
 
@@ -50,7 +51,7 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
           }}
         >
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {new Date(message.createdAt).toLocaleTimeString('zh-TW')}
+            {new Date(message.createdAt).toLocaleTimeString(getLocale())}
           </Text>
           {!isUser && message.modelId && (
             <Tag style={{ fontSize: 10 }}>{message.modelId}</Tag>
