@@ -23,12 +23,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service("executionService")
@@ -48,6 +50,7 @@ public class ExecutionService {
     private final CredentialService credentialService;
     private final ActivityService activityService;
     private final FlowShareService flowShareService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
         return executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)
@@ -132,6 +135,21 @@ public class ExecutionService {
 
     @Transactional
     public ExecutionResponse createExecution(CreateExecutionRequest request, UUID userId) {
+        // Dedup: prevent rapid double-execution (5 second window per flow+user)
+        String dedupKey = "execution:dedup:" + request.getFlowId() + ":" + userId;
+        try {
+            Boolean acquired = stringRedisTemplate.opsForValue()
+                .setIfAbsent(dedupKey, "1", 5, TimeUnit.SECONDS);
+            if (Boolean.FALSE.equals(acquired)) {
+                throw new IllegalStateException("An execution for this flow is already being created. Please wait a moment.");
+            }
+        } catch (IllegalStateException e) {
+            throw e; // Re-throw our own dedup exception
+        } catch (Exception e) {
+            log.warn("Redis dedup check failed, proceeding without dedup: {}", e.getMessage());
+            // If Redis is down, skip dedup rather than blocking all executions
+        }
+
         // Find flow and version
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));

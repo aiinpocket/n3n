@@ -57,4 +57,9 @@ public class FlowVersion {
 
     @Column(name = "created_by", nullable = false)
     private UUID createdBy;
+
+    @Version
+    @Column(name = "opt_lock_version")
+    @Builder.Default
+    private Long optLockVersion = 0L;
 }

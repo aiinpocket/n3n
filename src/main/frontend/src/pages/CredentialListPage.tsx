@@ -133,7 +133,7 @@ const CredentialListPage: React.FC = () => {
       title: t('common.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleString(getLocale())
+      render: (date: string | null) => date ? new Date(date).toLocaleString(getLocale()) : '-'
     },
     {
       title: t('common.actions'),

@@ -99,7 +99,7 @@ export default function ServiceListPage() {
       title: t('common.updatedAt'),
       dataIndex: 'updatedAt',
       key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleString(getLocale()),
+      render: (date: string | null) => date ? new Date(date).toLocaleString(getLocale()) : '-',
     },
     {
       title: t('common.actions'),

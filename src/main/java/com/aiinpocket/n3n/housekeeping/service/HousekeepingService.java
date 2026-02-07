@@ -99,11 +99,14 @@ public class HousekeepingService {
             int totalArchived = 0;
             int totalDeleted = 0;
 
-            // Process in batches
+            // Process in batches with safety limit
             int batchSize = properties.getBatchSize();
             boolean hasMore = true;
+            int maxIterations = 10000; // Safety limit to prevent infinite loops
+            int iteration = 0;
 
-            while (hasMore) {
+            while (hasMore && iteration < maxIterations) {
+                iteration++;
                 Page<Execution> batch = findExpiredExecutions(cutoffDate, batchSize);
                 List<Execution> executions = batch.getContent();
 
@@ -131,8 +134,13 @@ public class HousekeepingService {
                 log.info("HOUSEKEEPING_BATCH processed={} archived={} deleted={}",
                         totalProcessed, totalArchived, totalDeleted);
 
-                // Check if more records
-                hasMore = batch.hasNext();
+                // Since we always query page 0 and delete processed records,
+                // check if there are still records to process
+                hasMore = batch.getTotalElements() > executions.size();
+            }
+
+            if (iteration >= maxIterations) {
+                log.warn("HOUSEKEEPING_MAX_ITERATIONS reached={}", maxIterations);
             }
 
             // Also cleanup old history if configured

@@ -47,4 +47,9 @@ public class Flow {
 
     @Column(name = "workspace_id")
     private UUID workspaceId;
+
+    @Version
+    @Column(name = "opt_lock_version")
+    @Builder.Default
+    private Long optLockVersion = 0L;
 }

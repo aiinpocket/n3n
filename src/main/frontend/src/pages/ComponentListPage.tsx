@@ -418,7 +418,7 @@ export default function ComponentListPage() {
                 description={
                   <Descriptions size="small" column={1}>
                     <Descriptions.Item label={t('component.image')}>{version.image}</Descriptions.Item>
-                    <Descriptions.Item label={t('common.createdAt')}>{new Date(version.createdAt).toLocaleString(getLocale())}</Descriptions.Item>
+                    <Descriptions.Item label={t('common.createdAt')}>{version.createdAt ? new Date(version.createdAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
                   </Descriptions>
                 }
               />
