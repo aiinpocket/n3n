@@ -40,7 +40,9 @@
     "complete": "完了",
     "more": "もっと見る",
     "retry": "再試行",
-    "updateFailed": "更新に失敗しました"
+    "updateFailed": "更新に失敗しました",
+    "fullscreen": "全画面表示",
+    "unknown": "不明"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -1469,7 +1471,8 @@
     "httpStatus": "HTTPステータスコード",
     "responseData": "レスポンスデータ（JSONまたはテキスト）",
     "responseHeaders": "レスポンスヘッダー",
-    "copyExpression": "式をコピー"
+    "copyExpression": "式をコピー",
+    "useExpression": "式を使用"
   },
   "flowPreview": {
     "title": "フロープレビュー",
@@ -1941,6 +1944,25 @@
     "minutesAgo": "{{count}}分前",
     "hoursAgo": "{{count}}時間前",
     "daysAgo": "{{count}}日前"
+  },
+  "diff": {
+    "add": "追加",
+    "remove": "削除",
+    "modify": "変更",
+    "move": "移動",
+    "changeSummary": "変更概要",
+    "addedNodes": "{{count}}個のノードを追加",
+    "removedNodes": "{{count}}個のノードを削除",
+    "modifiedNodes": "{{count}}個のノードを変更",
+    "movedNodes": "{{count}}個のノードを移動",
+    "moreChanges": "他{{count}}件の変更...",
+    "desc": {
+      "parallel": "並列実行に変更",
+      "merge": "他のノードに統合",
+      "merged": "統合後の機能を含む",
+      "removeRedundant": "冗長なノードを削除",
+      "reorder": "実行順序を{{position}}番目に調整"
+    }
   },
   "optimization": {
     "parallel": "並列実行",

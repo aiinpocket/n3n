@@ -249,7 +249,7 @@ const FlowPreview: React.FC<Props> = ({
       </Card>
 
       <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <Tooltip title="全螢幕檢視">
+        <Tooltip title={t('common.fullscreen')}>
           <Button
             icon={<FullscreenOutlined />}
             onClick={() => setIsFullscreen(true)}

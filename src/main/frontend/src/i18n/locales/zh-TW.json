@@ -40,7 +40,9 @@
     "complete": "完成",
     "more": "更多",
     "retry": "重試",
-    "updateFailed": "更新失敗"
+    "updateFailed": "更新失敗",
+    "fullscreen": "全螢幕檢視",
+    "unknown": "未知"
   },
   "error": {
     "title": "發生錯誤",
@@ -1469,7 +1471,8 @@
     "httpStatus": "HTTP 狀態碼",
     "responseData": "回應資料（JSON 或文字）",
     "responseHeaders": "回應標頭",
-    "copyExpression": "複製表達式"
+    "copyExpression": "複製表達式",
+    "useExpression": "使用表達式"
   },
   "flowPreview": {
     "title": "流程預覽",
@@ -1760,6 +1763,25 @@
     "minutesAgo": "{{count}} 分鐘前",
     "hoursAgo": "{{count}} 小時前",
     "daysAgo": "{{count}} 天前"
+  },
+  "diff": {
+    "add": "新增",
+    "remove": "移除",
+    "modify": "修改",
+    "move": "移動",
+    "changeSummary": "變更摘要",
+    "addedNodes": "新增 {{count}} 個節點",
+    "removedNodes": "移除 {{count}} 個節點",
+    "modifiedNodes": "修改 {{count}} 個節點",
+    "movedNodes": "移動 {{count}} 個節點",
+    "moreChanges": "還有 {{count}} 項變更...",
+    "desc": {
+      "parallel": "改為並行執行",
+      "merge": "合併到其他節點",
+      "merged": "包含合併後的功能",
+      "removeRedundant": "移除冗餘節點",
+      "reorder": "調整執行順序至第 {{position}} 位"
+    }
   },
   "optimization": {
     "parallel": "並行執行",

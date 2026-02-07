@@ -140,7 +140,7 @@ export default function OutputSchemaPreview({
                 </li>
               </ul>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                使用表達式: <Text code>{'{{ $node["' + (nodeId || 'nodeName') + '"].json.data }}'}</Text>
+                {t('outputSchema.useExpression')}: <Text code>{'{{ $node["' + (nodeId || 'nodeName') + '"].json.data }}'}</Text>
               </Text>
             </div>
           }

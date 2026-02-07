@@ -429,7 +429,7 @@ const ExecutionAwareExternalServiceNode = memo(({ data, selected }: NodeProps) =
             }}
           >
             <ApiOutlined style={{ fontSize: 16 }} />
-            <span style={{ fontWeight: 500 }}>{nodeData.label || '外部服務'}</span>
+            <span style={{ fontWeight: 500 }}>{nodeData.label || 'External Service'}</span>
             {getStatusIcon(executionStatus)}
           </div>
           {nodeData.method && nodeData.endpointName && (

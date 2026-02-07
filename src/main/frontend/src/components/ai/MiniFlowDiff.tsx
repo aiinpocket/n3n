@@ -7,6 +7,7 @@ import {
   SwapOutlined,
   ArrowRightOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import styles from './MiniFlowDiff.module.css'
 
 const { Text } = Typography
@@ -17,6 +18,7 @@ export interface DiffChange {
   nodeName?: string
   nodeType?: string
   description?: string
+  descriptionParams?: Record<string, string | number>
   before?: string
   after?: string
 }
@@ -46,6 +48,7 @@ export const MiniFlowDiff: React.FC<Props> = ({
   compact = false,
   maxChanges = 5,
 }) => {
+  const { t } = useTranslation()
   const { changes, summary } = diff
 
   const displayChanges = useMemo(() => {
@@ -75,11 +78,11 @@ export const MiniFlowDiff: React.FC<Props> = ({
   }
 
   const getChangeLabel = (type: DiffChange['type']) => {
-    const labels = {
-      add: '新增',
-      remove: '移除',
-      modify: '修改',
-      move: '移動',
+    const labels: Record<string, string> = {
+      add: t('diff.add'),
+      remove: t('diff.remove'),
+      modify: t('diff.modify'),
+      move: t('diff.move'),
     }
     return labels[type]
   }
@@ -118,27 +121,27 @@ export const MiniFlowDiff: React.FC<Props> = ({
       {/* Summary */}
       <div className={styles.summary}>
         <Text type="secondary" className={styles.summaryTitle}>
-          變更摘要
+          {t('diff.changeSummary')}
         </Text>
         <Space size={8}>
           {summary.added > 0 && (
             <Tag color="success" icon={<PlusOutlined />}>
-              新增 {summary.added} 個節點
+              {t('diff.addedNodes', { count: summary.added })}
             </Tag>
           )}
           {summary.removed > 0 && (
             <Tag color="error" icon={<MinusOutlined />}>
-              移除 {summary.removed} 個節點
+              {t('diff.removedNodes', { count: summary.removed })}
             </Tag>
           )}
           {summary.modified > 0 && (
             <Tag color="warning" icon={<EditOutlined />}>
-              修改 {summary.modified} 個節點
+              {t('diff.modifiedNodes', { count: summary.modified })}
             </Tag>
           )}
           {summary.moved > 0 && (
             <Tag color="processing" icon={<SwapOutlined />}>
-              移動 {summary.moved} 個節點
+              {t('diff.movedNodes', { count: summary.moved })}
             </Tag>
           )}
         </Space>
@@ -172,7 +175,7 @@ export const MiniFlowDiff: React.FC<Props> = ({
 
               {change.description && (
                 <Text type="secondary" className={styles.changeDescription}>
-                  {change.description}
+                  {t(change.description, { ...change.descriptionParams, defaultValue: change.description })}
                 </Text>
               )}
 
@@ -194,7 +197,7 @@ export const MiniFlowDiff: React.FC<Props> = ({
         {remainingCount > 0 && (
           <div className={styles.moreChanges}>
             <Text type="secondary">
-              還有 {remainingCount} 項變更...
+              {t('diff.moreChanges', { count: remainingCount })}
             </Text>
           </div>
         )}
@@ -223,7 +226,7 @@ export function generateDiffFromSuggestion(
           nodeId,
           nodeName: _nodeLookup?.[nodeId]?.label || nodeId,
           nodeType: _nodeLookup?.[nodeId]?.type,
-          description: '改為並行執行',
+          description: 'diff.desc.parallel',
         })
         summary.moved++
       })
@@ -237,7 +240,7 @@ export function generateDiffFromSuggestion(
             type: 'remove',
             nodeId,
             nodeName: _nodeLookup?.[nodeId]?.label || nodeId,
-            description: '合併到其他節點',
+            description: 'diff.desc.merge',
           })
           summary.removed++
         })
@@ -245,7 +248,7 @@ export function generateDiffFromSuggestion(
           type: 'modify',
           nodeId: affectedNodes[affectedNodes.length - 1],
           nodeName: _nodeLookup?.[affectedNodes[affectedNodes.length - 1]]?.label || affectedNodes[affectedNodes.length - 1],
-          description: '包含合併後的功能',
+          description: 'diff.desc.merged',
         })
         summary.modified++
       }
@@ -258,7 +261,7 @@ export function generateDiffFromSuggestion(
           type: 'remove',
           nodeId,
           nodeName: _nodeLookup?.[nodeId]?.label || nodeId,
-          description: '移除冗餘節點',
+          description: 'diff.desc.removeRedundant',
         })
         summary.removed++
       })
@@ -271,7 +274,8 @@ export function generateDiffFromSuggestion(
           type: 'move',
           nodeId,
           nodeName: _nodeLookup?.[nodeId]?.label || nodeId,
-          description: `調整執行順序至第 ${index + 1} 位`,
+          description: 'diff.desc.reorder',
+          descriptionParams: { position: index + 1 },
         })
         summary.moved++
       })

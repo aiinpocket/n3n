@@ -104,6 +104,6 @@ export const getPriorityLabel = (priority: 1 | 2 | 3): { text: string; color: st
     case 3:
       return { text: 'optimization.low', color: '#22C55E' }
     default:
-      return { text: '未知', color: '#64748B' }
+      return { text: 'common.unknown', color: '#64748B' }
   }
 }

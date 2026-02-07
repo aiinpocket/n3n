@@ -40,7 +40,9 @@
     "complete": "Complete",
     "more": "More",
     "retry": "Retry",
-    "updateFailed": "Update failed"
+    "updateFailed": "Update failed",
+    "fullscreen": "Fullscreen View",
+    "unknown": "Unknown"
   },
   "error": {
     "title": "Something went wrong",
@@ -1469,7 +1471,8 @@
     "httpStatus": "HTTP status code",
     "responseData": "Response data (JSON or text)",
     "responseHeaders": "Response headers",
-    "copyExpression": "Copy Expression"
+    "copyExpression": "Copy Expression",
+    "useExpression": "Use expression"
   },
   "flowPreview": {
     "title": "Flow Preview",
@@ -1941,6 +1944,25 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "diff": {
+    "add": "Add",
+    "remove": "Remove",
+    "modify": "Modify",
+    "move": "Move",
+    "changeSummary": "Change Summary",
+    "addedNodes": "Added {{count}} node(s)",
+    "removedNodes": "Removed {{count}} node(s)",
+    "modifiedNodes": "Modified {{count}} node(s)",
+    "movedNodes": "Moved {{count}} node(s)",
+    "moreChanges": "{{count}} more changes...",
+    "desc": {
+      "parallel": "Change to parallel execution",
+      "merge": "Merge into other node",
+      "merged": "Contains merged functionality",
+      "removeRedundant": "Remove redundant node",
+      "reorder": "Adjust execution order to position {{position}}"
+    }
   },
   "optimization": {
     "parallel": "Parallel Execution",
