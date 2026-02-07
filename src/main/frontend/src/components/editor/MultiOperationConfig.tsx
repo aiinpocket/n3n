@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { Form, Select, Divider, Typography, Space, Alert } from 'antd'
 import { ApiOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import DynamicFieldRenderer, { FieldDefinition } from './DynamicFieldRenderer'
 import CredentialSelect from './CredentialSelect'
 
@@ -54,6 +55,7 @@ export default function MultiOperationConfig({
   onChange,
   onCreateCredential,
 }: MultiOperationConfigProps) {
+  const { t } = useTranslation()
   const [resource, setResource] = useState<string>(values.resource as string || '')
   const [operation, setOperation] = useState<string>(values.operation as string || '')
 
@@ -144,7 +146,7 @@ export default function MultiOperationConfig({
             label={
               <Space>
                 <ApiOutlined />
-                <span>Credential</span>
+                <span>{t('editor.credential')}</span>
               </Space>
             }
             required={currentOperation?.requiresCredential}
@@ -165,7 +167,7 @@ export default function MultiOperationConfig({
         label={
           <Space>
             <ThunderboltOutlined />
-            <span>Resource</span>
+            <span>{t('editor.resource')}</span>
           </Space>
         }
         required
@@ -173,7 +175,7 @@ export default function MultiOperationConfig({
         <Select
           value={resource || undefined}
           onChange={handleResourceChange}
-          placeholder="Select resource"
+          placeholder={t('editor.selectResource')}
         >
           {resources.map(res => (
             <Select.Option key={res.name} value={res.name}>
@@ -193,13 +195,13 @@ export default function MultiOperationConfig({
       {/* Operation selector */}
       {resource && (
         <Form.Item
-          label="Operation"
+          label={t('editor.operation')}
           required
         >
           <Select
             value={operation || undefined}
             onChange={handleOperationChange}
-            placeholder="Select operation"
+            placeholder={t('editor.selectOperation')}
             disabled={!resource}
           >
             {operationsForResource.map(op => (
@@ -222,8 +224,8 @@ export default function MultiOperationConfig({
       {showCredentialWarning && (
         <Alert
           type="warning"
-          message="Credential required"
-          description={`This operation requires a ${credentialType} credential.`}
+          message={t('editor.credentialRequired')}
+          description={t('editor.credentialRequiredDesc', { type: credentialType })}
           showIcon
           style={{ marginBottom: 16 }}
         />
@@ -234,7 +236,7 @@ export default function MultiOperationConfig({
         <>
           <Divider style={{ margin: '12px 0' }} />
           <div style={{ marginBottom: 8 }}>
-            <Text strong>Parameters</Text>
+            <Text strong>{t('editor.parameters')}</Text>
             {currentOperation?.description && (
               <div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
@@ -258,7 +260,7 @@ export default function MultiOperationConfig({
       {currentOperation?.outputDescription && (
         <div style={{ marginTop: 16 }}>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            Output: {currentOperation.outputDescription}
+            {t('editor.output')}: {currentOperation.outputDescription}
           </Text>
         </div>
       )}

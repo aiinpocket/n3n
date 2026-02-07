@@ -166,7 +166,7 @@ export default function ExecutionListPage() {
         const normalized = status?.toLowerCase() || 'unknown'
         return (
           <Tag icon={statusIcons[normalized]} color={statusColors[normalized] || 'default'}>
-            {status?.toUpperCase() || 'UNKNOWN'}
+            {t(`execution.${normalized}`, { defaultValue: status?.toUpperCase() || 'UNKNOWN' })}
           </Tag>
         )
       },

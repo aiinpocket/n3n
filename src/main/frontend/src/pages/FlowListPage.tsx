@@ -19,7 +19,7 @@ const { Text } = Typography
 export default function FlowListPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { flows, totalElements, loading, currentPage, pageSize, searchQuery, fetchFlows, setSearchQuery, createFlow, deleteFlow, cloneFlow } = useFlowListStore()
+  const { flows, totalElements, loading, error: flowListError, currentPage, pageSize, searchQuery, fetchFlows, setSearchQuery, createFlow, deleteFlow, cloneFlow } = useFlowListStore()
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [form] = Form.useForm()
   const [creating, setCreating] = useState(false)
@@ -401,6 +401,9 @@ export default function FlowListPage() {
                       </Space>
                     }
                   />
+                )}
+                {flowListError && (
+                  <Alert type="error" message={flowListError} closable showIcon style={{ marginBottom: 16 }} />
                 )}
                 <Table
                   columns={columns}

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { monitoringApi, type SystemMetrics, type FlowExecutionStats, type HealthStatus } from '../api/monitoring'
+import i18n from '../i18n'
 
 interface MonitoringState {
   systemMetrics: SystemMetrics | null
@@ -63,7 +64,7 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
         loading: false,
       })
     } catch {
-      set({ loading: false, error: 'Failed to fetch monitoring data' })
+      set({ loading: false, error: i18n.t('errorMessage.defaultMessage') })
     }
   },
 }))

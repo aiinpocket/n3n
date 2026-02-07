@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
             recoveryKey: recoveryKey || null,
           })
         } catch (error: unknown) {
-          const message = extractApiError(error, 'Login failed')
+          const message = extractApiError(error)
           set({ error: message, isLoading: false })
           throw error
         }
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
           }
           return isFirstUser || false
         } catch (error: unknown) {
-          const message = extractApiError(error, 'Registration failed')
+          const message = extractApiError(error)
           set({ error: message, isLoading: false })
           throw error
         }

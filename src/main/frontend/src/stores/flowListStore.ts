@@ -47,7 +47,7 @@ export const useFlowListStore = create<FlowListState>((set, get) => ({
       }
     } catch (error: unknown) {
       if (requestId === fetchRequestId) {
-        set({ error: extractApiError(error, 'Failed to load flows') })
+        set({ error: extractApiError(error) })
       }
     } finally {
       if (requestId === fetchRequestId) {

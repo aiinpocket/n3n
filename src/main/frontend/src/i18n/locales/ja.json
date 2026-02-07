@@ -340,7 +340,16 @@
     "deleteNode": "ノードを削除",
     "searchServicePlaceholder": "サービスまたはエンドポイントを検索...",
     "selectServiceEndpoint": "外部サービスエンドポイントを選択",
-    "clickEndpointHint": "エンドポイントをクリックしてフローにノードとして追加します。"
+    "clickEndpointHint": "エンドポイントをクリックしてフローにノードとして追加します。",
+    "credential": "認証情報",
+    "resource": "リソース",
+    "selectResource": "リソースを選択",
+    "operation": "操作",
+    "selectOperation": "操作を選択",
+    "credentialRequired": "認証情報が必要です",
+    "credentialRequiredDesc": "この操作には {{type}} の認証情報が必要です。",
+    "parameters": "パラメータ",
+    "output": "出力"
   },
   "optimizer": {
     "title": "AIフロー最適化",
@@ -1456,7 +1465,8 @@
     "keyMismatch": "暗号化キーの不一致を検出",
     "keyMismatchDesc": "一部の認証情報が現在のシステムキーで復号できません。Recovery Key を使用して移行してください。",
     "resolveKeyMismatch": "解決",
-    "encryptionVersion": "暗号化キーバージョン"
+    "encryptionVersion": "暗号化キーバージョン",
+    "securityLoadFailed": "セキュリティ情報の読み込みに失敗しました。後でもう一度お試しください。"
   },
   "admin": {
     "title": "ユーザー管理",

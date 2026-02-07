@@ -54,7 +54,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
         isLoading: false,
       })
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to fetch services')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
     }
   },
@@ -65,7 +65,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
       const service = await serviceApi.getService(id)
       set({ currentService: service, isLoading: false })
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to fetch service')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
     }
   },
@@ -80,7 +80,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
       }))
       return service
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to create service')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -96,7 +96,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
         isLoading: false,
       }))
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to update service')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -111,7 +111,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
         isLoading: false,
       }))
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to delete service')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -125,7 +125,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
       set({ isLoading: false })
       return { addedEndpoints: result.addedEndpoints, updatedEndpoints: result.updatedEndpoints }
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to refresh schema')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -135,7 +135,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
     try {
       return await serviceApi.testConnection(id)
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Connection test failed')
+      const message = extractApiError(error)
       return { success: false, latencyMs: 0, message }
     }
   },
@@ -158,7 +158,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
       })
       return endpoint
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to create endpoint')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -183,7 +183,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
         return { isLoading: false }
       })
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to update endpoint')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }
@@ -206,7 +206,7 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
         return { isLoading: false }
       })
     } catch (error: unknown) {
-      const message = extractApiError(error, 'Failed to delete endpoint')
+      const message = extractApiError(error)
       set({ error: message, isLoading: false })
       throw error
     }

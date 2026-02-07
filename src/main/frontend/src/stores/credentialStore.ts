@@ -41,7 +41,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
-      set({ error: extractApiError(error, 'Failed to fetch credentials'), loading: false })
+      set({ error: extractApiError(error), loading: false })
     }
   },
 
@@ -50,7 +50,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
       const types = await credentialApi.listTypes()
       set({ credentialTypes: types })
     } catch (error: unknown) {
-      set({ error: extractApiError(error, 'Failed to fetch credential types') })
+      set({ error: extractApiError(error) })
     }
   },
 
@@ -65,7 +65,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
       })
       return credential
     } catch (error: unknown) {
-      set({ error: extractApiError(error, 'Failed to create credential'), loading: false })
+      set({ error: extractApiError(error), loading: false })
       throw error
     }
   },
@@ -80,7 +80,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
-      set({ error: extractApiError(error, 'Failed to delete credential'), loading: false })
+      set({ error: extractApiError(error), loading: false })
       throw error
     }
   },
@@ -91,7 +91,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
     } catch (error: unknown) {
       return {
         success: false,
-        message: extractApiError(error, 'Failed to test credential'),
+        message: extractApiError(error),
         latencyMs: 0,
         testedAt: new Date().toISOString()
       }
@@ -104,7 +104,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
     } catch (error: unknown) {
       return {
         success: false,
-        message: extractApiError(error, 'Failed to test connection'),
+        message: extractApiError(error),
         latencyMs: 0,
         testedAt: new Date().toISOString()
       }

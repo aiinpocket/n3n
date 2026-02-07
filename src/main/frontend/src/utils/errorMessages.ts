@@ -298,7 +298,7 @@ export function formatErrorForDisplay(error: FriendlyError): string {
  * Replaces the repeated pattern:
  *   (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'fallback'
  */
-export function extractApiError(error: unknown, fallback = 'An unexpected error occurred'): string {
+export function extractApiError(error: unknown, fallback?: string): string {
   // Check for Axios-style error response
   const axiosError = error as { response?: { data?: { message?: string } } }
   if (axiosError?.response?.data?.message) {
@@ -308,7 +308,7 @@ export function extractApiError(error: unknown, fallback = 'An unexpected error 
   if (error instanceof Error) {
     return error.message
   }
-  return fallback
+  return fallback || i18n.t('errorMessage.defaultMessage')
 }
 
 export default {

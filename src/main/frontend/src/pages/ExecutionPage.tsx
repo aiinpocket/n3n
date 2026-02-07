@@ -316,7 +316,7 @@ export default function ExecutionPage() {
             <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} />
             <span>{t('execution.detail')}</span>
             <Tag icon={statusIcons[executionData.status]} color={statusColors[executionData.status]}>
-              {executionData.status.toUpperCase()}
+              {t(`execution.${executionData.status.toLowerCase()}`, { defaultValue: executionData.status.toUpperCase() })}
             </Tag>
             {isConnected && <Tag color="green">{t('execution.realtime')}</Tag>}
           </Space>

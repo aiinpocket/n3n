@@ -20,9 +20,10 @@ export default function AccountSettingsPage() {
   const [profileLoading, setProfileLoading] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
   const [securityStatus, setSecurityStatus] = useState<SecurityStatus | null>(null)
+  const [securityError, setSecurityError] = useState(false)
 
   useEffect(() => {
-    securityApi.getStatus().then(setSecurityStatus).catch(() => {})
+    securityApi.getStatus().then(setSecurityStatus).catch(() => setSecurityError(true))
   }, [])
 
   const handleUpdateProfile = async (values: { name: string }) => {
@@ -129,6 +130,11 @@ export default function AccountSettingsPage() {
       </Card>
 
       {/* Security Status */}
+      {securityError && (
+        <Card style={{ marginBottom: 24 }}>
+          <Alert type="warning" showIcon message={t('account.securityLoadFailed')} />
+        </Card>
+      )}
       {securityStatus && (
         <Card style={{ marginBottom: 24 }}>
           <Title level={5} style={{ color: 'var(--color-text-primary)', marginBottom: 16 }}>

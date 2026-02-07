@@ -340,7 +340,16 @@
     "deleteNode": "刪除節點",
     "searchServicePlaceholder": "搜尋服務或端點...",
     "selectServiceEndpoint": "選擇外部服務端點",
-    "clickEndpointHint": "點擊端點即可將其加入流程中作為節點使用。"
+    "clickEndpointHint": "點擊端點即可將其加入流程中作為節點使用。",
+    "credential": "憑證",
+    "resource": "資源",
+    "selectResource": "選擇資源",
+    "operation": "操作",
+    "selectOperation": "選擇操作",
+    "credentialRequired": "需要憑證",
+    "credentialRequiredDesc": "此操作需要 {{type}} 憑證。",
+    "parameters": "參數",
+    "output": "輸出"
   },
   "optimizer": {
     "title": "AI 流程優化",
@@ -1456,7 +1465,8 @@
     "keyMismatch": "偵測到加密金鑰不一致",
     "keyMismatchDesc": "部分憑證無法使用目前的系統金鑰解密。請使用您的 Recovery Key 進行遷移。",
     "resolveKeyMismatch": "處理",
-    "encryptionVersion": "加密金鑰版本"
+    "encryptionVersion": "加密金鑰版本",
+    "securityLoadFailed": "無法載入安全狀態，請稍後再試。"
   },
   "admin": {
     "title": "使用者管理",

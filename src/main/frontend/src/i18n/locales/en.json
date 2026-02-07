@@ -340,7 +340,16 @@
     "deleteNode": "Delete Node",
     "searchServicePlaceholder": "Search services or endpoints...",
     "selectServiceEndpoint": "Select External Service Endpoint",
-    "clickEndpointHint": "Click an endpoint to add it as a node in your flow."
+    "clickEndpointHint": "Click an endpoint to add it as a node in your flow.",
+    "credential": "Credential",
+    "resource": "Resource",
+    "selectResource": "Select resource",
+    "operation": "Operation",
+    "selectOperation": "Select operation",
+    "credentialRequired": "Credential required",
+    "credentialRequiredDesc": "This operation requires a {{type}} credential.",
+    "parameters": "Parameters",
+    "output": "Output"
   },
   "optimizer": {
     "title": "AI Flow Optimization",
@@ -1456,7 +1465,8 @@
     "keyMismatch": "Encryption key mismatch detected",
     "keyMismatchDesc": "Some credentials cannot be decrypted with the current system key. Use your Recovery Key to migrate them.",
     "resolveKeyMismatch": "Resolve",
-    "encryptionVersion": "Encryption Key Version"
+    "encryptionVersion": "Encryption Key Version",
+    "securityLoadFailed": "Unable to load security status. Please try again later."
   },
   "admin": {
     "title": "User Management",
