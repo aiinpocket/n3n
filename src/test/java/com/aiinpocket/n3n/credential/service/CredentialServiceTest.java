@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.service;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.base.BaseServiceTest;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
@@ -47,6 +48,9 @@ class CredentialServiceTest extends BaseServiceTest {
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private ActivityService activityService;
 
     @InjectMocks
     private CredentialService credentialService;
@@ -361,6 +365,7 @@ class CredentialServiceTest extends BaseServiceTest {
             credentialService.deleteCredential(credentialId, userId);
 
             verify(credentialRepository).delete(privateCredential);
+            verify(activityService).logCredentialAccess(userId, credentialId, "My API Key", "delete");
         }
 
         @Test
@@ -411,6 +416,7 @@ class CredentialServiceTest extends BaseServiceTest {
             verify(encryptionService).decrypt(
                     privateCredential.getEncryptedData(),
                     privateCredential.getEncryptionIv());
+            verify(activityService).logCredentialAccess(userId, credentialId, "My API Key", "decrypt");
         }
 
         @Test

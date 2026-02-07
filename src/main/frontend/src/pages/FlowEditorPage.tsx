@@ -22,6 +22,7 @@ import {
   RedoOutlined,
   CopyOutlined,
   RobotOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -56,6 +57,7 @@ import AIPanelDrawer from '../components/ai/AIPanelDrawer'
 import { useAIAssistantStore } from '../stores/aiAssistantStore'
 import { CommandPalette } from '../components/command'
 import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
+import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
 
 const { Text } = Typography
@@ -151,6 +153,7 @@ export default function FlowEditorPage() {
   const [nodeRecommendationOpen, setNodeRecommendationOpen] = useState(false)
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [nodeSearchOpen, setNodeSearchOpen] = useState(false)
   const [saveForm] = Form.useForm()
 
   // Edge configuration state
@@ -627,6 +630,9 @@ export default function FlowEditorPage() {
                 disabled={selectedNodeIds.length === 0}
               />
             </Tooltip>
+            <Tooltip title={t('editor.nodeSearch.title')}>
+              <Button icon={<SearchOutlined />} onClick={() => setNodeSearchOpen(true)} />
+            </Tooltip>
             <Dropdown menu={addNodeMenu} placement="bottomRight">
               <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
             </Dropdown>
@@ -1074,6 +1080,13 @@ export default function FlowEditorPage() {
           // Open the add node dropdown - we'll just add a trigger node for now
           handleAddNode('trigger')
         }}
+      />
+
+      {/* Node Search Drawer */}
+      <NodeSearchDrawer
+        open={nodeSearchOpen}
+        onClose={() => setNodeSearchOpen(false)}
+        onAddNode={handleAddNode}
       />
 
       {/* AI Assistant Drawer */}

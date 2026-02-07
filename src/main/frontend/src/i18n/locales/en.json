@@ -353,7 +353,13 @@
     "credentialRequired": "Credential required",
     "credentialRequiredDesc": "This operation requires a {{type}} credential.",
     "parameters": "Parameters",
-    "output": "Output"
+    "output": "Output",
+    "nodeSearch": {
+      "title": "Search Nodes",
+      "placeholder": "Search by name, description, or category...",
+      "resultCount": "{{count}} nodes found",
+      "noResults": "No nodes match your search"
+    }
   },
   "optimizer": {
     "title": "AI Flow Optimization",
@@ -784,7 +790,26 @@
     "flowConversation": "Flow Chat",
     "newConversation": "New Chat",
     "thinking": "Thinking...",
-    "imported": "Imported"
+    "imported": "Imported",
+    "localFeatures": {
+      "title": "Built-in AI Features",
+      "free": "Free - No API Key Required",
+      "optimizerEnabled": "Flow Optimizer is enabled by default",
+      "optimizerDesc": "Powered by Phi-3-Mini, the built-in flow optimizer analyzes your workflow and suggests improvements automatically. No configuration needed.",
+      "flowOptimizer": "Flow Optimizer",
+      "flowOptimizerDesc": "AI-powered analysis of your workflow for performance and structure improvements",
+      "dagAnalysis": "DAG Analysis",
+      "dagAnalysisDesc": "Automatic detection of bottlenecks, parallel execution opportunities, and redundant paths"
+    },
+    "cloudFeatures": {
+      "title": "Cloud AI Providers",
+      "apiKeyRequired": "API Key Required",
+      "info": "Cloud AI Features",
+      "infoList": {
+        "nlGeneration": "Natural language flow generation: describe what you want, AI builds the flow"
+      },
+      "optional": "Cloud AI is optional. Built-in features work without any API key."
+    }
   },
   "chat": {
     "placeholder": "Describe the workflow you want... (Shift+Enter for new line)",

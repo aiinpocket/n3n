@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.service;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
@@ -30,6 +31,7 @@ public class CredentialService {
     private final CredentialTypeRepository credentialTypeRepository;
     private final EncryptionService encryptionService;
     private final ObjectMapper objectMapper;
+    private final ActivityService activityService;
 
     public Page<CredentialResponse> listCredentials(UUID userId, Pageable pageable) {
         return credentialRepository.findAccessibleByUser(userId, pageable)
@@ -97,6 +99,7 @@ public class CredentialService {
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
 
         credentialRepository.delete(credential);
+        activityService.logCredentialAccess(userId, credential.getId(), credential.getName(), "delete");
         log.info("Credential deleted: id={}", id);
     }
 
@@ -108,6 +111,9 @@ public class CredentialService {
         if (!credential.getOwnerId().equals(userId) && Status.Visibility.PRIVATE.equals(credential.getVisibility())) {
             throw new ResourceNotFoundException("Credential not found: " + id);
         }
+
+        // Audit: log credential decryption access
+        activityService.logCredentialAccess(userId, credential.getId(), credential.getName(), "decrypt");
 
         String decryptedJson = encryptionService.decrypt(
             credential.getEncryptedData(),

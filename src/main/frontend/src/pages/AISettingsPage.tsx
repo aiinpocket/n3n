@@ -21,6 +21,8 @@ import {
   StarFilled,
   ApiOutlined,
   ThunderboltOutlined,
+  RocketOutlined,
+  CloudOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAiStore } from '../stores/aiStore'
@@ -227,6 +229,44 @@ const AISettingsPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
+      {/* Built-in Free Features Section */}
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <RocketOutlined style={{ marginRight: 8, color: 'var(--color-primary)', fontSize: 20 }} />
+          <Title level={4} style={{ margin: 0 }}>{t('ai.localFeatures.title')}</Title>
+          <Tag color="green" style={{ marginLeft: 12 }}>{t('ai.localFeatures.free')}</Tag>
+        </div>
+        <Alert
+          type="success"
+          showIcon
+          icon={<CheckCircleOutlined />}
+          message={t('ai.localFeatures.optimizerEnabled')}
+          description={t('ai.localFeatures.optimizerDesc')}
+          style={{ marginBottom: 16 }}
+        />
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <Card size="small" style={{ flex: 1, minWidth: 200, background: 'var(--color-bg-container)' }}>
+            <Space direction="vertical" size={4}>
+              <Space>
+                <RocketOutlined style={{ color: 'var(--color-primary)' }} />
+                <Text strong>{t('ai.localFeatures.flowOptimizer')}</Text>
+              </Space>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('ai.localFeatures.flowOptimizerDesc')}</Text>
+            </Space>
+          </Card>
+          <Card size="small" style={{ flex: 1, minWidth: 200, background: 'var(--color-bg-container)' }}>
+            <Space direction="vertical" size={4}>
+              <Space>
+                <ThunderboltOutlined style={{ color: 'var(--color-primary)' }} />
+                <Text strong>{t('ai.localFeatures.dagAnalysis')}</Text>
+              </Space>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('ai.localFeatures.dagAnalysisDesc')}</Text>
+            </Space>
+          </Card>
+        </div>
+      </Card>
+
+      {/* Cloud AI Providers Section */}
       <Card>
         <div
           style={{
@@ -236,10 +276,11 @@ const AISettingsPage: React.FC = () => {
             marginBottom: 16,
           }}
         >
-          <Title level={4} style={{ margin: 0 }}>
-            <ApiOutlined style={{ marginRight: 8 }} />
-            {t('ai.title')}
-          </Title>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <CloudOutlined style={{ marginRight: 8, color: 'var(--color-ai)', fontSize: 20 }} />
+            <Title level={4} style={{ margin: 0 }}>{t('ai.cloudFeatures.title')}</Title>
+            <Tag color="purple" style={{ marginLeft: 12 }}>{t('ai.cloudFeatures.apiKeyRequired')}</Tag>
+          </div>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -261,12 +302,12 @@ const AISettingsPage: React.FC = () => {
 
         <Alert
           type="info"
-          message={t('ai.settingsInfo')}
+          message={t('ai.cloudFeatures.info')}
           description={
             <ul style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
+              <li>{t('ai.cloudFeatures.infoList.nlGeneration')}</li>
               <li>{t('ai.settingsInfoList.providers')}</li>
               <li>{t('ai.settingsInfoList.encryption')}</li>
-              <li>{t('ai.settingsInfoList.multiple')}</li>
               <li>{t('ai.settingsInfoList.ollamaLocal')}</li>
             </ul>
           }
@@ -286,10 +327,12 @@ const AISettingsPage: React.FC = () => {
                     style={{ fontSize: 48, color: '#ccc', marginBottom: 16 }}
                   />
                   <div>{t('ai.noConfigs')}</div>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                    {t('ai.cloudFeatures.optional')}
+                  </Text>
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    style={{ marginTop: 16 }}
                     onClick={() => setFormVisible(true)}
                   >
                     {t('ai.configNow')}

@@ -353,7 +353,13 @@
     "credentialRequired": "需要憑證",
     "credentialRequiredDesc": "此操作需要 {{type}} 憑證。",
     "parameters": "參數",
-    "output": "輸出"
+    "output": "輸出",
+    "nodeSearch": {
+      "title": "搜尋節點",
+      "placeholder": "依名稱、描述或分類搜尋...",
+      "resultCount": "找到 {{count}} 個節點",
+      "noResults": "沒有符合搜尋條件的節點"
+    }
   },
   "optimizer": {
     "title": "AI 流程優化",
@@ -784,7 +790,26 @@
     "flowConversation": "流程對話",
     "newConversation": "新對話",
     "thinking": "思考中...",
-    "imported": "匯入"
+    "imported": "匯入",
+    "localFeatures": {
+      "title": "內建 AI 功能",
+      "free": "免費 - 無需 API Key",
+      "optimizerEnabled": "流程優化器已預設啟用",
+      "optimizerDesc": "由 Phi-3-Mini 驅動，內建流程優化器會自動分析您的工作流程並提供改進建議。無需任何設定。",
+      "flowOptimizer": "流程優化器",
+      "flowOptimizerDesc": "AI 驅動的工作流程分析，提供效能與結構改進建議",
+      "dagAnalysis": "DAG 分析",
+      "dagAnalysisDesc": "自動偵測瓶頸、平行執行機會及冗餘路徑"
+    },
+    "cloudFeatures": {
+      "title": "雲端 AI 供應商",
+      "apiKeyRequired": "需要 API Key",
+      "info": "雲端 AI 功能",
+      "infoList": {
+        "nlGeneration": "自然語言流程生成：描述您的需求，AI 幫您建立流程"
+      },
+      "optional": "雲端 AI 為選用功能。內建功能無需任何 API Key 即可使用。"
+    }
   },
   "chat": {
     "placeholder": "描述您想要的工作流程... (Shift+Enter 換行)",
