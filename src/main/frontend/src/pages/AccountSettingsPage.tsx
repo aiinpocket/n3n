@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag } from 'antd'
-import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined } from '@ant-design/icons'
+import { useState, useEffect } from 'react'
+import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space } from 'antd'
+import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import apiClient from '../api/client'
 import { extractApiError } from '../utils/errorMessages'
+import { securityApi, SecurityStatus } from '../api/security'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
 export default function AccountSettingsPage() {
   const { t } = useTranslation()
@@ -16,6 +17,11 @@ export default function AccountSettingsPage() {
   const [loading, setLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [securityStatus, setSecurityStatus] = useState<SecurityStatus | null>(null)
+
+  useEffect(() => {
+    securityApi.getStatus().then(setSecurityStatus).catch(() => {})
+  }, [])
 
   const handleUpdateProfile = async (values: { name: string }) => {
     setProfileLoading(true)
@@ -119,6 +125,65 @@ export default function AccountSettingsPage() {
           </Descriptions>
         )}
       </Card>
+
+      {/* Security Status */}
+      {securityStatus && (
+        <Card style={{ marginBottom: 24 }}>
+          <Title level={5} style={{ color: 'var(--color-text-primary)', marginBottom: 16 }}>
+            <SafetyOutlined style={{ marginRight: 8 }} />
+            {t('account.securityStatus')}
+          </Title>
+          <Divider style={{ margin: '8px 0 16px' }} />
+
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            {/* Recovery Key Status */}
+            {securityStatus.needsRecoveryKeySetup ? (
+              <Alert
+                type="warning"
+                showIcon
+                icon={<WarningOutlined />}
+                message={t('account.recoveryKeyNotSet')}
+                description={t('account.recoveryKeyNotSetDesc')}
+                action={
+                  <Button size="small" type="primary" onClick={() => window.location.href = '/credentials'}>
+                    {t('account.setupRecoveryKey')}
+                  </Button>
+                }
+              />
+            ) : (
+              <Alert
+                type="success"
+                showIcon
+                icon={<CheckCircleOutlined />}
+                message={t('account.recoveryKeyConfigured')}
+                description={t('account.recoveryKeyConfiguredDesc')}
+              />
+            )}
+
+            {/* Key Mismatch Warning */}
+            {securityStatus.keyMismatch && (
+              <Alert
+                type="error"
+                showIcon
+                message={t('account.keyMismatch')}
+                description={t('account.keyMismatchDesc')}
+                action={
+                  <Button size="small" danger onClick={() => window.location.href = '/credentials'}>
+                    {t('account.resolveKeyMismatch')}
+                  </Button>
+                }
+              />
+            )}
+
+            {/* Encryption Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Text type="secondary">{t('account.encryptionVersion')}: </Text>
+              <Tag color="blue">v{securityStatus.currentKeyVersion}</Tag>
+              <Text type="secondary" style={{ fontSize: 12 }}>AES-256-GCM</Text>
+            </div>
+          </Space>
+        </Card>
+      )}
 
       {/* Change Password */}
       <Card>

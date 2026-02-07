@@ -194,7 +194,13 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         if (name != null && !name.isBlank()) {
-            user.setName(name.trim());
+            String trimmed = name.trim();
+            if (trimmed.length() > 100) {
+                throw new IllegalArgumentException("Name must be 100 characters or less");
+            }
+            // Sanitize: strip HTML tags to prevent stored XSS
+            String sanitized = trimmed.replaceAll("<[^>]*>", "");
+            user.setName(sanitized);
         }
         user = userRepository.save(user);
         List<String> roles = userRoleRepository.findByUserId(user.getId())

@@ -144,7 +144,11 @@
     "resetSuccess": "パスワードがリセットされました。新しいパスワードでログインしてください。",
     "loginRequired": "続行するにはログインが必要です",
     "sessionExpired": "セッションが期限切れです。再度ログインしてください",
-    "registerSuccess": "登録が完了しました！ログインしてください。"
+    "registerSuccess": "登録が完了しました！ログインしてください。",
+    "registerSubtitle": "AI駆動のワークフロー自動化プラットフォーム",
+    "featureAI": "AI駆動",
+    "featureSecurity": "セキュア",
+    "featureCollab": "コラボレーション"
   },
   "setup": {
     "title": "N3N Flow へようこそ",
@@ -1378,7 +1382,15 @@
     "step3Desc": "ワークフローを実行し、リアルタイムで実行結果を監視",
     "createFirstFlow": "最初のフローを作成",
     "startFromTemplate": "テンプレートから開始",
-    "aiGenerate": "AI 生成"
+    "aiGenerate": "AI 生成",
+    "quickCredentials": "認証情報",
+    "quickCredentialsDesc": "APIキーとシークレットを安全に保存",
+    "quickServices": "外部サービス",
+    "quickServicesDesc": "APIとマイクロサービスを接続",
+    "quickWebhooks": "Webhooks",
+    "quickWebhooksDesc": "イベント駆動トリガーを設定",
+    "quickSecurity": "セキュリティ",
+    "quickSecurityDesc": "Recovery Keyとアカウント設定"
   },
   "diff": {
     "nodes": "ノード",
@@ -1429,7 +1441,17 @@
     "profileUpdated": "プロフィールが正常に更新されました",
     "profileUpdateFailed": "プロフィールの更新に失敗しました",
     "displayName": "表示名",
-    "displayNamePlaceholder": "表示名を入力してください"
+    "displayNamePlaceholder": "表示名を入力してください",
+    "securityStatus": "セキュリティ",
+    "recoveryKeyNotSet": "Recovery Key が未設定です",
+    "recoveryKeyNotSetDesc": "Recovery Key を設定して暗号化された認証情報を保護してください。システム環境が変更された場合、Recovery Key がないとデータを復元できない可能性があります。",
+    "setupRecoveryKey": "Recovery Key を設定",
+    "recoveryKeyConfigured": "Recovery Key 設定済み",
+    "recoveryKeyConfiguredDesc": "Recovery Key は設定済みです。バックアップを安全に保管して、認証情報の復元を確保してください。",
+    "keyMismatch": "暗号化キーの不一致を検出",
+    "keyMismatchDesc": "一部の認証情報が現在のシステムキーで復号できません。Recovery Key を使用して移行してください。",
+    "resolveKeyMismatch": "解決",
+    "encryptionVersion": "暗号化キーバージョン"
   },
   "nodeRecommendation": {
     "title": "スマートノード推薦",

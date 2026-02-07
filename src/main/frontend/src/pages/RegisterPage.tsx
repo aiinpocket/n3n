@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, message } from 'antd'
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
+import { UserOutlined, LockOutlined, MailOutlined, ThunderboltOutlined, SafetyOutlined, TeamOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from '../components/LanguageSwitcher'
@@ -42,8 +42,27 @@ export default function RegisterPage() {
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
             </div>
+            <div style={{
+              width: 48, height: 48, borderRadius: 12,
+              background: 'linear-gradient(135deg, #14B8A6, #8B5CF6)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 900, fontSize: 18, color: '#fff', marginBottom: 8,
+            }}>N3</div>
             <Title level={2} style={{ margin: 0, color: 'var(--color-text-primary)' }}>{t('auth.register')}</Title>
-            <Text style={{ color: 'var(--color-text-secondary)' }}>N3N Flow Platform</Text>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>{t('auth.registerSubtitle')}</Text>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            {[
+              { icon: <ThunderboltOutlined />, label: t('auth.featureAI') },
+              { icon: <SafetyOutlined />, label: t('auth.featureSecurity') },
+              { icon: <TeamOutlined />, label: t('auth.featureCollab') },
+            ].map((f, i) => (
+              <div key={i} style={{ textAlign: 'center', flex: 1 }}>
+                <div style={{ fontSize: 18, color: 'var(--color-primary)', marginBottom: 4 }}>{f.icon}</div>
+                <Text style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>{f.label}</Text>
+              </div>
+            ))}
           </div>
 
           {error && (

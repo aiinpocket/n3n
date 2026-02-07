@@ -144,7 +144,11 @@
     "resetSuccess": "Password has been reset. Please login with your new password.",
     "loginRequired": "Please login to continue",
     "sessionExpired": "Your session has expired, please login again",
-    "registerSuccess": "Registration successful! Please login."
+    "registerSuccess": "Registration successful! Please login.",
+    "registerSubtitle": "AI-powered workflow automation platform",
+    "featureAI": "AI-Driven",
+    "featureSecurity": "Secure",
+    "featureCollab": "Collaborative"
   },
   "setup": {
     "title": "Welcome to N3N Flow",
@@ -1378,7 +1382,15 @@
     "step3Desc": "Run your workflow and monitor execution results in real time",
     "createFirstFlow": "Create Your First Flow",
     "startFromTemplate": "Start from Template",
-    "aiGenerate": "AI Generate"
+    "aiGenerate": "AI Generate",
+    "quickCredentials": "Credentials",
+    "quickCredentialsDesc": "Store API keys and secrets securely",
+    "quickServices": "External Services",
+    "quickServicesDesc": "Connect APIs and microservices",
+    "quickWebhooks": "Webhooks",
+    "quickWebhooksDesc": "Set up event-driven triggers",
+    "quickSecurity": "Security",
+    "quickSecurityDesc": "Recovery key and account settings"
   },
   "diff": {
     "nodes": "nodes",
@@ -1429,7 +1441,17 @@
     "profileUpdated": "Profile updated successfully",
     "profileUpdateFailed": "Failed to update profile",
     "displayName": "Display Name",
-    "displayNamePlaceholder": "Enter your display name"
+    "displayNamePlaceholder": "Enter your display name",
+    "securityStatus": "Security",
+    "recoveryKeyNotSet": "Recovery Key not configured",
+    "recoveryKeyNotSetDesc": "Set up a Recovery Key to protect your encrypted credentials. Without it, data may be unrecoverable if the system environment changes.",
+    "setupRecoveryKey": "Set Up Recovery Key",
+    "recoveryKeyConfigured": "Recovery Key configured",
+    "recoveryKeyConfiguredDesc": "Your Recovery Key is set up. Keep your backup safe to ensure credential recovery.",
+    "keyMismatch": "Encryption key mismatch detected",
+    "keyMismatchDesc": "Some credentials cannot be decrypted with the current system key. Use your Recovery Key to migrate them.",
+    "resolveKeyMismatch": "Resolve",
+    "encryptionVersion": "Encryption Key Version"
   },
   "nodeRecommendation": {
     "title": "Smart Node Recommendation",

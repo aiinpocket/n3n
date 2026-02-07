@@ -144,7 +144,11 @@
     "resetSuccess": "密碼已重設成功，請使用新密碼登入。",
     "loginRequired": "請先登入後再繼續操作",
     "sessionExpired": "登入已過期，請重新登入",
-    "registerSuccess": "註冊成功！請登入。"
+    "registerSuccess": "註冊成功！請登入。",
+    "registerSubtitle": "AI 驅動的工作流程自動化平台",
+    "featureAI": "AI 驅動",
+    "featureSecurity": "安全可靠",
+    "featureCollab": "協作共享"
   },
   "setup": {
     "title": "歡迎使用 N3N Flow",
@@ -1378,7 +1382,15 @@
     "step3Desc": "運行工作流程並即時監控執行結果",
     "createFirstFlow": "建立第一個流程",
     "startFromTemplate": "從範本開始",
-    "aiGenerate": "AI 生成"
+    "aiGenerate": "AI 生成",
+    "quickCredentials": "憑證管理",
+    "quickCredentialsDesc": "安全儲存 API 金鑰和密碼",
+    "quickServices": "外部服務",
+    "quickServicesDesc": "連接 API 與微服務",
+    "quickWebhooks": "Webhooks",
+    "quickWebhooksDesc": "設定事件驅動觸發器",
+    "quickSecurity": "安全性",
+    "quickSecurityDesc": "Recovery Key 與帳戶設定"
   },
   "diff": {
     "nodes": "節點",
@@ -1429,7 +1441,17 @@
     "profileUpdated": "個人資料更新成功",
     "profileUpdateFailed": "個人資料更新失敗",
     "displayName": "顯示名稱",
-    "displayNamePlaceholder": "請輸入您的顯示名稱"
+    "displayNamePlaceholder": "請輸入您的顯示名稱",
+    "securityStatus": "安全性",
+    "recoveryKeyNotSet": "尚未設定 Recovery Key",
+    "recoveryKeyNotSetDesc": "設定 Recovery Key 以保護您的加密憑證。若系統環境發生變更，沒有 Recovery Key 可能無法恢復資料。",
+    "setupRecoveryKey": "設定 Recovery Key",
+    "recoveryKeyConfigured": "Recovery Key 已設定",
+    "recoveryKeyConfiguredDesc": "您的 Recovery Key 已設定完成。請妥善保管備份，以確保憑證可恢復。",
+    "keyMismatch": "偵測到加密金鑰不一致",
+    "keyMismatchDesc": "部分憑證無法使用目前的系統金鑰解密。請使用您的 Recovery Key 進行遷移。",
+    "resolveKeyMismatch": "處理",
+    "encryptionVersion": "加密金鑰版本"
   },
   "nodeRecommendation": {
     "title": "智慧節點推薦",

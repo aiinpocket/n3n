@@ -167,10 +167,10 @@ public class FlowService {
 
         String clonedName = newName != null ? newName : original.getName() + " (Copy)";
 
-        // Ensure unique name
+        // Ensure unique name (with safety limit)
         int counter = 1;
         String baseName = clonedName;
-        while (flowRepository.existsByNameAndIsDeletedFalse(clonedName)) {
+        while (flowRepository.existsByNameAndIsDeletedFalse(clonedName) && counter <= 100) {
             clonedName = baseName + " (" + counter + ")";
             counter++;
         }

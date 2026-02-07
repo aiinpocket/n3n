@@ -120,6 +120,7 @@ public class AuthController {
         }
         UUID userId = UUID.fromString(userDetails.getUsername());
         UserResponse updated = authService.updateProfile(userId, request.get("name"));
+        activityService.logProfileUpdate(userId, updated.getEmail());
         return ResponseEntity.ok(updated);
     }
 

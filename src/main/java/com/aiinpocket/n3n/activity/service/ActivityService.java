@@ -150,6 +150,11 @@ public class ActivityService {
         logActivity(userId, TOKEN_REFRESH, "user", userId, null, null);
     }
 
+    public void logProfileUpdate(UUID userId, String email) {
+        logActivity(userId, USER_UPDATE, "user", userId, email, Map.of("action", "profile_update"));
+        logStructured("USER_PROFILE_UPDATE", userId, Map.of("email", email));
+    }
+
     public void logPasswordChange(UUID userId, String email) {
         logActivity(userId, PASSWORD_CHANGE, "user", userId, email, null);
         logStructured("AUTH_PASSWORD_CHANGE", userId, Map.of("email", email));

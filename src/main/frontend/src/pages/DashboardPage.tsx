@@ -13,6 +13,9 @@ import {
   AppstoreAddOutlined,
   SyncOutlined,
   FileTextOutlined,
+  SafetyOutlined,
+  ApiOutlined,
+  KeyOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -199,6 +202,38 @@ export default function DashboardPage() {
             </Space>
           </div>
         </Card>
+
+        {/* Quick Start Cards */}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card hoverable size="small" onClick={() => navigate('/credentials')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <KeyOutlined style={{ fontSize: 28, color: '#F59E0B', marginBottom: 8 }} />
+              <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickCredentials')}</Text></div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickCredentialsDesc')}</Text>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card hoverable size="small" onClick={() => navigate('/services')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <ApiOutlined style={{ fontSize: 28, color: '#3B82F6', marginBottom: 8 }} />
+              <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickServices')}</Text></div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickServicesDesc')}</Text>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card hoverable size="small" onClick={() => navigate('/webhooks')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <ThunderboltOutlined style={{ fontSize: 28, color: '#14B8A6', marginBottom: 8 }} />
+              <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickWebhooks')}</Text></div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickWebhooksDesc')}</Text>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card hoverable size="small" onClick={() => navigate('/account')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <SafetyOutlined style={{ fontSize: 28, color: '#8B5CF6', marginBottom: 8 }} />
+              <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickSecurity')}</Text></div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickSecurityDesc')}</Text>
+            </Card>
+          </Col>
+        </Row>
       </div>
     )
   }
