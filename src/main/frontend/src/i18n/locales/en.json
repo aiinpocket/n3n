@@ -152,7 +152,10 @@
     "featureSecurity": "Secure",
     "featureCollab": "Collaborative",
     "noRefreshToken": "No refresh token",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "appTitle": "N3N Flow",
+    "appSubtitle": "AI-Powered Workflow Automation",
+    "emailPlaceholder": "you@example.com"
   },
   "setup": {
     "title": "Welcome to N3N Flow",
@@ -534,7 +537,9 @@
     "viewData": "View Data",
     "inputData": "Input Data",
     "outputData": "Output Data",
-    "noData": "No data available"
+    "noData": "No data available",
+    "showErrorStack": "Show Error Details",
+    "hideErrorStack": "Hide Error Details"
   },
   "service": {
     "title": "External Services",
@@ -1055,7 +1060,8 @@
     "emailInvalid": "Please enter a valid email",
     "viewDesc": "Can view the flow but cannot modify",
     "editDesc": "Can modify flow content",
-    "adminDesc": "Can manage share settings"
+    "adminDesc": "Can manage share settings",
+    "pendingCannotChange": "Cannot change permission until the invitation is accepted"
   },
   "device": {
     "title": "Device Management",
@@ -1433,7 +1439,8 @@
     "quickWebhooksDesc": "Set up event-driven triggers",
     "quickSecurity": "Security",
     "quickSecurityDesc": "Recovery key and account settings",
-    "loadFailed": "Failed to load dashboard data"
+    "loadFailed": "Failed to load dashboard data",
+    "welcomeBack": "Welcome back, {{name}}"
   },
   "diff": {
     "nodes": "nodes",

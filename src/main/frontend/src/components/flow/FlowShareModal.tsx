@@ -120,16 +120,19 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       key: 'permission',
       width: 120,
       render: (_: unknown, record: FlowShare) => (
-        <Select
-          value={record.permission}
-          size="small"
-          style={{ width: 100 }}
-          onChange={(value) => handleUpdatePermission(record.id, value)}
-        >
-          <Option value="view">{t('share.view')}</Option>
-          <Option value="edit">{t('share.edit')}</Option>
-          <Option value="admin">{t('share.admin')}</Option>
-        </Select>
+        <Tooltip title={record.pending ? t('share.pendingCannotChange') : undefined}>
+          <Select
+            value={record.permission}
+            size="small"
+            style={{ width: 100 }}
+            disabled={record.pending}
+            onChange={(value) => handleUpdatePermission(record.id, value)}
+          >
+            <Option value="view">{t('share.view')}</Option>
+            <Option value="edit">{t('share.edit')}</Option>
+            <Option value="admin">{t('share.admin')}</Option>
+          </Select>
+        </Tooltip>
       )
     },
     {

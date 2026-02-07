@@ -25,6 +25,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { activityApi, UserActivity, Page } from '../api/activity'
 import { useAuthStore } from '../stores/authStore'
+import { useNavigate } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 import { getLocale } from '../utils/locale'
 
@@ -193,8 +194,19 @@ function getRelativeTime(dateStr: string, locale: string, t: (key: string, opts?
   return date.toLocaleDateString(locale)
 }
 
+const RESOURCE_ROUTES: Record<string, string> = {
+  FLOW: '/flows',
+  EXECUTION: '/executions',
+  CREDENTIAL: '/credentials',
+  WEBHOOK: '/webhooks',
+  SERVICE: '/services',
+  SKILL: '/skills',
+  USER: '/admin/users',
+}
+
 export default function ActivityHistoryPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const isAdmin = user?.roles?.includes('ADMIN') || user?.roles?.includes('ROLE_ADMIN')
 
@@ -291,9 +303,19 @@ export default function ActivityHistoryPage() {
       width: 240,
       render: (_: unknown, record: UserActivity) => {
         if (!record.resourceType && !record.resourceName) return <Text type="secondary">-</Text>
+        const route = record.resourceType ? RESOURCE_ROUTES[record.resourceType] : undefined
+        const canNavigate = route && record.resourceId
         return (
           <Space direction="vertical" size={0}>
-            {record.resourceName && <Text>{record.resourceName}</Text>}
+            {record.resourceName && (
+              canNavigate ? (
+                <a onClick={() => navigate(`${route}/${record.resourceId}`)} style={{ cursor: 'pointer' }}>
+                  {record.resourceName}
+                </a>
+              ) : (
+                <Text>{record.resourceName}</Text>
+              )
+            )}
             {record.resourceType && (
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {record.resourceType}

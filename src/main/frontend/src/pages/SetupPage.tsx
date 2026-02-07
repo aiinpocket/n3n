@@ -107,7 +107,7 @@ export default function SetupPage() {
                 >
                   <Input
                     prefix={<MailOutlined />}
-                    placeholder="admin@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     size="large"
                   />
                 </Form.Item>

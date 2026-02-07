@@ -152,7 +152,10 @@
     "featureSecurity": "安全可靠",
     "featureCollab": "協作共享",
     "noRefreshToken": "無刷新令牌",
-    "tokenRefreshFailed": "令牌刷新失敗"
+    "tokenRefreshFailed": "令牌刷新失敗",
+    "appTitle": "N3N Flow",
+    "appSubtitle": "AI 驅動的工作流程自動化",
+    "emailPlaceholder": "you@example.com"
   },
   "setup": {
     "title": "歡迎使用 N3N Flow",
@@ -534,7 +537,9 @@
     "viewData": "查看數據",
     "inputData": "輸入數據",
     "outputData": "輸出數據",
-    "noData": "無可用數據"
+    "noData": "無可用數據",
+    "showErrorStack": "顯示錯誤詳情",
+    "hideErrorStack": "隱藏錯誤詳情"
   },
   "service": {
     "title": "外部服務",
@@ -1055,7 +1060,8 @@
     "emailInvalid": "請輸入有效的 Email",
     "viewDesc": "可查看流程但不能修改",
     "editDesc": "可修改流程內容",
-    "adminDesc": "可管理分享設定"
+    "adminDesc": "可管理分享設定",
+    "pendingCannotChange": "對方接受邀請前無法變更權限"
   },
   "device": {
     "title": "設備管理",
@@ -1433,7 +1439,8 @@
     "quickWebhooksDesc": "設定事件驅動觸發器",
     "quickSecurity": "安全性",
     "quickSecurityDesc": "Recovery Key 與帳戶設定",
-    "loadFailed": "載入儀表板資料失敗"
+    "loadFailed": "載入儀表板資料失敗",
+    "welcomeBack": "歡迎回來，{{name}}"
   },
   "diff": {
     "nodes": "節點",

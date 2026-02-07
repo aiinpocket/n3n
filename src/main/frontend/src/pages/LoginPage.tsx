@@ -51,8 +51,8 @@ export default function LoginPage() {
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
             </div>
-            <Title level={2} style={{ margin: 0, color: 'var(--color-text-primary)' }}>N3N Flow</Title>
-            <Text style={{ color: 'var(--color-text-secondary)' }}>Flow Platform</Text>
+            <Title level={2} style={{ margin: 0, color: 'var(--color-text-primary)' }}>{t('auth.appTitle')}</Title>
+            <Text style={{ color: 'var(--color-text-secondary)' }}>{t('auth.appSubtitle')}</Text>
           </div>
 
           {reasonMessage && (

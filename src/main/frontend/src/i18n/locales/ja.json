@@ -152,7 +152,10 @@
     "featureSecurity": "セキュア",
     "featureCollab": "コラボレーション",
     "noRefreshToken": "リフレッシュトークンがありません",
-    "tokenRefreshFailed": "トークンの更新に失敗しました"
+    "tokenRefreshFailed": "トークンの更新に失敗しました",
+    "appTitle": "N3N Flow",
+    "appSubtitle": "AI駆動のワークフロー自動化",
+    "emailPlaceholder": "you@example.com"
   },
   "setup": {
     "title": "N3N Flow へようこそ",
@@ -534,7 +537,9 @@
     "viewData": "データ表示",
     "inputData": "入力データ",
     "outputData": "出力データ",
-    "noData": "データなし"
+    "noData": "データなし",
+    "showErrorStack": "エラー詳細を表示",
+    "hideErrorStack": "エラー詳細を非表示"
   },
   "service": {
     "title": "外部サービス",
@@ -1055,7 +1060,8 @@
     "emailInvalid": "有効なメールアドレスを入力してください",
     "viewDesc": "フローの閲覧のみ可能（編集不可）",
     "editDesc": "フロー内容の編集が可能",
-    "adminDesc": "共有設定の管理が可能"
+    "adminDesc": "共有設定の管理が可能",
+    "pendingCannotChange": "招待が承認されるまで権限を変更できません"
   },
   "device": {
     "title": "デバイス管理",
@@ -1433,7 +1439,8 @@
     "quickWebhooksDesc": "イベント駆動トリガーを設定",
     "quickSecurity": "セキュリティ",
     "quickSecurityDesc": "Recovery Keyとアカウント設定",
-    "loadFailed": "ダッシュボードデータの読み込みに失敗しました"
+    "loadFailed": "ダッシュボードデータの読み込みに失敗しました",
+    "welcomeBack": "おかえりなさい、{{name}}さん"
   },
   "diff": {
     "nodes": "ノード",

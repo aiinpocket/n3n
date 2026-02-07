@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 import { getLocale } from '../utils/locale'
+import { useAuthStore } from '../stores/authStore'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -49,6 +50,7 @@ interface RecentExecution {
 export default function DashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const userName = useAuthStore((s) => s.user?.name)
   const [stats, setStats] = useState<StatsData | null>(null)
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([])
@@ -243,7 +245,7 @@ export default function DashboardPage() {
     <div>
       <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
         <Title level={3} style={{ color: 'var(--color-text-primary)', margin: 0 }}>
-          {t('dashboard.title')}
+          {userName ? t('dashboard.welcomeBack', { name: userName }) : t('dashboard.title')}
         </Title>
         <Space>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/flows')}>
