@@ -3,6 +3,7 @@ import { Node, Edge } from '@xyflow/react'
 import { Flow, FlowVersion, flowApi, FlowDefinition } from '../api/flow'
 import { logger } from '../utils/logger'
 import { ClipboardData, FlowSnapshot } from '../types'
+import i18n from '../i18n'
 
 interface FlowEditorState {
   currentFlow: Flow | null
@@ -243,7 +244,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
     // Create ID mapping for new nodes
     const idMap: Record<string, string> = {}
     const newNodes: Node[] = clipboard.nodes.map((n) => {
-      const newId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      const newId = `node-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
       idMap[n.id] = newId
       return {
         id: newId,
@@ -257,7 +258,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
     const newEdges: Edge[] = clipboard.edges
       .filter((e) => idMap[e.source] && idMap[e.target])
       .map((e) => ({
-        id: `edge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `edge-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         source: idMap[e.source],
         target: idMap[e.target],
         sourceHandle: e.sourceHandle,
@@ -386,7 +387,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
 
   saveVersion: async (version: string, settings?: Record<string, unknown>) => {
     const { currentFlow, nodes, edges } = get()
-    if (!currentFlow) throw new Error('No flow loaded')
+    if (!currentFlow) throw new Error(i18n.t('flow.noFlowLoaded'))
 
     set({ saving: true })
     try {
@@ -473,7 +474,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
 
   publishVersion: async (version: string) => {
     const { currentFlow } = get()
-    if (!currentFlow) throw new Error('No flow loaded')
+    if (!currentFlow) throw new Error(i18n.t('flow.noFlowLoaded'))
 
     const flowVersion = await flowApi.publishVersion(currentFlow.id, version)
     set((state) => ({
@@ -509,7 +510,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   pinNodeData: async (nodeId: string, data: Record<string, unknown>) => {
     const { currentFlow, currentVersion } = get()
     if (!currentFlow || !currentVersion) {
-      throw new Error('No flow or version loaded')
+      throw new Error(i18n.t('flow.noFlowOrVersionLoaded'))
     }
 
     await flowApi.pinNodeData(currentFlow.id, currentVersion.version, { nodeId, data })
@@ -522,7 +523,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   unpinNodeData: async (nodeId: string) => {
     const { currentFlow, currentVersion } = get()
     if (!currentFlow || !currentVersion) {
-      throw new Error('No flow or version loaded')
+      throw new Error(i18n.t('flow.noFlowOrVersionLoaded'))
     }
 
     await flowApi.unpinNodeData(currentFlow.id, currentVersion.version, nodeId)

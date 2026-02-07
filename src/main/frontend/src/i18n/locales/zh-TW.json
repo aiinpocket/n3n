@@ -150,7 +150,9 @@
     "registerSubtitle": "AI 驅動的工作流程自動化平台",
     "featureAI": "AI 驅動",
     "featureSecurity": "安全可靠",
-    "featureCollab": "協作共享"
+    "featureCollab": "協作共享",
+    "noRefreshToken": "無刷新令牌",
+    "tokenRefreshFailed": "令牌刷新失敗"
   },
   "setup": {
     "title": "歡迎使用 N3N Flow",
@@ -246,7 +248,9 @@
     "cloneSuccess": "流程複製成功",
     "cloneFailed": "流程複製失敗",
     "loadError": "載入流程失敗",
-    "backToList": "返回流程列表"
+    "backToList": "返回流程列表",
+    "noFlowLoaded": "尚未載入流程",
+    "noFlowOrVersionLoaded": "尚未載入流程或版本"
   },
   "editor": {
     "savedJustNow": "剛剛儲存",

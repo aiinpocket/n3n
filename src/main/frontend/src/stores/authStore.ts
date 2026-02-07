@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import apiClient from '../api/client'
 import { extractApiError } from '../utils/errorMessages'
+import i18n from '../i18n'
 
 interface User {
   id: string
@@ -135,7 +136,7 @@ export const useAuthStore = create<AuthState>()(
       refreshAccessToken: async () => {
         const { refreshToken } = get()
         if (!refreshToken) {
-          throw new Error('No refresh token')
+          throw new Error(i18n.t('auth.noRefreshToken'))
         }
         try {
           const response = await apiClient.post('/auth/refresh', { refreshToken })
@@ -148,7 +149,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             isAuthenticated: false,
           })
-          throw new Error('Token refresh failed')
+          throw new Error(i18n.t('auth.tokenRefreshFailed'))
         }
       },
 

@@ -150,7 +150,9 @@
     "registerSubtitle": "AI-powered workflow automation platform",
     "featureAI": "AI-Driven",
     "featureSecurity": "Secure",
-    "featureCollab": "Collaborative"
+    "featureCollab": "Collaborative",
+    "noRefreshToken": "No refresh token",
+    "tokenRefreshFailed": "Token refresh failed"
   },
   "setup": {
     "title": "Welcome to N3N Flow",
@@ -246,7 +248,9 @@
     "cloneSuccess": "Flow cloned successfully",
     "cloneFailed": "Failed to clone flow",
     "loadError": "Failed to Load Flow",
-    "backToList": "Back to Flow List"
+    "backToList": "Back to Flow List",
+    "noFlowLoaded": "No flow loaded",
+    "noFlowOrVersionLoaded": "No flow or version loaded"
   },
   "editor": {
     "savedJustNow": "Just saved",

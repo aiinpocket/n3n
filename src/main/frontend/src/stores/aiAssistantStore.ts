@@ -128,7 +128,7 @@ interface AIAssistantState {
   importSession: (json: string) => boolean
 }
 
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 const MAX_HISTORY_SIZE = 50
 
 export const useAIAssistantStore = create<AIAssistantState>()(

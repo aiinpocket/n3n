@@ -150,7 +150,9 @@
     "registerSubtitle": "AI駆動のワークフロー自動化プラットフォーム",
     "featureAI": "AI駆動",
     "featureSecurity": "セキュア",
-    "featureCollab": "コラボレーション"
+    "featureCollab": "コラボレーション",
+    "noRefreshToken": "リフレッシュトークンがありません",
+    "tokenRefreshFailed": "トークンの更新に失敗しました"
   },
   "setup": {
     "title": "N3N Flow へようこそ",
@@ -246,7 +248,9 @@
     "cloneSuccess": "フローの複製に成功しました",
     "cloneFailed": "フローの複製に失敗しました",
     "loadError": "フローの読み込みに失敗しました",
-    "backToList": "フロー一覧に戻る"
+    "backToList": "フロー一覧に戻る",
+    "noFlowLoaded": "フローが読み込まれていません",
+    "noFlowOrVersionLoaded": "フローまたはバージョンが読み込まれていません"
   },
   "editor": {
     "savedJustNow": "保存済み",
