@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import logger from '../utils/logger'
+import { getLocale } from '../utils/locale'
 
 // Web Speech API 類型定義
 interface SpeechRecognitionEvent extends Event {
@@ -95,7 +96,7 @@ export function useSpeechRecognition(
   options: UseSpeechRecognitionOptions = {}
 ): UseSpeechRecognitionReturn {
   const {
-    lang = 'zh-TW',
+    lang = getLocale(),
     continuous = false,
     interimResults = true,
     onResult,

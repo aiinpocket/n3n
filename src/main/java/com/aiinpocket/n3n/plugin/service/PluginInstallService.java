@@ -62,7 +62,7 @@ public class PluginInstallService {
             task.setSourceReference(sourceInfo.reference);
             task.setPluginId(sourceInfo.pluginId);
             task.setStatus(PluginInstallTask.InstallStatus.PENDING);
-            task.setCurrentStage("等待安裝");
+            task.setCurrentStage("Pending installation");
             task.setMetadata(sourceInfo.metadata);
 
             taskRepository.save(task);
@@ -108,7 +108,7 @@ public class PluginInstallService {
         task.setSource(PluginInstallTask.InstallSource.MARKETPLACE);
         task.setSourceReference(pluginVersion.getVersion());
         task.setStatus(PluginInstallTask.InstallStatus.PENDING);
-        task.setCurrentStage("等待安裝");
+        task.setCurrentStage("Pending installation");
 
         taskRepository.save(task);
 
@@ -150,7 +150,7 @@ public class PluginInstallService {
         }
 
         task.setStatus(PluginInstallTask.InstallStatus.CANCELLED);
-        task.setCurrentStage("已取消");
+        task.setCurrentStage("Cancelled");
         taskRepository.save(task);
 
         // 如果有容器正在運行，停止它
@@ -210,7 +210,7 @@ public class PluginInstallService {
             throw new IllegalStateException("Plugin ID is required for marketplace install");
         }
 
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 10, "取得 Plugin 資訊");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 10, "Fetching plugin info");
 
         Plugin plugin = pluginRepository.findById(pluginId)
             .orElseThrow(() -> new IllegalArgumentException("Plugin not found"));
@@ -218,7 +218,7 @@ public class PluginInstallService {
         PluginVersion version = pluginVersionRepository.findLatestByPluginId(pluginId)
             .orElseThrow(() -> new IllegalStateException("No version available"));
 
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.CONFIGURING, 30, "配置 Plugin");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.CONFIGURING, 30, "Configuring plugin");
 
         // 檢查是否需要容器
         String dockerImage = (String) version.getConfigSchema().get("dockerImage");
@@ -226,7 +226,7 @@ public class PluginInstallService {
             installWithContainer(task, dockerImage);
         } else {
             // 直接安裝（不需要容器）
-            updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 70, "註冊節點");
+            updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 70, "Registering node");
             InstallPluginRequest installRequest = new InstallPluginRequest();
             installRequest.setVersion(version.getVersion());
             pluginService.installPlugin(pluginId, task.getUserId(), installRequest);
@@ -262,7 +262,7 @@ public class PluginInstallService {
         }
 
         // 拉取映像
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 20, "準備映像: " + imageRef);
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 20, "Pulling image: " + imageRef);
 
         containerOrchestrator.pullImage(image, tag, (progress, status) -> {
             int percent = 20 + (int) (progress * 40); // 20% - 60%
@@ -271,7 +271,7 @@ public class PluginInstallService {
         });
 
         // 啟動容器/Pod
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 65, "啟動容器");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 65, "Starting container");
 
         String containerName = task.getNodeType() + "-" + task.getId().toString().substring(0, 8);
         ContainerOrchestrator.ContainerInfo containerInfo = containerOrchestrator.createAndStart(
@@ -288,7 +288,7 @@ public class PluginInstallService {
         taskRepository.save(task);
 
         // 等待容器就緒
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 75, "等待容器就緒");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.STARTING, 75, "Waiting for container ready");
 
         boolean healthy = containerOrchestrator.waitForHealthy(containerInfo.containerId(), 60);
         if (!healthy) {
@@ -296,7 +296,7 @@ public class PluginInstallService {
         }
 
         // 註冊節點
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 85, "註冊節點");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 85, "Registering node");
 
         boolean registered = nodeDefinitionFetcher.fetchAndRegisterNodes(
                 containerInfo.containerId(),
@@ -312,14 +312,14 @@ public class PluginInstallService {
                     containerInfo.containerId());
         }
 
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 95, "節點註冊完成");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 95, "Node registration complete");
     }
 
     /**
      * 本地安裝
      */
     private void installLocal(PluginInstallTask task) {
-        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 50, "本地安裝");
+        updateTaskProgress(task, PluginInstallTask.InstallStatus.REGISTERING, 50, "Local installation");
         markTaskCompleted(task);
     }
 

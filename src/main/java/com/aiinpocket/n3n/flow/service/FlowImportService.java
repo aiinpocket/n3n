@@ -69,7 +69,7 @@ public class FlowImportService {
         boolean hasUnresolvable = componentStatuses.stream()
                 .anyMatch(c -> !c.isInstalled() && !c.isCanAutoInstall());
         if (hasUnresolvable) {
-            blockers.add("有些必要元件無法自動安裝");
+            blockers.add("Some required components cannot be auto-installed");
         }
 
         // 驗證 DAG

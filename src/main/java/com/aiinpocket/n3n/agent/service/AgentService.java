@@ -207,7 +207,7 @@ public class AgentService {
 
         } catch (Exception e) {
             log.error("Error initializing stream chat: {}", e.getMessage(), e);
-            return Flux.error(new AiProviderException("AI 串流處理失敗: " + e.getMessage(), e));
+            return Flux.error(new AiProviderException("AI stream processing failed: " + e.getMessage(), e));
         }
     }
 
@@ -218,7 +218,7 @@ public class AgentService {
         return configRepository.findByOwnerIdAndIsDefaultTrue(userId)
             .or(() -> configRepository.findByOwnerIdAndIsActiveTrue(userId)
                 .stream().findFirst())
-            .orElseThrow(() -> new AiProviderException("請先設定 AI Provider"));
+            .orElseThrow(() -> new AiProviderException("Please configure an AI Provider first"));
     }
 
     /**

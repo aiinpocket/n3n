@@ -44,6 +44,7 @@ import MiniFlowPreview from './MiniFlowPreview'
 import AIThinkingIndicator from './AIThinkingIndicator'
 import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
+import { getLocale } from '../../utils/locale'
 
 const { TextArea } = Input
 const { Text, Paragraph } = Typography
@@ -98,7 +99,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     startListening,
     stopListening,
   } = useSpeechRecognition({
-    lang: i18n.language || 'zh-TW',
+    lang: i18n.language || getLocale(),
     continuous: true,
     onResult: (text, isFinal) => {
       if (isFinal) {
@@ -231,7 +232,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     try {
       await generateFlowStream(
-        { userInput, language: 'zh-TW' },
+        { userInput, language: i18n.language || getLocale() },
         {
           onThinking: (msg) => {
             setThinkingThoughts((prev) => [...prev, msg])
@@ -340,7 +341,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     try {
       await generateFlowStream(
-        { userInput: feedbackInput, language: 'zh-TW' },
+        { userInput: feedbackInput, language: i18n.language || getLocale() },
         {
           onThinking: (msg) => {
             setThinkingThoughts((prev) => [...prev, msg])
