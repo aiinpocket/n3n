@@ -30,6 +30,7 @@ public class OpenApiParserService {
 
     public List<ServiceEndpoint> parseFromUrl(String baseUrl, String schemaPath, UUID serviceId) {
         String fullUrl = baseUrl + schemaPath;
+        validateUrlNotInternal(fullUrl);
         log.info("Fetching OpenAPI schema from: {}", fullUrl);
 
         try {
@@ -42,6 +43,30 @@ public class OpenApiParserService {
         } catch (Exception e) {
             log.error("Failed to fetch OpenAPI schema from {}: {}", fullUrl, e.getMessage());
             throw new RuntimeException("Failed to fetch OpenAPI schema", e);
+        }
+    }
+
+    /**
+     * Defense-in-depth SSRF protection for schema URL fetching.
+     */
+    private void validateUrlNotInternal(String url) {
+        if (url == null || url.isBlank()) return;
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            String host = uri.getHost();
+            if (host != null) {
+                String lower = host.toLowerCase();
+                if (lower.equals("localhost") || lower.equals("127.0.0.1") ||
+                    lower.equals("0.0.0.0") || lower.equals("::1") ||
+                    lower.equals("169.254.169.254") ||
+                    lower.startsWith("10.") || lower.startsWith("192.168.") ||
+                    lower.matches("172\\.(1[6-9]|2\\d|3[01])\\..*") ||
+                    lower.endsWith(".internal") || lower.endsWith(".local")) {
+                    throw new IllegalArgumentException("Access to internal network addresses is not allowed");
+                }
+            }
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL: " + url);
         }
     }
 

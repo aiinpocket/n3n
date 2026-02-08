@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.plugin.controller;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.plugin.dto.*;
 import com.aiinpocket.n3n.plugin.service.PluginService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -96,7 +97,7 @@ public class MarketplaceController {
     @PostMapping("/plugins/{id}/install")
     public ResponseEntity<Map<String, Object>> installPlugin(
             @PathVariable UUID id,
-            @RequestBody(required = false) InstallPluginRequest request,
+            @Valid @RequestBody(required = false) InstallPluginRequest request,
             @AuthenticationPrincipal User user) {
 
         if (user == null) {
