@@ -153,7 +153,13 @@ class WebSocketService {
       const subscription = this.client.subscribe(topic, (message: IMessage) => {
         try {
           const event: ExecutionEvent = JSON.parse(message.body);
-          this.handlers.get(topic)?.forEach((h) => h(event));
+          this.handlers.get(topic)?.forEach((h) => {
+            try {
+              h(event);
+            } catch (handlerError) {
+              logger.error('WebSocket handler error:', handlerError);
+            }
+          });
         } catch (error) {
           logger.error('Failed to parse WebSocket message:', error);
         }

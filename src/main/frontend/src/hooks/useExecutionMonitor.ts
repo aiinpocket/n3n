@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi, CreateExecutionRequest, ExecutionResponse } from '../api/execution';
 import { logger } from '../utils/logger';
@@ -13,6 +13,7 @@ export function useExecutionMonitor(executionId?: string) {
   } = useExecutionStore();
 
   const execution = executionId ? getExecution(executionId) : undefined;
+  const subscribedRef = useRef<string | null>(null);
 
   // Connect to WebSocket on mount
   useEffect(() => {
@@ -25,9 +26,16 @@ export function useExecutionMonitor(executionId?: string) {
   // Subscribe to specific execution
   useEffect(() => {
     if (executionId && isConnected) {
-      subscribeToExecution(executionId);
+      // Only subscribe if not already subscribed to this execution
+      if (subscribedRef.current !== executionId) {
+        subscribedRef.current = executionId;
+        subscribeToExecution(executionId);
+      }
       return () => {
-        unsubscribeFromExecution(executionId);
+        if (subscribedRef.current === executionId) {
+          subscribedRef.current = null;
+          unsubscribeFromExecution(executionId);
+        }
       };
     }
   }, [executionId, isConnected, subscribeToExecution, unsubscribeFromExecution]);

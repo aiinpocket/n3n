@@ -27,7 +27,9 @@ public class CreateWebhookRequest {
     @Pattern(regexp = "^(GET|POST|PUT|PATCH|DELETE)$", message = "Method must be GET, POST, PUT, PATCH or DELETE")
     private String method = "POST";
 
+    @Size(max = 20, message = "Auth type must be at most 20 characters")
     private String authType;
 
+    @Size(max = 20, message = "Auth config must have at most 20 fields")
     private Map<String, Object> authConfig;
 }

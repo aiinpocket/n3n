@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.ai.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.Map;
@@ -18,37 +19,25 @@ public class CreateAiProviderRequest {
     private String provider;
 
     @NotBlank(message = "Name cannot be blank")
+    @Size(max = 255, message = "Name must be at most 255 characters")
     private String name;
 
+    @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
 
-    /**
-     * API Key（建立時傳入，會加密儲存）
-     */
+    @Size(max = 500, message = "API key must be at most 500 characters")
     private String apiKey;
 
-    /**
-     * 自訂 Base URL（用於 Ollama 或代理）
-     */
+    @Size(max = 2000, message = "Base URL must be at most 2000 characters")
     private String baseUrl;
 
-    /**
-     * 預設模型
-     */
+    @Size(max = 100, message = "Default model must be at most 100 characters")
     private String defaultModel;
 
-    /**
-     * 供應商特定設定
-     */
+    @Size(max = 30, message = "Settings must have at most 30 fields")
     private Map<String, Object> settings;
 
-    /**
-     * 是否設為預設
-     */
     private Boolean isDefault;
 
-    /**
-     * Workspace ID
-     */
     private UUID workspaceId;
 }
