@@ -269,7 +269,7 @@ export default function MainLayout() {
             width: 32,
             height: 32,
             borderRadius: 8,
-            background: 'linear-gradient(135deg, #14B8A6, #8B5CF6)',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-ai))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

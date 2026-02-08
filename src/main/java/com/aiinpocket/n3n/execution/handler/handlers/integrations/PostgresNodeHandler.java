@@ -73,7 +73,11 @@ public class PostgresNodeHandler extends AbstractNodeHandler {
             };
         } catch (SQLException e) {
             log.error("PostgreSQL error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Database error: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null ? msg.replaceAll("jdbc:[a-z]+://[^\\s,;)]+", "jdbc:***") : "Unknown error";
+            sanitized = sanitized.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***");
+            if (sanitized.length() > 300) sanitized = sanitized.substring(0, 300) + "...";
+            return NodeExecutionResult.failure("Database error [" + e.getSQLState() + "]: " + sanitized);
         }
     }
 

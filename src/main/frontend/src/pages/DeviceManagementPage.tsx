@@ -37,6 +37,7 @@ import {
   generateInstallCommand,
   type AgentRegistration,
 } from '../api/agentRegistration'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -56,7 +57,7 @@ const DeviceManagementPage: React.FC = () => {
       const regs = await listRegistrations()
       setRegistrations(regs)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('device.loadFailed')
+      const errorMessage = extractApiError(err, t('device.loadFailed'))
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -75,7 +76,7 @@ const DeviceManagementPage: React.FC = () => {
       setInstallModalOpen(true)
       fetchData() // Refresh to show new pending registration
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('device.generateCommandFailed')
+      const errorMessage = extractApiError(err, t('device.generateCommandFailed'))
       message.error(errorMessage)
     } finally {
       setGeneratingCommand(false)
@@ -99,7 +100,7 @@ const DeviceManagementPage: React.FC = () => {
       message.success(t('device.agentBlocked'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('device.blockFailed')
+      const errorMessage = extractApiError(err, t('device.blockFailed'))
       message.error(errorMessage)
     }
   }
@@ -110,7 +111,7 @@ const DeviceManagementPage: React.FC = () => {
       message.success(t('device.agentUnblocked'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('device.unblockFailed')
+      const errorMessage = extractApiError(err, t('device.unblockFailed'))
       message.error(errorMessage)
     }
   }
@@ -121,7 +122,7 @@ const DeviceManagementPage: React.FC = () => {
       message.success(t('device.agentDeleted'))
       fetchData()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('device.deleteFailed')
+      const errorMessage = extractApiError(err, t('device.deleteFailed'))
       message.error(errorMessage)
     }
   }

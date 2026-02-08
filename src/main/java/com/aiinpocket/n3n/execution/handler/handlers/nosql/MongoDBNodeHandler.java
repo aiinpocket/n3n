@@ -382,7 +382,11 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("MongoDB operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("MongoDB error: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null ? msg.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***") : "Unknown error";
+            sanitized = sanitized.replaceAll("mongodb(\\+srv)?://[^\\s,;)]+", "mongodb://***");
+            if (sanitized.length() > 300) sanitized = sanitized.substring(0, 300) + "...";
+            return NodeExecutionResult.failure("MongoDB error: " + sanitized);
         }
     }
 

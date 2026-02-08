@@ -383,7 +383,11 @@ public class ElasticsearchNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Elasticsearch operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Elasticsearch error: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null ? msg.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***") : "Unknown error";
+            sanitized = sanitized.replaceAll("https?://[^\\s,;)]+", "http://***");
+            if (sanitized.length() > 300) sanitized = sanitized.substring(0, 300) + "...";
+            return NodeExecutionResult.failure("Elasticsearch error: " + sanitized);
         }
     }
 

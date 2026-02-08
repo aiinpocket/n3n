@@ -613,7 +613,10 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Redis operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Redis error: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null ? msg.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***") : "Unknown error";
+            if (sanitized.length() > 300) sanitized = sanitized.substring(0, 300) + "...";
+            return NodeExecutionResult.failure("Redis error: " + sanitized);
         }
     }
 

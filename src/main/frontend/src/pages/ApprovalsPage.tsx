@@ -40,7 +40,7 @@ export default function ApprovalsPage() {
   const [selectedApproval, setSelectedApproval] = useState<ApprovalDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [comment, setComment] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [submittingIds, setSubmittingIds] = useState<Record<string, boolean>>({})
 
   const loadApprovals = useCallback(async () => {
     setLoadError(null)
@@ -74,7 +74,7 @@ export default function ApprovalsPage() {
   }
 
   const handleAction = async (approvalId: string, action: 'approve' | 'reject') => {
-    setSubmitting(true)
+    setSubmittingIds(prev => ({ ...prev, [approvalId]: true }))
     try {
       await approvalApi.submitApproval(approvalId, action, comment || undefined)
       message.success(t(`approval.${action === 'approve' ? 'approved' : 'rejected'}`))
@@ -85,7 +85,7 @@ export default function ApprovalsPage() {
     } catch (error) {
       message.error(extractApiError(error, t('common.operationFailed')))
     } finally {
-      setSubmitting(false)
+      setSubmittingIds(prev => ({ ...prev, [approvalId]: false }))
     }
   }
 
@@ -128,7 +128,7 @@ export default function ApprovalsPage() {
       width: 140,
       render: (_: unknown, record: ApprovalSummary) => (
         <Space>
-          <Badge count={record.approvedCount} style={{ backgroundColor: '#22C55E' }} />
+          <Badge count={record.approvedCount} style={{ backgroundColor: 'var(--color-success)' }} />
           <Text type="secondary">/</Text>
           <Text>{record.requiredApprovers}</Text>
         </Space>
@@ -159,8 +159,8 @@ export default function ApprovalsPage() {
             type="primary"
             icon={<CheckCircleOutlined />}
             onClick={() => handleAction(record.id, 'approve')}
-            loading={submitting}
-            style={{ background: '#22C55E', borderColor: '#22C55E' }}
+            loading={submittingIds[record.id]}
+            style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
           >
             {t('approval.approve')}
           </Button>
@@ -169,7 +169,7 @@ export default function ApprovalsPage() {
             danger
             icon={<CloseCircleOutlined />}
             onClick={() => handleAction(record.id, 'reject')}
-            loading={submitting}
+            loading={submittingIds[record.id]}
           >
             {t('approval.reject')}
           </Button>
@@ -249,8 +249,8 @@ export default function ApprovalsPage() {
                 type="primary"
                 icon={<CheckCircleOutlined />}
                 onClick={() => handleAction(selectedApproval.id, 'approve')}
-                loading={submitting}
-                style={{ background: '#22C55E', borderColor: '#22C55E' }}
+                loading={submittingIds[selectedApproval.id]}
+                style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
               >
                 {t('approval.approve')}
               </Button>
@@ -258,7 +258,7 @@ export default function ApprovalsPage() {
                 danger
                 icon={<CloseCircleOutlined />}
                 onClick={() => handleAction(selectedApproval.id, 'reject')}
-                loading={submitting}
+                loading={submittingIds[selectedApproval.id]}
               >
                 {t('approval.reject')}
               </Button>

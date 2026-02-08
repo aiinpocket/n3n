@@ -434,7 +434,7 @@ export default function ExecutionPage() {
                     icon={<CheckCircleOutlined />}
                     onClick={() => handleApprovalAction('approve')}
                     loading={submittingApproval}
-                    style={{ background: '#22C55E', borderColor: '#22C55E' }}
+                    style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
                   >
                     {t('approval.approve')}
                   </Button>

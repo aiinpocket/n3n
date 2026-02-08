@@ -46,7 +46,7 @@ export default function RegisterPage() {
             </div>
             <div style={{
               width: 48, height: 48, borderRadius: 12,
-              background: 'linear-gradient(135deg, #14B8A6, #8B5CF6)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-ai))',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontWeight: 900, fontSize: 18, color: '#fff', marginBottom: 8,
             }}>N3</div>

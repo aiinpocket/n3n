@@ -25,6 +25,7 @@ import {
   updateGatewaySettings,
   type GatewaySettings,
 } from '../api/agentRegistration'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Title, Paragraph, Text } = Typography
 
@@ -54,8 +55,7 @@ const GatewaySettingsPage: React.FC = () => {
         enabled: data.enabled,
       })
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('gateway.loadFailed')
-      setError(errorMessage)
+      setError(extractApiError(err, t('gateway.loadFailed')))
     } finally {
       setLoading(false)
     }
@@ -76,8 +76,7 @@ const GatewaySettingsPage: React.FC = () => {
       setSettings(result.settings)
       message.success(result.message)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('gateway.saveFailed')
-      message.error(errorMessage)
+      message.error(extractApiError(err, t('gateway.saveFailed')))
     } finally {
       setSaving(false)
     }

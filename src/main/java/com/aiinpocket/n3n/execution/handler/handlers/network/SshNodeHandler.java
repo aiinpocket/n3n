@@ -104,7 +104,7 @@ public class SshNodeHandler extends AbstractNodeHandler {
                 credentials = context.getCredentialResolver().resolve(credentialId, context.getUserId());
             } catch (Exception e) {
                 log.error("Failed to resolve credentials: {}", e.getMessage());
-                return NodeExecutionResult.failure("Failed to resolve SSH credentials: " + e.getMessage());
+                return NodeExecutionResult.failure("Failed to resolve SSH credentials");
             }
         }
 
@@ -149,7 +149,13 @@ public class SshNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("SSH execution failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("SSH execution failed: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null && msg.length() > 200 ? msg.substring(0, 200) + "..." : msg;
+            // Strip potential IP addresses and hostnames from error
+            if (sanitized != null) {
+                sanitized = sanitized.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***");
+            }
+            return NodeExecutionResult.failure("SSH execution failed: " + (sanitized != null ? sanitized : "Unknown error"));
         } finally {
             try {
                 client.disconnect();

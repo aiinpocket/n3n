@@ -355,7 +355,11 @@ public class BigQueryNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("BigQuery API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("BigQuery API error: " + e.getMessage());
+            String msg = e.getMessage();
+            String sanitized = msg != null ? msg.replaceAll("projects/[^/\\s]+", "projects/***") : "Unknown error";
+            sanitized = sanitized.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***");
+            if (sanitized.length() > 300) sanitized = sanitized.substring(0, 300) + "...";
+            return NodeExecutionResult.failure("BigQuery API error: " + sanitized);
         }
     }
 

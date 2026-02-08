@@ -36,6 +36,7 @@ import {
 } from '../api/component'
 import logger from '../utils/logger'
 import { getLocale } from '../utils/locale'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -125,8 +126,7 @@ export default function ComponentListPage() {
       createForm.resetFields()
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('common.createFailed'))
+      message.error(extractApiError(error, t('common.createFailed')))
     } finally {
       setCreating(false)
     }
@@ -138,8 +138,7 @@ export default function ComponentListPage() {
       message.success(t('component.deleteSuccess'))
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('common.deleteFailed'))
+      message.error(extractApiError(error, t('common.deleteFailed')))
     }
   }
 
@@ -187,11 +186,11 @@ export default function ComponentListPage() {
       setVersions(data)
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      if (err.message?.includes('JSON')) {
+      const errMsg = extractApiError(error, t('component.versionCreateFailed'))
+      if (errMsg.includes('JSON')) {
         message.error(t('component.jsonFormatError'))
       } else {
-        message.error(err.response?.data?.message || err.message || t('component.versionCreateFailed'))
+        message.error(errMsg)
       }
     } finally {
       setAddingVersion(false)
@@ -214,8 +213,7 @@ export default function ComponentListPage() {
       const data = await componentApi.listVersions(selectedComponent.id)
       setVersions(data)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('component.statusUpdateFailed'))
+      message.error(extractApiError(error, t('component.statusUpdateFailed')))
     }
   }
 
