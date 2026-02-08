@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.zone.ZoneRulesException;
-import java.util.Date;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service for managing scheduled workflow executions.
@@ -174,5 +172,28 @@ public class SchedulerService {
     public void triggerNow(String scheduleId) throws SchedulerException {
         scheduler.triggerJob(JobKey.jobKey(scheduleId, JOB_GROUP));
         log.info("Triggered schedule immediately: {}", scheduleId);
+    }
+
+    /**
+     * Remove all schedules associated with a given flow ID.
+     * Used when a flow is deleted to prevent orphan jobs.
+     */
+    public int unscheduleByFlowId(UUID flowId) {
+        int removed = 0;
+        try {
+            Set<JobKey> jobKeys = scheduler.getJobKeys(org.quartz.impl.matchers.GroupMatcher.jobGroupEquals(JOB_GROUP));
+            for (JobKey jobKey : jobKeys) {
+                JobDetail detail = scheduler.getJobDetail(jobKey);
+                if (detail != null && flowId.toString().equals(detail.getJobDataMap().getString("flowId"))) {
+                    scheduler.unscheduleJob(TriggerKey.triggerKey(jobKey.getName(), TRIGGER_GROUP));
+                    scheduler.deleteJob(jobKey);
+                    removed++;
+                    log.info("Removed orphan schedule for deleted flow {}: {}", flowId, jobKey.getName());
+                }
+            }
+        } catch (SchedulerException e) {
+            log.warn("Error cleaning up schedules for flow {}: {}", flowId, e.getMessage());
+        }
+        return removed;
     }
 }

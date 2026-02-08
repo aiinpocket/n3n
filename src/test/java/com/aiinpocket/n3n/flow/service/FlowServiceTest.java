@@ -52,6 +52,9 @@ class FlowServiceTest extends BaseServiceTest {
     @Mock
     private WebhookRepository webhookRepository;
 
+    @Mock
+    private com.aiinpocket.n3n.scheduler.SchedulerService schedulerService;
+
     @InjectMocks
     private FlowService flowService;
 

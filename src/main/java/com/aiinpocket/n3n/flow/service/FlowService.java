@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
+import com.aiinpocket.n3n.scheduler.SchedulerService;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class FlowService {
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final ExternalServiceService externalServiceService;
     private final WebhookRepository webhookRepository;
+    private final SchedulerService schedulerService;
 
     public Page<FlowResponse> listFlows(UUID userId, Pageable pageable) {
         Page<Flow> flowPage = flowRepository.findByCreatedByAndIsDeletedFalse(userId, pageable);
@@ -188,10 +190,11 @@ public class FlowService {
         // Clean up related data
         flowShareRepository.deleteByFlowId(id);
         webhookRepository.deactivateByFlowId(id);
+        int schedulesRemoved = schedulerService.unscheduleByFlowId(id);
 
         flow.setIsDeleted(true);
         flowRepository.save(flow);
-        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated", id);
+        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated, {} schedules removed", id, schedulesRemoved);
     }
 
     @Transactional

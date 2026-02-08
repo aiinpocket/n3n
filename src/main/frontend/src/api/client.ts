@@ -86,6 +86,7 @@ apiClient.interceptors.response.use(
       } catch {
         useAuthStore.getState().logout()
         window.location.href = '/login?reason=session_expired'
+        return Promise.reject(error)
       }
     }
 
