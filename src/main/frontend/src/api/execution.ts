@@ -74,31 +74,31 @@ export const executionApi = {
     if (search && search.trim()) {
       params.search = search.trim();
     }
-    const response = await apiClient.get<Page<ExecutionResponse>>('/api/executions', {
+    const response = await apiClient.get<Page<ExecutionResponse>>('/executions', {
       params,
     });
     return response.data;
   },
 
   listByFlow: async (flowId: string, page = 0, size = 20): Promise<Page<ExecutionResponse>> => {
-    const response = await apiClient.get<Page<ExecutionResponse>>(`/api/executions/by-flow/${flowId}`, {
+    const response = await apiClient.get<Page<ExecutionResponse>>(`/executions/by-flow/${flowId}`, {
       params: { page, size },
     });
     return response.data;
   },
 
   get: async (id: string): Promise<ExecutionResponse> => {
-    const response = await apiClient.get<ExecutionResponse>(`/api/executions/${id}`);
+    const response = await apiClient.get<ExecutionResponse>(`/executions/${id}`);
     return response.data;
   },
 
   create: async (request: CreateExecutionRequest): Promise<ExecutionResponse> => {
-    const response = await apiClient.post<ExecutionResponse>('/api/executions', request);
+    const response = await apiClient.post<ExecutionResponse>('/executions', request);
     return response.data;
   },
 
   cancel: async (id: string, reason?: string): Promise<ExecutionResponse> => {
-    const response = await apiClient.post<ExecutionResponse>(`/api/executions/${id}/cancel`, null, {
+    const response = await apiClient.post<ExecutionResponse>(`/executions/${id}/cancel`, null, {
       params: reason ? { reason } : undefined,
     });
     return response.data;
@@ -106,38 +106,38 @@ export const executionApi = {
 
   getNodeExecutions: async (executionId: string): Promise<NodeExecutionResponse[]> => {
     const response = await apiClient.get<NodeExecutionResponse[]>(
-      `/api/executions/${executionId}/nodes`
+      `/executions/${executionId}/nodes`
     );
     return response.data;
   },
 
   getOutput: async (executionId: string): Promise<Record<string, unknown>> => {
     const response = await apiClient.get<Record<string, unknown>>(
-      `/api/executions/${executionId}/output`
+      `/executions/${executionId}/output`
     );
     return response.data;
   },
 
   retry: async (id: string): Promise<ExecutionResponse> => {
-    const response = await apiClient.post<ExecutionResponse>(`/api/executions/${id}/retry`);
+    const response = await apiClient.post<ExecutionResponse>(`/executions/${id}/retry`);
     return response.data;
   },
 
   getNodeData: async (executionId: string, nodeId: string): Promise<{input: Record<string, unknown>, output: Record<string, unknown>}> => {
-    const response = await apiClient.get(`/api/executions/${executionId}/nodes/${nodeId}/data`);
+    const response = await apiClient.get(`/executions/${executionId}/nodes/${nodeId}/data`);
     return response.data;
   },
 
   resume: async (id: string, resumeData?: Record<string, unknown>): Promise<ExecutionResponse> => {
     const response = await apiClient.post<ExecutionResponse>(
-      `/api/executions/${id}/resume`,
+      `/executions/${id}/resume`,
       resumeData || {}
     );
     return response.data;
   },
 
   pause: async (id: string, reason?: string): Promise<ExecutionResponse> => {
-    const response = await apiClient.post<ExecutionResponse>(`/api/executions/${id}/pause`, null, {
+    const response = await apiClient.post<ExecutionResponse>(`/executions/${id}/pause`, null, {
       params: reason ? { reason } : undefined,
     });
     return response.data;

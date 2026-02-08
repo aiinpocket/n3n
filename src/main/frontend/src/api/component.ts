@@ -64,35 +64,35 @@ export interface Page<T> {
 
 export const componentApi = {
   list: async (page = 0, size = 20): Promise<Page<ComponentResponse>> => {
-    const response = await apiClient.get<Page<ComponentResponse>>('/api/components', {
+    const response = await apiClient.get<Page<ComponentResponse>>('/components', {
       params: { page, size },
     });
     return response.data;
   },
 
   get: async (id: string): Promise<ComponentResponse> => {
-    const response = await apiClient.get<ComponentResponse>(`/api/components/${id}`);
+    const response = await apiClient.get<ComponentResponse>(`/components/${id}`);
     return response.data;
   },
 
   create: async (request: CreateComponentRequest): Promise<ComponentResponse> => {
-    const response = await apiClient.post<ComponentResponse>('/api/components', request);
+    const response = await apiClient.post<ComponentResponse>('/components', request);
     return response.data;
   },
 
   update: async (id: string, request: UpdateComponentRequest): Promise<ComponentResponse> => {
-    const response = await apiClient.put<ComponentResponse>(`/api/components/${id}`, request);
+    const response = await apiClient.put<ComponentResponse>(`/components/${id}`, request);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/components/${id}`);
+    await apiClient.delete(`/components/${id}`);
   },
 
   // Version APIs
   listVersions: async (componentId: string): Promise<ComponentVersionResponse[]> => {
     const response = await apiClient.get<ComponentVersionResponse[]>(
-      `/api/components/${componentId}/versions`
+      `/components/${componentId}/versions`
     );
     return response.data;
   },
@@ -102,7 +102,7 @@ export const componentApi = {
     request: CreateVersionRequest
   ): Promise<ComponentVersionResponse> => {
     const response = await apiClient.post<ComponentVersionResponse>(
-      `/api/components/${componentId}/versions`,
+      `/components/${componentId}/versions`,
       request
     );
     return response.data;
@@ -113,7 +113,7 @@ export const componentApi = {
     version: string
   ): Promise<ComponentVersionResponse> => {
     const response = await apiClient.post<ComponentVersionResponse>(
-      `/api/components/${componentId}/versions/${version}/activate`
+      `/components/${componentId}/versions/${version}/activate`
     );
     return response.data;
   },
@@ -123,7 +123,7 @@ export const componentApi = {
     version: string
   ): Promise<ComponentVersionResponse> => {
     const response = await apiClient.post<ComponentVersionResponse>(
-      `/api/components/${componentId}/versions/${version}/deprecate`
+      `/components/${componentId}/versions/${version}/deprecate`
     );
     return response.data;
   },

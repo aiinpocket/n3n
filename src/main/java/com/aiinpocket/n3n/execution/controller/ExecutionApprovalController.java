@@ -71,6 +71,7 @@ public class ExecutionApprovalController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+        executionService.verifyExecutionAccess(executionId, userId);
 
         // Find the pending approval
         ExecutionApproval approval = approvalService.getPendingApprovalForExecution(executionId)
@@ -121,6 +122,7 @@ public class ExecutionApprovalController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+        executionService.verifyExecutionAccess(executionId, userId);
 
         log.info("Manual resume requested: executionId={}, userId={}", executionId, userId);
 

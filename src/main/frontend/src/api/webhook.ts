@@ -25,37 +25,37 @@ export interface CreateWebhookRequest {
 
 export const webhookApi = {
   list: async (): Promise<Webhook[]> => {
-    const response = await apiClient.get<Webhook[]>('/api/webhooks')
+    const response = await apiClient.get<Webhook[]>('/webhooks')
     return response.data
   },
 
   listForFlow: async (flowId: string): Promise<Webhook[]> => {
-    const response = await apiClient.get<Webhook[]>(`/api/webhooks/flow/${flowId}`)
+    const response = await apiClient.get<Webhook[]>(`/webhooks/flow/${flowId}`)
     return response.data
   },
 
   get: async (id: string): Promise<Webhook> => {
-    const response = await apiClient.get<Webhook>(`/api/webhooks/${id}`)
+    const response = await apiClient.get<Webhook>(`/webhooks/${id}`)
     return response.data
   },
 
   create: async (request: CreateWebhookRequest): Promise<Webhook> => {
-    const response = await apiClient.post<Webhook>('/api/webhooks', request)
+    const response = await apiClient.post<Webhook>('/webhooks', request)
     return response.data
   },
 
   activate: async (id: string): Promise<Webhook> => {
-    const response = await apiClient.post<Webhook>(`/api/webhooks/${id}/activate`)
+    const response = await apiClient.post<Webhook>(`/webhooks/${id}/activate`)
     return response.data
   },
 
   deactivate: async (id: string): Promise<Webhook> => {
-    const response = await apiClient.post<Webhook>(`/api/webhooks/${id}/deactivate`)
+    const response = await apiClient.post<Webhook>(`/webhooks/${id}/deactivate`)
     return response.data
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/webhooks/${id}`)
+    await apiClient.delete(`/webhooks/${id}`)
   },
 }
 

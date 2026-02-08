@@ -142,7 +142,7 @@ export const aiAssistantApi = {
     request: AnalyzeForPublishRequest
   ): Promise<PublishAnalysisResponse> => {
     const response = await client.post<PublishAnalysisResponse>(
-      '/api/ai-assistant/analyze-for-publish',
+      '/ai-assistant/analyze-for-publish',
       request
     )
     return response.data
@@ -155,7 +155,7 @@ export const aiAssistantApi = {
     request: ApplySuggestionsRequest
   ): Promise<ApplySuggestionsResponse> => {
     const response = await client.post<ApplySuggestionsResponse>(
-      '/api/ai-assistant/apply-suggestions',
+      '/ai-assistant/apply-suggestions',
       request
     )
     return response.data
@@ -166,7 +166,7 @@ export const aiAssistantApi = {
    */
   getNodeCategories: async (): Promise<NodeCategoryInfo[]> => {
     const response = await client.get<NodeCategoryInfo[]>(
-      '/api/ai-assistant/node-categories'
+      '/ai-assistant/node-categories'
     )
     return response.data
   },
@@ -177,7 +177,7 @@ export const aiAssistantApi = {
   getInstalledNodes: async (category?: string): Promise<InstalledNodeInfo[]> => {
     const params = category ? { category } : {}
     const response = await client.get<InstalledNodeInfo[]>(
-      '/api/ai-assistant/installed-nodes',
+      '/ai-assistant/installed-nodes',
       { params }
     )
     return response.data
@@ -190,7 +190,7 @@ export const aiAssistantApi = {
     request: NodeRecommendationRequest
   ): Promise<NodeRecommendationResponse> => {
     const response = await client.post<NodeRecommendationResponse>(
-      '/api/ai-assistant/recommend-nodes',
+      '/ai-assistant/recommend-nodes',
       request
     )
     return response.data
@@ -203,7 +203,7 @@ export const aiAssistantApi = {
     request: GenerateFlowRequest
   ): Promise<GenerateFlowResponse> => {
     const response = await client.post<GenerateFlowResponse>(
-      '/api/ai-assistant/generate-flow',
+      '/ai-assistant/generate-flow',
       request
     )
     return response.data

@@ -44,6 +44,9 @@ public class AgentRegistrationController {
     private final GatewaySettingsService gatewaySettingsService;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Value("${n3n.server.base-url:}")
+    private String configuredBaseUrl;
+
     /**
      * Generate new Agent registration token.
      * Returns JSON config file download.
@@ -113,9 +116,7 @@ public class AgentRegistrationController {
      */
     @PostMapping("/install-command")
     public ResponseEntity<?> generateInstallCommand(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost,
-            @RequestHeader(value = "Host", required = false) String host) {
+            @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -127,13 +128,11 @@ public class AgentRegistrationController {
             AgentRegistrationService.TokenGenerationResult result =
                 registrationService.generateToken(userId);
 
-            // Determine base URL
-            String baseUrl = forwardedHost != null ? forwardedHost : (host != null ? host : "localhost:8080");
-            String protocol = baseUrl.contains("localhost") ? "http" : "https";
+            String serverUrl = resolveServerUrl();
 
             String installCommand = String.format(
-                "curl -fsSL %s://%s/api/agents/install.sh?token=%s | bash",
-                protocol, baseUrl, result.config().registration().token()
+                "curl -fsSL %s/api/agents/install.sh?token=%s | bash",
+                serverUrl, result.config().registration().token()
             );
 
             return ResponseEntity.ok(Map.of(
@@ -153,14 +152,9 @@ public class AgentRegistrationController {
      * Install script - user runs curl ... | bash
      */
     @GetMapping(value = "/install.sh", produces = "text/plain")
-    public ResponseEntity<String> getInstallScript(
-            @RequestParam String token,
-            @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost,
-            @RequestHeader(value = "Host", required = false) String host) {
+    public ResponseEntity<String> getInstallScript(@RequestParam String token) {
 
-        String baseUrl = forwardedHost != null ? forwardedHost : (host != null ? host : "localhost:8080");
-        String protocol = baseUrl.contains("localhost") ? "http" : "https";
-        String serverUrl = protocol + "://" + baseUrl;
+        String serverUrl = resolveServerUrl();
 
         String script = """
             #!/bin/bash
@@ -686,6 +680,16 @@ public class AgentRegistrationController {
     }
 
     // Request/Response DTOs
+
+    /**
+     * Resolve server URL from configuration, never from untrusted headers.
+     */
+    private String resolveServerUrl() {
+        if (configuredBaseUrl != null && !configuredBaseUrl.isBlank()) {
+            return configuredBaseUrl;
+        }
+        return "http://localhost:8080";
+    }
 
     public record BlockRequest(String reason) {}
 

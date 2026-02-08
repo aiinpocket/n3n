@@ -25,7 +25,7 @@ export const aiCodeApi = {
    * 生成程式碼
    */
   generate: async (request: GenerateCodeRequest): Promise<GenerateCodeResponse> => {
-    const response = await apiClient.post<GenerateCodeResponse>('/api/ai/code/generate', {
+    const response = await apiClient.post<GenerateCodeResponse>('/ai/code/generate', {
       ...request,
       language: request.language || 'javascript',
     })
