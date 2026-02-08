@@ -54,9 +54,13 @@ public class ConversationManager {
      * Add a message to conversation.
      */
     @Transactional
-    public Conversation addMessage(UUID conversationId, String role, String content, Map<String, Object> metadata) {
+    public Conversation addMessage(UUID conversationId, UUID userId, String role, String content, Map<String, Object> metadata) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+
+        if (!userId.equals(conversation.getUserId())) {
+            throw new IllegalArgumentException("Conversation not found");
+        }
 
         List<Map<String, Object>> messages = conversation.getMessages();
         if (messages == null) {
@@ -150,19 +154,27 @@ public class ConversationManager {
     }
 
     /**
-     * Delete a conversation.
+     * Delete a conversation (ownership verified by caller).
      */
     @Transactional
-    public void deleteConversation(UUID conversationId) {
+    public void deleteConversation(UUID conversationId, UUID userId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+        if (!userId.equals(conversation.getUserId())) {
+            throw new IllegalArgumentException("Conversation not found");
+        }
         conversationRepository.deleteById(conversationId);
     }
 
     /**
      * Export conversation to JSON.
      */
-    public String exportConversation(UUID conversationId) {
+    public String exportConversation(UUID conversationId, UUID userId) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+        if (!userId.equals(conversation.getUserId())) {
+            throw new IllegalArgumentException("Conversation not found");
+        }
 
         try {
             Map<String, Object> export = new HashMap<>();
@@ -210,18 +222,18 @@ public class ConversationManager {
 
             return conversationRepository.save(conversation);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to import conversation: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to import conversation", e);
         }
     }
 
     /**
      * Get context for AI (summary + recent messages).
      */
-    public List<Map<String, Object>> getContextForAI(UUID conversationId) {
+    public List<Map<String, Object>> getContextForAI(UUID conversationId, UUID userId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElse(null);
 
-        if (conversation == null) {
+        if (conversation == null || !userId.equals(conversation.getUserId())) {
             return new ArrayList<>();
         }
 

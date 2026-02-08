@@ -64,7 +64,7 @@ public class AIAssistantService {
 
         // 儲存使用者訊息
         try {
-            conversationManager.addMessage(conversationId, "user", request.getMessage(), null);
+            conversationManager.addMessage(conversationId, userId, "user", request.getMessage(), null);
         } catch (Exception e) {
             log.warn("Failed to save user message to conversation {}", conversationId, e);
         }
@@ -97,7 +97,7 @@ public class AIAssistantService {
                         String fullResponse = responseCollector.toString();
                         if (!fullResponse.isBlank()) {
                             try {
-                                conversationManager.addMessage(conversationId, "assistant", fullResponse, null);
+                                conversationManager.addMessage(conversationId, userId, "assistant", fullResponse, null);
                             } catch (Exception e) {
                                 log.warn("Failed to save assistant response to conversation {}", conversationId, e);
                             }
@@ -123,7 +123,7 @@ public class AIAssistantService {
 
             // 儲存使用者訊息
             try {
-                conversationManager.addMessage(conversationId, "user", request.getMessage(), null);
+                conversationManager.addMessage(conversationId, userId, "user", request.getMessage(), null);
             } catch (Exception e) {
                 log.warn("Failed to save user message to conversation {}", conversationId, e);
             }
@@ -141,7 +141,7 @@ public class AIAssistantService {
             // 儲存 AI 回應
             if (result.getContent() != null && !result.getContent().isBlank()) {
                 try {
-                    conversationManager.addMessage(conversationId, "assistant", result.getContent(), null);
+                    conversationManager.addMessage(conversationId, userId, "assistant", result.getContent(), null);
                 } catch (Exception e) {
                     log.warn("Failed to save assistant response to conversation {}", conversationId, e);
                 }
@@ -209,7 +209,7 @@ public class AIAssistantService {
 
         // 載入對話歷史
         try {
-            List<Map<String, Object>> historyMaps = conversationManager.getContextForAI(conversationId);
+            List<Map<String, Object>> historyMaps = conversationManager.getContextForAI(conversationId, userId);
             List<Message> history = historyMaps.stream()
                 .map(m -> Message.builder()
                     .role((String) m.get("role"))

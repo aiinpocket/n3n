@@ -1975,15 +1975,6 @@
       "reorder": "調整執行順序至第 {{position}} 位"
     }
   },
-  "optimization": {
-    "parallel": "並行執行",
-    "merge": "合併請求",
-    "remove": "移除冗餘",
-    "reorder": "重新排序",
-    "highImpact": "高影響",
-    "medium": "中等",
-    "low": "低"
-  },
   "help": {
     "documentation": "API 文件",
     "keyboardShortcuts": "鍵盤快捷鍵",

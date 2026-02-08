@@ -14,7 +14,10 @@ import java.util.UUID;
  * AI conversation entity for persistent chat history.
  */
 @Entity
-@Table(name = "ai_conversations")
+@Table(name = "ai_conversations", indexes = {
+    @Index(name = "idx_conversation_user_id", columnList = "user_id"),
+    @Index(name = "idx_conversation_user_flow", columnList = "user_id, flow_id")
+})
 @Data
 @Builder
 @NoArgsConstructor

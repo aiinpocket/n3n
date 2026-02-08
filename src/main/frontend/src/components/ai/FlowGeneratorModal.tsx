@@ -366,7 +366,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       parts.push(requirementSummary.dataSource)
     }
     if (requirementSummary.processSteps?.length) {
-      parts.push(requirementSummary.processSteps.join('，'))
+      parts.push(requirementSummary.processSteps.join(', '))
     }
     if (requirementSummary.outputTarget) {
       parts.push(requirementSummary.outputTarget)
@@ -374,7 +374,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     if (requirementSummary.errorHandling) {
       parts.push(requirementSummary.errorHandling)
     }
-    return parts.join('。') || userInput
+    return parts.join('. ') || userInput
   }
 
   const handleGenerateFromDescription = async (description: string) => {

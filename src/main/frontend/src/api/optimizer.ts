@@ -84,10 +84,10 @@ export const getSuggestionTypeColor = (type: OptimizationSuggestion['type']): st
  */
 export const getSuggestionTypeName = (type: OptimizationSuggestion['type']): string => {
   const names: Record<string, string> = {
-    parallel: 'optimization.parallel',
-    merge: 'optimization.merge',
-    remove: 'optimization.remove',
-    reorder: 'optimization.reorder',
+    parallel: 'optimizer.parallel',
+    merge: 'optimizer.merge',
+    remove: 'optimizer.remove',
+    reorder: 'optimizer.reorder',
   }
   return names[type] || type
 }
@@ -98,11 +98,11 @@ export const getSuggestionTypeName = (type: OptimizationSuggestion['type']): str
 export const getPriorityLabel = (priority: 1 | 2 | 3): { text: string; color: string } => {
   switch (priority) {
     case 1:
-      return { text: 'optimization.highImpact', color: '#EF4444' }
+      return { text: 'optimizer.highPriority', color: '#EF4444' }
     case 2:
-      return { text: 'optimization.medium', color: '#F59E0B' }
+      return { text: 'optimizer.mediumPriority', color: '#F59E0B' }
     case 3:
-      return { text: 'optimization.low', color: '#22C55E' }
+      return { text: 'optimizer.lowPriority', color: '#22C55E' }
     default:
       return { text: 'common.unknown', color: '#64748B' }
   }

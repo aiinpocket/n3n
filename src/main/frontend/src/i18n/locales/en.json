@@ -2156,15 +2156,6 @@
       "reorder": "Adjust execution order to position {{position}}"
     }
   },
-  "optimization": {
-    "parallel": "Parallel Execution",
-    "merge": "Merge Requests",
-    "remove": "Remove Redundancy",
-    "reorder": "Reorder",
-    "highImpact": "High Impact",
-    "medium": "Medium",
-    "low": "Low"
-  },
   "help": {
     "documentation": "API Documentation",
     "keyboardShortcuts": "Keyboard Shortcuts",

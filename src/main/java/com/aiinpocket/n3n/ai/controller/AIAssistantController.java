@@ -52,7 +52,7 @@ public class AIAssistantController {
             request.getMessage() != null ?
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         return aiAssistantService.chatStream(request, userId)
             .map(chunk -> ServerSentEvent.<ChatStreamChunk>builder()
                 .data(chunk)
@@ -71,7 +71,7 @@ public class AIAssistantController {
             request.getMessage() != null ?
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         ChatResponse response = aiAssistantService.chat(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -87,7 +87,7 @@ public class AIAssistantController {
         log.info("Analyzing flow for publish: flowId={}, version={}",
             request.getFlowId(), request.getVersion());
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         PublishAnalysisResponse response = aiAssistantService.analyzeForPublish(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -103,8 +103,8 @@ public class AIAssistantController {
         log.info("Applying {} suggestions to flow {}",
             request.getSuggestionIds().size(), request.getFlowId());
 
-        UUID userId = getUserId(principal);
-        if (request.getFlowId() != null && userId != null) {
+        UUID userId = requireUserId(principal);
+        if (request.getFlowId() != null) {
             UUID flowId = UUID.fromString(request.getFlowId());
             if (!flowShareService.hasEditAccess(flowId, userId)) {
                 return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
@@ -150,7 +150,7 @@ public class AIAssistantController {
         log.info("Recommending nodes, searchQuery={}, category={}",
             request.getSearchQuery(), request.getCategory());
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         NodeRecommendationResponse response = aiAssistantService.recommendNodes(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -166,7 +166,7 @@ public class AIAssistantController {
         log.info("Generating flow from natural language: {}",
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         GenerateFlowResponse response = aiAssistantService.generateFlow(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -192,7 +192,7 @@ public class AIAssistantController {
         log.info("Starting flow generation stream: {}",
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         return aiAssistantService.generateFlowStream(request, userId)
             .map(chunk -> ServerSentEvent.<FlowGenerationChunk>builder()
                 .data(chunk)
@@ -236,7 +236,7 @@ public class AIAssistantController {
             request.getMessage() != null ?
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         RequirementClarificationResponse response = requirementClarificationService.clarify(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -285,9 +285,9 @@ public class AIAssistantController {
     public ResponseEntity<Map<String, Object>> getConversation(
             @PathVariable UUID conversationId,
             Principal principal) {
-        UUID userId = getUserId(principal);
+        UUID userId = requireUserId(principal);
         return conversationManager.getConversation(conversationId)
-            .filter(c -> c.getUserId().equals(userId))
+            .filter(c -> userId.equals(c.getUserId()))
             .map(c -> {
                 Map<String, Object> result = Map.of(
                     "id", c.getId(),
@@ -311,14 +311,15 @@ public class AIAssistantController {
             @PathVariable UUID conversationId,
             Principal principal) {
         UUID userId = getUserId(principal);
-        // Verify ownership
-        return conversationManager.getConversation(conversationId)
-            .filter(c -> c.getUserId().equals(userId))
-            .map(c -> {
-                conversationManager.deleteConversation(conversationId);
-                return ResponseEntity.noContent().<Void>build();
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        if (userId == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            conversationManager.deleteConversation(conversationId, userId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private UUID getUserId(Principal principal) {
@@ -329,8 +330,16 @@ public class AIAssistantController {
             UserResponse user = authService.getCurrentUser(principal.getName());
             return user.getId();
         } catch (Exception e) {
-            log.debug("Could not get user ID from principal: {}", e.getMessage());
+            log.debug("Could not resolve user from principal");
             return null;
         }
+    }
+
+    private UUID requireUserId(Principal principal) {
+        UUID userId = getUserId(principal);
+        if (userId == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication required");
+        }
+        return userId;
     }
 }

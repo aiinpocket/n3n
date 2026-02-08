@@ -2156,15 +2156,6 @@
       "reorder": "実行順序を{{position}}番目に調整"
     }
   },
-  "optimization": {
-    "parallel": "並列実行",
-    "merge": "リクエスト統合",
-    "remove": "冗長削除",
-    "reorder": "並べ替え",
-    "highImpact": "高影響",
-    "medium": "中程度",
-    "low": "低"
-  },
   "help": {
     "documentation": "APIドキュメント",
     "keyboardShortcuts": "キーボードショートカット",
