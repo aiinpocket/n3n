@@ -49,13 +49,19 @@ public class RuntimeEnvironmentDetector {
             ProcessBuilder pb = new ProcessBuilder("docker", "version");
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            boolean finished = process.waitFor(3, TimeUnit.SECONDS);
-            if (finished && process.exitValue() == 0) {
-                log.info("Detected Docker environment (docker CLI available)");
-                return RuntimeEnvironment.DOCKER;
+            try {
+                boolean finished = process.waitFor(3, TimeUnit.SECONDS);
+                if (finished && process.exitValue() == 0) {
+                    log.info("Detected Docker environment (docker CLI available)");
+                    return RuntimeEnvironment.DOCKER;
+                }
+            } finally {
+                if (process.isAlive()) {
+                    process.destroyForcibly();
+                }
             }
         } catch (Exception e) {
-            // docker 指令不存在
+            // docker command not available
         }
 
         log.warn("Cannot detect runtime environment, defaulting to UNKNOWN");

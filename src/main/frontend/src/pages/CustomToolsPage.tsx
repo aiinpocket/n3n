@@ -373,9 +373,17 @@ export default function CustomToolsPage() {
 
   // Re-search when sort or category changes
   useEffect(() => {
+    let cancelled = false
     if (plugins.length > 0 || searchQuery) {
-      handleSearch()
+      searchPlugins({
+        query: searchQuery || undefined,
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        sortBy,
+      })
+        .then((result) => { if (!cancelled) setPlugins(result.plugins) })
+        .catch(() => { /* Keep current data on error */ })
     }
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy, selectedCategory])
 

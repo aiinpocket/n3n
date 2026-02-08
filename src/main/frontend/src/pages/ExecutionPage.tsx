@@ -147,6 +147,7 @@ export default function ExecutionPage() {
 
   // Update from WebSocket
   useEffect(() => {
+    let cancelled = false
     if (execution && executionData) {
       // Update status from WebSocket
       if (execution.status !== executionData.status) {
@@ -161,12 +162,13 @@ export default function ExecutionPage() {
         )
         // Reload node executions when status changes
         if (id) {
-          executionApi.getNodeExecutions(id).then(setNodeExecutions).catch(() => {
-            // Silently handle - node data will refresh on next update
-          })
+          executionApi.getNodeExecutions(id)
+            .then((data) => { if (!cancelled) setNodeExecutions(data) })
+            .catch(() => { /* Silently handle - node data will refresh on next update */ })
         }
       }
     }
+    return () => { cancelled = true }
   }, [execution, executionData, id])
 
   const handleStartExecution = async () => {

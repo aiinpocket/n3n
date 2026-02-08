@@ -23,7 +23,11 @@ export default function AccountSettingsPage() {
   const [securityError, setSecurityError] = useState(false)
 
   useEffect(() => {
-    securityApi.getStatus().then(setSecurityStatus).catch(() => setSecurityError(true))
+    let cancelled = false
+    securityApi.getStatus()
+      .then((data) => { if (!cancelled) setSecurityStatus(data) })
+      .catch(() => { if (!cancelled) setSecurityError(true) })
+    return () => { cancelled = true }
   }, [])
 
   const handleUpdateProfile = async (values: { name: string }) => {
