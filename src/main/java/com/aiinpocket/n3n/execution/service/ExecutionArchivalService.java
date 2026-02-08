@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +41,7 @@ public class ExecutionArchivalService {
     private int retentionDays;
 
     private static final Set<String> COMPLETED_STATUSES = Set.of("completed", "failed", "cancelled");
+    private final AtomicBoolean archivalRunning = new AtomicBoolean(false);
 
     /**
      * Archive completed executions older than retention period.
@@ -48,6 +50,18 @@ public class ExecutionArchivalService {
     @Scheduled(cron = "${execution.archival.cron:0 0 2 * * ?}")
     @Transactional
     public void archiveOldExecutions() {
+        if (!archivalRunning.compareAndSet(false, true)) {
+            log.warn("Execution archival already running, skipping this run");
+            return;
+        }
+        try {
+            doArchiveOldExecutions();
+        } finally {
+            archivalRunning.set(false);
+        }
+    }
+
+    private void doArchiveOldExecutions() {
         Instant cutoffDate = Instant.now().minus(retentionDays, ChronoUnit.DAYS);
         log.info("Starting execution archival for records older than {}", cutoffDate);
 
