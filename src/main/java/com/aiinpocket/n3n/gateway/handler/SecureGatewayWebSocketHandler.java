@@ -289,7 +289,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
 
         } catch (Exception e) {
             log.error("Handshake error: {}", e.getMessage());
-            sendPlainError(session, "HANDSHAKE_ERROR", "Handshake failed: " + e.getMessage());
+            sendPlainError(session, "HANDSHAKE_ERROR", "Handshake failed");
             session.close(CloseStatus.PROTOCOL_ERROR);
         }
     }
@@ -328,7 +328,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
 
         } catch (Exception e) {
             log.error("Error handling request {}: {}", method, e.getMessage());
-            sendEncryptedError(session, deviceId, "INTERNAL_ERROR", e.getMessage());
+            sendEncryptedError(session, deviceId, "INTERNAL_ERROR", "An internal error occurred");
         }
     }
 
