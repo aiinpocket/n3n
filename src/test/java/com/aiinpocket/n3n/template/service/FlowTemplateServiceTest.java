@@ -216,6 +216,11 @@ class FlowTemplateServiceTest extends BaseServiceTest {
         void createTemplateFromFlow_validFlowVersion_createsWithFlowDefinition() {
             UUID flowId = UUID.randomUUID();
             Map<String, Object> flowDef = Map.of("nodes", List.of("node1"), "edges", List.of());
+
+            // Mock flow ownership check
+            Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
+            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+
             FlowVersion flowVersion = FlowVersion.builder()
                 .flowId(flowId)
                 .version("1.0.0")
@@ -248,11 +253,32 @@ class FlowTemplateServiceTest extends BaseServiceTest {
             CreateTemplateRequest request = new CreateTemplateRequest();
             request.setName("test");
 
+            // Mock flow ownership check
+            Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
+            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+
             when(flowVersionRepository.findByFlowIdAndVersion(flowId, "9.9.9"))
                 .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> flowTemplateService.createTemplateFromFlow(flowId, "9.9.9", request, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        void createTemplateFromFlow_notOwner_throwsException() {
+            UUID flowId = UUID.randomUUID();
+            UUID otherUser = UUID.randomUUID();
+
+            // Mock flow owned by a different user
+            Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(otherUser).build();
+            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+
+            CreateTemplateRequest request = new CreateTemplateRequest();
+            request.setName("test");
+
+            assertThatThrownBy(() -> flowTemplateService.createTemplateFromFlow(flowId, "1.0.0", request, userId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("don't own");
         }
     }
 

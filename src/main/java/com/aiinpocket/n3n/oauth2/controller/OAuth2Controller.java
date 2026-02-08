@@ -1,16 +1,24 @@
 package com.aiinpocket.n3n.oauth2.controller;
 
+import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.oauth2.entity.OAuth2Token;
 import com.aiinpocket.n3n.oauth2.service.OAuth2TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
@@ -25,16 +33,30 @@ import java.util.UUID;
 public class OAuth2Controller {
 
     private final OAuth2TokenService tokenService;
+    private final CredentialRepository credentialRepository;
+
+    // HMAC key for signing OAuth2 state parameter to prevent CSRF/forgery
+    private static final String STATE_HMAC_KEY = System.getenv("OAUTH2_STATE_SECRET") != null
+        ? System.getenv("OAUTH2_STATE_SECRET")
+        : UUID.randomUUID().toString();
 
     /**
      * Get authorization URL for a provider.
+     * Requires authentication to ensure the credential belongs to the requesting user.
      */
     @GetMapping("/authorize/{provider}")
     public ResponseEntity<Map<String, String>> getAuthorizationUrl(
             @PathVariable String provider,
             @RequestParam UUID credentialId,
             @RequestParam(required = false) String scope,
-            @RequestParam(required = false) String redirectUri) {
+            @RequestParam(required = false) String redirectUri,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID userId = UUID.fromString(userDetails.getUsername());
+
+        // Verify credential ownership
+        credentialRepository.findByIdAndOwnerId(credentialId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("Credential not found or access denied"));
 
         String authUrl = buildAuthorizationUrl(provider, credentialId, scope, redirectUri);
 
@@ -63,9 +85,10 @@ public class OAuth2Controller {
             ));
         }
 
-        // Parse state parameter (format: provider:credentialId)
+        // Parse state parameter (format: provider:credentialId:hmac)
         String[] stateParts = state.split(":");
-        if (stateParts.length < 2) {
+        if (stateParts.length < 3) {
+            log.warn("OAuth2 callback with invalid state format (missing HMAC)");
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid state parameter"));
         }
 
@@ -75,6 +98,13 @@ public class OAuth2Controller {
             credentialId = UUID.fromString(stateParts[1]);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid credential ID in state"));
+        }
+
+        // Verify HMAC signature to prevent state forgery
+        String expectedHmac = computeStateHmac(provider + ":" + credentialId);
+        if (!expectedHmac.equals(stateParts[2])) {
+            log.warn("OAuth2 callback state HMAC mismatch for provider={}, credentialId={}", provider, credentialId);
+            return ResponseEntity.status(403).body(Map.of("error", "Invalid state signature"));
         }
 
         try {
@@ -116,9 +146,18 @@ public class OAuth2Controller {
 
     /**
      * Check OAuth2 token status for a credential.
+     * Requires authentication and credential ownership.
      */
     @GetMapping("/status/{credentialId}")
-    public ResponseEntity<Map<String, Object>> getTokenStatus(@PathVariable UUID credentialId) {
+    public ResponseEntity<Map<String, Object>> getTokenStatus(
+            @PathVariable UUID credentialId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+
+        // Verify credential ownership
+        credentialRepository.findByIdAndOwnerId(credentialId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("Credential not found or access denied"));
+
         return tokenService.getToken(credentialId)
             .map(token -> {
                 Map<String, Object> result = new java.util.HashMap<>();
@@ -139,9 +178,18 @@ public class OAuth2Controller {
 
     /**
      * Disconnect OAuth2 for a credential.
+     * Requires authentication and credential ownership.
      */
     @DeleteMapping("/disconnect/{credentialId}")
-    public ResponseEntity<Map<String, Object>> disconnect(@PathVariable UUID credentialId) {
+    public ResponseEntity<Map<String, Object>> disconnect(
+            @PathVariable UUID credentialId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+
+        // Verify credential ownership
+        credentialRepository.findByIdAndOwnerId(credentialId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("Credential not found or access denied"));
+
         tokenService.deleteToken(credentialId);
         return ResponseEntity.ok(Map.of("success", true));
     }
@@ -156,7 +204,9 @@ public class OAuth2Controller {
             return null;
         }
 
-        String state = provider + ":" + credentialId.toString();
+        String statePayload = provider + ":" + credentialId.toString();
+        String hmac = computeStateHmac(statePayload);
+        String state = statePayload + ":" + hmac;
         String encodedRedirect = URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
         String encodedState = URLEncoder.encode(state, StandardCharsets.UTF_8);
 
@@ -209,5 +259,19 @@ public class OAuth2Controller {
             case "microsoft", "azure" -> "https://login.microsoftonline.com/common/oauth2/v2.0/token";
             default -> null;
         };
+    }
+
+    /**
+     * Compute HMAC-SHA256 signature for OAuth2 state parameter to prevent CSRF/forgery.
+     */
+    private static String computeStateHmac(String data) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(STATE_HMAC_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] hmacBytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hmacBytes);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new IllegalStateException("Failed to compute HMAC for OAuth2 state", e);
+        }
     }
 }

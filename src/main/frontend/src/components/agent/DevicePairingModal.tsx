@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Modal, Typography, Space, Progress, Alert, Spin, Steps, message } from 'antd'
 import {
   QrcodeOutlined,
@@ -28,6 +28,16 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
   const [currentStep, setCurrentStep] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [initialDeviceCount, setInitialDeviceCount] = useState(0)
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup success timer on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current)
+      }
+    }
+  }, [])
 
   const startPairing = useCallback(async () => {
     setLoading(true)
@@ -92,7 +102,7 @@ const DevicePairingModal: React.FC<DevicePairingModalProps> = ({
           clearInterval(pollInterval)
           setCurrentStep(2)
           message.success(t('devicePairing.pairingSuccess'))
-          setTimeout(() => {
+          successTimerRef.current = setTimeout(() => {
             onPaired()
             onClose()
           }, 1500)

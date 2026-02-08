@@ -327,6 +327,13 @@ public class FlowTemplateService {
 
     @Transactional
     public TemplateResponse createTemplateFromFlow(UUID flowId, String version, CreateTemplateRequest request, UUID userId) {
+        // Verify flow ownership before allowing template creation
+        Flow flow = flowRepository.findById(flowId)
+            .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
+        if (!flow.getCreatedBy().equals(userId)) {
+            throw new IllegalArgumentException("Cannot create template from a flow you don't own");
+        }
+
         FlowVersion flowVersion = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Flow version not found: " + flowId + "/" + version));
 
