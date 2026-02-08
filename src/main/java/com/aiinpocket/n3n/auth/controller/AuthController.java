@@ -118,13 +118,13 @@ public class AuthController {
 
     @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateProfile(
-            @RequestBody Map<String, String> request,
+            @Valid @RequestBody com.aiinpocket.n3n.auth.dto.request.UpdateProfileRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
         }
         UUID userId = UUID.fromString(userDetails.getUsername());
-        UserResponse updated = authService.updateProfile(userId, request.get("name"));
+        UserResponse updated = authService.updateProfile(userId, request.name());
         activityService.logProfileUpdate(userId, updated.getEmail());
         return ResponseEntity.ok(updated);
     }

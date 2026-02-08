@@ -61,10 +61,10 @@ public class AdminController {
     @PutMapping("/users/{id}/roles")
     public ResponseEntity<UserResponse> updateUserRoles(
             @PathVariable UUID id,
-            @RequestBody Set<String> roles,
+            @Valid @RequestBody com.aiinpocket.n3n.admin.dto.UpdateUserRolesRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID adminId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(adminUserService.updateUserRoles(id, roles, adminId));
+        return ResponseEntity.ok(adminUserService.updateUserRoles(id, request.roles(), adminId));
     }
 
     @PostMapping("/users/{id}/reset-password")

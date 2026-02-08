@@ -223,7 +223,7 @@ export default function FlowEditorPage() {
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
     }
-  }, [location.state, setNodes, setEdges])
+  }, [location.state, setNodes, setEdges, t])
 
   // Auto-save with debounce
   useEffect(() => {
@@ -244,7 +244,6 @@ export default function FlowEditorPage() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDirty, saving, autoSaveDraft])
 
   // Warn before closing with unsaved changes
@@ -476,7 +475,7 @@ export default function FlowEditorPage() {
       )
       message.success(t('editor.edgeTypeChanged', { type: t(`editor.edgeType.${newType}`) }))
     },
-    [edges, setEdges, pushHistory]
+    [edges, setEdges, pushHistory, t]
   )
 
   const handleNodeConfigUpdate = useCallback(
