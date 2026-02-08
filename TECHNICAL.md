@@ -442,8 +442,6 @@ WebSocket gateway for local agent communication.
   "category": "ai",
   "author": "N3N Team",
   "version": "1.0.0",
-  "downloads": 1250,
-  "rating": 4.8,
   "isInstalled": true,
   "installedVersion": "1.0.0"
 }
@@ -596,40 +594,40 @@ CREATE TABLE credentials (
 #### plugins
 ```sql
 CREATE TABLE plugins (
-    id UUID PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    display_name VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    display_name VARCHAR(200) NOT NULL,
     description TEXT,
     category VARCHAR(50) NOT NULL,
-    author VARCHAR(255) NOT NULL,
-    icon_url VARCHAR(500),
+    author VARCHAR(200) NOT NULL,
+    author_url VARCHAR(500),
     repository_url VARCHAR(500),
     documentation_url VARCHAR(500),
-    downloads INTEGER DEFAULT 0,
-    rating DECIMAL(3,2) DEFAULT 0,
-    rating_count INTEGER DEFAULT 0,
-    pricing VARCHAR(20) DEFAULT 'free',
-    is_featured BOOLEAN DEFAULT FALSE,
-    is_verified BOOLEAN DEFAULT FALSE,
-    status VARCHAR(50) DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
+    icon_url VARCHAR(500),
+    pricing VARCHAR(20) NOT NULL DEFAULT 'free',
+    price DECIMAL(10, 2),
+    tags TEXT[],
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 #### plugin_versions
 ```sql
 CREATE TABLE plugin_versions (
-    id UUID PRIMARY KEY,
-    plugin_id UUID NOT NULL REFERENCES plugins(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plugin_id UUID NOT NULL REFERENCES plugins(id) ON DELETE CASCADE,
     version VARCHAR(50) NOT NULL,
-    changelog TEXT,
+    release_notes TEXT,
     min_platform_version VARCHAR(50),
-    node_definitions JSONB NOT NULL,
     config_schema JSONB,
-    credential_type VARCHAR(100),
-    is_latest BOOLEAN DEFAULT FALSE,
-    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    node_definitions JSONB NOT NULL,
+    capabilities TEXT[],
+    dependencies JSONB,
+    download_url VARCHAR(500),
+    checksum VARCHAR(128),
+    download_count INTEGER DEFAULT 0,
+    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(plugin_id, version)
 );
 ```
@@ -637,12 +635,28 @@ CREATE TABLE plugin_versions (
 #### plugin_installations
 ```sql
 CREATE TABLE plugin_installations (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plugin_id UUID NOT NULL REFERENCES plugins(id),
+    plugin_version_id UUID NOT NULL REFERENCES plugin_versions(id),
     user_id UUID NOT NULL REFERENCES users(id),
-    version_id UUID NOT NULL REFERENCES plugin_versions(id),
-    installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
+    installed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    config JSONB,
+    UNIQUE(plugin_id, user_id)
+);
+```
+
+#### plugin_ratings
+```sql
+CREATE TABLE plugin_ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plugin_id UUID NOT NULL REFERENCES plugins(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id),
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(plugin_id, user_id)
 );
 ```
@@ -937,7 +951,7 @@ src/test/java/com/aiinpocket/n3n/
     └── FailoverConfigTest
 ```
 
-**Total tests: 168** (as of 2026-02-06)
+**Total backend tests: 2,363+** (as of 2026-02-08)
 
 ### Writing Tests
 
@@ -1149,6 +1163,6 @@ For production deployments:
 3. **Enable HTTPS** - Use a reverse proxy (nginx, Traefik) with TLS
 4. **Set strong passwords** - Change default database credentials
 5. **Configure CORS** - Set `ALLOWED_ORIGINS` to your domain
-6. **Backup Recovery Key** - The 8-word mnemonic is required to recover encrypted credentials
+6. **Backup Recovery Key** - The 12-word mnemonic is required to recover encrypted credentials (legacy 8-word keys are still accepted)
 7. **Set N3N_MASTER_KEY** - Required in production; auto-generation is disabled for security
 8. **Configure orchestrator** - Set `ORCHESTRATOR_TYPE=kubernetes` for K8s deployments, or use `auto` for automatic detection

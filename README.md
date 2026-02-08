@@ -158,7 +158,7 @@ docker compose up -d --build
 - **58+ 官方模板** - 包含排程、通知、資料處理、AI、監控、審批、整合、網路爬蟲等類別
 - **技能系統** - 內建常用自動化技能，無需額外設定
 - **安全儲存** - 你的 API Key 和密碼都有 AES-256 加密保護
-- **插件市集** - 瀏覽、安裝第三方整合插件，擴展平台功能
+- **自訂 Docker 工具** - 從 Docker Hub 拉取工具容器，自動註冊為流程節點
 - **裝置管理** - 連接本地代理程式，讓流程控制你的電腦
 
 ### 錯誤處理路由
@@ -175,26 +175,17 @@ N3N 支援三種連線類型，讓你清楚區分正常流程與錯誤處理：
 
 ---
 
-## 插件市集
+## 自訂 Docker 工具
 
-N3N 提供插件市集，讓你輕鬆擴展平台功能：
+N3N 讓你從 Docker Hub 拉取工具容器，自動註冊為可用的流程節點：
 
-### 目前支援的插件類型
+### 使用方式
 
-| 類型 | 說明 | 範例 |
-|------|------|------|
-| **AI 整合** | 連接各大 AI 服務 | OpenAI, Claude, Gemini |
-| **通訊平台** | 發送訊息到聊天應用 | Slack, Discord, Line, Telegram |
-| **資料處理** | 轉換、處理資料 | JSON 處理, 文字處理 |
-| **雲端服務** | 連接雲端 API | Google Sheets, Notion, AWS S3 |
-
-### 安裝插件
-
-1. 進入「插件市集」頁面
-2. 瀏覽或搜尋需要的插件
-3. 點擊「安裝」
+1. 進入「自訂 Docker 工具」頁面
+2. 輸入 Docker Hub 映像名稱（例如 `n3n/tool-slack`）
+3. 點擊「拉取」，系統自動下載並註冊
 4. 設定對應的憑證（API Key 等）
-5. 在流程編輯器中使用新的節點
+5. 在流程編輯器中即可使用新的節點
 
 ---
 
@@ -206,8 +197,8 @@ N3N 提供插件市集，讓你輕鬆擴展平台功能：
 
 | 作業系統 | 下載連結 | 說明 |
 |---------|---------|------|
-| Windows | [N3N Agent for Windows](#) | .NET 8 應用程式 |
-| macOS | [N3N Agent for macOS](#) | Swift 應用程式 |
+| Windows | [GitHub Release](https://github.com/aiinpocket/n3n/releases) | .NET 8 自包含執行檔 |
+| macOS | [GitHub Release](https://github.com/aiinpocket/n3n/releases) | Swift 應用程式（Apple Silicon） |
 
 ### 代理程式功能
 
