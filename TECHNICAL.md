@@ -627,6 +627,61 @@ Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`
 | GET | `/api/approvals/{approvalId}` | Get approval details |
 | POST | `/api/approvals/{approvalId}` | Submit approval action (approve/reject) |
 
+### AI Providers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/ai/providers` | List all AI provider configurations |
+| GET | `/api/ai/providers/{id}` | Get provider configuration |
+| POST | `/api/ai/providers` | Create AI provider configuration |
+| PUT | `/api/ai/providers/{id}` | Update AI provider configuration |
+| DELETE | `/api/ai/providers/{id}` | Delete AI provider configuration |
+| PUT | `/api/ai/providers/{id}/default` | Set as default provider |
+| GET | `/api/ai/providers/types` | List available provider types |
+| POST | `/api/ai/providers/models` | Fetch available models for a provider/key |
+| POST | `/api/ai/providers/{id}/test` | Test provider connection |
+
+### AI Assistant & Code Generation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ai/assistant/chat` | Send message to AI assistant |
+| POST | `/api/ai/assistant/chat/stream` | Stream AI assistant response (SSE) |
+| GET | `/api/ai/assistant/sessions` | List chat sessions |
+| GET | `/api/ai/assistant/sessions/{id}` | Get session messages |
+| DELETE | `/api/ai/assistant/sessions/{id}` | Delete chat session |
+| POST | `/api/ai/code/generate` | Generate code using AI |
+| POST | `/api/ai/flow/generate` | Generate flow definition using AI |
+| POST | `/api/ai/flow/generate/stream` | Stream flow generation (SSE) |
+| POST | `/api/ai/nodes/recommend` | Get AI node recommendations |
+
+### Node Types
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/node-types` | List all available node types |
+| GET | `/api/node-types/{type}` | Get specific node type details |
+| GET | `/api/node-types/{type}/schema` | Get node configuration schema |
+| GET | `/api/node-types/types` | List all type identifiers |
+| GET | `/api/node-types/category/{category}` | List node types by category |
+| GET | `/api/node-types/triggers` | List all trigger node types |
+
+### OAuth2
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/oauth2/authorize/{provider}` | Get OAuth2 authorization URL |
+| GET | `/api/oauth2/callback` | OAuth2 callback handler |
+| GET | `/api/oauth2/status/{credentialId}` | Check OAuth2 token status |
+| DELETE | `/api/oauth2/disconnect/{credentialId}` | Disconnect OAuth2 token |
+
+### Gateway Settings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/settings/gateway` | Get gateway configuration |
+| PUT | `/api/settings/gateway` | Update gateway configuration |
+
 ### WebSocket
 
 Connect to `/ws/executions/{executionId}` for real-time execution updates.
