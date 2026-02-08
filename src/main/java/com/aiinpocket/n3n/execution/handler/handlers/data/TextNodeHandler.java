@@ -575,8 +575,9 @@ public class TextNodeHandler extends MultiOperationNodeHandler {
         Matcher matcher = pattern.matcher(text);
 
         if (findAll) {
+            int maxMatches = getIntParam(params, "maxMatches", 10000);
             List<Object> matches = new ArrayList<>();
-            while (matcher.find()) {
+            while (matcher.find() && matches.size() < maxMatches) {
                 if (includeGroups && matcher.groupCount() > 0) {
                     List<String> groups = new ArrayList<>();
                     for (int i = 0; i <= matcher.groupCount(); i++) {
@@ -629,8 +630,9 @@ public class TextNodeHandler extends MultiOperationNodeHandler {
         Matcher matcher = pattern.matcher(text);
 
         if (findAll) {
+            int maxMatches = getIntParam(params, "maxMatches", 10000);
             List<String> matches = new ArrayList<>();
-            while (matcher.find()) {
+            while (matcher.find() && matches.size() < maxMatches) {
                 matches.add(matcher.group(1));
             }
             return NodeExecutionResult.success(Map.of(

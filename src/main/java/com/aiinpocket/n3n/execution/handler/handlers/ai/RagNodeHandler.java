@@ -65,7 +65,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
             log.error("RAG node execution failed", e);
             return NodeExecutionResult.builder()
                     .success(false)
-                    .errorMessage("RAG operation failed: " + e.getMessage())
+                    .errorMessage("RAG operation failed")
                     .build();
         }
     }

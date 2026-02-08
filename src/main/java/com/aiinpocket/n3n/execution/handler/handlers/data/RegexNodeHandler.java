@@ -371,8 +371,9 @@ public class RegexNodeHandler extends MultiOperationNodeHandler {
         Pattern pattern = Pattern.compile(patternStr, flags);
         Matcher matcher = pattern.matcher(text);
 
+        int maxMatches = getIntParam(params, "maxMatches", 10000);
         List<Map<String, Object>> matches = new ArrayList<>();
-        while (matcher.find()) {
+        while (matcher.find() && matches.size() < maxMatches) {
             Map<String, Object> match = new LinkedHashMap<>();
             match.put("match", matcher.group());
             match.put("start", matcher.start());
@@ -396,8 +397,9 @@ public class RegexNodeHandler extends MultiOperationNodeHandler {
         Matcher matcher = pattern.matcher(text);
 
         if (allMatches) {
+            int maxMatches = getIntParam(params, "maxMatches", 10000);
             List<List<String>> allGroups = new ArrayList<>();
-            while (matcher.find()) {
+            while (matcher.find() && allGroups.size() < maxMatches) {
                 List<String> groups = new ArrayList<>();
                 for (int i = 0; i <= matcher.groupCount(); i++) {
                     groups.add(matcher.group(i));

@@ -177,7 +177,7 @@ public class ClaudeNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (IOException e) {
             log.error("Claude API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Claude API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Claude API error");
         }
     }
 

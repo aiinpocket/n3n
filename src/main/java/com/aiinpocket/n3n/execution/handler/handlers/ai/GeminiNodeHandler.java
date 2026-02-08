@@ -217,7 +217,7 @@ public class GeminiNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (IOException e) {
             log.error("Gemini API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Gemini API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Gemini API error");
         }
     }
 

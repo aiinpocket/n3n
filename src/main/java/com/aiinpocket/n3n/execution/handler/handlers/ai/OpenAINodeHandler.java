@@ -201,7 +201,7 @@ public class OpenAINodeHandler extends MultiOperationNodeHandler {
             };
         } catch (IOException e) {
             log.error("OpenAI API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("OpenAI API error: " + e.getMessage());
+            return NodeExecutionResult.failure("OpenAI API error");
         }
     }
 

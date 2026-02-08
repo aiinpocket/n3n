@@ -193,7 +193,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
             };
         } catch (Exception e) {
             log.error("Vector operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Vector operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Vector operation failed");
         }
     }
 
