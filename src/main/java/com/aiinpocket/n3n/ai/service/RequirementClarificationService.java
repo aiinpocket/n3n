@@ -93,9 +93,9 @@ public class RequirementClarificationService {
     private String getSystemPrompt(String language) {
         String langInstruction;
         if (language != null && language.startsWith("zh")) {
-            langInstruction = "Respond in Traditional Chinese (繁體中文)";
+            langInstruction = "Respond in Traditional Chinese";
         } else if (language != null && language.startsWith("ja")) {
-            langInstruction = "Respond in Japanese (日本語)";
+            langInstruction = "Respond in Japanese";
         } else {
             langInstruction = "Respond in English";
         }

@@ -191,9 +191,9 @@ public class PromptBuilder {
         if (language != null && !language.isBlank()) {
             sb.append("# Language Requirement\n\n");
             if (language.startsWith("zh")) {
-                sb.append("All understanding, label, and description fields must be in Traditional Chinese (繁體中文).\n\n");
+                sb.append("All understanding, label, and description fields must be in Traditional Chinese.\n\n");
             } else if (language.startsWith("ja")) {
-                sb.append("All understanding, label, and description fields must be in Japanese (日本語).\n\n");
+                sb.append("All understanding, label, and description fields must be in Japanese.\n\n");
             } else {
                 sb.append("All understanding, label, and description fields must be in English.\n\n");
             }
