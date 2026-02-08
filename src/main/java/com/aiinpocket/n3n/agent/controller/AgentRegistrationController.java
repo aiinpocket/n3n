@@ -600,7 +600,7 @@ public class AgentRegistrationController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Agent not found"));
         } catch (Exception e) {
             log.error("Failed to block agent", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -629,7 +629,7 @@ public class AgentRegistrationController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Agent not found"));
         } catch (Exception e) {
             log.error("Failed to unblock agent", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -658,7 +658,7 @@ public class AgentRegistrationController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Agent not found"));
         } catch (Exception e) {
             log.error("Failed to delete registration", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

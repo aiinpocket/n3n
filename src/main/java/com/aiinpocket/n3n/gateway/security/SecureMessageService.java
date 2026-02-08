@@ -79,7 +79,7 @@ public class SecureMessageService {
             return message.toCompact(objectMapper);
 
         } catch (Exception e) {
-            throw new SecureMessageException("Encryption failed: " + e.getMessage(), e);
+            throw new SecureMessageException("Encryption failed", e);
         }
     }
 
@@ -93,7 +93,7 @@ public class SecureMessageService {
         try {
             message = SecureMessage.fromCompact(encryptedMessage, objectMapper);
         } catch (Exception e) {
-            throw new SecureMessageException("Invalid message format: " + e.getMessage(), e);
+            throw new SecureMessageException("Invalid message format", e);
         }
 
         SecureMessage.Header header = message.getHeader();
@@ -157,9 +157,9 @@ public class SecureMessageService {
             );
 
         } catch (GeneralSecurityException e) {
-            throw new SecureMessageException("Decryption failed (invalid key or tampered): " + e.getMessage(), e);
+            throw new SecureMessageException("Decryption failed (invalid key or tampered)", e);
         } catch (Exception e) {
-            throw new SecureMessageException("Decryption failed: " + e.getMessage(), e);
+            throw new SecureMessageException("Decryption failed", e);
         }
     }
 
@@ -201,7 +201,7 @@ public class SecureMessageService {
             return VerificationResult.valid(header.getDid(), deviceKey.get().getUserId());
 
         } catch (Exception e) {
-            return VerificationResult.invalid("Parse error: " + e.getMessage());
+            return VerificationResult.invalid("Parse error");
         }
     }
 

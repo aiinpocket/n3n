@@ -86,7 +86,7 @@ public class AgentPairingController {
 
         } catch (AgentPairingService.PairingException e) {
             return ResponseEntity.badRequest()
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Pairing failed"));
         } catch (Exception e) {
             log.error("Failed to complete pairing", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -192,10 +192,10 @@ public class AgentPairingController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Device not found"));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Access denied"));
         } catch (Exception e) {
             log.error("Failed to unpair device", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

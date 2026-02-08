@@ -112,12 +112,12 @@ public class MarketplaceController {
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", e.getMessage()
+                    "message", "Plugin installation failed"
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", e.getMessage()
+                    "message", "Invalid plugin request"
             ));
         }
     }
@@ -143,7 +143,7 @@ public class MarketplaceController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", e.getMessage()
+                    "message", "Plugin not found or cannot be uninstalled"
             ));
         }
     }
@@ -169,7 +169,7 @@ public class MarketplaceController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", e.getMessage()
+                    "message", "Plugin update failed"
             ));
         }
     }
@@ -211,7 +211,7 @@ public class MarketplaceController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", e.getMessage()
+                    "message", "Invalid rating request"
             ));
         }
     }

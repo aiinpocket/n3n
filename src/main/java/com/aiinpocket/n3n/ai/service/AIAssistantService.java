@@ -62,7 +62,7 @@ public class AIAssistantService {
             .map(this::convertToChunk)
             .onErrorResume(e -> {
                 log.error("Chat stream error", e);
-                return Flux.just(ChatStreamChunk.error(e.getMessage()));
+                return Flux.just(ChatStreamChunk.error("AI service error"));
             });
     }
 
@@ -106,7 +106,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Chat error", e);
-            return ChatResponse.error(e.getMessage());
+            return ChatResponse.error("AI service error");
         }
     }
 
@@ -189,7 +189,7 @@ public class AIAssistantService {
             log.error("Error analyzing flow for publish", e);
             return PublishAnalysisResponse.builder()
                 .success(false)
-                .error(e.getMessage())
+                .error("Flow analysis failed")
                 .analysisTimeMs(System.currentTimeMillis() - startTime)
                 .build();
         }
@@ -248,7 +248,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Error applying suggestions", e);
-            return ApplySuggestionsResponse.error("Error applying suggestions: " + e.getMessage());
+            return ApplySuggestionsResponse.error("Error applying suggestions");
         }
     }
 
@@ -463,7 +463,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Node recommendation failed", e);
-            return NodeRecommendationResponse.error(e.getMessage());
+            return NodeRecommendationResponse.error("Node recommendation failed");
         }
     }
 

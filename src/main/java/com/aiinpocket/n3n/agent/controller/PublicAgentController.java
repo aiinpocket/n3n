@@ -55,7 +55,7 @@ public class PublicAgentController {
         } catch (AgentRegistrationService.RegistrationException e) {
             log.warn("Registration failed: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Registration failed"));
         } catch (Exception e) {
             log.error("Failed to register agent: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

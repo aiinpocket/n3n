@@ -171,7 +171,7 @@ public class PluginInstallService {
                 executeInstall(taskId);
             } catch (Exception e) {
                 log.error("Install task {} failed", taskId, e);
-                markTaskFailed(taskId, e.getMessage());
+                markTaskFailed(taskId, "Installation failed");
             }
         });
     }
@@ -196,7 +196,7 @@ public class PluginInstallService {
             }
         } catch (Exception e) {
             log.error("Install failed for task {}", taskId, e);
-            markTaskFailed(taskId, e.getMessage());
+            markTaskFailed(taskId, "Installation failed");
             throw e;
         }
     }
