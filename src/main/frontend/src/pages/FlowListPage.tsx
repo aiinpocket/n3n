@@ -61,7 +61,6 @@ export default function FlowListPage() {
     }
   }, [activeTab, fetchSharedFlows])
 
-  // Debounced search
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value)
     fetchFlows(0, pageSize, value)

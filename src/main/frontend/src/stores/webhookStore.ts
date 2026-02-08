@@ -68,9 +68,9 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
     const { webhooks, flowWebhooks } = get()
     set({
       webhooks: [...webhooks, webhook],
-      flowWebhooks: request.flowId === flowWebhooks[0]?.flowId
+      flowWebhooks: flowWebhooks.length > 0 && request.flowId === flowWebhooks[0]?.flowId
         ? [...flowWebhooks, webhook]
-        : flowWebhooks
+        : request.flowId ? [webhook] : flowWebhooks
     })
     return webhook
   },

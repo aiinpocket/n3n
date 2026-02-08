@@ -130,7 +130,7 @@ public class FormController {
         } catch (Exception e) {
             log.error("Error submitting form: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                .body(Map.of("error", "Failed to submit form: " + e.getMessage()));
+                .body(Map.of("error", "Failed to submit form. Please try again."));
         }
     }
 
@@ -182,7 +182,7 @@ public class FormController {
         } catch (Exception e) {
             log.error("Error submitting execution form: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                .body(Map.of("error", "Failed to submit form: " + e.getMessage()));
+                .body(Map.of("error", "Failed to submit form. Please try again."));
         }
     }
 

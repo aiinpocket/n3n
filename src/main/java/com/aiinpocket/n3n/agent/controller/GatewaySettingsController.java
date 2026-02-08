@@ -56,7 +56,7 @@ public class GatewaySettingsController {
         } catch (Exception e) {
             log.error("Failed to update gateway settings", e);
             return ResponseEntity.badRequest()
-                .body(Map.of("error", "Failed to update settings: " + e.getMessage()));
+                .body(Map.of("error", "Failed to update settings. Please try again."));
         }
     }
 

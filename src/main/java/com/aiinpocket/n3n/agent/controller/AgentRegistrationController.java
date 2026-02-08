@@ -320,7 +320,7 @@ public class AgentRegistrationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                     "success", false,
-                    "error", "Registration failed: " + e.getMessage()
+                    "error", "Registration failed. Please try again."
                 ));
         }
     }
@@ -369,7 +369,7 @@ public class AgentRegistrationController {
         } catch (Exception e) {
             log.error("Failed to generate agent package", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to generate agent package: " + e.getMessage()));
+                .body(Map.of("error", "Failed to generate agent package. Please try again."));
         }
     }
 
