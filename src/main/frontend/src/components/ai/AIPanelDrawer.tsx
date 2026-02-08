@@ -164,7 +164,8 @@ export default function AIPanelDrawer({
     clearError()
     sessionIdSyncedRef.current = false
 
-    // Create abort controller for this request
+    // Abort any previous request before creating new one
+    abortControllerRef.current?.abort()
     abortControllerRef.current = new AbortController()
 
     try {
@@ -227,8 +228,8 @@ export default function AIPanelDrawer({
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         setError(err instanceof Error ? err.message : t('chat.sendFailed'))
+        finalizeStreaming()
       }
-      finalizeStreaming()
     }
   }, [
     inputValue,
@@ -236,6 +237,7 @@ export default function AIPanelDrawer({
     currentSession?.id,
     flowId,
     flowDefinition,
+    t,
     addUserMessage,
     setStreaming,
     clearError,

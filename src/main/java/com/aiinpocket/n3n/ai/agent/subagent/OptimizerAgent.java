@@ -85,7 +85,7 @@ public class OptimizerAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Optimizer Agent execution failed", e);
-            return AgentResult.error("Optimization analysis failed: " + e.getMessage());
+            return AgentResult.error("Optimization analysis failed");
         }
     }
 
@@ -127,7 +127,7 @@ public class OptimizerAgent implements Agent {
 
             } catch (Exception e) {
                 log.error("Optimizer stream failed", e);
-                sink.next(AgentStreamChunk.error(e.getMessage()));
+                sink.next(AgentStreamChunk.error("Optimization analysis failed"));
                 sink.complete();
             }
         });

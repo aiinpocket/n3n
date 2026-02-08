@@ -95,7 +95,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Builder Agent execution failed", e);
-            return AgentResult.error("Build failed: " + e.getMessage());
+            return AgentResult.error("Build failed");
         }
     }
 
@@ -127,7 +127,7 @@ public class BuilderAgent implements Agent {
                 sink.complete();
             } catch (Exception e) {
                 log.error("Builder stream failed", e);
-                sink.next(AgentStreamChunk.error(e.getMessage()));
+                sink.next(AgentStreamChunk.error("Build failed"));
                 sink.complete();
             }
         });
@@ -285,7 +285,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("AI planning failed", e);
-            return AgentResult.error("Flow planning failed: " + e.getMessage());
+            return AgentResult.error("Flow planning failed");
         }
     }
 
@@ -342,7 +342,7 @@ public class BuilderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Failed to parse build plan", e);
-            return AgentResult.error("Failed to parse build plan: " + e.getMessage());
+            return AgentResult.error("Failed to parse build plan");
         }
     }
 

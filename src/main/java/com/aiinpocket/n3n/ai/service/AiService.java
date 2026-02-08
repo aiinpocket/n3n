@@ -49,7 +49,7 @@ public class AiService {
 
         } catch (Exception e) {
             log.error("Failed to generate text with model {}", model, e);
-            throw new RuntimeException("Text generation failed: " + e.getMessage(), e);
+            throw new RuntimeException("Text generation failed", e);
         }
     }
 
@@ -82,7 +82,7 @@ public class AiService {
 
         } catch (Exception e) {
             log.error("Failed to get embedding from {}", embeddingService.getProviderName(), e);
-            throw new RuntimeException("Embedding generation failed: " + e.getMessage(), e);
+            throw new RuntimeException("Embedding generation failed", e);
         }
     }
 

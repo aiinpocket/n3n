@@ -111,7 +111,7 @@ public class NaturalLanguageModule {
             return parseFlowGenerationResponse(response, availableNodes, installedNodeTypes);
         } catch (Exception e) {
             log.error("Flow generation failed", e);
-            return FlowGenerationResult.error(e.getMessage());
+            return FlowGenerationResult.error("Flow generation failed");
         }
     }
 
@@ -257,7 +257,7 @@ public class NaturalLanguageModule {
                 sink.tryEmitComplete();
             } catch (Exception e) {
                 log.error("Flow generation stream failed", e);
-                sink.tryEmitNext(FlowGenerationChunk.error("Flow generation failed: " + e.getMessage()));
+                sink.tryEmitNext(FlowGenerationChunk.error("Flow generation failed"));
                 sink.tryEmitComplete();
             }
         });
@@ -266,7 +266,7 @@ public class NaturalLanguageModule {
                 .timeout(Duration.ofMinutes(2))
                 .onErrorResume(e -> {
                     log.error("Flow generation stream error", e);
-                    return Flux.just(FlowGenerationChunk.error(e.getMessage()));
+                    return Flux.just(FlowGenerationChunk.error("Flow generation failed"));
                 });
     }
 
@@ -349,7 +349,7 @@ public class NaturalLanguageModule {
             return parseNodeRecommendationResponse(response, installedNodeTypes);
         } catch (Exception e) {
             log.error("Node recommendation failed", e);
-            return NodeRecommendationResult.error(e.getMessage());
+            return NodeRecommendationResult.error("Node recommendation failed");
         }
     }
 

@@ -109,7 +109,7 @@ public class SupervisorAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Supervisor execution failed", e);
-            return AgentResult.error("Processing failed: " + e.getMessage());
+            return AgentResult.error("Processing failed");
         }
     }
 
@@ -171,7 +171,7 @@ public class SupervisorAgent implements Agent {
 
             } catch (Exception e) {
                 log.error("Supervisor stream execution failed", e);
-                sink.next(AgentStreamChunk.error(e.getMessage()));
+                sink.next(AgentStreamChunk.error("Processing failed"));
                 sink.complete();
             }
         });

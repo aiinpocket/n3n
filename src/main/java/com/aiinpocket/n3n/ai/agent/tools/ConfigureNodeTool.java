@@ -118,7 +118,7 @@ public class ConfigureNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to configure node", e);
-            return ToolResult.failure(getName(), "配置節點失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "配置節點失敗");
         }
     }
 

@@ -104,7 +104,6 @@ export async function chatStream(
     onerror: (error) => {
       logger.error('SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
-      throw error
     },
   })
 }
@@ -281,7 +280,6 @@ export async function generateFlowStream(
     onerror: (error) => {
       logger.error('Flow generation SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
-      throw error
     },
   })
 }

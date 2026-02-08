@@ -89,7 +89,7 @@ public class DiscoveryAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Discovery Agent execution failed", e);
-            return AgentResult.error("Discovery failed: " + e.getMessage());
+            return AgentResult.error("Discovery failed");
         }
     }
 
@@ -114,7 +114,7 @@ public class DiscoveryAgent implements Agent {
                 sink.complete();
             } catch (Exception e) {
                 log.error("Discovery stream failed", e);
-                sink.next(AgentStreamChunk.error(e.getMessage()));
+                sink.next(AgentStreamChunk.error("Discovery failed"));
                 sink.complete();
             }
         });

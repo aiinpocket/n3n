@@ -118,7 +118,7 @@ public class ConversationChain implements Chain {
 
         } catch (Exception e) {
             log.error("ConversationChain {} failed", name, e);
-            context.setError("Conversation Chain failed: " + e.getMessage());
+            context.setError("Conversation Chain failed");
             return context;
         }
     }

@@ -79,7 +79,7 @@ public class ChainExecutor {
 
         } catch (ExecutionException e) {
             log.error("Chain execution failed: {} (id: {})", chain.getName(), executionId, e.getCause());
-            return ChainResult.failure("Execution failed: " + e.getCause().getMessage());
+            return ChainResult.failure("Execution failed");
         }
     }
 
@@ -126,7 +126,7 @@ public class ChainExecutor {
             try {
                 results.put(entry.getKey(), entry.getValue().get());
             } catch (Exception e) {
-                results.put(entry.getKey(), ChainResult.failure("Batch execution failed: " + e.getMessage()));
+                results.put(entry.getKey(), ChainResult.failure("Batch execution failed"));
             }
         }
 

@@ -45,7 +45,7 @@ public class TextLoader implements DocumentLoader {
 
         } catch (Exception e) {
             log.error("Failed to load text document from {}", filePath, e);
-            throw new RuntimeException("Failed to load document: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to load document", e);
         }
     }
 
@@ -66,7 +66,7 @@ public class TextLoader implements DocumentLoader {
 
         } catch (Exception e) {
             log.error("Failed to load text document from stream {}", sourceName, e);
-            throw new RuntimeException("Failed to load document: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to load document", e);
         }
     }
 

@@ -103,7 +103,7 @@ public class OpenAIEmbeddingService implements EmbeddingService {
 
         } catch (Exception e) {
             log.error("Failed to get embedding from OpenAI", e);
-            throw new RuntimeException("Embedding generation failed: " + e.getMessage(), e);
+            throw new RuntimeException("Embedding generation failed", e);
         }
     }
 

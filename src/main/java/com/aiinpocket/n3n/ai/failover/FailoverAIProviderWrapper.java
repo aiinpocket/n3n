@@ -56,7 +56,7 @@ public class FailoverAIProviderWrapper {
                 provider = resolveProvider(providerName, userId);
             } catch (Exception e) {
                 log.debug("Failed to resolve provider {}: {}", providerName, e.getMessage());
-                attempts.add(new ProviderAttempt(providerName, false, "Provider not found: " + e.getMessage()));
+                attempts.add(new ProviderAttempt(providerName, false, "Provider not found"));
                 continue;
             }
 

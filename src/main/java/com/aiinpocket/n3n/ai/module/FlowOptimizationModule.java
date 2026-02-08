@@ -45,7 +45,7 @@ public class FlowOptimizationModule {
             return parseOptimizationResponse(response);
         } catch (Exception e) {
             log.error("Flow optimization failed", e);
-            return OptimizationResult.error(e.getMessage());
+            return OptimizationResult.error("Flow optimization failed");
         }
     }
 

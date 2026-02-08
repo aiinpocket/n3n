@@ -105,7 +105,7 @@ public class LlamafileSimpleProvider implements SimpleAIProvider {
             throw new RuntimeException("Invalid response from Llamafile");
         } catch (WebClientResponseException e) {
             log.error("Llamafile API error: {}", e.getMessage());
-            throw new RuntimeException("Llamafile service error: " + e.getMessage());
+            throw new RuntimeException("Llamafile service error");
         }
     }
 }

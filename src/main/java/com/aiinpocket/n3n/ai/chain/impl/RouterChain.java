@@ -78,7 +78,7 @@ public class RouterChain implements Chain {
 
         } catch (Exception e) {
             log.error("RouterChain {} failed", name, e);
-            context.setError("Router Chain failed: " + e.getMessage());
+            context.setError("Router Chain failed");
             return context;
         }
     }

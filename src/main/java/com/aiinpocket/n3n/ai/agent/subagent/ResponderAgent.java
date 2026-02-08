@@ -79,7 +79,7 @@ public class ResponderAgent implements Agent {
 
         } catch (Exception e) {
             log.error("Responder Agent execution failed", e);
-            return AgentResult.error("Response failed: " + e.getMessage());
+            return AgentResult.error("Response failed");
         }
     }
 
@@ -123,7 +123,7 @@ public class ResponderAgent implements Agent {
                 sink.complete();
             } catch (Exception e) {
                 log.error("Responder stream failed", e);
-                sink.next(AgentStreamChunk.error(e.getMessage()));
+                sink.next(AgentStreamChunk.error("Response failed"));
                 sink.complete();
             }
         });

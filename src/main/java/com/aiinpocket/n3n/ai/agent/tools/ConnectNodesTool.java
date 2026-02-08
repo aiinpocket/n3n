@@ -125,7 +125,7 @@ public class ConnectNodesTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to connect nodes", e);
-            return ToolResult.failure(getName(), "連接節點失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "連接節點失敗");
         }
     }
 

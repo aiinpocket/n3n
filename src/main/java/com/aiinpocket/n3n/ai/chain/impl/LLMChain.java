@@ -74,7 +74,7 @@ public class LLMChain implements Chain {
 
         } catch (Exception e) {
             log.error("LLMChain {} failed", name, e);
-            context.setError("LLM Chain failed: " + e.getMessage());
+            context.setError("LLM Chain failed");
             return context;
         }
     }

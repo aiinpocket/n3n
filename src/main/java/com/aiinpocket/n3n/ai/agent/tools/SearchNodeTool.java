@@ -93,7 +93,7 @@ public class SearchNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to search nodes", e);
-            return ToolResult.failure(getName(), "搜尋節點失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "搜尋節點失敗");
         }
     }
 

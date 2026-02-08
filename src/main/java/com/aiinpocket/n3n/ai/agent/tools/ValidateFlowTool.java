@@ -165,7 +165,7 @@ public class ValidateFlowTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to validate flow", e);
-            return ToolResult.failure(getName(), "驗證流程失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "驗證流程失敗");
         }
     }
 

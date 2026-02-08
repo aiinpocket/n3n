@@ -101,7 +101,7 @@ public class RemoveNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to remove node", e);
-            return ToolResult.failure(getName(), "移除節點失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "移除節點失敗");
         }
     }
 

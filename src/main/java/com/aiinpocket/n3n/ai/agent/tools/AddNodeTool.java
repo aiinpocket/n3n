@@ -117,7 +117,7 @@ public class AddNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to add node", e);
-            return ToolResult.failure(getName(), "新增節點失敗: " + e.getMessage());
+            return ToolResult.failure(getName(), "新增節點失敗");
         }
     }
 
