@@ -62,19 +62,31 @@ export default function DashboardPage() {
     setLoading(true)
     setLoadError(false)
     try {
-      const [statsRes, execRes, activitiesRes] = await Promise.all([
+      const [statsRes, execRes, activitiesRes] = await Promise.allSettled([
         apiClient.get('/dashboard/stats'),
         apiClient.get('/executions', { params: { size: 5 } }),
         apiClient.get('/activities', { params: { size: 5 } }),
       ])
 
-      setStats(statsRes.data)
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value.data)
+      }
 
-      const executions = execRes.data.content || []
-      setRecentExecutions(executions)
+      if (execRes.status === 'fulfilled') {
+        const executions = execRes.value.data.content || []
+        setRecentExecutions(executions)
+      }
 
-      const activities = (activitiesRes.data.content || activitiesRes.data || []).slice(0, 5)
-      setRecentActivities(activities)
+      if (activitiesRes.status === 'fulfilled') {
+        const activities = (activitiesRes.value.data.content || activitiesRes.value.data || []).slice(0, 5)
+        setRecentActivities(activities)
+      }
+
+      const allFailed = statsRes.status === 'rejected' && execRes.status === 'rejected' && activitiesRes.status === 'rejected'
+      if (allFailed) {
+        message.error(t('dashboard.loadFailed'))
+        setLoadError(true)
+      }
     } catch {
       message.error(t('dashboard.loadFailed'))
       setLoadError(true)

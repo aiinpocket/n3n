@@ -247,7 +247,12 @@ public class OpenAINodeHandler extends MultiOperationNodeHandler {
             }
 
             JsonNode json = objectMapper.readTree(responseBody);
-            String content = json.path("choices").get(0).path("message").path("content").asText();
+            JsonNode choices = json.path("choices");
+            if (!choices.isArray() || choices.isEmpty()) {
+                return NodeExecutionResult.failure("OpenAI API returned no choices");
+            }
+            JsonNode firstChoice = choices.get(0);
+            String content = firstChoice.path("message").path("content").asText();
 
             Map<String, Object> output = new LinkedHashMap<>();
             output.put("content", content);
@@ -257,7 +262,7 @@ public class OpenAINodeHandler extends MultiOperationNodeHandler {
                 "completionTokens", json.path("usage").path("completion_tokens").asInt(),
                 "totalTokens", json.path("usage").path("total_tokens").asInt()
             ));
-            output.put("finishReason", json.path("choices").get(0).path("finish_reason").asText());
+            output.put("finishReason", firstChoice.path("finish_reason").asText());
 
             log.info("OpenAI chat completion successful, tokens used: {}",
                 json.path("usage").path("total_tokens").asInt());

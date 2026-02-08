@@ -235,6 +235,9 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             .build();
 
         AiEmbeddingResponse embeddingResponse = provider.embed(embeddingRequest, settings).get();
+        if (embeddingResponse.getEmbeddings() == null || embeddingResponse.getEmbeddings().isEmpty()) {
+            return NodeExecutionResult.failure("Failed to generate query embedding");
+        }
         List<Float> queryVector = embeddingResponse.getEmbeddings().get(0);
 
         // Step 2: 檢索相關文檔

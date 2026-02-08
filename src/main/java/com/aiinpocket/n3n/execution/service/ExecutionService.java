@@ -562,7 +562,9 @@ public class ExecutionService {
         execution = executionRepository.findById(executionId).orElseThrow();
         execution.setStatus("completed");
         execution.setCompletedAt(Instant.now());
-        execution.setDurationMs((int) (execution.getCompletedAt().toEpochMilli() - execution.getStartedAt().toEpochMilli()));
+        if (execution.getStartedAt() != null) {
+            execution.setDurationMs((int) (execution.getCompletedAt().toEpochMilli() - execution.getStartedAt().toEpochMilli()));
+        }
         executionRepository.save(execution);
 
         stateManager.updateExecutionStatus(executionId, "completed");

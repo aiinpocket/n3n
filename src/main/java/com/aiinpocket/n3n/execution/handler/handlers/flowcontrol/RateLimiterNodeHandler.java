@@ -19,6 +19,7 @@ public class RateLimiterNodeHandler extends AbstractNodeHandler {
 
     // Simple in-memory rate limiter state per execution
     private static final ConcurrentHashMap<String, Deque<Long>> windowState = new ConcurrentHashMap<>();
+    private static final int MAX_KEYS = 10_000;
 
     @Override
     public String getType() {
@@ -101,6 +102,16 @@ public class RateLimiterNodeHandler extends AbstractNodeHandler {
 
         // Record this request
         timestamps.addLast(System.currentTimeMillis());
+
+        // Evict stale keys to prevent unbounded memory growth
+        if (windowState.size() > MAX_KEYS) {
+            long evictBefore = System.currentTimeMillis() - windowMs * 2;
+            windowState.entrySet().removeIf(e -> {
+                Deque<Long> deque = e.getValue();
+                Long last = deque.peekLast();
+                return last == null || last < evictBefore;
+            });
+        }
 
         // Pass through input data
         Map<String, Object> output = new LinkedHashMap<>();

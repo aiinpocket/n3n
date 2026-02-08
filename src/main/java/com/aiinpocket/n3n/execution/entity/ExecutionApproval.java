@@ -91,10 +91,11 @@ public class ExecutionApproval {
      * Check if approval threshold is met based on approval mode
      */
     public boolean isApprovalMet() {
+        int required = requiredApprovers != null ? Math.max(requiredApprovers, 1) : 1;
         return switch (approvalMode) {
             case "any" -> approvedCount >= 1;
-            case "all" -> approvedCount >= requiredApprovers;
-            case "majority" -> approvedCount > requiredApprovers / 2;
+            case "all" -> approvedCount >= required;
+            case "majority" -> approvedCount > required / 2;
             default -> false;
         };
     }
@@ -103,10 +104,11 @@ public class ExecutionApproval {
      * Check if rejection threshold is met based on approval mode
      */
     public boolean isRejectionMet() {
+        int required = requiredApprovers != null ? Math.max(requiredApprovers, 1) : 1;
         return switch (approvalMode) {
             case "any" -> rejectedCount >= 1;
             case "all" -> rejectedCount >= 1; // Any rejection fails "all" mode
-            case "majority" -> rejectedCount > requiredApprovers / 2;
+            case "majority" -> rejectedCount > required / 2;
             default -> false;
         };
     }
