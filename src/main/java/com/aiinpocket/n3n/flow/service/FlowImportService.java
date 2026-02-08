@@ -289,7 +289,13 @@ public class FlowImportService {
 
             for (Map<String, Object> node : (List<Map<String, Object>>) nodesObj) {
                 Map<String, Object> newNode = new HashMap<>(node);
-                Map<String, Object> data = new HashMap<>((Map<String, Object>) node.get("data"));
+                @SuppressWarnings("unchecked")
+                Map<String, Object> rawData = (Map<String, Object>) node.get("data");
+                if (rawData == null) {
+                    nodes.add(newNode);
+                    continue;
+                }
+                Map<String, Object> data = new HashMap<>(rawData);
 
                 String nodeId = (String) node.get("id");
                 if (credentialMappings.containsKey(nodeId)) {
@@ -321,9 +327,13 @@ public class FlowImportService {
 
             for (Map<String, Object> node : (List<Map<String, Object>>) nodesObj) {
                 Map<String, Object> newNode = new HashMap<>(node);
-                Map<String, Object> data = new HashMap<>((Map<String, Object>) node.get("data"));
-                data.remove("credentialId");
-                newNode.put("data", data);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> rawData = (Map<String, Object>) node.get("data");
+                if (rawData != null) {
+                    Map<String, Object> data = new HashMap<>(rawData);
+                    data.remove("credentialId");
+                    newNode.put("data", data);
+                }
                 nodes.add(newNode);
             }
 

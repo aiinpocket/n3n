@@ -210,8 +210,12 @@ public class AIAssistantService {
 
             // Clone the definition to avoid modifying the original
             Map<String, Object> updatedDefinition = new HashMap<>(request.getDefinition());
-            List<Map<String, Object>> nodes = new ArrayList<>((List<Map<String, Object>>) updatedDefinition.get("nodes"));
-            List<Map<String, Object>> edges = new ArrayList<>((List<Map<String, Object>>) updatedDefinition.get("edges"));
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> rawNodes = (List<Map<String, Object>>) updatedDefinition.get("nodes");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> rawEdges = (List<Map<String, Object>>) updatedDefinition.get("edges");
+            List<Map<String, Object>> nodes = new ArrayList<>(rawNodes != null ? rawNodes : List.of());
+            List<Map<String, Object>> edges = new ArrayList<>(rawEdges != null ? rawEdges : List.of());
 
             List<String> appliedIds = new ArrayList<>();
 

@@ -421,7 +421,11 @@ public class PluginService {
         StringBuilder sb = new StringBuilder();
         for (PluginVersion version : versions) {
             sb.append("## v").append(version.getVersion()).append("\n");
-            sb.append("*").append(version.getPublishedAt().toLocalDate()).append("*\n\n");
+            if (version.getPublishedAt() != null) {
+                sb.append("*").append(version.getPublishedAt().toLocalDate()).append("*\n\n");
+            } else {
+                sb.append("\n");
+            }
             if (version.getReleaseNotes() != null && !version.getReleaseNotes().isBlank()) {
                 sb.append(version.getReleaseNotes()).append("\n\n");
             }

@@ -68,7 +68,7 @@ public class WebhookService {
 
     @Transactional
     public WebhookResponse createWebhook(CreateWebhookRequest request, UUID userId) {
-        String method = request.getMethod() != null ? request.getMethod() : "POST";
+        String method = request.getMethod() != null ? request.getMethod().toUpperCase() : "POST";
         if (webhookRepository.existsByPathAndMethod(request.getPath(), method)) {
             throw new IllegalArgumentException("Webhook path already exists for method " + method + ": " + request.getPath());
         }
