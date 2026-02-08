@@ -231,6 +231,26 @@ class SchedulerServiceTest extends BaseServiceTest {
         }
 
         @Test
+        void scheduleCron_invalidCronExpression_throwsException() {
+            assertThatThrownBy(() -> schedulerService.scheduleCron(flowId, "invalid cron", "UTC", userId))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid cron expression");
+        }
+
+        @Test
+        void scheduleCron_blankCronExpression_throwsException() {
+            assertThatThrownBy(() -> schedulerService.scheduleCron(flowId, "", "UTC", userId))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("required");
+        }
+
+        @Test
+        void scheduleCron_invalidTimezone_throwsException() {
+            assertThatThrownBy(() -> schedulerService.scheduleCron(flowId, "0 0 9 * * ?", "Invalid/Zone", userId))
+                    .isInstanceOf(Exception.class);
+        }
+
+        @Test
         void scheduleCron_schedulerException_propagates() throws SchedulerException {
             when(scheduler.scheduleJob(any(JobDetail.class), any(Trigger.class)))
                     .thenThrow(new SchedulerException("Scheduler is shutdown"));
@@ -246,8 +266,15 @@ class SchedulerServiceTest extends BaseServiceTest {
     class ScheduleIntervalEdgeCases {
 
         @Test
-        void scheduleInterval_smallInterval_succeeds() throws SchedulerException {
-            String scheduleId = schedulerService.scheduleInterval(flowId, 1000, userId);
+        void scheduleInterval_tooSmallInterval_throwsException() {
+            assertThatThrownBy(() -> schedulerService.scheduleInterval(flowId, 1000, userId))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("at least 10000ms");
+        }
+
+        @Test
+        void scheduleInterval_minimumInterval_succeeds() throws SchedulerException {
+            String scheduleId = schedulerService.scheduleInterval(flowId, 10000, userId);
 
             assertThat(scheduleId).isNotNull();
             verify(scheduler).scheduleJob(any(JobDetail.class), any(Trigger.class));

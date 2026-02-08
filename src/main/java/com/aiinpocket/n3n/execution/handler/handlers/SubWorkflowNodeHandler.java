@@ -63,11 +63,25 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
         return "workflow";
     }
 
+    private static final int MAX_SUB_WORKFLOW_DEPTH = 10;
+    private static final String DEPTH_KEY = "_subWorkflowDepth";
+
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
         String workflowId = getStringConfig(context, "workflowId", "");
         boolean waitForCompletion = getBooleanConfig(context, "waitForCompletion", true);
         int timeoutSeconds = getIntConfig(context, "timeoutSeconds", 300);
+
+        // Check recursion depth to prevent infinite sub-workflow loops
+        int currentDepth = 0;
+        Map<String, Object> globalCtx = context.getGlobalContext();
+        if (globalCtx != null && globalCtx.get(DEPTH_KEY) instanceof Number depthNum) {
+            currentDepth = depthNum.intValue();
+        }
+        if (currentDepth >= MAX_SUB_WORKFLOW_DEPTH) {
+            return NodeExecutionResult.failure(
+                "Sub-workflow recursion depth limit exceeded (max " + MAX_SUB_WORKFLOW_DEPTH + ")");
+        }
 
         if (workflowId.isEmpty()) {
             return NodeExecutionResult.failure("Workflow ID is required");

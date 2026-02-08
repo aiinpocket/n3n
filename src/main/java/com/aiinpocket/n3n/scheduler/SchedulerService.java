@@ -6,6 +6,7 @@ import org.quartz.*;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
+import java.time.zone.ZoneRulesException;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class SchedulerService {
 
     private static final String JOB_GROUP = "workflow-schedules";
     private static final String TRIGGER_GROUP = "workflow-triggers";
+    private static final long MIN_INTERVAL_MS = 10_000; // 10 seconds minimum
 
     /**
      * Schedule a workflow to run on a cron schedule.
@@ -33,6 +35,24 @@ public class SchedulerService {
      * @return the schedule ID
      */
     public String scheduleCron(UUID flowId, String cronExpression, String timezone, UUID userId) throws SchedulerException {
+        // Validate cron expression
+        if (cronExpression == null || cronExpression.isBlank()) {
+            throw new IllegalArgumentException("Cron expression is required");
+        }
+        if (!CronExpression.isValidExpression(cronExpression)) {
+            throw new IllegalArgumentException("Invalid cron expression: " + cronExpression);
+        }
+
+        // Validate timezone
+        if (timezone == null || timezone.isBlank()) {
+            throw new IllegalArgumentException("Timezone is required");
+        }
+        try {
+            ZoneId.of(timezone);
+        } catch (ZoneRulesException e) {
+            throw new IllegalArgumentException("Invalid timezone: " + timezone);
+        }
+
         String scheduleId = UUID.randomUUID().toString();
 
         JobDetail job = JobBuilder.newJob(WorkflowExecutionJob.class)
@@ -67,6 +87,11 @@ public class SchedulerService {
      * @return the schedule ID
      */
     public String scheduleInterval(UUID flowId, long intervalMs, UUID userId) throws SchedulerException {
+        if (intervalMs < MIN_INTERVAL_MS) {
+            throw new IllegalArgumentException(
+                "Interval must be at least " + MIN_INTERVAL_MS + "ms (got " + intervalMs + "ms)");
+        }
+
         String scheduleId = UUID.randomUUID().toString();
 
         JobDetail job = JobBuilder.newJob(WorkflowExecutionJob.class)

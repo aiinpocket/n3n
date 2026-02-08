@@ -135,10 +135,14 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             return System.currentTimeMillis();
         }
 
-        // Check for $env.VARIABLE
+        // Check for $env.VARIABLE — restricted to N3N_USER_ prefix for security
         Matcher envMatcher = ENV_PATTERN.matcher(expr);
         if (envMatcher.matches()) {
             String envVar = envMatcher.group(1);
+            if (!envVar.startsWith("N3N_USER_")) {
+                log.warn("Blocked access to environment variable '{}' — only N3N_USER_* variables are allowed", envVar);
+                return null;
+            }
             return System.getenv(envVar);
         }
 

@@ -41,14 +41,13 @@ public class DeviceKeyStore {
     }
 
     /**
-     * Get and consume a pairing request
+     * Get and consume a pairing request atomically (prevents double-use race condition)
      */
     public Optional<PairingRequest> consumePairing(String pairingCode) {
         String key = PAIRING_PREFIX + pairingCode;
         @SuppressWarnings("unchecked")
-        PairingRequest request = (PairingRequest) redisTemplate.opsForValue().get(key);
+        PairingRequest request = (PairingRequest) redisTemplate.opsForValue().getAndDelete(key);
         if (request != null) {
-            redisTemplate.delete(key);
             log.debug("Consumed pairing request: {}", pairingCode);
         }
         return Optional.ofNullable(request);
@@ -111,13 +110,13 @@ public class DeviceKeyStore {
      * Get all device keys for a user
      */
     public List<DeviceKey> getDeviceKeysForUser(UUID userId) {
-        // In production, maintain a secondary index userId -> deviceIds
-        // For now, scan (not efficient for large datasets)
-        Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");
+        // Use SCAN instead of KEYS to avoid blocking Redis
         List<DeviceKey> result = new ArrayList<>();
-
-        if (keys != null) {
-            for (String key : keys) {
+        try (var cursor = redisTemplate.scan(
+                org.springframework.data.redis.core.ScanOptions.scanOptions()
+                        .match(KEY_PREFIX + "*").count(100).build())) {
+            while (cursor.hasNext()) {
+                String key = (String) cursor.next();
                 @SuppressWarnings("unchecked")
                 DeviceKey deviceKey = (DeviceKey) redisTemplate.opsForValue().get(key);
                 if (deviceKey != null && userId.equals(deviceKey.getUserId())) {
@@ -125,7 +124,6 @@ public class DeviceKeyStore {
                 }
             }
         }
-
         return result;
     }
 

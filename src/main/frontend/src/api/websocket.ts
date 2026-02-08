@@ -29,14 +29,21 @@ class WebSocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
+  private connectPromise: Promise<void> | null = null;
   onReconnectFailed: (() => void) | null = null;
 
   connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.connected && this.client?.connected) {
-        resolve();
-        return;
-      }
+    // If already connected, resolve immediately
+    if (this.connected && this.client?.connected) {
+      return Promise.resolve();
+    }
+    // If a connection attempt is already in progress, return the same promise
+    // to prevent orphaned SockJS connections from concurrent connect() calls
+    if (this.connectPromise) {
+      return this.connectPromise;
+    }
+
+    this.connectPromise = new Promise<void>((resolve, reject) => {
 
       const token = useAuthStore.getState().accessToken;
       // SockJS handshake doesn't support custom headers, so token must be in STOMP connect headers.
@@ -57,6 +64,7 @@ class WebSocketService {
         logger.info('WebSocket connected');
         this.connected = true;
         this.reconnectAttempts = 0;
+        this.connectPromise = null;
         // Re-subscribe to all topics that have handlers
         this.resubscribeAll();
         resolve();
@@ -64,6 +72,7 @@ class WebSocketService {
 
       this.client.onStompError = (frame) => {
         logger.error('STOMP error:', frame.headers['message']);
+        this.connectPromise = null;
         reject(new Error(frame.headers['message']));
       };
 
@@ -87,7 +96,11 @@ class WebSocketService {
       };
 
       this.client.activate();
+    }).catch((err) => {
+      this.connectPromise = null;
+      throw err;
     });
+    return this.connectPromise;
   }
 
   disconnect(): void {

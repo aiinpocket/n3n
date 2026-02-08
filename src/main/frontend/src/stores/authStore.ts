@@ -171,7 +171,8 @@ export const useAuthStore = create<AuthState>()(
           throw new Error(i18n.t('auth.noRefreshToken'))
         }
         try {
-          const response = await apiClient.post('/auth/refresh', { refreshToken })
+          // Mark with _retry to prevent the 401 interceptor from entering an infinite refresh loop
+          const response = await apiClient.post('/auth/refresh', { refreshToken }, { _retry: true } as never)
           const { accessToken, refreshToken: newRefreshToken } = response.data
           set({ accessToken, refreshToken: newRefreshToken })
         } catch {

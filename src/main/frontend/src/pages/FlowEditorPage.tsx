@@ -258,20 +258,20 @@ export default function FlowEditorPage() {
       }
     }
     // Ctrl+Shift+P or Cmd+Shift+P to publish
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
       e.preventDefault()
       if (currentVersion && currentVersion.status !== 'published') {
         handlePublish()
       }
     }
-    // Ctrl+C or Cmd+C to copy
-    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+    // Ctrl+C or Cmd+C to copy (only intercept when nodes are selected to preserve native text copy)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedNodeIds.length > 0) {
       e.preventDefault()
       copySelectedNodes()
       message.info(t('editor.copied'))
     }
-    // Ctrl+X or Cmd+X to cut
-    if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+    // Ctrl+X or Cmd+X to cut (only intercept when nodes are selected to preserve native text cut)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'x' && selectedNodeIds.length > 0) {
       e.preventDefault()
       cutSelectedNodes()
       message.info(t('editor.cut'))
@@ -294,15 +294,15 @@ export default function FlowEditorPage() {
       selectAllNodes()
     }
     // Ctrl+Z or Cmd+Z to undo
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
       e.preventDefault()
       if (canUndo()) {
         undo()
         message.info(t('editor.undone'))
       }
     }
-    // Ctrl+Shift+Z or Cmd+Shift+Z to redo
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+    // Ctrl+Shift+Z or Cmd+Shift+Z to redo (e.key is 'Z' uppercase with Shift held)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') {
       e.preventDefault()
       if (canRedo()) {
         redo()

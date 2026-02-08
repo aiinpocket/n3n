@@ -122,8 +122,13 @@ public class DagParser {
                 continue;
             }
 
-            adjacency.get(edge.getSource()).add(edge.getTarget());
-            inDegree.put(edge.getTarget(), inDegree.get(edge.getTarget()) + 1);
+            // Only increment inDegree if this is a new edge (Set.add returns true)
+            // This prevents duplicate edges (e.g., success + error edge between same nodes)
+            // from inflating inDegree, which would cause false cycle detection
+            boolean isNewEdge = adjacency.get(edge.getSource()).add(edge.getTarget());
+            if (isNewEdge) {
+                inDegree.put(edge.getTarget(), inDegree.get(edge.getTarget()) + 1);
+            }
         }
 
         // Find entry points (nodes with no incoming edges)
