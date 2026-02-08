@@ -30,6 +30,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { extractApiError } from '../utils/errorMessages'
 import { useSkillStore } from '../stores/skillStore'
 import type { Skill } from '../api/skill'
 
@@ -95,7 +96,7 @@ export default function SkillsPage() {
         input = JSON.parse(testInput)
       } catch {
         message.error(t('component.jsonFormatError'))
-        setTestResult('Error: Invalid JSON input')
+        setTestResult(t('component.jsonFormatError'))
         setTesting(false)
         return
       }
@@ -105,11 +106,11 @@ export default function SkillsPage() {
         setTestResult(JSON.stringify(result.data, null, 2))
         message.success(t('skill.testSuccess'))
       } else {
-        setTestResult(`Error: ${result.errorCode || ''} ${result.error}`)
+        setTestResult(`${result.errorCode || ''} ${result.error || t('skill.testFailed')}`.trim())
         message.error(t('skill.testFailed'))
       }
-    } catch {
-      setTestResult(`Error: ${t('skill.testFailed')}`)
+    } catch (error) {
+      setTestResult(extractApiError(error, t('skill.testFailed')))
       message.error(t('skill.testFailed'))
     } finally {
       setTesting(false)

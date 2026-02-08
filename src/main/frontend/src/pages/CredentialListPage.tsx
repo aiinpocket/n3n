@@ -35,8 +35,8 @@ const CredentialListPage: React.FC = () => {
     try {
       await deleteCredential(id)
       message.success(t('credential.deleteSuccess'))
-    } catch {
-      message.error(t('common.deleteFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('common.deleteFailed')))
     }
   }
 

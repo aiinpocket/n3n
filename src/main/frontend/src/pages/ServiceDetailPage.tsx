@@ -28,6 +28,7 @@ import {
   ApiOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { extractApiError } from '../utils/errorMessages'
 import { useServiceStore } from '../stores/serviceStore'
 import type { ServiceEndpoint, CreateEndpointRequest } from '../types'
 
@@ -85,8 +86,10 @@ export default function ServiceDetailPage() {
       if (result.success) {
         message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
-        message.error(result.message)
+        message.error(result.message || t('service.connectionFailed'))
       }
+    } catch (error) {
+      message.error(extractApiError(error, t('service.connectionFailed')))
     } finally {
       setTesting(false)
     }
@@ -130,9 +133,8 @@ export default function ServiceDetailPage() {
       setEndpointModalOpen(false)
       form.resetFields()
       setEditingEndpoint(null)
-    } catch (error: unknown) {
-      const err = error as { message?: string }
-      message.error(err.message || t('common.error'))
+    } catch (error) {
+      message.error(extractApiError(error, t('common.operationFailed')))
     }
   }
 
