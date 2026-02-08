@@ -39,10 +39,19 @@ public class ConversationManager {
      */
     @Transactional
     public Conversation createConversation(UUID userId, UUID flowId, String title) {
+        return createConversation(userId, flowId, title, "GENERAL");
+    }
+
+    /**
+     * Create a new conversation with a specific type.
+     */
+    @Transactional
+    public Conversation createConversation(UUID userId, UUID flowId, String title, String conversationType) {
         Conversation conversation = Conversation.builder()
                 .userId(userId)
                 .flowId(flowId)
                 .title(title != null ? title : "New Conversation")
+                .conversationType(conversationType != null ? conversationType : "GENERAL")
                 .messages(new ArrayList<>())
                 .messageCount(0)
                 .build();

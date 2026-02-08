@@ -37,6 +37,10 @@ public class Conversation {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(name = "conversation_type", length = 30)
+    @Builder.Default
+    private String conversationType = "GENERAL";
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<Map<String, Object>> messages;

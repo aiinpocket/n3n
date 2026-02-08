@@ -1,8 +1,10 @@
 package com.aiinpocket.n3n.ai.service;
 
+import com.aiinpocket.n3n.ai.conversation.ConversationManager;
 import com.aiinpocket.n3n.ai.dto.RequirementClarificationRequest;
 import com.aiinpocket.n3n.ai.dto.RequirementClarificationResponse;
 import com.aiinpocket.n3n.ai.dto.RequirementClarificationResponse.RequirementSummary;
+import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,7 +28,15 @@ import java.util.regex.Pattern;
 public class RequirementClarificationService {
 
     private final SimpleAIProviderRegistry providerRegistry;
+    private final ConversationManager conversationManager;
     private final ObjectMapper objectMapper;
+
+    private static final int MAX_INPUT_LENGTH = 5000;
+    private static final List<String> SUSPICIOUS_PATTERNS = List.of(
+        "ignore above", "disregard", "forget everything",
+        "you are now", "jailbreak", "dan mode", "system prompt",
+        "<|im_start|>", "<|im_end|>"
+    );
 
     private static final String SYSTEM_PROMPT = """
         你是 N3N 流程設計助手。你的任務是透過對話幫助使用者釐清自動化流程的需求。
@@ -83,6 +93,12 @@ public class RequirementClarificationService {
             RequirementClarificationRequest request,
             UUID userId) {
 
+        // Sanitize user input
+        String sanitizedMessage = sanitizeInput(request.getMessage());
+        if (sanitizedMessage == null) {
+            return RequirementClarificationResponse.error("Invalid input");
+        }
+
         SimpleAIProvider provider = providerRegistry.getProviderForFeature("assistant", userId);
 
         if (!provider.isAvailable()) {
@@ -90,12 +106,31 @@ public class RequirementClarificationService {
         }
 
         try {
-            // 建構包含歷史的提示詞
-            String prompt = buildPrompt(request);
+            // Ensure conversation exists for persistence
+            UUID conversationId = request.getConversationId();
+            if (conversationId == null) {
+                Conversation conv = conversationManager.createConversation(
+                    userId, null, "Requirement Clarification", "CLARIFICATION");
+                conversationId = conv.getId();
+            }
 
+            // Persist user message
+            conversationManager.addMessage(conversationId, userId, "user", sanitizedMessage, null);
+
+            // Build prompt and call AI
+            String prompt = buildPrompt(request);
             String response = provider.chat(prompt, SYSTEM_PROMPT, 2048, 0.7);
 
-            return parseResponse(response, request.getConversationId());
+            RequirementClarificationResponse clarifyResponse = parseResponse(response, conversationId);
+
+            // Persist AI response
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("requirementComplete", clarifyResponse.isRequirementComplete());
+            conversationManager.addMessage(
+                conversationId, userId, "assistant",
+                clarifyResponse.getMessage(), metadata);
+
+            return clarifyResponse;
 
         } catch (Exception e) {
             log.error("Requirement clarification failed", e);
@@ -187,5 +222,33 @@ public class RequirementClarificationService {
             return content.substring(start, end + 1);
         }
         return content;
+    }
+
+    /**
+     * Sanitize user input: length check, suspicious pattern detection, control char removal.
+     */
+    private String sanitizeInput(String input) {
+        if (input == null || input.isBlank()) {
+            return null;
+        }
+        if (input.length() > MAX_INPUT_LENGTH) {
+            log.warn("Clarification input exceeds max length ({} > {})", input.length(), MAX_INPUT_LENGTH);
+            return null;
+        }
+        String lowerInput = input.toLowerCase();
+        for (String pattern : SUSPICIOUS_PATTERNS) {
+            if (lowerInput.contains(pattern)) {
+                log.warn("Suspicious pattern in clarification input: '{}'", pattern);
+                return null;
+            }
+        }
+        String sanitized = input
+            .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "")
+            .replaceAll("\\p{Cc}", "");
+        sanitized = sanitized.replaceAll("\\s{10,}", " ".repeat(10));
+        if (sanitized.isBlank() || sanitized.length() < 2) {
+            return null;
+        }
+        return sanitized.trim();
     }
 }
