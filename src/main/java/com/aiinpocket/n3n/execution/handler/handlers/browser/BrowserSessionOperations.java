@@ -28,7 +28,7 @@ final class BrowserSessionOperations {
             ConcurrentMap<String, BrowserNodeHandler.BrowserSession> sessions) throws IOException {
         return switch (operation) {
             case "create" -> createSession(host, port, sessionId, context, httpClient, objectMapper, sessions);
-            case "close" -> closeSession(sessionId, httpClient, sessions);
+            case "close" -> closeSession(host, port, sessionId, httpClient, sessions);
             case "list" -> listSessions(host, port, httpClient, objectMapper);
             default -> NodeExecutionResult.failure("Unknown session operation: " + operation);
         };
@@ -73,7 +73,7 @@ final class BrowserSessionOperations {
     }
 
     private static NodeExecutionResult closeSession(
-            String sessionId, OkHttpClient httpClient,
+            String host, int port, String sessionId, OkHttpClient httpClient,
             ConcurrentMap<String, BrowserNodeHandler.BrowserSession> sessions) throws IOException {
 
         BrowserNodeHandler.BrowserSession session = sessions.remove(sessionId);
@@ -82,8 +82,9 @@ final class BrowserSessionOperations {
         }
 
         String targetId = session.targetId();
+        String baseUrl = "http://" + host + ":" + port;
         Request closeRequest = new Request.Builder()
-            .url("http://localhost:9222/json/close/" + targetId)
+            .url(baseUrl + "/json/close/" + targetId)
             .get()
             .build();
 

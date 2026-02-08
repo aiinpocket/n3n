@@ -168,9 +168,8 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> sendCdpCommand(BrowserSession session, String method, Map<String, Object> params) throws IOException {
         String wsUrl = session.wsUrl();
 
-        // For HTTP-based CDP (simpler for most operations)
-        String httpUrl = wsUrl.replace("ws://", "http://").replace("/devtools/page/", "/json/");
-        String targetId = session.targetId();
+        // Derive HTTP base URL from WebSocket URL (e.g. ws://host:port/devtools/page/xxx → http://host:port)
+        String httpBaseUrl = wsUrl.replace("ws://", "http://").replaceAll("/devtools/.*", "");
 
         // Build command
         Map<String, Object> command = new HashMap<>();
@@ -178,23 +177,14 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
         command.put("method", method);
         command.put("params", params);
 
-        // Send via HTTP endpoint
-        String url = "http://localhost:9222/json/protocol";
-
-        // For simplicity, we'll use the WebSocket URL directly with OkHttp WebSocket
-        // But since WebSocket handling is complex, we'll use the HTTP fallback for now
-
-        // Actually, CDP requires WebSocket. Let's simulate basic operations via Runtime.evaluate where possible
-        // For a production implementation, you'd use a proper CDP client library
-
-        // Simplified HTTP-based approach (works for some operations)
+        // CDP requires WebSocket for full command execution.
+        // This is a simplified HTTP-based approach (works for listing targets).
+        // For a production implementation, use a proper WebSocket CDP client.
         Request request = new Request.Builder()
-            .url("http://localhost:9222/json")
+            .url(httpBaseUrl + "/json")
             .get()
             .build();
 
-        // For actual CDP commands, we need WebSocket
-        // This is a simplified implementation
         log.debug("CDP command: {} {}", method, params);
 
         // Return simulated success for now - in production, use proper WebSocket CDP client
