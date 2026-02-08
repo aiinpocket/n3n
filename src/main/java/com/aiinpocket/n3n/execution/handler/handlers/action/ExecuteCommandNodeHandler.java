@@ -141,7 +141,7 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
             }
 
             Process process = pb.start();
-
+            try {
             // Read stdout and stderr with size limits
             CompletableFuture<String> stdoutFuture = CompletableFuture.supplyAsync(
                 () -> readStream(process.getInputStream()));
@@ -152,6 +152,7 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
 
             if (!completed) {
                 process.destroyForcibly();
+                process.waitFor(5, TimeUnit.SECONDS);
                 return NodeExecutionResult.failure(
                     "Command timed out after " + timeoutSeconds + " seconds.");
             }
@@ -178,6 +179,11 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
             }
 
             return NodeExecutionResult.success(output);
+            } finally {
+                if (process.isAlive()) {
+                    process.destroyForcibly();
+                }
+            }
 
         } catch (IOException e) {
             return NodeExecutionResult.failure("Failed to execute command: " + sanitizeErrorMessage(e.getMessage()));

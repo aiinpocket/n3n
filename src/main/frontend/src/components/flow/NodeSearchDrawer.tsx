@@ -136,7 +136,7 @@ const NodeSearchDrawer: React.FC<NodeSearchDrawerProps> = ({ open, onClose, onAd
                 <Text strong style={{ fontSize: 13 }}>{t(group.category.label)}</Text>
                 <Tag style={{ marginLeft: 8 }}>{group.nodes.length}</Tag>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div role="listbox" aria-label={t(group.category.label)} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {group.nodes.map((node) => {
                   flatIndex++
                   const isSelected = flatIndex === selectedIndex
@@ -145,6 +145,8 @@ const NodeSearchDrawer: React.FC<NodeSearchDrawerProps> = ({ open, onClose, onAd
                     <div
                       key={node.value}
                       data-index={idx}
+                      role="option"
+                      aria-selected={isSelected}
                       onClick={() => handleSelect(node.value)}
                       style={{
                         padding: '8px 12px',
