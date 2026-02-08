@@ -2,11 +2,15 @@ package com.aiinpocket.n3n.execution.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -229,20 +233,23 @@ public class StateManager {
     // Cleanup
 
     public void cleanupExecution(UUID executionId) {
-        String pattern = "*:" + executionId + "*";
-        // Note: In production, use SCAN instead of KEYS for large datasets
-        var keys = redisTemplate.keys(EXECUTION_PREFIX + executionId + "*");
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
-        }
-        keys = redisTemplate.keys(NODE_STATE_PREFIX + executionId + "*");
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
-        }
-        keys = redisTemplate.keys(EXECUTION_OUTPUT_PREFIX + executionId + "*");
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
-        }
+        // Use SCAN instead of KEYS to avoid blocking Redis
+        deleteKeysByPattern(EXECUTION_PREFIX + executionId + "*");
+        deleteKeysByPattern(NODE_STATE_PREFIX + executionId + "*");
+        deleteKeysByPattern(EXECUTION_OUTPUT_PREFIX + executionId + "*");
         log.debug("Cleaned up execution state: {}", executionId);
+    }
+
+    private void deleteKeysByPattern(String pattern) {
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100).build();
+        List<String> keysToDelete = new ArrayList<>();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keysToDelete.add(cursor.next());
+            }
+        }
+        if (!keysToDelete.isEmpty()) {
+            redisTemplate.delete(keysToDelete);
+        }
     }
 }

@@ -161,7 +161,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     }, 2000)
 
     return () => clearInterval(pollInterval)
-  }, [installTasks, installedNodes])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installTasks])
 
   const handleInstallMissingNodes = async () => {
     if (!result?.missingNodes || result.missingNodes.length === 0) return

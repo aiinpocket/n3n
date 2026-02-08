@@ -145,6 +145,13 @@ export default function AIPanelDrawer({
     }
   }, [isPanelOpen, currentSession, flowId, startNewSession])
 
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
+
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || isStreaming) return
 

@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ public class WebhookService {
     private final WebhookRepository webhookRepository;
     private final ExecutionService executionService;
     private final FlowVersionRepository flowVersionRepository;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -150,10 +153,15 @@ public class WebhookService {
             Mac mac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             mac.init(secretKeySpec);
-            byte[] hash = mac.doFinal(payload.toString().getBytes(StandardCharsets.UTF_8));
+            // Use deterministic JSON serialization instead of Map.toString()
+            String payloadJson = objectMapper.writeValueAsString(payload);
+            byte[] hash = mac.doFinal(payloadJson.getBytes(StandardCharsets.UTF_8));
             String expectedSignature = Base64.getEncoder().encodeToString(hash);
 
-            if (!expectedSignature.equals(signature)) {
+            // Constant-time comparison to prevent timing attacks
+            if (!MessageDigest.isEqual(
+                    expectedSignature.getBytes(StandardCharsets.UTF_8),
+                    signature.getBytes(StandardCharsets.UTF_8))) {
                 throw new SecurityException("Invalid webhook signature");
             }
         } catch (SecurityException e) {

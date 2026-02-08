@@ -208,6 +208,9 @@ public class FlowService {
             clonedName = baseName + " (" + counter + ")";
             counter++;
         }
+        if (counter > 100 && flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(clonedName, userId)) {
+            throw new IllegalStateException("Too many clones with the same base name");
+        }
 
         Flow cloned = Flow.builder()
             .name(clonedName)
