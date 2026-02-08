@@ -86,7 +86,8 @@ public class OAuth2Controller {
         }
 
         // Parse state parameter (format: provider:credentialId:hmac)
-        String[] stateParts = state.split(":");
+        // Use limit=3 to avoid splitting HMAC value if it contains colons
+        String[] stateParts = state.split(":", 3);
         if (stateParts.length < 3) {
             log.warn("OAuth2 callback with invalid state format (missing HMAC)");
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid state parameter"));
@@ -100,9 +101,11 @@ public class OAuth2Controller {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid credential ID in state"));
         }
 
-        // Verify HMAC signature to prevent state forgery
+        // Verify HMAC signature to prevent state forgery (constant-time comparison)
         String expectedHmac = computeStateHmac(provider + ":" + credentialId);
-        if (!expectedHmac.equals(stateParts[2])) {
+        if (!java.security.MessageDigest.isEqual(
+                expectedHmac.getBytes(StandardCharsets.UTF_8),
+                stateParts[2].getBytes(StandardCharsets.UTF_8))) {
             log.warn("OAuth2 callback state HMAC mismatch for provider={}, credentialId={}", provider, credentialId);
             return ResponseEntity.status(403).body(Map.of("error", "Invalid state signature"));
         }
