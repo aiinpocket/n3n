@@ -143,9 +143,20 @@ export async function deleteConversation(conversationId: string) {
 
 // ==================== Flow Generation Stream ====================
 
+export interface RequirementContext {
+  triggerType?: string
+  triggerDescription?: string
+  dataSource?: string
+  processSteps?: string[]
+  outputTarget?: string
+  errorHandling?: string
+  fullDescription?: string
+}
+
 export interface GenerateFlowStreamRequest {
   userInput: string
   language?: string // 'zh-TW' | 'en'
+  requirementContext?: RequirementContext
 }
 
 export interface FlowGenerationChunk {

@@ -617,10 +617,11 @@ public class AIAssistantService {
 
         Set<String> installedTypes = getInstalledNodeTypes(userId);
 
-        return naturalLanguageModule.generateFlowStream(
+        return naturalLanguageModule.generateFlowStreamWithContext(
                 request.getUserInput(),
                 userId,
-                installedTypes
+                installedTypes,
+                request.getRequirementContext()
             )
             .onErrorResume(e -> {
                 log.error("Flow generation stream error", e);

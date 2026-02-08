@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.ai.prompt;
 
 import com.aiinpocket.n3n.ai.codex.NodeCodex;
 import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
+import com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.RequirementContext;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -86,13 +87,49 @@ public class PromptBuilder {
     }
 
     /**
-     * Build user prompt for flow generation
+     * Build user prompt for flow generation (without structured requirements).
      */
     public String buildFlowGenerationPrompt(String userInput, Set<String> installedNodeTypes) {
+        return buildFlowGenerationPrompt(userInput, null, installedNodeTypes);
+    }
+
+    /**
+     * Build user prompt for flow generation with optional structured requirements.
+     * When requirementContext is provided, the prompt includes structured analysis
+     * from the clarification conversation for more accurate flow generation.
+     */
+    public String buildFlowGenerationPrompt(String userInput, RequirementContext context, Set<String> installedNodeTypes) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("# 使用者需求\n\n");
         sb.append(userInput).append("\n\n");
+
+        // Inject structured requirements from clarification conversation
+        if (context != null) {
+            sb.append("# 需求分析（已通過對話確認）\n\n");
+            if (context.getTriggerType() != null || context.getTriggerDescription() != null) {
+                sb.append("- **觸發方式**: ");
+                if (context.getTriggerType() != null) sb.append("[").append(context.getTriggerType()).append("] ");
+                if (context.getTriggerDescription() != null) sb.append(context.getTriggerDescription());
+                sb.append("\n");
+            }
+            if (context.getDataSource() != null) {
+                sb.append("- **資料來源**: ").append(context.getDataSource()).append("\n");
+            }
+            if (context.getProcessSteps() != null && !context.getProcessSteps().isEmpty()) {
+                sb.append("- **處理步驟**:\n");
+                for (int i = 0; i < context.getProcessSteps().size(); i++) {
+                    sb.append("  ").append(i + 1).append(". ").append(context.getProcessSteps().get(i)).append("\n");
+                }
+            }
+            if (context.getOutputTarget() != null) {
+                sb.append("- **輸出目標**: ").append(context.getOutputTarget()).append("\n");
+            }
+            if (context.getErrorHandling() != null) {
+                sb.append("- **錯誤處理**: ").append(context.getErrorHandling()).append("\n");
+            }
+            sb.append("\n");
+        }
 
         sb.append("# 可用節點\n\n");
 

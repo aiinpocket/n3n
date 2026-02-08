@@ -120,6 +120,17 @@ public class NaturalLanguageModule {
      * Provides real-time progress updates during flow generation.
      */
     public Flux<FlowGenerationChunk> generateFlowStream(String userInput, UUID userId, Set<String> installedNodeTypes) {
+        return generateFlowStream(userInput, userId, installedNodeTypes, null);
+    }
+
+    /**
+     * Generate a workflow from natural language with SSE streaming and optional structured requirements.
+     */
+    public Flux<FlowGenerationChunk> generateFlowStreamWithContext(String userInput, UUID userId, Set<String> installedNodeTypes, com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.RequirementContext requirementContext) {
+        return generateFlowStream(userInput, userId, installedNodeTypes, requirementContext);
+    }
+
+    private Flux<FlowGenerationChunk> generateFlowStream(String userInput, UUID userId, Set<String> installedNodeTypes, com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.RequirementContext requirementContext) {
         Sinks.Many<FlowGenerationChunk> sink = Sinks.many().multicast().onBackpressureBuffer();
 
         // 安全檢查：驗證和清理輸入
@@ -158,7 +169,7 @@ public class NaturalLanguageModule {
                 // Phase 3: Building prompts (20-30%)
                 emitProgress(sink, 25, "Building AI prompt...", "building_prompt");
                 String systemPrompt = promptBuilder.buildSystemPrompt(safeInput);
-                String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, installedNodeTypes);
+                String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, requirementContext, installedNodeTypes);
                 emitProgress(sink, 30, "Prompt ready", "preparing");
 
                 // Phase 4: Calling AI (30-70%)

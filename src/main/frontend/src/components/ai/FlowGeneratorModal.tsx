@@ -43,6 +43,7 @@ import {
   type NodeData,
   type EdgeData,
   type MissingNodeInfo,
+  type RequirementContext,
 } from '../../api/aiAssistantStream'
 import MiniFlowPreview from './MiniFlowPreview'
 import AIThinkingIndicator from './AIThinkingIndicator'
@@ -349,11 +350,20 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     }
   }
 
-  // Generate from the clarified requirements
+  // Generate from the clarified requirements — pass structured context
   const handleConfirmAndGenerate = () => {
     const fullDescription = requirementSummary?.fullDescription
       || buildDescriptionFromSummary()
-    handleGenerateFromDescription(fullDescription)
+    const context = requirementSummary ? {
+      triggerType: requirementSummary.triggerType,
+      triggerDescription: requirementSummary.triggerDescription,
+      dataSource: requirementSummary.dataSource,
+      processSteps: requirementSummary.processSteps,
+      outputTarget: requirementSummary.outputTarget,
+      errorHandling: requirementSummary.errorHandling,
+      fullDescription: requirementSummary.fullDescription,
+    } : undefined
+    handleGenerateFromDescription(fullDescription, context)
   }
 
   const buildDescriptionFromSummary = (): string => {
@@ -377,7 +387,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     return parts.join('. ') || userInput
   }
 
-  const handleGenerateFromDescription = async (description: string) => {
+  const handleGenerateFromDescription = async (description: string, context?: RequirementContext) => {
     // Abort any previous generation
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -400,7 +410,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     try {
       await generateFlowStream(
-        { userInput: description, language: i18n.language || getLocale() },
+        { userInput: description, language: i18n.language || getLocale(), requirementContext: context },
         {
           onThinking: (msg) => {
             if (!mountedRef.current || controller.signal.aborted) return
