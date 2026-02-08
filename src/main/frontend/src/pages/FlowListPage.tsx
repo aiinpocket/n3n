@@ -632,8 +632,8 @@ export default function FlowListPage() {
               navigate(`/flows/${flow.id}/edit`, {
                 state: { generatedFlow: flowDef },
               })
-            } catch {
-              message.error(t('flow.createFailed'))
+            } catch (err) {
+              message.error(extractApiError(err, t('flow.createFailed')))
             }
           }
         }}

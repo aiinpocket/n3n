@@ -45,7 +45,7 @@ public class ResponderAgent implements Agent {
 
     @Override
     public String getDescription() {
-        return "回應整理代理，負責格式化回應、解釋流程、處理閒聊";
+        return "Responder agent for formatting responses, explaining flows, and handling chitchat";
     }
 
     @Override
@@ -149,10 +149,9 @@ public class ResponderAgent implements Agent {
         }
 
         if (draft == null || !draft.hasContent()) {
-            return AgentResult.success("目前沒有流程可以解釋。您想要建立一個新流程嗎？");
+            return AgentResult.success("No flow available to explain. Would you like to create a new one?");
         }
 
-        // 使用 AI 生成解釋（如果可用）
         SimpleAIProvider provider = providerRegistry.getProviderForFeature(
             "responder", context.getUserId());
 
@@ -160,14 +159,15 @@ public class ResponderAgent implements Agent {
             try {
                 String flowDescription = describeFlow(draft);
                 String prompt = String.format("""
-                    以下是一個工作流程的結構:
+                    Here is a workflow structure:
                     %s
 
-                    請用簡潔易懂的方式解釋這個流程做了什麼事。
-                    包含：
-                    1. 流程的觸發方式
-                    2. 主要步驟說明
-                    3. 最終輸出或結果
+                    Explain what this flow does in a clear, concise way.
+                    Respond in the same language the user used.
+                    Include:
+                    1. How the flow is triggered
+                    2. Main steps description
+                    3. Final output or result
                     """, flowDescription);
 
                 String response = provider.chat(prompt, EXPLAIN_SYSTEM_PROMPT, 1000, 0.5);
@@ -184,14 +184,13 @@ public class ResponderAgent implements Agent {
 
     private AgentResult ruleBasedExplanation(WorkingFlowDraft draft) {
         StringBuilder sb = new StringBuilder();
-        sb.append("## 流程說明\n\n");
+        sb.append("## Flow Description\n\n");
 
         List<WorkingFlowDraft.Node> nodes = draft.getNodes();
         List<WorkingFlowDraft.Edge> edges = draft.getEdges();
 
-        sb.append("此流程包含 **").append(nodes.size()).append("** 個節點：\n\n");
+        sb.append("This flow contains **").append(nodes.size()).append("** nodes:\n\n");
 
-        // 找出起始節點（沒有入邊的節點）
         Set<String> hasIncoming = new HashSet<>();
         for (WorkingFlowDraft.Edge edge : edges) {
             hasIncoming.add(edge.target());
@@ -202,21 +201,21 @@ public class ResponderAgent implements Agent {
             .toList();
 
         if (!startNodes.isEmpty()) {
-            sb.append("**起始點**: ");
+            sb.append("**Start**: ");
             for (WorkingFlowDraft.Node node : startNodes) {
                 sb.append(node.label()).append(" (`").append(node.type()).append("`) ");
             }
             sb.append("\n\n");
         }
 
-        sb.append("**節點列表**:\n");
+        sb.append("**Nodes**:\n");
         int index = 1;
         for (WorkingFlowDraft.Node node : nodes) {
             sb.append(index++).append(". **").append(node.label())
                 .append("** - ").append(getNodeTypeDescription(node.type())).append("\n");
         }
 
-        sb.append("\n**連接關係**:\n");
+        sb.append("\n**Connections**:\n");
         for (WorkingFlowDraft.Edge edge : edges) {
             String sourceName = findNodeLabel(nodes, edge.source());
             String targetName = findNodeLabel(nodes, edge.target());
@@ -238,16 +237,16 @@ public class ResponderAgent implements Agent {
             context.getIntent().getUnderstanding() : null;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("我需要更多資訊來協助您。\n\n");
+        sb.append("I need more information to help you.\n\n");
 
         if (understanding != null && !understanding.isBlank()) {
-            sb.append("我理解您想要: ").append(understanding).append("\n\n");
+            sb.append("I understand you want to: ").append(understanding).append("\n\n");
         }
 
-        sb.append("請問您可以提供更多細節嗎？例如：\n");
-        sb.append("- 流程的觸發方式（定時、Webhook、手動）\n");
-        sb.append("- 需要處理什麼資料\n");
-        sb.append("- 最終要執行什麼動作\n");
+        sb.append("Could you provide more details? For example:\n");
+        sb.append("- How the flow should be triggered (schedule, webhook, manual)\n");
+        sb.append("- What data needs to be processed\n");
+        sb.append("- What actions should be performed at the end\n");
 
         return AgentResult.builder()
             .success(true)
@@ -265,19 +264,19 @@ public class ResponderAgent implements Agent {
             "pendingChanges", List.class);
 
         if (pendingChanges == null || pendingChanges.isEmpty()) {
-            return AgentResult.success("目前沒有待確認的變更。");
+            return AgentResult.success("No pending changes to confirm.");
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("## 待確認變更\n\n");
-        sb.append("以下變更將被套用：\n\n");
+        sb.append("## Pending Changes\n\n");
+        sb.append("The following changes will be applied:\n\n");
 
         for (AgentResult.PendingChange change : pendingChanges) {
             sb.append("- **").append(change.getType()).append("**: ")
                 .append(change.getDescription()).append("\n");
         }
 
-        sb.append("\n請確認是否要套用這些變更？");
+        sb.append("\nWould you like to apply these changes?");
 
         return AgentResult.builder()
             .success(true)
@@ -292,42 +291,40 @@ public class ResponderAgent implements Agent {
     private AgentResult handleChitchat(AgentContext context) {
         String userInput = context.getUserInput();
 
-        // 常見問候
-        if (containsAny(userInput.toLowerCase(), "你好", "hi", "hello", "哈囉")) {
+        if (containsAny(userInput.toLowerCase(), "你好", "hi", "hello", "哈囉", "こんにちは")) {
             return AgentResult.success(
-                "你好！我是 N3N 流程助手。我可以幫您：\n" +
-                "- 建立新的工作流程\n" +
-                "- 搜尋可用的節點\n" +
-                "- 解釋現有流程\n" +
-                "- 優化流程設計\n\n" +
-                "請問有什麼我可以協助的？"
+                "Hello! I'm the N3N Flow Assistant. I can help you:\n" +
+                "- Create new workflows\n" +
+                "- Search for available nodes\n" +
+                "- Explain existing flows\n" +
+                "- Optimize flow design\n\n" +
+                "What would you like to do?"
             );
         }
 
-        if (containsAny(userInput.toLowerCase(), "謝謝", "感謝", "thank")) {
-            return AgentResult.success("不客氣！如果還有其他需要，隨時告訴我。");
+        if (containsAny(userInput.toLowerCase(), "謝謝", "感謝", "thank", "ありがとう")) {
+            return AgentResult.success("You're welcome! Let me know if you need anything else.");
         }
 
-        if (containsAny(userInput.toLowerCase(), "幫助", "help", "怎麼用")) {
+        if (containsAny(userInput.toLowerCase(), "幫助", "help", "怎麼用", "ヘルプ")) {
             return AgentResult.success(
-                "## 使用說明\n\n" +
-                "我可以幫助您建立和管理工作流程。您可以：\n\n" +
-                "**建立流程**:\n" +
-                "- 「建立一個每天發送報表的流程」\n" +
-                "- 「幫我做一個監控網站的自動化」\n\n" +
-                "**搜尋節點**:\n" +
-                "- 「有什麼節點可以發送郵件？」\n" +
-                "- 「資料庫相關的節點有哪些？」\n\n" +
-                "**修改流程**:\n" +
-                "- 「加一個錯誤處理節點」\n" +
-                "- 「把 HTTP 請求節點的 URL 改成...」\n\n" +
-                "**其他**:\n" +
-                "- 「解釋這個流程」\n" +
-                "- 「優化這個流程」"
+                "## Usage Guide\n\n" +
+                "I can help you build and manage workflows. Try:\n\n" +
+                "**Create flows**:\n" +
+                "- \"Create a daily report flow\"\n" +
+                "- \"Build a website monitoring automation\"\n\n" +
+                "**Search nodes**:\n" +
+                "- \"What nodes can send emails?\"\n" +
+                "- \"Show me database nodes\"\n\n" +
+                "**Modify flows**:\n" +
+                "- \"Add an error handler node\"\n" +
+                "- \"Change the HTTP node URL to...\"\n\n" +
+                "**Other**:\n" +
+                "- \"Explain this flow\"\n" +
+                "- \"Optimize this flow\""
             );
         }
 
-        // 使用 AI 回應
         SimpleAIProvider provider = providerRegistry.getProviderForFeature(
             "responder", context.getUserId());
 
@@ -346,9 +343,9 @@ public class ResponderAgent implements Agent {
         }
 
         return AgentResult.success(
-            "我可能沒有完全理解您的意思。\n" +
-            "如果您想建立或修改流程，請告訴我具體的需求。\n" +
-            "或者您可以說「幫助」來查看使用說明。"
+            "I may not have fully understood your request.\n" +
+            "If you'd like to create or modify a flow, please tell me your specific needs.\n" +
+            "You can also type \"help\" to see usage instructions."
         );
     }
 
@@ -365,22 +362,20 @@ public class ResponderAgent implements Agent {
 
         StringBuilder sb = new StringBuilder();
 
-        // 如果有流程，總結流程狀態
         if (draft != null && draft.hasContent()) {
-            sb.append("## 流程狀態\n\n");
-            sb.append("目前流程包含 **").append(draft.getNodeCount()).append("** 個節點");
+            sb.append("## Flow Status\n\n");
+            sb.append("Current flow has **").append(draft.getNodeCount()).append("** nodes");
             if (draft.getEdgeCount() > 0) {
-                sb.append("和 **").append(draft.getEdgeCount()).append("** 個連接");
+                sb.append(" and **").append(draft.getEdgeCount()).append("** connections");
             }
-            sb.append("。\n\n");
+            sb.append(".\n\n");
 
-            // 加入驗證結果
             if (validationResult != null) {
                 Boolean valid = (Boolean) validationResult.get("valid");
                 if (valid != null && valid) {
-                    sb.append("✅ 流程驗證通過\n");
+                    sb.append("Flow validation passed\n");
                 } else {
-                    sb.append("⚠️ 流程有待處理的問題\n");
+                    sb.append("Flow has issues that need attention\n");
                     @SuppressWarnings("unchecked")
                     List<String> errors = (List<String>) validationResult.get("errors");
                     if (errors != null) {
@@ -398,23 +393,22 @@ public class ResponderAgent implements Agent {
                 .build();
         }
 
-        // 如果沒有流程，根據上下文回應
-        sb.append("請問您想要做什麼？我可以幫您：\n\n");
-        sb.append("- 建立新的工作流程\n");
-        sb.append("- 搜尋可用的節點\n");
-        sb.append("- 取得節點使用說明\n");
+        sb.append("What would you like to do? I can help you:\n\n");
+        sb.append("- Create a new workflow\n");
+        sb.append("- Search for available nodes\n");
+        sb.append("- Get node documentation\n");
 
         return AgentResult.success(sb.toString());
     }
 
     private String describeFlow(WorkingFlowDraft draft) {
         StringBuilder sb = new StringBuilder();
-        sb.append("節點:\n");
+        sb.append("Nodes:\n");
         for (WorkingFlowDraft.Node node : draft.getNodes()) {
             sb.append("- ").append(node.id()).append(": ")
                 .append(node.label()).append(" (").append(node.type()).append(")\n");
         }
-        sb.append("\n連接:\n");
+        sb.append("\nConnections:\n");
         for (WorkingFlowDraft.Edge edge : draft.getEdges()) {
             sb.append("- ").append(edge.source()).append(" -> ").append(edge.target()).append("\n");
         }
@@ -431,19 +425,19 @@ public class ResponderAgent implements Agent {
 
     private String getNodeTypeDescription(String type) {
         return switch (type) {
-            case "trigger", "manualTrigger" -> "手動觸發流程";
-            case "scheduleTrigger" -> "排程觸發器";
-            case "webhookTrigger" -> "Webhook 觸發器";
-            case "httpRequest" -> "發送 HTTP 請求";
-            case "sendEmail" -> "發送電子郵件";
-            case "database", "postgres", "mysql" -> "資料庫操作";
-            case "code" -> "執行程式碼";
-            case "condition" -> "條件判斷";
-            case "loop" -> "迴圈處理";
-            case "slack" -> "發送 Slack 訊息";
-            case "telegram" -> "發送 Telegram 訊息";
-            case "action" -> "執行動作";
-            default -> type + " 節點";
+            case "trigger", "manualTrigger" -> "Manual trigger";
+            case "scheduleTrigger" -> "Schedule trigger";
+            case "webhookTrigger" -> "Webhook trigger";
+            case "httpRequest" -> "HTTP request";
+            case "sendEmail" -> "Send email";
+            case "database", "postgres", "mysql" -> "Database operation";
+            case "code" -> "Execute code";
+            case "condition" -> "Condition check";
+            case "loop" -> "Loop processing";
+            case "slack" -> "Slack message";
+            case "telegram" -> "Telegram message";
+            case "action" -> "Execute action";
+            default -> type + " node";
         };
     }
 
@@ -455,16 +449,18 @@ public class ResponderAgent implements Agent {
     }
 
     private static final String EXPLAIN_SYSTEM_PROMPT = """
-        你是一個流程解釋專家。用簡潔、易懂的繁體中文解釋工作流程。
-        說明時要：
-        1. 先總結流程的目的
-        2. 解釋每個步驟做什麼
-        3. 說明資料如何流動
+        You are a workflow explanation expert. Explain workflows in a clear, concise manner.
+        Respond in the same language the user used (Chinese, English, or Japanese).
+        When explaining:
+        1. First summarize the flow's purpose
+        2. Explain what each step does
+        3. Describe how data flows through the pipeline
         """;
 
     private static final String CHITCHAT_SYSTEM_PROMPT = """
-        你是 N3N 流程助手，一個友善的自動化流程建構助手。
-        用繁體中文回應，保持簡潔友善。
-        如果使用者的問題與流程建構無關，友善地引導他們使用流程功能。
+        You are the N3N Flow Assistant, a friendly workflow automation assistant.
+        Respond in the same language the user used (Chinese, English, or Japanese).
+        Keep responses concise and friendly.
+        If the user's question is unrelated to workflow building, gently guide them toward flow features.
         """;
 }

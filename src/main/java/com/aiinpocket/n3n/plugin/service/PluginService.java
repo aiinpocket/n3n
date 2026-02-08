@@ -78,9 +78,7 @@ public class PluginService {
         // Get installed plugin IDs for this user
         Set<UUID> installedPluginIds = getInstalledPluginIds(userId);
 
-        List<PluginDto> plugins = pluginPage.getContent().stream()
-                .map(p -> toPluginDto(p, installedPluginIds, userId))
-                .collect(Collectors.toList());
+        List<PluginDto> plugins = toPluginDtosBatch(pluginPage.getContent(), installedPluginIds, userId);
 
         return PluginSearchResult.builder()
                 .plugins(plugins)
@@ -102,9 +100,7 @@ public class PluginService {
 
         Set<UUID> installedPluginIds = getInstalledPluginIds(userId);
 
-        return plugins.stream()
-                .map(p -> toPluginDto(p, installedPluginIds, userId))
-                .collect(Collectors.toList());
+        return toPluginDtosBatch(plugins, installedPluginIds, userId);
     }
 
     /**
@@ -337,6 +333,69 @@ public class PluginService {
         return pluginInstallationRepository.findByUserId(userId).stream()
                 .map(PluginInstallation::getPluginId)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Batch-convert plugins to DTOs, avoiding N+1 queries.
+     */
+    private List<PluginDto> toPluginDtosBatch(List<Plugin> plugins, Set<UUID> installedPluginIds, UUID userId) {
+        if (plugins.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> pluginIds = plugins.stream().map(Plugin::getId).collect(Collectors.toList());
+
+        Map<UUID, PluginVersion> latestVersions = pluginVersionRepository.findLatestByPluginIds(pluginIds)
+                .stream().collect(Collectors.toMap(PluginVersion::getPluginId, v -> v));
+
+        Map<UUID, Long> downloadCounts = pluginVersionRepository.getTotalDownloadsByPluginIds(pluginIds)
+                .stream().collect(Collectors.toMap(r -> (UUID) r[0], r -> (Long) r[1]));
+
+        Map<UUID, Double> avgRatings = new HashMap<>();
+        Map<UUID, Long> ratingCounts = new HashMap<>();
+        for (Object[] row : pluginRatingRepository.getRatingStatsByPluginIds(pluginIds)) {
+            avgRatings.put((UUID) row[0], (Double) row[1]);
+            ratingCounts.put((UUID) row[0], (Long) row[2]);
+        }
+
+        // Batch fetch installed versions for user
+        Map<UUID, String> installedVersions = new HashMap<>();
+        if (!installedPluginIds.isEmpty()) {
+            List<PluginInstallation> installations = pluginInstallationRepository.findByUserId(userId);
+            for (PluginInstallation inst : installations) {
+                if (installedPluginIds.contains(inst.getPluginId())) {
+                    pluginVersionRepository.findById(inst.getPluginVersionId())
+                            .ifPresent(v -> installedVersions.put(inst.getPluginId(), v.getVersion()));
+                }
+            }
+        }
+
+        return plugins.stream().map(plugin -> {
+            PluginVersion latestVersion = latestVersions.get(plugin.getId());
+            return PluginDto.builder()
+                    .id(plugin.getId())
+                    .name(plugin.getName())
+                    .displayName(plugin.getDisplayName())
+                    .description(plugin.getDescription())
+                    .category(plugin.getCategory())
+                    .author(plugin.getAuthor())
+                    .authorUrl(plugin.getAuthorUrl())
+                    .repositoryUrl(plugin.getRepositoryUrl())
+                    .documentationUrl(plugin.getDocumentationUrl())
+                    .iconUrl(plugin.getIconUrl())
+                    .pricing(plugin.getPricing())
+                    .price(plugin.getPrice())
+                    .tags(plugin.getTags())
+                    .version(latestVersion != null ? latestVersion.getVersion() : null)
+                    .downloads(downloadCounts.getOrDefault(plugin.getId(), 0L))
+                    .rating(avgRatings.getOrDefault(plugin.getId(), 0.0))
+                    .ratingCount(ratingCounts.getOrDefault(plugin.getId(), 0L))
+                    .isInstalled(installedPluginIds.contains(plugin.getId()))
+                    .installedVersion(installedVersions.get(plugin.getId()))
+                    .updatedAt(plugin.getUpdatedAt())
+                    .publishedAt(latestVersion != null ? latestVersion.getPublishedAt() : null)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     private PluginDto toPluginDto(Plugin plugin, Set<UUID> installedPluginIds, UUID userId) {

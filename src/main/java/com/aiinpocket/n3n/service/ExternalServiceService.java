@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,11 +39,23 @@ public class ExternalServiceService {
     }
 
     public Page<ServiceResponse> listServices(UUID userId, Pageable pageable) {
-        return serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
-                .map(service -> {
-                    int count = endpointRepository.countByServiceId(service.getId());
-                    return ServiceResponse.from(service, count);
-                });
+        Page<ExternalService> servicePage = serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+
+        List<UUID> serviceIds = servicePage.getContent().stream()
+                .map(ExternalService::getId)
+                .collect(Collectors.toList());
+
+        Map<UUID, Long> countsByServiceId = new HashMap<>();
+        if (!serviceIds.isEmpty()) {
+            for (Object[] row : endpointRepository.countByServiceIds(serviceIds)) {
+                countsByServiceId.put((UUID) row[0], (Long) row[1]);
+            }
+        }
+
+        return servicePage.map(service -> {
+            int count = countsByServiceId.getOrDefault(service.getId(), 0L).intValue();
+            return ServiceResponse.from(service, count);
+        });
     }
 
     private ExternalService findServiceWithOwnerCheck(UUID id, UUID userId) {

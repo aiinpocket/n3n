@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {
   Modal,
   Input,
@@ -40,6 +40,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<GenerateCodeResponse | null>(null)
   const [copied, setCopied] = useState(false)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>()
 
   const handleGenerate = async () => {
     if (!description.trim()) return
@@ -77,7 +78,8 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
       try {
         await navigator.clipboard.writeText(result.code)
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        clearTimeout(copyTimerRef.current)
+        copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
       } catch {
         // Clipboard API not available
       }
@@ -85,6 +87,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
   }
 
   const handleClose = () => {
+    clearTimeout(copyTimerRef.current)
     setDescription('')
     setResult(null)
     setLoading(false)

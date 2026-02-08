@@ -50,7 +50,10 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         Page<ExternalService> servicePage = new PageImpl<>(List.of(service));
 
         when(serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)).thenReturn(servicePage);
-        when(endpointRepository.countByServiceId(service.getId())).thenReturn(3);
+        List<Object[]> countResults = new ArrayList<>();
+        countResults.add(new Object[]{service.getId(), 3L});
+        when(endpointRepository.countByServiceIds(List.of(service.getId())))
+                .thenReturn(countResults);
 
         // When
         Page<ServiceResponse> result = externalServiceService.listServices(userId, pageable);

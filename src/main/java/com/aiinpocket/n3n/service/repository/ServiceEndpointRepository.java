@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.service.entity.ServiceEndpoint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,6 +21,9 @@ public interface ServiceEndpointRepository extends JpaRepository<ServiceEndpoint
     Optional<ServiceEndpoint> findByServiceIdAndMethodAndPath(UUID serviceId, String method, String path);
 
     int countByServiceId(UUID serviceId);
+
+    @Query("SELECT e.serviceId, COUNT(e) FROM ServiceEndpoint e WHERE e.serviceId IN :serviceIds GROUP BY e.serviceId")
+    List<Object[]> countByServiceIds(@Param("serviceIds") List<UUID> serviceIds);
 
     @Modifying
     @Query("DELETE FROM ServiceEndpoint e WHERE e.serviceId = :serviceId")
