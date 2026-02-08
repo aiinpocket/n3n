@@ -109,7 +109,7 @@ public class OAuth2Controller {
             log.error("Failed to exchange OAuth2 code: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "token_exchange_failed",
-                "description", e.getMessage()
+                "description", "Failed to exchange authorization code. Please try again."
             ));
         }
     }

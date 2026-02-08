@@ -47,7 +47,7 @@ public class AICodeController {
         } catch (Exception e) {
             log.error("Code generation failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(GenerateCodeResponse.failure(e.getMessage()));
+                    .body(GenerateCodeResponse.failure("Code generation failed. Please try again."));
         }
     }
 }
