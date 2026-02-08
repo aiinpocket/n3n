@@ -40,7 +40,10 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
         }}
       >
         <div className="markdown-content">
-          <ReactMarkdown>{message.content}</ReactMarkdown>
+          <ReactMarkdown
+            disallowedElements={['script', 'iframe', 'object', 'embed', 'form']}
+            unwrapDisallowed
+          >{message.content}</ReactMarkdown>
         </div>
         <div
           style={{

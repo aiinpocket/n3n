@@ -95,9 +95,17 @@ export default function FormPage() {
       message.success(t('form.submitSuccess'))
 
       if (response.redirectUrl) {
-        redirectTimerRef.current = setTimeout(() => {
-          window.location.href = response.redirectUrl!
-        }, 2000)
+        // Validate redirect URL to prevent open redirect attacks
+        try {
+          const url = new URL(response.redirectUrl, window.location.origin)
+          if (url.protocol === 'https:' || url.protocol === 'http:') {
+            redirectTimerRef.current = setTimeout(() => {
+              window.location.href = url.href
+            }, 2000)
+          }
+        } catch {
+          logger.warn('Invalid redirect URL received')
+        }
       }
     } catch (err) {
       setState('ready')

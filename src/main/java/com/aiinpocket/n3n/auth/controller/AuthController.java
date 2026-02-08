@@ -164,8 +164,12 @@ public class AuthController {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
             String ip = xForwardedFor.split(",")[0].trim();
-            if (ip.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}") || ip.contains(":")) {
+            // Validate IP with InetAddress to reject spoofed values
+            try {
+                java.net.InetAddress.getByName(ip);
                 return ip;
+            } catch (java.net.UnknownHostException e) {
+                // Invalid IP format, fall through to remoteAddr
             }
         }
         return request.getRemoteAddr();

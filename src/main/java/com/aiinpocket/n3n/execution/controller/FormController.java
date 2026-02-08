@@ -218,13 +218,19 @@ public class FormController {
             ip = request.getHeader("X-Real-IP");
         }
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
+            return request.getRemoteAddr();
         }
         // Handle multiple IPs in X-Forwarded-For
-        if (ip != null && ip.contains(",")) {
+        if (ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
-        return ip;
+        // Validate IP format
+        try {
+            java.net.InetAddress.getByName(ip);
+            return ip;
+        } catch (java.net.UnknownHostException e) {
+            return request.getRemoteAddr();
+        }
     }
 
     // DTO records

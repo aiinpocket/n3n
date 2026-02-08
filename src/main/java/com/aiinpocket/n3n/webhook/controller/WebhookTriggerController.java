@@ -120,13 +120,25 @@ public class WebhookTriggerController {
     }
 
     private String getClientIp(HttpServletRequest request) {
+        String ip = null;
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
+            ip = xForwardedFor.split(",")[0].trim();
         }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
+        if (ip == null) {
+            String xRealIp = request.getHeader("X-Real-IP");
+            if (xRealIp != null && !xRealIp.isEmpty()) {
+                ip = xRealIp;
+            }
+        }
+        if (ip != null) {
+            // Validate IP format to prevent spoofed values
+            try {
+                java.net.InetAddress.getByName(ip);
+                return ip;
+            } catch (java.net.UnknownHostException e) {
+                // Invalid IP, fall through
+            }
         }
         return request.getRemoteAddr();
     }

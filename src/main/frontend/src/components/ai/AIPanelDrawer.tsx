@@ -290,7 +290,10 @@ export default function AIPanelDrawer({
           {isUser ? (
             <Text>{message.content}</Text>
           ) : (
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <ReactMarkdown
+              disallowedElements={['script', 'iframe', 'object', 'embed', 'form']}
+              unwrapDisallowed
+            >{message.content}</ReactMarkdown>
           )}
           {message.flowSnapshot && (
             <div className={styles.flowPreview}>
@@ -322,7 +325,12 @@ export default function AIPanelDrawer({
               <Text type="secondary">{streamingStage}</Text>
             </div>
           )}
-          {streamingContent && <ReactMarkdown>{streamingContent}</ReactMarkdown>}
+          {streamingContent && (
+            <ReactMarkdown
+              disallowedElements={['script', 'iframe', 'object', 'embed', 'form']}
+              unwrapDisallowed
+            >{streamingContent}</ReactMarkdown>
+          )}
           {isStreaming && !streamingContent && (
             <LoadingOutlined style={{ fontSize: 16 }} />
           )}
