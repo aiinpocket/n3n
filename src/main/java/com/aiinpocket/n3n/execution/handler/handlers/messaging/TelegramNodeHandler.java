@@ -83,7 +83,7 @@ public class TelegramNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("Telegram API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Telegram API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Telegram API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

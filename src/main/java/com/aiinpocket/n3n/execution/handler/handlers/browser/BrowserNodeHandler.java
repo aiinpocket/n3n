@@ -112,7 +112,7 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("Browser automation error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Browser automation error: " + e.getMessage());
+            return NodeExecutionResult.failure("Browser automation error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

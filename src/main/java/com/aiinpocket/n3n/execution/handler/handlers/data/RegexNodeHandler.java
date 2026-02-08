@@ -330,10 +330,10 @@ public class RegexNodeHandler extends MultiOperationNodeHandler {
                 default -> NodeExecutionResult.failure("Unknown resource: " + resource);
             };
         } catch (PatternSyntaxException e) {
-            return NodeExecutionResult.failure("Invalid regex pattern: " + e.getMessage());
+            return NodeExecutionResult.failure("Invalid regex pattern: " + sanitizeErrorMessage(e.getMessage()));
         } catch (Exception e) {
             log.error("Regex operation error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Regex error: " + e.getMessage());
+            return NodeExecutionResult.failure("Regex error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

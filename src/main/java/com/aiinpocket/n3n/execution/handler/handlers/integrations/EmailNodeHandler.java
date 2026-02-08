@@ -91,7 +91,7 @@ public class EmailNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Failed to send email: {}", e.getMessage());
-            return NodeExecutionResult.failure("Failed to send email: " + e.getMessage());
+            return NodeExecutionResult.failure("Failed to send email: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

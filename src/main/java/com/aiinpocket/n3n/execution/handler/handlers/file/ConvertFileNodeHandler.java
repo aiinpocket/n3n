@@ -81,7 +81,7 @@ public class ConvertFileNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Convert operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Convert operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Convert operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

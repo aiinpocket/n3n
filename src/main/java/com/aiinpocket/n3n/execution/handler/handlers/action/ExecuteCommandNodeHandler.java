@@ -180,12 +180,12 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.success(output);
 
         } catch (IOException e) {
-            return NodeExecutionResult.failure("Failed to execute command: " + e.getMessage());
+            return NodeExecutionResult.failure("Failed to execute command: " + sanitizeErrorMessage(e.getMessage()));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return NodeExecutionResult.failure("Command execution was interrupted.");
         } catch (Exception e) {
-            return NodeExecutionResult.failure("Unexpected error: " + e.getMessage());
+            return NodeExecutionResult.failure("Unexpected error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

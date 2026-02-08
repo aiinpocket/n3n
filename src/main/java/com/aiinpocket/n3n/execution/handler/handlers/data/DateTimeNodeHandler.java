@@ -314,7 +314,7 @@ public class DateTimeNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("DateTime operation error: {}", e.getMessage());
-            return NodeExecutionResult.failure("DateTime error: " + e.getMessage());
+            return NodeExecutionResult.failure("DateTime error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

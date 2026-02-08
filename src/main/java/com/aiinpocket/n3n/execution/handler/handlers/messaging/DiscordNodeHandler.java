@@ -71,7 +71,7 @@ public class DiscordNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("Discord API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Discord API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Discord API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

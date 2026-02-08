@@ -331,7 +331,7 @@ public class TextNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Text operation error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Text error: " + e.getMessage());
+            return NodeExecutionResult.failure("Text error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

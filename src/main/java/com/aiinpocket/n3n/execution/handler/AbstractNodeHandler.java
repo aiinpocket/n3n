@@ -47,7 +47,7 @@ public abstract class AbstractNodeHandler implements NodeHandler {
             log.error("Node {} execution failed: {}", context.getNodeId(), e.getMessage(), e);
             return NodeExecutionResult.builder()
                 .success(false)
-                .errorMessage(e.getMessage())
+                .errorMessage(sanitizeErrorMessage(e.getMessage()))
                 .errorStack(getStackTrace(e))
                 .executionTime(Duration.between(startTime, Instant.now()))
                 .build();
@@ -155,6 +155,39 @@ public abstract class AbstractNodeHandler implements NodeHandler {
         Map<String, Object> output = new HashMap<>();
         output.put(key, value);
         return output;
+    }
+
+    /**
+     * Sanitize error messages to prevent leaking infrastructure details.
+     * Strips IP addresses, JDBC URLs, MongoDB URIs, HTTP URLs, file paths, and truncates to maxLen.
+     */
+    protected static String sanitizeErrorMessage(String message, int maxLen) {
+        if (message == null) return "Unknown error";
+        String s = message;
+        // Strip IP addresses
+        s = s.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***");
+        // Strip JDBC URLs
+        s = s.replaceAll("jdbc:[a-z]+://[^\\s,;)]+", "jdbc:***");
+        // Strip MongoDB connection strings
+        s = s.replaceAll("mongodb(\\+srv)?://[^\\s,;)]+", "mongodb://***");
+        // Strip HTTP/HTTPS URLs
+        s = s.replaceAll("https?://[^\\s,;)]+", "http://***");
+        // Strip absolute file paths
+        s = s.replaceAll("/(?:home|tmp|var|etc|usr|opt|Users|mnt)/[^\\s,;)]+", "/***");
+        // Strip GCP project references
+        s = s.replaceAll("projects/[^/\\s]+", "projects/***");
+        // Truncate
+        if (s.length() > maxLen) {
+            s = s.substring(0, maxLen) + "...";
+        }
+        return s;
+    }
+
+    /**
+     * Sanitize error messages with default max length of 300.
+     */
+    protected static String sanitizeErrorMessage(String message) {
+        return sanitizeErrorMessage(message, 300);
     }
 
     private String getStackTrace(Exception e) {

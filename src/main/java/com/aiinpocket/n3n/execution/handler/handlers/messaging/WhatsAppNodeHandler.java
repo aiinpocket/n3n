@@ -89,7 +89,7 @@ public class WhatsAppNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("WhatsApp API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("WhatsApp API error: " + e.getMessage());
+            return NodeExecutionResult.failure("WhatsApp API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

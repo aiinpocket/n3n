@@ -157,7 +157,7 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("AI Transform error", e);
-            return NodeExecutionResult.failure("AI 轉換發生錯誤: " + e.getMessage());
+            return NodeExecutionResult.failure("AI 轉換發生錯誤: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

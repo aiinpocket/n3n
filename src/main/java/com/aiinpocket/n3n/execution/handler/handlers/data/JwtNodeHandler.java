@@ -68,7 +68,7 @@ public class JwtNodeHandler extends AbstractNodeHandler {
             };
         } catch (Exception e) {
             log.error("JWT operation '{}' failed: {}", operation, e.getMessage(), e);
-            return NodeExecutionResult.failure("JWT operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("JWT operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

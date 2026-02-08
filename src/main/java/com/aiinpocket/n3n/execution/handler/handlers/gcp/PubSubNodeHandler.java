@@ -345,7 +345,7 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Pub/Sub API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Pub/Sub API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Pub/Sub API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

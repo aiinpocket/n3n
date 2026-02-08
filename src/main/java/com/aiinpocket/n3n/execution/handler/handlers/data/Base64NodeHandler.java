@@ -97,7 +97,7 @@ public class Base64NodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.success(output);
 
         } catch (IllegalArgumentException e) {
-            return NodeExecutionResult.failure("Base64 " + operation + " failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Base64 " + operation + " failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

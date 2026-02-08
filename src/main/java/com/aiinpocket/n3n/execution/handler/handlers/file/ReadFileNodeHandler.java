@@ -121,10 +121,10 @@ public class ReadFileNodeHandler extends AbstractNodeHandler {
 
         } catch (IOException e) {
             log.error("Failed to read file {}: {}", filePath, e.getMessage(), e);
-            return NodeExecutionResult.failure("Failed to read file: " + e.getMessage());
+            return NodeExecutionResult.failure("Failed to read file: " + sanitizeErrorMessage(e.getMessage()));
         } catch (Exception e) {
             log.error("Read file operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Read file operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Read file operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

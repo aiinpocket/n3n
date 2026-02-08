@@ -375,7 +375,7 @@ public class InstagramNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Instagram API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Instagram API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Instagram API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

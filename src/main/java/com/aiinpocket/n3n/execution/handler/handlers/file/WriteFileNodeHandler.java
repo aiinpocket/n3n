@@ -110,10 +110,10 @@ public class WriteFileNodeHandler extends AbstractNodeHandler {
 
         } catch (IOException e) {
             log.error("Failed to write file {}: {}", filePath, e.getMessage(), e);
-            return NodeExecutionResult.failure("Failed to write file: " + e.getMessage());
+            return NodeExecutionResult.failure("Failed to write file: " + sanitizeErrorMessage(e.getMessage()));
         } catch (Exception e) {
             log.error("Write file operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Write file operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Write file operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

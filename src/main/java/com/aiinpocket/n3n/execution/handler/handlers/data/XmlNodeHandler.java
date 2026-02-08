@@ -74,7 +74,7 @@ public class XmlNodeHandler extends AbstractNodeHandler {
             };
         } catch (Exception e) {
             log.error("XML operation '{}' failed: {}", operation, e.getMessage(), e);
-            return NodeExecutionResult.failure("XML operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("XML operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

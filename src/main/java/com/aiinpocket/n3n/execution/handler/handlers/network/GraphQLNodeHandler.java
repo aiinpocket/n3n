@@ -140,7 +140,7 @@ public class GraphQLNodeHandler extends AbstractNodeHandler {
             log.error("GraphQL request failed: {}", e.getMessage(), e);
             return NodeExecutionResult.builder()
                 .success(false)
-                .errorMessage("GraphQL request failed: " + e.getMessage())
+                .errorMessage("GraphQL request failed: " + sanitizeErrorMessage(e.getMessage()))
                 .build();
         }
     }

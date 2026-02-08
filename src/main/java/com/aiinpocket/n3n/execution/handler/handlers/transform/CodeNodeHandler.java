@@ -124,7 +124,7 @@ public class CodeNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Code execution error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Code execution error: " + e.getMessage());
+            return NodeExecutionResult.failure("Code execution error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

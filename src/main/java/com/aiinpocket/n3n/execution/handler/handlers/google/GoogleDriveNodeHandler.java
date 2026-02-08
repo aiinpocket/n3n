@@ -326,7 +326,7 @@ public class GoogleDriveNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Google Drive API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Google Drive API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Google Drive API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

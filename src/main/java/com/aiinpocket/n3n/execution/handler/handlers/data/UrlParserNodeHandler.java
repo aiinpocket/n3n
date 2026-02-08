@@ -58,7 +58,7 @@ public class UrlParserNodeHandler extends AbstractNodeHandler {
                 default -> NodeExecutionResult.failure("Unknown operation: " + operation);
             };
         } catch (Exception e) {
-            return NodeExecutionResult.failure("URL operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("URL operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

@@ -77,7 +77,7 @@ public class ItemListsNodeHandler extends AbstractNodeHandler {
 
             return NodeExecutionResult.success(output);
         } catch (Exception e) {
-            return NodeExecutionResult.failure("ItemLists error (" + operation + "): " + e.getMessage());
+            return NodeExecutionResult.failure("ItemLists error (" + operation + "): " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

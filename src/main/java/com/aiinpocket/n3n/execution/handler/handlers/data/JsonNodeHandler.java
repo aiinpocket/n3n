@@ -240,7 +240,7 @@ public class JsonNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("JSON operation error: {}", e.getMessage());
-            return NodeExecutionResult.failure("JSON error: " + e.getMessage());
+            return NodeExecutionResult.failure("JSON error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

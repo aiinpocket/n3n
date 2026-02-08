@@ -141,7 +141,7 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Sub-workflow execution failed for flow: {}", workflowId, e);
-            return NodeExecutionResult.failure("Sub-workflow execution failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Sub-workflow execution failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

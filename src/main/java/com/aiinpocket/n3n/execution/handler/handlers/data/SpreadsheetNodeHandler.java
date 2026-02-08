@@ -58,7 +58,7 @@ public class SpreadsheetNodeHandler extends AbstractNodeHandler {
                 default -> NodeExecutionResult.failure("Unknown operation: " + operation);
             };
         } catch (Exception e) {
-            return NodeExecutionResult.failure("Spreadsheet operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Spreadsheet operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

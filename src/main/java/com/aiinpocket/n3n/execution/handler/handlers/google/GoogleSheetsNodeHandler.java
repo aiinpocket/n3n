@@ -286,7 +286,7 @@ public class GoogleSheetsNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Google Sheets API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Google Sheets API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Google Sheets API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

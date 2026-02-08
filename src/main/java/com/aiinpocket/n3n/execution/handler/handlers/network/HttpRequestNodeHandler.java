@@ -149,7 +149,7 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
 
         } catch (IOException e) {
             log.error("HTTP request failed: {}", e.getMessage());
-            return NodeExecutionResult.failure("HTTP request failed: " + e.getMessage());
+            return NodeExecutionResult.failure("HTTP request failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

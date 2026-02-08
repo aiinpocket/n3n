@@ -422,7 +422,7 @@ public class GmailNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Gmail API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Gmail API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Gmail API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

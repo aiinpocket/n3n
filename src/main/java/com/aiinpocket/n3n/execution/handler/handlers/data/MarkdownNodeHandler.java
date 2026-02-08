@@ -90,7 +90,7 @@ public class MarkdownNodeHandler extends AbstractNodeHandler {
             };
         } catch (Exception e) {
             log.error("Markdown operation '{}' failed: {}", operation, e.getMessage(), e);
-            return NodeExecutionResult.failure("Markdown operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Markdown operation failed: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

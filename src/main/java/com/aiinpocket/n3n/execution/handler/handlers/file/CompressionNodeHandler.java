@@ -96,13 +96,13 @@ public class CompressionNodeHandler extends AbstractNodeHandler {
 
         } catch (IllegalArgumentException e) {
             log.error("Invalid input for {} operation: {}", operation, e.getMessage());
-            return NodeExecutionResult.failure("Invalid input: " + e.getMessage());
+            return NodeExecutionResult.failure("Invalid input: " + sanitizeErrorMessage(e.getMessage()));
         } catch (IOException e) {
             log.error("Compression operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Compression failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Compression failed: " + sanitizeErrorMessage(e.getMessage()));
         } catch (Exception e) {
             log.error("Compression operation error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Compression error: " + e.getMessage());
+            return NodeExecutionResult.failure("Compression error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

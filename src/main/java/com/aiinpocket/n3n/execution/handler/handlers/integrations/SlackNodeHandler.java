@@ -79,7 +79,7 @@ public class SlackNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("Slack API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("Slack API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Slack API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

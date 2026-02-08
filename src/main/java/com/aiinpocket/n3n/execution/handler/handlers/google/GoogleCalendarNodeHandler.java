@@ -313,7 +313,7 @@ public class GoogleCalendarNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Google Calendar API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Google Calendar API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Google Calendar API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

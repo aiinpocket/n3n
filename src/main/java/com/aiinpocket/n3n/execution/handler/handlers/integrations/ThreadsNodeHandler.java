@@ -338,7 +338,7 @@ public class ThreadsNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Threads API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Threads API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Threads API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

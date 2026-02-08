@@ -319,7 +319,7 @@ public class GoogleCloudStorageNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (Exception e) {
             log.error("Google Cloud Storage API error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Google Cloud Storage API error: " + e.getMessage());
+            return NodeExecutionResult.failure("Google Cloud Storage API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 

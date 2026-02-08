@@ -81,7 +81,7 @@ public class LineNodeHandler extends AbstractNodeHandler {
             };
         } catch (IOException e) {
             log.error("LINE API error: {}", e.getMessage());
-            return NodeExecutionResult.failure("LINE API error: " + e.getMessage());
+            return NodeExecutionResult.failure("LINE API error: " + sanitizeErrorMessage(e.getMessage()));
         }
     }
 
