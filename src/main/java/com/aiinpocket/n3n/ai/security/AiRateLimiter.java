@@ -157,7 +157,9 @@ public class AiRateLimiter {
         String requestId = UUID.randomUUID().toString();
         long now = Instant.now().toEpochMilli();
 
-        int effectiveLimit = (int) (maxRequestsPerMinute * burstMultiplier);
+        // Prevent integer overflow: compute in long, then clamp
+        long effectiveLimitLong = (long) (maxRequestsPerMinute * burstMultiplier);
+        int effectiveLimit = (int) Math.min(effectiveLimitLong, Integer.MAX_VALUE);
 
         List<Long> result = redisTemplate.execute(
             slidingWindowScript,

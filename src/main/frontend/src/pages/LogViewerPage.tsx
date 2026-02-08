@@ -61,12 +61,19 @@ export default function LogViewerPage() {
     loadLogs()
   }, [loadLogs])
 
+  // Use refs for filter values to avoid restarting SSE stream on every keystroke
+  const filterRef = useRef({ level, search })
+  useEffect(() => {
+    filterRef.current = { level, search }
+  }, [level, search])
+
   useEffect(() => {
     if (streaming) {
       const es = createLogStream(
         (entry) => {
-          if (level !== 'ALL' && entry.level !== level) return
-          if (search && !entry.message.toLowerCase().includes(search.toLowerCase())) return
+          const { level: filterLevel, search: filterSearch } = filterRef.current
+          if (filterLevel !== 'ALL' && entry.level !== filterLevel) return
+          if (filterSearch && !entry.message.toLowerCase().includes(filterSearch.toLowerCase())) return
           setLogs((prev) => [...prev.slice(-499), entry])
         },
         () => {
@@ -81,7 +88,7 @@ export default function LogViewerPage() {
     return () => {
       eventSourceRef.current?.close()
     }
-  }, [streaming, level, search])
+  }, [streaming])
 
   // Auto-scroll to bottom when streaming
   useEffect(() => {

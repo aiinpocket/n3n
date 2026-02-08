@@ -61,8 +61,10 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
   const handleTypeChange = (typeName: string) => {
     const type = credentialTypes.find(t => t.name === typeName)
     setSelectedType(type || null)
-    // Reset data fields and test result when type changes
-    form.setFieldsValue({ data: {} })
+    // Fully reset data fields: preserve name/description/visibility, clear all data subfields
+    const { name, description, visibility } = form.getFieldsValue()
+    form.resetFields()
+    form.setFieldsValue({ name, description, visibility, type: typeName })
     setTestResult(null)
   }
 

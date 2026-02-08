@@ -370,12 +370,12 @@ export default function ExecutionPage() {
             {executionData.resumeCondition && <Descriptions.Item label={t('execution.resumeCondition')}>{executionData.resumeCondition}</Descriptions.Item>}
           </Descriptions>
 
-          <Card title={t('execution.nodeExecutions')} size="small">
+          <Card title={`${t('execution.nodeExecutions')} (${nodeExecutions.length})`} size="small">
             {nodeExecutions.length === 0 ? (
               <Text type="secondary">{t('execution.noNodeExecutions')}</Text>
             ) : (
               <Timeline
-                items={nodeExecutions.map((node) => ({
+                items={nodeExecutions.slice(0, 200).map((node) => ({
                   color: node.status === 'completed' ? 'green' : node.status === 'failed' ? 'red' : node.status === 'running' ? 'blue' : 'gray',
                   dot: statusIcons[node.status],
                   children: (

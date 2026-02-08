@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -96,13 +97,13 @@ public class PromptSanitizer {
             sanitized = sanitized.substring(0, maxPromptLength);
         }
 
-        // 3. 偵測 injection patterns
+        // 3. 正規化空白字元 (before injection detection to prevent Unicode bypass)
+        sanitized = normalizeWhitespace(sanitized);
+
+        // 4. 偵測 injection patterns (after normalization so Unicode tricks are resolved)
         if (injectionDetectionEnabled) {
             detectInjection(sanitized);
         }
-
-        // 4. 正規化空白字元
-        sanitized = normalizeWhitespace(sanitized);
 
         return sanitized;
     }
@@ -130,10 +131,11 @@ public class PromptSanitizer {
             }
         }
 
-        // Injection pattern 檢查
+        // Injection pattern 檢查 (normalize whitespace first to prevent Unicode bypass)
         if (injectionDetectionEnabled) {
+            String normalized = normalizeWhitespace(input);
             for (Pattern pattern : INJECTION_PATTERNS) {
-                if (pattern.matcher(input).find()) {
+                if (pattern.matcher(normalized).find()) {
                     return ValidationResult.rejected("偵測到可能的安全威脅");
                 }
             }
@@ -166,10 +168,13 @@ public class PromptSanitizer {
     }
 
     /**
-     * 正規化空白字元（連續空白壓縮為單一空白）
+     * 正規化空白字元（Unicode normalization + 連續空白壓縮為單一空白）
      */
     private String normalizeWhitespace(String input) {
-        return input.replaceAll("\\s+", " ").trim();
+        // Unicode NFC normalization to prevent bypasses via decomposed characters
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFC);
+        // Replace all Unicode whitespace categories (\\p{Z}) plus standard \\s
+        return normalized.replaceAll("[\\p{Z}\\s]+", " ").trim();
     }
 
     /**
