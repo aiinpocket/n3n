@@ -1512,6 +1512,12 @@
     "inputPlaceholder": "Describe what you want to do...",
     "inputHint": "Enter to send, Shift+Enter for new line",
     "stop": "Stop",
+    "launchGenerator": "Flow Generator",
+    "generateFromChat": "Generate flow from conversation",
+    "generatorSuggestionTitle": "Try the Flow Generator",
+    "generatorSuggestionDesc": "For complex flow creation, the Flow Generator wizard provides multi-turn conversation to clarify your requirements and real-time preview.",
+    "openGenerator": "Open Flow Generator",
+    "dismissSuggestion": "Continue here",
     "changeType": {
       "addNode": "Add Node",
       "removeNode": "Remove Node",

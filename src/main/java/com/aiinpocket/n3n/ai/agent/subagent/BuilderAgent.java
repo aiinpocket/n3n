@@ -106,6 +106,16 @@ public class BuilderAgent implements Agent {
                 sink.next(AgentStreamChunk.thinking("Building flow..."));
                 sink.next(AgentStreamChunk.progress(10, "analyzing"));
 
+                // For CREATE_FLOW intent, suggest using the Flow Generator wizard
+                // which provides multi-turn clarification + real-time preview
+                Intent intent = context.getIntent();
+                if (intent != null && intent.getType() == Intent.IntentType.CREATE_FLOW) {
+                    sink.next(AgentStreamChunk.structured(Map.of(
+                        "action", "suggest_generator",
+                        "description", context.getUserInput()
+                    )));
+                }
+
                 AgentResult result = execute(context);
 
                 sink.next(AgentStreamChunk.progress(80, "validating"));

@@ -1512,6 +1512,12 @@
     "inputPlaceholder": "描述你想做的事情...",
     "inputHint": "Enter 發送，Shift+Enter 換行",
     "stop": "停止",
+    "launchGenerator": "流程生成器",
+    "generateFromChat": "從對話生成流程",
+    "generatorSuggestionTitle": "試試流程生成器",
+    "generatorSuggestionDesc": "對於複雜的流程建立，流程生成器提供多輪對話釐清需求，並即時預覽生成結果。",
+    "openGenerator": "開啟流程生成器",
+    "dismissSuggestion": "繼續在這裡",
     "changeType": {
       "addNode": "新增節點",
       "removeNode": "移除節點",

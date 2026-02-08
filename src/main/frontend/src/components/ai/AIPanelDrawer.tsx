@@ -29,6 +29,7 @@ import {
   LoadingOutlined,
   ExportOutlined,
   ImportOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAIAssistantStore, type ChatMessage, type PendingChange, type FlowSnapshot } from '../../stores/aiAssistantStore'
@@ -43,12 +44,14 @@ interface AIPanelDrawerProps {
   flowId?: string
   flowDefinition?: FlowSnapshot
   onApplyFlowChanges?: (definition: FlowSnapshot) => void
+  onOpenFlowGenerator?: (initialDescription?: string) => void
 }
 
 export default function AIPanelDrawer({
   flowId,
   flowDefinition,
   onApplyFlowChanges,
+  onOpenFlowGenerator,
 }: AIPanelDrawerProps) {
   const { t } = useTranslation()
   const {
@@ -83,6 +86,7 @@ export default function AIPanelDrawer({
 
   const [inputValue, setInputValue] = useState('')
   const [showHistory, setShowHistory] = useState(false)
+  const [generatorSuggestion, setGeneratorSuggestion] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -187,6 +191,11 @@ export default function AIPanelDrawer({
             updateStreamingContent(text)
           },
           onStructured: (data) => {
+            // Handle suggest_generator action from BuilderAgent
+            if (data.action === 'suggest_generator' && onOpenFlowGenerator) {
+              setGeneratorSuggestion(data.description as string || '')
+            }
+
             // Handle flow definition updates
             if (data.action === 'update_flow' && data.flowDefinition) {
               // Add as pending change
@@ -553,6 +562,20 @@ export default function AIPanelDrawer({
                     <li>{t('aiPanel.helpAnswer')}</li>
                   </ul>
                   <div className={styles.quickActions}>
+                    {onOpenFlowGenerator && (
+                      <Button
+                        size="small"
+                        type="primary"
+                        ghost
+                        icon={<ThunderboltOutlined />}
+                        onClick={() => {
+                          closePanel()
+                          onOpenFlowGenerator()
+                        }}
+                      >
+                        {t('aiPanel.launchGenerator')}
+                      </Button>
+                    )}
                     <Button
                       size="small"
                       onClick={() => setInputValue(t('aiPanel.quickReport'))}
@@ -583,6 +606,45 @@ export default function AIPanelDrawer({
               )}
             </div>
 
+            {/* Generator Suggestion Banner */}
+            {generatorSuggestion !== null && onOpenFlowGenerator && (
+              <Alert
+                type="info"
+                showIcon
+                icon={<ThunderboltOutlined />}
+                message={t('aiPanel.generatorSuggestionTitle')}
+                description={
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <Text type="secondary">{t('aiPanel.generatorSuggestionDesc')}</Text>
+                    <Space>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<ThunderboltOutlined />}
+                        onClick={() => {
+                          const desc = generatorSuggestion
+                          setGeneratorSuggestion(null)
+                          closePanel()
+                          onOpenFlowGenerator(desc || undefined)
+                        }}
+                      >
+                        {t('aiPanel.openGenerator')}
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => setGeneratorSuggestion(null)}
+                      >
+                        {t('aiPanel.dismissSuggestion')}
+                      </Button>
+                    </Space>
+                  </Space>
+                }
+                closable
+                onClose={() => setGeneratorSuggestion(null)}
+                className={styles.errorAlert}
+              />
+            )}
+
             {/* Pending Changes */}
             {renderPendingChanges()}
 
@@ -612,6 +674,22 @@ export default function AIPanelDrawer({
                   {t('aiPanel.inputHint')}
                 </Text>
                 <Space>
+                  {onOpenFlowGenerator && currentSession?.messages && currentSession.messages.length >= 2 && !isStreaming && (
+                    <Tooltip title={t('aiPanel.generateFromChat')}>
+                      <Button
+                        size="small"
+                        icon={<ThunderboltOutlined />}
+                        onClick={() => {
+                          const userMessages = currentSession.messages
+                            .filter(m => m.role === 'user')
+                            .map(m => m.content)
+                            .join('\n')
+                          closePanel()
+                          onOpenFlowGenerator(userMessages)
+                        }}
+                      />
+                    </Tooltip>
+                  )}
                   {isStreaming ? (
                     <Button
                       danger

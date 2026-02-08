@@ -156,6 +156,7 @@ export default function FlowEditorPage() {
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [nodeRecommendationOpen, setNodeRecommendationOpen] = useState(false)
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
+  const [flowGeneratorInitialDesc, setFlowGeneratorInitialDesc] = useState<string | undefined>()
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [nodeSearchOpen, setNodeSearchOpen] = useState(false)
   const [saveForm] = Form.useForm()
@@ -1090,7 +1091,11 @@ export default function FlowEditorPage() {
 
       <FlowGeneratorModal
         open={flowGeneratorOpen}
-        onClose={() => setFlowGeneratorOpen(false)}
+        onClose={() => {
+          setFlowGeneratorOpen(false)
+          setFlowGeneratorInitialDesc(undefined)
+        }}
+        initialDescription={flowGeneratorInitialDesc}
         onCreateFlow={(flowDef) => {
           if (flowDef) {
             // Convert generated flow to react-flow nodes
@@ -1156,6 +1161,10 @@ export default function FlowEditorPage() {
       {/* AI Assistant Drawer */}
       <AIPanelDrawer
         flowId={id}
+        onOpenFlowGenerator={(desc) => {
+          setFlowGeneratorInitialDesc(desc)
+          setFlowGeneratorOpen(true)
+        }}
         flowDefinition={nodes.length > 0 ? {
           nodes: nodes.map(n => ({
             id: n.id,

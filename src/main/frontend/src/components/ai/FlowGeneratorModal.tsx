@@ -59,6 +59,7 @@ interface Props {
   open: boolean
   onClose: () => void
   onCreateFlow?: (flowDefinition: GenerateFlowResponse['flowDefinition']) => void
+  initialDescription?: string
 }
 
 type Step = 'input' | 'conversation' | 'generating' | 'preview' | 'error'
@@ -73,6 +74,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   open,
   onClose,
   onCreateFlow,
+  initialDescription,
 }) => {
   const { t, i18n } = useTranslation()
   const [step, setStep] = useState<Step>('input')
@@ -147,6 +149,13 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       message.error(err)
     },
   })
+
+  // Apply initial description when modal opens with one
+  useEffect(() => {
+    if (open && initialDescription) {
+      setUserInput(initialDescription)
+    }
+  }, [open, initialDescription])
 
   // Auto-scroll chat
   useEffect(() => {
