@@ -617,6 +617,15 @@ Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`
 | POST | `/api/admin/housekeeping/run` | Manually trigger cleanup job |
 | GET | `/api/admin/housekeeping/jobs` | Get housekeeping job history |
 | GET | `/api/admin/housekeeping/jobs/{id}` | Get specific job details |
+| POST | `/api/admin/housekeeping/cleanup-history` | Clean up old job history records |
+
+### Approvals
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/approvals/pending` | Get all pending approvals for current user |
+| GET | `/api/approvals/{approvalId}` | Get approval details |
+| POST | `/api/approvals/{approvalId}` | Submit approval action (approve/reject) |
 
 ### WebSocket
 

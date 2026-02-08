@@ -115,7 +115,9 @@
     "accountSettings": "帳戶設定",
     "dashboard": "儀表板",
     "adminUsers": "使用者管理",
-    "templates": "範本"
+    "templates": "範本",
+    "approvals": "待審批",
+    "housekeeping": "系統清理"
   },
   "auth": {
     "login": "登入",
@@ -945,6 +947,35 @@
     "fieldRequired": "此欄位為必填",
     "formExpired": "表單連結已過期",
     "formNotFound": "找不到表單"
+  },
+  "housekeeping": {
+    "title": "系統清理",
+    "runCleanup": "執行清理",
+    "cleanHistory": "清理歷史",
+    "totalExecutions": "總執行次數",
+    "archivedExecutions": "已歸檔",
+    "oldExecutions": "過期執行",
+    "retentionDays": "保留天數",
+    "days": "天",
+    "processed": "已處理",
+    "archived": "已歸檔",
+    "deleted": "已刪除",
+    "startedAt": "開始時間",
+    "completedAt": "完成時間",
+    "jobHistory": "任務歷史",
+    "confirmRun": "立即執行清理？",
+    "confirmRunDesc": "這將歸檔並清理過期的執行記錄。此操作無法復原。",
+    "runSuccess": "清理完成：處理 {{processed}} 筆，歸檔 {{archived}} 筆，刪除 {{deleted}} 筆",
+    "runFailed": "清理失敗",
+    "confirmCleanHistory": "清理舊歷史記錄？",
+    "confirmCleanHistoryDesc": "這將永久刪除舊的清理任務記錄。",
+    "cleanHistorySuccess": "已清理 {{count}} 筆歷史記錄"
+  },
+  "approvals": {
+    "title": "待審批項目",
+    "noPending": "沒有待審批的項目",
+    "detail": "審批詳情",
+    "actionHistory": "操作歷史"
   },
   "monitoring": {
     "title": "系統監控",

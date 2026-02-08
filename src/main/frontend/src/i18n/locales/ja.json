@@ -115,7 +115,9 @@
     "accountSettings": "アカウント設定",
     "dashboard": "ダッシュボード",
     "adminUsers": "ユーザー管理",
-    "templates": "テンプレート"
+    "templates": "テンプレート",
+    "approvals": "承認待ち",
+    "housekeeping": "ハウスキーピング"
   },
   "auth": {
     "login": "ログイン",
@@ -945,6 +947,35 @@
     "fieldRequired": "この項目は必須です",
     "formExpired": "フォームリンクの有効期限が切れました",
     "formNotFound": "フォームが見つかりません"
+  },
+  "housekeeping": {
+    "title": "ハウスキーピング",
+    "runCleanup": "クリーンアップ実行",
+    "cleanHistory": "履歴クリーン",
+    "totalExecutions": "総実行数",
+    "archivedExecutions": "アーカイブ済み",
+    "oldExecutions": "古い実行",
+    "retentionDays": "保持期間",
+    "days": "日",
+    "processed": "処理済み",
+    "archived": "アーカイブ",
+    "deleted": "削除済み",
+    "startedAt": "開始時刻",
+    "completedAt": "完了時刻",
+    "jobHistory": "ジョブ履歴",
+    "confirmRun": "今すぐクリーンアップを実行しますか？",
+    "confirmRunDesc": "古い実行レコードをアーカイブおよびクリーンアップします。この操作は元に戻せません。",
+    "runSuccess": "クリーンアップ完了：{{processed}}件処理、{{archived}}件アーカイブ、{{deleted}}件削除",
+    "runFailed": "クリーンアップ失敗",
+    "confirmCleanHistory": "古い履歴をクリーンアップしますか？",
+    "confirmCleanHistoryDesc": "古いハウスキーピングジョブレコードを完全に削除します。",
+    "cleanHistorySuccess": "{{count}}件の履歴レコードをクリーンアップしました"
+  },
+  "approvals": {
+    "title": "承認待ち",
+    "noPending": "承認待ちの項目はありません",
+    "detail": "承認詳細",
+    "actionHistory": "アクション履歴"
   },
   "monitoring": {
     "title": "システム監視",

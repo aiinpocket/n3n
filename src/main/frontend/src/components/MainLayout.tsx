@@ -23,6 +23,8 @@ import {
   BookOutlined,
   BugOutlined,
   TeamOutlined,
+  ExclamationCircleOutlined,
+  ClearOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -60,6 +62,8 @@ export default function MainLayout() {
       '/logs': t('nav.logs'),
       '/activities': t('nav.activities'),
       '/admin/users': t('nav.adminUsers'),
+      '/admin/housekeeping': t('nav.housekeeping'),
+      '/approvals': t('nav.approvals'),
     }
     const pageTitle = Object.entries(titles).find(([path]) =>
       path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -87,6 +91,11 @@ export default function MainLayout() {
           key: '/executions',
           icon: <PlayCircleOutlined />,
           label: t('nav.executions'),
+        },
+        {
+          key: '/approvals',
+          icon: <ExclamationCircleOutlined />,
+          label: t('nav.approvals'),
         },
       ],
     },
@@ -186,11 +195,18 @@ export default function MainLayout() {
           icon: <CloudServerOutlined />,
           label: t('nav.gatewaySettings'),
         },
-        ...(user?.roles?.includes('ADMIN') ? [{
-          key: '/admin/users',
-          icon: <TeamOutlined />,
-          label: t('nav.adminUsers'),
-        }] : []),
+        ...(user?.roles?.includes('ADMIN') ? [
+          {
+            key: '/admin/users',
+            icon: <TeamOutlined />,
+            label: t('nav.adminUsers'),
+          },
+          {
+            key: '/admin/housekeeping',
+            icon: <ClearOutlined />,
+            label: t('nav.housekeeping'),
+          },
+        ] : []),
       ],
     },
   ]

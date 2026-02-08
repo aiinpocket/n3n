@@ -37,6 +37,8 @@ const ActivityHistoryPage = lazy(() => import('./pages/ActivityHistoryPage'))
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
+const HousekeepingPage = lazy(() => import('./pages/HousekeepingPage'))
+const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Map i18n language to Ant Design locale
@@ -215,7 +217,9 @@ function App() {
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="logs" element={<LogViewerPage />} />
             <Route path="activities" element={<ActivityHistoryPage />} />
+            <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="admin/housekeeping" element={<AdminRoute><HousekeepingPage /></AdminRoute>} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 

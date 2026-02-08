@@ -161,6 +161,8 @@ docker compose up -d --build
 - **Skills System** - Built-in automation skills, no extra setup needed
 - **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
 - **Custom Docker Tools** - Pull tool containers from Docker Hub, auto-register as flow nodes
+- **Approval Dashboard** - Dedicated page to manage all pending approval items, approve or reject with one click
+- **System Housekeeping** - Admins can view statistics and manually trigger cleanup of expired execution records
 - **Device Management** - Connect a local agent to let workflows control your computer
 
 ### Error Handling Routes

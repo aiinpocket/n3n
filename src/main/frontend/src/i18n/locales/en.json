@@ -115,7 +115,9 @@
     "accountSettings": "Account Settings",
     "dashboard": "Dashboard",
     "adminUsers": "User Management",
-    "templates": "Templates"
+    "templates": "Templates",
+    "approvals": "Approvals",
+    "housekeeping": "Housekeeping"
   },
   "auth": {
     "login": "Login",
@@ -945,6 +947,35 @@
     "fieldRequired": "This field is required",
     "formExpired": "Form link has expired",
     "formNotFound": "Form not found"
+  },
+  "housekeeping": {
+    "title": "Housekeeping",
+    "runCleanup": "Run Cleanup",
+    "cleanHistory": "Clean History",
+    "totalExecutions": "Total Executions",
+    "archivedExecutions": "Archived",
+    "oldExecutions": "Old Executions",
+    "retentionDays": "Retention",
+    "days": "days",
+    "processed": "Processed",
+    "archived": "Archived",
+    "deleted": "Deleted",
+    "startedAt": "Started At",
+    "completedAt": "Completed At",
+    "jobHistory": "Job History",
+    "confirmRun": "Run Cleanup Now?",
+    "confirmRunDesc": "This will archive and clean up old execution records. This operation cannot be undone.",
+    "runSuccess": "Cleanup completed: {{processed}} processed, {{archived}} archived, {{deleted}} deleted",
+    "runFailed": "Cleanup failed",
+    "confirmCleanHistory": "Clean Old History?",
+    "confirmCleanHistoryDesc": "This will permanently delete old housekeeping job records.",
+    "cleanHistorySuccess": "{{count}} history records cleaned up"
+  },
+  "approvals": {
+    "title": "Pending Approvals",
+    "noPending": "No pending approvals",
+    "detail": "Approval Detail",
+    "actionHistory": "Action History"
   },
   "monitoring": {
     "title": "System Monitoring",
