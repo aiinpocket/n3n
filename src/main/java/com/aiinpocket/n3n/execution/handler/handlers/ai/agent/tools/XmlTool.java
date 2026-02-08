@@ -115,7 +115,7 @@ public class XmlTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("XML operation failed", e);
-                return ToolResult.failure("XML 操作失敗: " + e.getMessage());
+                return ToolResult.failure("XML 操作失敗");
             }
         });
     }
@@ -144,7 +144,7 @@ public class XmlTool implements AgentNodeTool {
                     "valid", true
             ));
         } catch (Exception e) {
-            return ToolResult.failure("XML 解析失敗: " + e.getMessage());
+            return ToolResult.failure("XML 解析失敗");
         }
     }
 
@@ -190,7 +190,7 @@ public class XmlTool implements AgentNodeTool {
                     "results", results
             ));
         } catch (Exception e) {
-            return ToolResult.failure("XPath 查詢失敗: " + e.getMessage());
+            return ToolResult.failure("XPath 查詢失敗");
         }
     }
 
@@ -208,7 +208,7 @@ public class XmlTool implements AgentNodeTool {
                     Map.of("json", json)
             );
         } catch (Exception e) {
-            return ToolResult.failure("XML 轉 JSON 失敗: " + e.getMessage());
+            return ToolResult.failure("XML 轉 JSON 失敗");
         }
     }
 

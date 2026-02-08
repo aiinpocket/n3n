@@ -133,10 +133,10 @@ public class CalculatorTool implements AgentNodeTool {
 
             } catch (IllegalArgumentException e) {
                 log.error("Calculation syntax error", e);
-                return ToolResult.failure("計算語法錯誤: " + e.getMessage());
+                return ToolResult.failure("計算語法錯誤");
             } catch (Exception e) {
                 log.error("Calculation failed", e);
-                return ToolResult.failure("計算失敗: " + e.getMessage());
+                return ToolResult.failure("計算失敗");
             }
         });
     }

@@ -160,7 +160,7 @@ public class ApiRequestSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("API request to {} failed: {}", url, e.getMessage());
-            return SkillResult.failure("API_ERROR", "API request failed: " + e.getMessage());
+            return SkillResult.failure("API_ERROR", "API request failed");
         }
     }
 }

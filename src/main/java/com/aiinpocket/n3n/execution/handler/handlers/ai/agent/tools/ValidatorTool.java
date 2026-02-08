@@ -134,7 +134,7 @@ public class ValidatorTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Validation failed", e);
-                return ToolResult.failure("驗證失敗: " + e.getMessage());
+                return ToolResult.failure("驗證失敗");
             }
         });
     }

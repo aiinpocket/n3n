@@ -137,7 +137,7 @@ public class DateTimeTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("DateTime operation failed", e);
-                return ToolResult.failure("日期時間操作失敗: " + e.getMessage());
+                return ToolResult.failure("日期時間操作失敗");
             }
         });
     }

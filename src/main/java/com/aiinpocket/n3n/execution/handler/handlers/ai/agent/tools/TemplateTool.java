@@ -121,7 +121,7 @@ public class TemplateTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Template rendering failed", e);
-                return ToolResult.failure("模板渲染失敗: " + e.getMessage());
+                return ToolResult.failure("模板渲染失敗");
             }
         });
     }

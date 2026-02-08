@@ -152,7 +152,7 @@ public class HttpRequestTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("HTTP request failed: {}", e.getMessage());
-                return ToolResult.failure("HTTP request failed: " + e.getMessage());
+                return ToolResult.failure("HTTP request failed");
             }
         });
     }

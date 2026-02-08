@@ -99,7 +99,7 @@ public class CompressTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Compression operation failed", e);
-                return ToolResult.failure("壓縮操作失敗: " + e.getMessage());
+                return ToolResult.failure("壓縮操作失敗");
             }
         });
     }
@@ -142,7 +142,7 @@ public class CompressTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("壓縮失敗: " + e.getMessage());
+            return ToolResult.failure("壓縮失敗");
         }
     }
 
@@ -201,7 +201,7 @@ public class CompressTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("解壓縮失敗: " + e.getMessage());
+            return ToolResult.failure("解壓縮失敗");
         }
     }
 

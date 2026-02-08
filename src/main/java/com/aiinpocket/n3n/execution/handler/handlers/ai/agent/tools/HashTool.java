@@ -97,7 +97,7 @@ public class HashTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Hash calculation failed", e);
-                return ToolResult.failure("雜湊計算失敗: " + e.getMessage());
+                return ToolResult.failure("雜湊計算失敗");
             }
         });
     }

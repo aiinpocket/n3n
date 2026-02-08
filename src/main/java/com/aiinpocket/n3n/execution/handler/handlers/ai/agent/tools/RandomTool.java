@@ -122,7 +122,7 @@ public class RandomTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Random generation failed", e);
-                return ToolResult.failure("隨機生成失敗: " + e.getMessage());
+                return ToolResult.failure("隨機生成失敗");
             }
         });
     }

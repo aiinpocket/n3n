@@ -118,7 +118,7 @@ public class WebSearchTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Web search failed: {}", e.getMessage());
-                return ToolResult.failure("Web search failed: " + e.getMessage());
+                return ToolResult.failure("Web search failed");
             }
         });
     }

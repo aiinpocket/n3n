@@ -126,7 +126,7 @@ public class DynamicPluginNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Error executing plugin node {}: {}", nodeType, e.getMessage(), e);
-            return NodeExecutionResult.failure("Plugin execution failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Plugin execution failed");
         }
     }
 

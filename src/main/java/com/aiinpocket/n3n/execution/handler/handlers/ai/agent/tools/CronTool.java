@@ -108,7 +108,7 @@ public class CronTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Cron operation failed", e);
-                return ToolResult.failure("Cron 操作失敗: " + e.getMessage());
+                return ToolResult.failure("Cron 操作失敗");
             }
         });
     }

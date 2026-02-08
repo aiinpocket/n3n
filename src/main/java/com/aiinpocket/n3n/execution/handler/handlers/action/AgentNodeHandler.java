@@ -124,7 +124,7 @@ public class AgentNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("Agent invocation interrupted");
         } catch (ExecutionException e) {
             log.error("Agent invocation failed", e);
-            return NodeExecutionResult.failure("Agent invocation failed: " + e.getCause().getMessage());
+            return NodeExecutionResult.failure("Agent invocation failed");
         }
     }
 

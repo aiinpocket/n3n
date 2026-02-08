@@ -89,7 +89,7 @@ public class MarkdownTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Markdown operation failed", e);
-                return ToolResult.failure("Markdown 操作失敗: " + e.getMessage());
+                return ToolResult.failure("Markdown 操作失敗");
             }
         });
     }

@@ -120,7 +120,7 @@ public class SendWebhookSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("Failed to send webhook to {}: {}", url, e.getMessage());
-            return SkillResult.failure("WEBHOOK_ERROR", "Failed to send webhook: " + e.getMessage());
+            return SkillResult.failure("WEBHOOK_ERROR", "Failed to send webhook");
         }
     }
 }

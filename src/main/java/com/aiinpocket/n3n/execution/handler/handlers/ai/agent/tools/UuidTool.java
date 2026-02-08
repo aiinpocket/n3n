@@ -106,7 +106,7 @@ public class UuidTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("UUID generation failed", e);
-                return ToolResult.failure("UUID 生成失敗: " + e.getMessage());
+                return ToolResult.failure("UUID 生成失敗");
             }
         });
     }

@@ -111,7 +111,7 @@ public class EncryptTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Encryption operation failed", e);
-                return ToolResult.failure("加密操作失敗: " + e.getMessage());
+                return ToolResult.failure("加密操作失敗");
             }
         });
     }
@@ -155,7 +155,7 @@ public class EncryptTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("加密失敗: " + e.getMessage());
+            return ToolResult.failure("加密失敗");
         }
     }
 
@@ -196,7 +196,7 @@ public class EncryptTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("解密失敗: " + e.getMessage());
+            return ToolResult.failure("解密失敗");
         }
     }
 

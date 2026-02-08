@@ -145,7 +145,7 @@ public class SkillExecutor {
             Map<String, Object> response = responseMono.timeout(SKILL_HTTP_TIMEOUT).block();
             return SkillResult.success(response != null ? response : Map.of());
         } catch (Exception e) {
-            return SkillResult.failure("HTTP_ERROR", "HTTP request failed: " + e.getMessage());
+            return SkillResult.failure("HTTP_ERROR", "HTTP request failed");
         }
     }
 

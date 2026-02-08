@@ -156,15 +156,12 @@ public class CodeExecutionTool implements AgentNodeTool {
                 ));
 
             } catch (PolyglotException e) {
-                String errorMessage = e.getMessage();
-                if (e.isGuestException()) {
-                    errorMessage = "JavaScript error: " + e.getMessage();
-                }
-                log.error("Code execution failed: {}", errorMessage);
+                String errorMessage = e.isGuestException() ? "JavaScript error" : "Code execution failed";
+                log.error("Code execution failed: {}", e.getMessage());
                 return ToolResult.failure(errorMessage);
             } catch (Exception e) {
                 log.error("Code execution failed: {}", e.getMessage());
-                return ToolResult.failure("Code execution failed: " + e.getMessage());
+                return ToolResult.failure("Code execution failed");
             }
         });
     }

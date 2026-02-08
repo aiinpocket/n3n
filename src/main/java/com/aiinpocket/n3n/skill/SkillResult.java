@@ -64,7 +64,7 @@ public class SkillResult {
     public static SkillResult failure(Throwable exception) {
         return SkillResult.builder()
             .success(false)
-            .errorMessage(exception.getMessage())
+            .errorMessage("Skill execution failed")
             .errorCode(exception.getClass().getSimpleName())
             .build();
     }

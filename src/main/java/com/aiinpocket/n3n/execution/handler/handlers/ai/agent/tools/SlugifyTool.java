@@ -117,7 +117,7 @@ public class SlugifyTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Slugify failed", e);
-                return ToolResult.failure("Slug 生成失敗: " + e.getMessage());
+                return ToolResult.failure("Slug 生成失敗");
             }
         });
     }

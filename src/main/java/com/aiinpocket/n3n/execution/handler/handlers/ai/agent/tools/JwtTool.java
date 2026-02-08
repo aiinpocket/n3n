@@ -191,7 +191,7 @@ public class JwtTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("JWT parsing failed", e);
-                return ToolResult.failure("JWT 解析失敗: " + e.getMessage());
+                return ToolResult.failure("JWT 解析失敗");
             }
         });
     }

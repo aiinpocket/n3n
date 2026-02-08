@@ -122,10 +122,10 @@ public class JsonTool implements AgentNodeTool {
 
             } catch (JsonProcessingException e) {
                 log.error("JSON parsing failed", e);
-                return ToolResult.failure("JSON 解析錯誤: " + e.getMessage());
+                return ToolResult.failure("JSON 解析錯誤");
             } catch (Exception e) {
                 log.error("JSON operation failed", e);
-                return ToolResult.failure("JSON 操作失敗: " + e.getMessage());
+                return ToolResult.failure("JSON 操作失敗");
             }
         });
     }

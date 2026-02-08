@@ -161,7 +161,7 @@ public class ExternalServiceNodeHandler extends AbstractNodeHandler {
 
         } catch (IOException e) {
             log.error("External service call failed: {}", e.getMessage());
-            return NodeExecutionResult.failure("HTTP request failed: " + sanitizeErrorMessage(e.getMessage()));
+            return NodeExecutionResult.failure("HTTP request failed");
         }
     }
 

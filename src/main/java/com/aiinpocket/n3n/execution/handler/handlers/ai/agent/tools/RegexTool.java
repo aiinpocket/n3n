@@ -118,7 +118,7 @@ public class RegexTool implements AgentNodeTool {
                 try {
                     pattern = Pattern.compile(patternStr, patternFlags);
                 } catch (PatternSyntaxException e) {
-                    return ToolResult.failure("無效的正規表達式: " + e.getMessage());
+                    return ToolResult.failure("無效的正規表達式");
                 }
 
                 return switch (operation) {
@@ -132,7 +132,7 @@ public class RegexTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Regex operation failed", e);
-                return ToolResult.failure("正規表達式操作失敗: " + e.getMessage());
+                return ToolResult.failure("正規表達式操作失敗");
             }
         });
     }

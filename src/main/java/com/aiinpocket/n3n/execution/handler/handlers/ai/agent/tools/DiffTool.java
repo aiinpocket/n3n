@@ -154,7 +154,7 @@ public class DiffTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Diff failed", e);
-                return ToolResult.failure("差異比較失敗: " + e.getMessage());
+                return ToolResult.failure("差異比較失敗");
             }
         });
     }

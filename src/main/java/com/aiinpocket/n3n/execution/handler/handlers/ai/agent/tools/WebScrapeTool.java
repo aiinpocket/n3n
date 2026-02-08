@@ -155,10 +155,10 @@ public class WebScrapeTool implements AgentNodeTool {
 
             } catch (IOException e) {
                 log.error("Web scrape failed", e);
-                return ToolResult.failure("網頁擷取失敗: " + e.getMessage());
+                return ToolResult.failure("網頁擷取失敗");
             } catch (Exception e) {
                 log.error("Web scrape error", e);
-                return ToolResult.failure("擷取錯誤: " + e.getMessage());
+                return ToolResult.failure("擷取錯誤");
             }
         });
     }

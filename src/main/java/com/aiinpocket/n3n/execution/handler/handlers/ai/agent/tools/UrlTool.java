@@ -107,7 +107,7 @@ public class UrlTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("URL operation failed", e);
-                return ToolResult.failure("URL 操作失敗: " + e.getMessage());
+                return ToolResult.failure("URL 操作失敗");
             }
         });
     }
@@ -146,7 +146,7 @@ public class UrlTool implements AgentNodeTool {
 
             return ToolResult.success(sb.toString(), components);
         } catch (Exception e) {
-            return ToolResult.failure("無效的 URL: " + e.getMessage());
+            return ToolResult.failure("無效的 URL");
         }
     }
 
@@ -174,7 +174,7 @@ public class UrlTool implements AgentNodeTool {
                     Map.of("decoded", decoded, "original", encoded)
             );
         } catch (Exception e) {
-            return ToolResult.failure("解碼失敗: " + e.getMessage());
+            return ToolResult.failure("解碼失敗");
         }
     }
 
@@ -227,7 +227,7 @@ public class UrlTool implements AgentNodeTool {
                     Map.of("url", url)
             );
         } catch (Exception e) {
-            return ToolResult.failure("URL 建構失敗: " + e.getMessage());
+            return ToolResult.failure("URL 建構失敗");
         }
     }
 
@@ -267,7 +267,7 @@ public class UrlTool implements AgentNodeTool {
 
             return ToolResult.success(sb.toString(), Map.of("params", params, "count", params.size()));
         } catch (Exception e) {
-            return ToolResult.failure("參數提取失敗: " + e.getMessage());
+            return ToolResult.failure("參數提取失敗");
         }
     }
 

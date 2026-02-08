@@ -134,7 +134,7 @@ public class VectorSearchTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Vector search failed", e);
-                return ToolResult.failure("向量搜尋失敗: " + e.getMessage());
+                return ToolResult.failure("向量搜尋失敗");
             }
         });
     }

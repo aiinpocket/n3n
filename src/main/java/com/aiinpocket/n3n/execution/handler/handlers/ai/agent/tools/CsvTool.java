@@ -110,7 +110,7 @@ public class CsvTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("CSV operation failed", e);
-                return ToolResult.failure("CSV 操作失敗: " + e.getMessage());
+                return ToolResult.failure("CSV 操作失敗");
             }
         });
     }

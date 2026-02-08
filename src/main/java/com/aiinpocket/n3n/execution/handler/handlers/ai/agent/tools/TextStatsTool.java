@@ -139,7 +139,7 @@ public class TextStatsTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Text stats failed", e);
-                return ToolResult.failure("文字統計失敗: " + e.getMessage());
+                return ToolResult.failure("文字統計失敗");
             }
         });
     }

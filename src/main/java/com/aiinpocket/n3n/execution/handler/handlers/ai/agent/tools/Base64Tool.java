@@ -104,7 +104,7 @@ public class Base64Tool implements AgentNodeTool {
                 return ToolResult.failure("Base64 解碼失敗：輸入不是有效的 Base64 字串");
             } catch (Exception e) {
                 log.error("Base64 operation failed", e);
-                return ToolResult.failure("Base64 操作失敗: " + e.getMessage());
+                return ToolResult.failure("Base64 操作失敗");
             }
         });
     }
