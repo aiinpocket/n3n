@@ -12,6 +12,7 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons'
 import Editor from '@monaco-editor/react'
+import { useTranslation } from 'react-i18next'
 import CredentialSelect from './CredentialSelect'
 
 const { TextArea } = Input
@@ -49,6 +50,7 @@ export default function DynamicFieldRenderer({
   credentialType,
   onCreateCredential,
 }: DynamicFieldRendererProps) {
+  const { t } = useTranslation()
   const renderField = (field: FieldDefinition) => {
     const value = values[field.name]
 
@@ -65,7 +67,7 @@ export default function DynamicFieldRenderer({
             value={value as string}
             onChange={(v) => onChange(field.name, v)}
             credentialType={credentialType}
-            placeholder={field.placeholder || `Select ${field.displayName}`}
+            placeholder={field.placeholder || t('common.selectField', { field: field.displayName })}
             onCreateNew={onCreateCredential}
           />
         </Form.Item>
@@ -139,7 +141,7 @@ export default function DynamicFieldRenderer({
           <Select
             value={value as string}
             onChange={(v) => onChange(field.name, v)}
-            placeholder={field.placeholder || `Select ${field.displayName}`}
+            placeholder={field.placeholder || t('common.selectField', { field: field.displayName })}
           >
             {field.options.map((option, index) => (
               <Select.Option key={option} value={option}>
@@ -202,7 +204,7 @@ export default function DynamicFieldRenderer({
             value={typeof value === 'object' ? JSON.stringify(value, null, 2) : value as string}
             onChange={(e) => onChange(field.name, e.target.value)}
             rows={4}
-            placeholder={field.placeholder || `Enter ${field.displayName}...`}
+            placeholder={field.placeholder || t('common.enterField', { field: field.displayName })}
           />
         </Form.Item>
       )
@@ -216,7 +218,7 @@ export default function DynamicFieldRenderer({
           label={field.displayName}
           tooltip={field.description}
           required={field.required}
-          rules={[{ type: 'url', message: 'Please enter a valid URL' }]}
+          rules={[{ type: 'url', message: t('common.invalidUrl') }]}
         >
           <Input
             value={value as string}
@@ -239,7 +241,7 @@ export default function DynamicFieldRenderer({
         <Input
           value={value as string ?? field.default as string}
           onChange={(e) => onChange(field.name, e.target.value)}
-          placeholder={field.placeholder || `Enter ${field.displayName}...`}
+          placeholder={field.placeholder || t('common.enterField', { field: field.displayName })}
         />
       </Form.Item>
     )

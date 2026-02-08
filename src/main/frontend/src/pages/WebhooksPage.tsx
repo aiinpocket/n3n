@@ -313,7 +313,7 @@ const WebhooksPage: React.FC = () => {
           >
             <Input
               addonBefore="/webhook/"
-              placeholder="my-webhook"
+              placeholder={t('webhook.pathPlaceholder')}
             />
           </Form.Item>
 

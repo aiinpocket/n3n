@@ -44,7 +44,9 @@
     "retry": "重試",
     "updateFailed": "更新失敗",
     "fullscreen": "全螢幕檢視",
-    "unknown": "未知"
+    "unknown": "未知",
+    "selectField": "選擇{{field}}",
+    "invalidUrl": "請輸入有效的網址"
   },
   "error": {
     "title": "發生錯誤",
@@ -790,6 +792,8 @@
     "ollamaFree": "Ollama 是免費的本地 AI，不需要 API Key！",
     "ollamaInstruction": "安裝後執行 ollama run llama3.2 即可開始使用",
     "ollamaServerUrl": "Ollama 伺服器位址",
+    "ollamaDefaultUrl": "http://localhost:11434",
+    "contextWindowSize": "{{size}}K 上下文",
     "settingsInfo": "AI 設定說明",
     "settingsInfoList": {
       "providers": "支援多家 AI 供應商：Claude、ChatGPT、Gemini、Ollama",
@@ -866,6 +870,7 @@
     "testSuccess": "技能執行成功",
     "testFailed": "技能執行失敗",
     "input": "輸入",
+    "inputJsonPlaceholder": "{}",
     "inputSchema": "輸入格式",
     "result": "結果",
     "enabled": "啟用",
@@ -888,6 +893,7 @@
     "path": "路徑",
     "pathRequired": "請輸入路徑",
     "pathPattern": "路徑只能包含英文字母、數字、連字號和底線",
+    "pathPlaceholder": "my-webhook",
     "pathHint": "完整 URL 為：{baseUrl}/webhook/{path}",
     "url": "Webhook URL",
     "method": "HTTP 方法",
@@ -1557,6 +1563,7 @@
     "rolesUpdated": "使用者角色已更新",
     "passwordReset": "密碼已重設",
     "namePlaceholder": "輸入使用者名稱",
+    "emailPlaceholder": "user@example.com",
     "password": "密碼（選填）",
     "passwordPlaceholder": "留空則自動產生",
     "status": {

@@ -44,7 +44,9 @@
     "retry": "Retry",
     "updateFailed": "Update failed",
     "fullscreen": "Fullscreen View",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "selectField": "Select {{field}}",
+    "invalidUrl": "Please enter a valid URL"
   },
   "error": {
     "title": "Something went wrong",
@@ -790,6 +792,8 @@
     "ollamaFree": "Ollama is free and runs locally, no API Key needed!",
     "ollamaInstruction": "After installation, run ollama run llama3.2 to get started",
     "ollamaServerUrl": "Ollama Server URL",
+    "ollamaDefaultUrl": "http://localhost:11434",
+    "contextWindowSize": "{{size}}K context",
     "settingsInfo": "AI Settings Info",
     "settingsInfoList": {
       "providers": "Supports multiple AI providers: Claude, ChatGPT, Gemini, Ollama",
@@ -866,6 +870,7 @@
     "testSuccess": "Skill executed successfully",
     "testFailed": "Skill execution failed",
     "input": "Input",
+    "inputJsonPlaceholder": "{}",
     "inputSchema": "Input Schema",
     "result": "Result",
     "enabled": "Enabled",
@@ -888,6 +893,7 @@
     "path": "Path",
     "pathRequired": "Please enter a path",
     "pathPattern": "Path can only contain letters, numbers, hyphens and underscores",
+    "pathPlaceholder": "my-webhook",
     "pathHint": "Full URL: {baseUrl}/webhook/{path}",
     "url": "Webhook URL",
     "method": "HTTP Method",
@@ -1557,6 +1563,7 @@
     "rolesUpdated": "User roles updated",
     "passwordReset": "Password has been reset",
     "namePlaceholder": "Enter user name",
+    "emailPlaceholder": "user@example.com",
     "password": "Password (optional)",
     "passwordPlaceholder": "Leave empty to auto-generate",
     "status": {

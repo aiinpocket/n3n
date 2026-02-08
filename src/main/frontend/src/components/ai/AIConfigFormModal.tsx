@@ -279,7 +279,7 @@ const AIConfigFormModal: React.FC<Props> = ({
               label={t('ai.ollamaServerUrl')}
               rules={[{ required: true, message: t('ai.ollamaServerUrl') }]}
             >
-              <Input placeholder="http://localhost:11434" />
+              <Input placeholder={t('ai.ollamaDefaultUrl')} />
             </Form.Item>
           </>
         )}
@@ -330,7 +330,7 @@ const AIConfigFormModal: React.FC<Props> = ({
                         type="secondary"
                         style={{ marginLeft: 8, fontSize: 12 }}
                       >
-                        {(model.contextWindow / 1000).toFixed(0)}K context
+                        {t('ai.contextWindowSize', { size: (model.contextWindow / 1000).toFixed(0) })}
                       </Text>
                     )}
                   </div>

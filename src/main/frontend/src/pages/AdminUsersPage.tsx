@@ -259,7 +259,7 @@ export default function AdminUsersPage() {
             { required: true, message: t('auth.emailRequired') },
             { type: 'email', message: t('auth.emailInvalid') },
           ]}>
-            <Input placeholder="user@example.com" />
+            <Input placeholder={t('admin.emailPlaceholder')} />
           </Form.Item>
           <Form.Item name="name" label={t('auth.name')} rules={[
             { required: true, message: t('auth.nameRequired') },

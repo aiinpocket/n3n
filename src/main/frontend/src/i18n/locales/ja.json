@@ -44,7 +44,9 @@
     "retry": "再試行",
     "updateFailed": "更新に失敗しました",
     "fullscreen": "全画面表示",
-    "unknown": "不明"
+    "unknown": "不明",
+    "selectField": "{{field}}を選択",
+    "invalidUrl": "有効なURLを入力してください"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -790,6 +792,8 @@
     "ollamaFree": "Ollamaは無料でローカル実行できます。APIキーは不要です！",
     "ollamaInstruction": "インストール後、ollama run llama3.2 を実行して開始できます",
     "ollamaServerUrl": "Ollamaサーバーアドレス",
+    "ollamaDefaultUrl": "http://localhost:11434",
+    "contextWindowSize": "{{size}}K コンテキスト",
     "settingsInfo": "AI設定について",
     "settingsInfoList": {
       "providers": "複数のAIプロバイダーに対応：Claude、ChatGPT、Gemini、Ollama",
@@ -866,6 +870,7 @@
     "testSuccess": "スキルの実行に成功しました",
     "testFailed": "スキルの実行に失敗しました",
     "input": "入力",
+    "inputJsonPlaceholder": "{}",
     "inputSchema": "入力スキーマ",
     "result": "結果",
     "enabled": "有効",
@@ -888,6 +893,7 @@
     "path": "パス",
     "pathRequired": "パスを入力してください",
     "pathPattern": "パスは英字、数字、ハイフン、アンダースコアのみ使用可能",
+    "pathPlaceholder": "my-webhook",
     "pathHint": "完全なURL：{baseUrl}/webhook/{path}",
     "url": "Webhook URL",
     "method": "HTTPメソッド",
@@ -1557,6 +1563,7 @@
     "rolesUpdated": "ユーザーロールが更新されました",
     "passwordReset": "パスワードがリセットされました",
     "namePlaceholder": "ユーザー名を入力",
+    "emailPlaceholder": "user@example.com",
     "password": "パスワード（任意）",
     "passwordPlaceholder": "空欄の場合は自動生成",
     "status": {

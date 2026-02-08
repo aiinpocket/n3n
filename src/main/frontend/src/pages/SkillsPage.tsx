@@ -346,7 +346,7 @@ export default function SkillsPage() {
                   rows={6}
                   value={testInput}
                   onChange={(e) => setTestInput(e.target.value)}
-                  placeholder="{}"
+                  placeholder={t('skill.inputJsonPlaceholder')}
                   style={{ fontFamily: 'monospace' }}
                 />
               </Form.Item>
