@@ -12,12 +12,12 @@ export interface FormField {
 }
 
 export interface FormDefinition {
+  token: string
   title: string
   description?: string
   fields: FormField[]
-  submitLabel?: string
-  flowId: string
-  flowName: string
+  submitButtonText?: string
+  successMessage?: string
 }
 
 export interface FormSubmitResponse {
@@ -47,8 +47,10 @@ export const formApi = {
   },
 
   // Get form URL for a flow (authenticated)
-  getFormUrl: async (flowId: string): Promise<{ url: string }> => {
-    const response = await apiClient.get<{ url: string }>(`/forms/flow/${flowId}/url`)
+  getFormUrl: async (flowId: string, nodeId: string): Promise<{ formUrl: string; formToken: string; isActive: boolean }> => {
+    const response = await apiClient.get<{ formUrl: string; formToken: string; isActive: boolean }>(`/forms/flow/${flowId}/url`, {
+      params: { nodeId },
+    })
     return response.data
   },
 }

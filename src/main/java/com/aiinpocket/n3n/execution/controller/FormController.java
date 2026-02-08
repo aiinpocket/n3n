@@ -6,6 +6,9 @@ import com.aiinpocket.n3n.execution.entity.FormTrigger;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.execution.service.FormService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -62,7 +65,7 @@ public class FormController {
             return ResponseEntity.ok(FormDefinitionResponse.from(trigger));
 
         } catch (Exception e) {
-            log.error("Error fetching form: {}", e.getMessage());
+            log.error("Error fetching form: {}", e.getClass().getSimpleName());
             return ResponseEntity.notFound().build();
         }
     }
@@ -128,7 +131,7 @@ public class FormController {
             ));
 
         } catch (Exception e) {
-            log.error("Error submitting form: {}", e.getMessage(), e);
+            log.error("Error submitting form: {}", e.getClass().getSimpleName());
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to submit form. Please try again."));
         }
@@ -180,7 +183,7 @@ public class FormController {
             ));
 
         } catch (Exception e) {
-            log.error("Error submitting execution form: {}", e.getMessage(), e);
+            log.error("Error submitting execution form: {}", e.getClass().getSimpleName());
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to submit form. Please try again."));
         }
@@ -226,7 +229,10 @@ public class FormController {
 
     // DTO records
 
-    public record FormSubmissionRequest(String nodeId, Map<String, Object> formData) {}
+    public record FormSubmissionRequest(
+        @NotBlank @Size(max = 100) String nodeId,
+        @NotNull Map<String, Object> formData
+    ) {}
 
     public record FormDefinitionResponse(
         String token,

@@ -85,6 +85,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/agents/install.sh", "/api/agents/binary/**", "/api/agents/config", "/api/agents/register").permitAll()
                 // OAuth2 callback (redirect from provider, uses HMAC-signed state for auth)
                 .requestMatchers("/api/oauth2/callback").permitAll()
+                // Public form endpoints (no auth - uses secure token)
+                .requestMatchers("/api/forms/{token}", "/api/forms/{token}/submit").permitAll()
                 // Webhook trigger endpoints (no auth - uses signature validation)
                 .requestMatchers("/webhook/**").permitAll()
                 // Actuator endpoints for K8s probes

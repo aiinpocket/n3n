@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Form,
@@ -36,6 +36,7 @@ export default function FormPage() {
   const [formDef, setFormDef] = useState<FormDefinition | null>(null)
   const [submitResponse, setSubmitResponse] = useState<{ executionId?: string; message?: string; redirectUrl?: string } | null>(null)
   const [errorMsg, setErrorMsg] = useState<string>('')
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadForm = useCallback(async () => {
     if (!token) {
@@ -76,6 +77,14 @@ export default function FormPage() {
     loadForm()
   }, [loadForm])
 
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current)
+      }
+    }
+  }, [])
+
   const handleSubmit = async (values: Record<string, unknown>) => {
     if (!token) return
     try {
@@ -86,7 +95,7 @@ export default function FormPage() {
       message.success(t('form.submitSuccess'))
 
       if (response.redirectUrl) {
-        setTimeout(() => {
+        redirectTimerRef.current = setTimeout(() => {
           window.location.href = response.redirectUrl!
         }, 2000)
       }
@@ -305,9 +314,6 @@ export default function FormPage() {
               <Title level={3} style={{ margin: 0, color: 'var(--color-text-primary)' }}>
                 {formDef.title}
               </Title>
-              <Text style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>
-                {formDef.flowName}
-              </Text>
               {formDef.description && (
                 <Paragraph style={{
                   color: 'var(--color-text-secondary)',
@@ -337,7 +343,7 @@ export default function FormPage() {
                 >
                   {state === 'submitting'
                     ? t('form.submitting')
-                    : (formDef.submitLabel || t('form.submit'))}
+                    : (formDef.submitButtonText || t('form.submit'))}
                 </Button>
               </Form.Item>
             </Form>

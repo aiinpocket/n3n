@@ -61,7 +61,7 @@ public class OAuth2Controller {
         String authUrl = buildAuthorizationUrl(provider, credentialId, scope, redirectUri);
 
         if (authUrl == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Unknown provider: " + provider));
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown OAuth2 provider"));
         }
 
         return ResponseEntity.ok(Map.of("authorizationUrl", authUrl));
@@ -115,7 +115,7 @@ public class OAuth2Controller {
             String tokenUrl = getTokenUrlForProvider(provider);
             if (tokenUrl == null) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Unsupported OAuth2 provider: " + provider
+                    "error", "Unsupported OAuth2 provider"
                 ));
             }
 

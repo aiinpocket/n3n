@@ -177,14 +177,17 @@ export default function FlowEditorPage() {
   // Copy the form URL to clipboard
   const handleCopyFormUrl = useCallback(async () => {
     if (!id) return
+    const formNode = nodes.find((n) => n.type === 'formTrigger')
+    if (!formNode) return
     try {
-      const { url } = await formApi.getFormUrl(id)
-      await navigator.clipboard.writeText(url)
+      const { formUrl } = await formApi.getFormUrl(id, formNode.id)
+      const fullUrl = `${window.location.origin}${formUrl}`
+      await navigator.clipboard.writeText(fullUrl)
       message.success(t('form.formUrlCopied'))
     } catch (err) {
       message.error(extractApiError(err, t('form.formUrlFailed')))
     }
-  }, [id, t])
+  }, [id, nodes, t])
 
   // Load flow on mount
   useEffect(() => {
