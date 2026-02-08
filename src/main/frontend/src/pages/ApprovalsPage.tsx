@@ -159,6 +159,7 @@ export default function ApprovalsPage() {
             type="primary"
             icon={<CheckCircleOutlined />}
             onClick={() => handleAction(record.id, 'approve')}
+            loading={submitting}
             style={{ background: '#22C55E', borderColor: '#22C55E' }}
           >
             {t('approval.approve')}
@@ -168,6 +169,7 @@ export default function ApprovalsPage() {
             danger
             icon={<CloseCircleOutlined />}
             onClick={() => handleAction(record.id, 'reject')}
+            loading={submitting}
           >
             {t('approval.reject')}
           </Button>
