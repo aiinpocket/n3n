@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Result, Spin, Button, Card } from 'antd'
 import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons'
@@ -14,12 +14,15 @@ const OAuth2CallbackPage: React.FC = () => {
   const [state, setState] = useState<CallbackState>('processing')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [provider, setProvider] = useState<string>('')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Parse callback params
   useEffect(() => {
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
     const success = searchParams.get('success')
     const providerParam = searchParams.get('provider')
+    const code = searchParams.get('code')
 
     if (providerParam) {
       setProvider(providerParam)
@@ -29,43 +32,28 @@ const OAuth2CallbackPage: React.FC = () => {
       logger.error('OAuth2 callback error:', error, errorDescription)
       setErrorMessage(errorDescription || error)
       setState('error')
-      return
-    }
-
-    // The backend handles the callback at /api/oauth2/callback.
-    // If the backend redirects the browser here with success/error params,
-    // we display the result. If the page is loaded directly from the
-    // provider redirect (with code+state), the backend should have already
-    // processed it. We check for the result indicators.
-    if (success === 'true') {
+    } else if (success === 'true' || code) {
       setState('success')
-      // Auto-redirect to credentials page after 2 seconds
-      const timer = setTimeout(() => {
+    } else {
+      setErrorMessage(t('oauth2.callbackError'))
+      setState('error')
+    }
+  }, [searchParams, t])
+
+  // Auto-redirect on success
+  useEffect(() => {
+    if (state === 'success') {
+      timerRef.current = setTimeout(() => {
         navigate('/credentials', { replace: true })
       }, 2000)
-      return () => clearTimeout(timer)
     }
-
-    // If we have a code parameter, the backend callback should process it.
-    // Since the backend /api/oauth2/callback returns JSON (not a redirect),
-    // the frontend callback page is shown when the backend redirects here
-    // after processing. Check for result in URL params.
-    const code = searchParams.get('code')
-    if (code) {
-      // The backend already processed this via /api/oauth2/callback.
-      // If we ended up here, it means the callback was successful
-      // (the backend would have returned error params otherwise).
-      setState('success')
-      const timer = setTimeout(() => {
-        navigate('/credentials', { replace: true })
-      }, 2000)
-      return () => clearTimeout(timer)
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
     }
-
-    // No recognizable params - show error
-    setErrorMessage(t('oauth2.callbackError'))
-    setState('error')
-  }, [searchParams, navigate, t])
+  }, [state, navigate])
 
   const renderContent = () => {
     switch (state) {

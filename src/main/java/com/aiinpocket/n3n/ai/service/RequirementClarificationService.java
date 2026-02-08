@@ -149,7 +149,7 @@ public class RequirementClarificationService {
             return RequirementClarificationResponse.question(conversationId, message, suggestions);
 
         } catch (Exception e) {
-            log.warn("Failed to parse clarification response, using as plain text: {}", e.getMessage());
+            log.warn("Failed to parse clarification response, using as plain text: {}", e.getClass().getSimpleName());
             return RequirementClarificationResponse.question(
                 conversationId,
                 response,

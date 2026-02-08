@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Drawer,
   Button,
@@ -64,6 +64,11 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
   const [applying, setApplying] = useState(false)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => { mountedRef.current = false }
+  }, [])
 
   const handleAnalyze = async () => {
     if (!flowDefinition) return
@@ -74,15 +79,17 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
 
     try {
       const response = await optimizerApi.analyzeFlow(flowDefinition)
+      if (!mountedRef.current) return
       setResult(response)
 
       if (!response.success && response.error) {
         setError(response.error)
       }
     } catch {
+      if (!mountedRef.current) return
       setError(t('optimizer.analyzeFailed'))
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }
 
@@ -119,6 +126,8 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
         suggestionIds: suggestionsToApply.map(s => s.id),
       })
 
+      if (!mountedRef.current) return
+
       if (response.success && response.updatedDefinition) {
         const newApplied = new Set(appliedIds)
         response.appliedSuggestions.forEach(id => newApplied.add(id))
@@ -130,6 +139,7 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
         message.error(response.error || t('optimizer.applyFailed'))
       }
     } catch {
+      if (!mountedRef.current) return
       message.error(t('optimizer.applyFailed'))
     } finally {
       setApplying(false)

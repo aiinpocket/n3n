@@ -180,11 +180,12 @@ public class AIAssistantService {
      */
     private UUID ensureConversation(ChatStreamRequest request, UUID userId) {
         if (request.getConversationId() != null) {
-            // 驗證對話存在
+            // 驗證對話存在且屬於當前使用者
             Optional<Conversation> existing = conversationManager.getConversation(request.getConversationId());
-            if (existing.isPresent()) {
+            if (existing.isPresent() && userId.equals(existing.get().getUserId())) {
                 return request.getConversationId();
             }
+            // 對話不存在或不屬於此使用者 → 建立新對話
         }
 
         // 建立新對話
@@ -603,7 +604,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Flow generation failed", e);
-            return GenerateFlowResponse.error(e.getMessage());
+            return GenerateFlowResponse.error("Flow generation failed");
         }
     }
 
@@ -623,7 +624,7 @@ public class AIAssistantService {
             )
             .onErrorResume(e -> {
                 log.error("Flow generation stream error", e);
-                return Flux.just(FlowGenerationChunk.error(e.getMessage()));
+                return Flux.just(FlowGenerationChunk.error("Flow generation stream error"));
             });
     }
 
@@ -786,7 +787,7 @@ public class AIAssistantService {
 
         } catch (Exception e) {
             log.error("Code generation failed", e);
-            return GenerateCodeResponse.failure("程式碼生成失敗: " + e.getMessage());
+            return GenerateCodeResponse.failure("Code generation failed");
         }
     }
 

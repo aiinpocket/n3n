@@ -1,6 +1,8 @@
 package com.aiinpocket.n3n.ai.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -29,16 +31,24 @@ public class RequirementClarificationRequest {
     /**
      * 對話歷史（前端維護，每次傳送完整歷史）
      */
+    @Valid
+    @Size(max = 50, message = "History too long")
     private List<ChatMessage> history;
 
     /**
      * 語言偏好
      */
+    @Size(max = 10)
     private String language;
 
     @Data
     public static class ChatMessage {
-        private String role; // user | assistant
+        @NotBlank
+        @Pattern(regexp = "^(user|assistant)$", message = "Role must be 'user' or 'assistant'")
+        private String role;
+
+        @NotBlank
+        @Size(max = 5000, message = "Content too long")
         private String content;
     }
 }

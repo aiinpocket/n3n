@@ -86,6 +86,7 @@ export default function AIPanelDrawer({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const sessionIdSyncedRef = useRef(false)
 
   // Handle export
   const handleExport = () => {
@@ -161,6 +162,7 @@ export default function AIPanelDrawer({
     addUserMessage(message)
     setStreaming(true)
     clearError()
+    sessionIdSyncedRef.current = false
 
     // Create abort controller for this request
     abortControllerRef.current = new AbortController()
@@ -206,8 +208,9 @@ export default function AIPanelDrawer({
             updateStreamingContent('', `${stage} (${percent}%)`)
           },
           onMetadata: (conversationId) => {
-            // Sync local session ID with server-persisted conversation ID
-            if (conversationId && currentSession?.id !== conversationId) {
+            // Sync local session ID with server-persisted conversation ID (once per stream)
+            if (conversationId && !sessionIdSyncedRef.current && currentSession?.id !== conversationId) {
+              sessionIdSyncedRef.current = true
               updateSessionId(conversationId)
             }
           },

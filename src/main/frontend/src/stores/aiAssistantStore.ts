@@ -466,6 +466,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       updateSessionId: (newId) => set((state) => {
         if (!state.currentSession) return state
         const oldId = state.currentSession.id
+        if (newId === oldId) return state
         const updatedSession = { ...state.currentSession, id: newId }
         return {
           currentSession: updatedSession,
