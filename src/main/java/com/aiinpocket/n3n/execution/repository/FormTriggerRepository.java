@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.execution.repository;
 
 import com.aiinpocket.n3n.execution.entity.FormTrigger;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -50,4 +51,11 @@ public interface FormTriggerRepository extends JpaRepository<FormTrigger, UUID> 
      * Check if form token exists
      */
     boolean existsByFormToken(String formToken);
+
+    /**
+     * Atomically increment submission count to avoid race conditions.
+     */
+    @Modifying
+    @Query("UPDATE FormTrigger f SET f.submissionCount = f.submissionCount + 1 WHERE f.id = :id")
+    int incrementSubmissionCountById(@Param("id") UUID id);
 }

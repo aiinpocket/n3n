@@ -176,10 +176,7 @@ public class FormService {
      */
     @Transactional
     public void incrementSubmissionCount(UUID triggerId) {
-        formTriggerRepository.findById(triggerId).ifPresent(trigger -> {
-            trigger.incrementSubmissionCount();
-            formTriggerRepository.save(trigger);
-        });
+        formTriggerRepository.incrementSubmissionCountById(triggerId);
     }
 
     /**

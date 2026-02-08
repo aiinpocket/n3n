@@ -477,41 +477,16 @@ class FormServiceTest extends BaseServiceTest {
     // ========== incrementSubmissionCount Tests ==========
 
     @Test
-    void incrementSubmissionCount_existingTrigger_incrementsCount() {
+    void incrementSubmissionCount_callsAtomicIncrement() {
         // Given
         UUID triggerId = UUID.randomUUID();
-        FormTrigger trigger = FormTrigger.builder()
-                .id(triggerId)
-                .flowId(UUID.randomUUID())
-                .nodeId("node1")
-                .formToken("token")
-                .config(Map.of())
-                .isActive(true)
-                .submissionCount(3)
-                .build();
-
-        when(formTriggerRepository.findById(triggerId)).thenReturn(Optional.of(trigger));
-        when(formTriggerRepository.save(any(FormTrigger.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(formTriggerRepository.incrementSubmissionCountById(triggerId)).thenReturn(1);
 
         // When
         formService.incrementSubmissionCount(triggerId);
 
         // Then
-        assertThat(trigger.getSubmissionCount()).isEqualTo(4);
-        verify(formTriggerRepository).save(trigger);
-    }
-
-    @Test
-    void incrementSubmissionCount_notFound_doesNothing() {
-        // Given
-        UUID triggerId = UUID.randomUUID();
-        when(formTriggerRepository.findById(triggerId)).thenReturn(Optional.empty());
-
-        // When
-        formService.incrementSubmissionCount(triggerId);
-
-        // Then
-        verify(formTriggerRepository, never()).save(any());
+        verify(formTriggerRepository).incrementSubmissionCountById(triggerId);
     }
 
     // ========== expireOldFormTriggers Tests ==========
