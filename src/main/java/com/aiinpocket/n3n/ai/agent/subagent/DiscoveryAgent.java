@@ -55,7 +55,7 @@ public class DiscoveryAgent implements Agent {
 
     @Override
     public String getDescription() {
-        return "探索與搜尋代理，負責搜尋節點、取得文件、尋找範例";
+        return "Discovery agent for searching nodes, documentation, and examples";
     }
 
     @Override
@@ -143,14 +143,13 @@ public class DiscoveryAgent implements Agent {
         if (nodes.isEmpty()) {
             return AgentResult.builder()
                 .success(true)
-                .content("沒有找到符合「" + query + "」的節點。")
+                .content("No nodes found matching \"" + query + "\".")
                 .data(Map.of("searchQuery", query, "results", List.of()))
                 .build();
         }
 
-        // 格式化回應
         StringBuilder sb = new StringBuilder();
-        sb.append("找到 ").append(nodes.size()).append(" 個相關節點：\n\n");
+        sb.append("Found ").append(nodes.size()).append(" matching node(s):\n\n");
 
         for (Map<String, Object> node : nodes) {
             sb.append("**").append(node.get("displayName")).append("** (`")
@@ -158,7 +157,7 @@ public class DiscoveryAgent implements Agent {
             if (node.get("description") != null) {
                 sb.append("  ").append(node.get("description")).append("\n");
             }
-            sb.append("  類別: ").append(node.get("category")).append("\n\n");
+            sb.append("  Category: ").append(node.get("category")).append("\n\n");
         }
 
         return AgentResult.builder()
@@ -192,7 +191,7 @@ public class DiscoveryAgent implements Agent {
             );
             return AgentResult.builder()
                 .success(true)
-                .content("找不到 `" + nodeType + "` 節點。相近的節點請參考搜尋結果。")
+                .content("Node `" + nodeType + "` not found. See search results for similar nodes.")
                 .data(searchResult.getData())
                 .build();
         }
@@ -200,16 +199,15 @@ public class DiscoveryAgent implements Agent {
         var handler = handlerOpt.get();
         StringBuilder doc = new StringBuilder();
         doc.append("## ").append(handler.getDisplayName()).append("\n\n");
-        doc.append("**類型**: `").append(handler.getType()).append("`\n\n");
-        doc.append("**類別**: ").append(handler.getCategory()).append("\n\n");
+        doc.append("**Type**: `").append(handler.getType()).append("`\n\n");
+        doc.append("**Category**: ").append(handler.getCategory()).append("\n\n");
 
         if (handler.getDescription() != null) {
-            doc.append("**描述**: ").append(handler.getDescription()).append("\n\n");
+            doc.append("**Description**: ").append(handler.getDescription()).append("\n\n");
         }
 
-        // 配置參數說明
         if (handler.getConfigSchema() != null && !handler.getConfigSchema().isEmpty()) {
-            doc.append("### 配置參數\n\n");
+            doc.append("### Configuration\n\n");
             doc.append("```json\n");
             try {
                 doc.append(objectMapper.writerWithDefaultPrettyPrinter()
@@ -220,15 +218,14 @@ public class DiscoveryAgent implements Agent {
             doc.append("\n```\n\n");
         }
 
-        // 介面定義
         if (handler.getInterfaceDefinition() != null && !handler.getInterfaceDefinition().isEmpty()) {
-            doc.append("### 輸入/輸出介面\n\n");
+            doc.append("### Input/Output Interface\n\n");
             var iface = handler.getInterfaceDefinition();
             if (iface.containsKey("inputs")) {
-                doc.append("**輸入**: ").append(iface.get("inputs")).append("\n");
+                doc.append("**Inputs**: ").append(iface.get("inputs")).append("\n");
             }
             if (iface.containsKey("outputs")) {
-                doc.append("**輸出**: ").append(iface.get("outputs")).append("\n");
+                doc.append("**Outputs**: ").append(iface.get("outputs")).append("\n");
             }
         }
 
@@ -251,26 +248,30 @@ public class DiscoveryAgent implements Agent {
         log.debug("Finding examples for: {}", query);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("## 相關範例\n\n");
+        sb.append("## Related Examples\n\n");
 
-        sb.append("### 常見流程範例模式\n\n");
+        sb.append("### Common Flow Patterns\n\n");
 
-        if (query.contains("郵件") || query.contains("email") || query.contains("報表")) {
-            sb.append("#### 定時發送報表\n");
-            sb.append("```\n排程觸發 → 資料庫查詢 → 資料處理 → 發送郵件\n```\n\n");
+        String lowerQuery = query.toLowerCase();
+        if (lowerQuery.contains("email") || lowerQuery.contains("mail") ||
+            lowerQuery.contains("report") || lowerQuery.contains("郵件") || lowerQuery.contains("報表")) {
+            sb.append("#### Scheduled Report\n");
+            sb.append("```\nSchedule Trigger → Database Query → Data Transform → Send Email\n```\n\n");
         }
 
-        if (query.contains("webhook") || query.contains("API") || query.contains("通知")) {
-            sb.append("#### Webhook 觸發通知\n");
-            sb.append("```\nWebhook 觸發 → 資料驗證 → 條件判斷 → 發送 Slack/Telegram\n```\n\n");
+        if (lowerQuery.contains("webhook") || lowerQuery.contains("api") ||
+            lowerQuery.contains("notification") || lowerQuery.contains("通知")) {
+            sb.append("#### Webhook Notification\n");
+            sb.append("```\nWebhook Trigger → Data Validation → Condition → Send Slack/Telegram\n```\n\n");
         }
 
-        if (query.contains("資料") || query.contains("同步") || query.contains("ETL")) {
-            sb.append("#### 資料同步流程\n");
-            sb.append("```\n排程觸發 → 來源資料庫查詢 → 資料轉換 → 目標資料庫寫入\n```\n\n");
+        if (lowerQuery.contains("data") || lowerQuery.contains("sync") ||
+            lowerQuery.contains("etl") || lowerQuery.contains("資料") || lowerQuery.contains("同步")) {
+            sb.append("#### Data Sync Pipeline\n");
+            sb.append("```\nSchedule Trigger → Source DB Query → Data Transform → Target DB Write\n```\n\n");
         }
 
-        sb.append("如需特定範例，請提供更詳細的需求描述。");
+        sb.append("For specific examples, please describe your requirements in more detail.");
 
         return AgentResult.builder()
             .success(true)
@@ -303,20 +304,20 @@ public class DiscoveryAgent implements Agent {
                 .collect(Collectors.joining("\n"));
 
             String prompt = String.format("""
-                使用者需求: %s
+                User requirement: %s
 
-                可用的節點類型:
+                Available node types:
                 %s
 
-                請分析使用者需求，推薦建構此流程需要的節點。
-                以 JSON 格式回應:
+                Analyze the user's requirement and recommend nodes needed for this flow.
+                Respond in JSON format:
                 {
                   "recommendedNodes": [
-                    {"type": "節點類型", "label": "建議標籤", "reason": "推薦理由"},
+                    {"type": "node_type", "label": "suggested label", "reason": "recommendation reason"},
                     ...
                   ],
-                  "flowStructure": "建議的流程結構說明",
-                  "missingCapabilities": ["缺少的功能（如果有）"]
+                  "flowStructure": "suggested flow structure description",
+                  "missingCapabilities": ["missing capabilities (if any)"]
                 }
                 """, userInput, truncate(nodeList, 3000));
 
@@ -336,73 +337,75 @@ public class DiscoveryAgent implements Agent {
         String input = context.getUserInput().toLowerCase();
         List<Map<String, Object>> recommendations = new ArrayList<>();
 
-        // 觸發器推薦
-        if (input.contains("每天") || input.contains("定時") || input.contains("排程")) {
+        // Trigger recommendation
+        if (input.contains("every") || input.contains("daily") || input.contains("schedule") ||
+            input.contains("cron") || input.contains("每天") || input.contains("定時") || input.contains("排程")) {
             recommendations.add(Map.of(
                 "type", "scheduleTrigger",
-                "label", "排程觸發器",
-                "reason", "根據時間定時執行"
+                "label", "Schedule Trigger",
+                "reason", "Trigger flow on a time-based schedule"
             ));
         } else if (input.contains("webhook") || input.contains("api")) {
             recommendations.add(Map.of(
                 "type", "webhookTrigger",
-                "label", "Webhook 觸發器",
-                "reason", "接收外部 API 請求"
+                "label", "Webhook Trigger",
+                "reason", "Trigger flow from external API requests"
             ));
         } else {
             recommendations.add(Map.of(
                 "type", "trigger",
-                "label", "手動觸發",
-                "reason", "手動啟動流程"
+                "label", "Manual Trigger",
+                "reason", "Start flow manually"
             ));
         }
 
-        // 動作推薦
-        if (input.contains("郵件") || input.contains("email") || input.contains("mail")) {
+        // Action recommendations
+        if (input.contains("email") || input.contains("mail") || input.contains("郵件")) {
             recommendations.add(Map.of(
                 "type", "sendEmail",
-                "label", "發送郵件",
-                "reason", "發送電子郵件通知"
+                "label", "Send Email",
+                "reason", "Send email notifications"
             ));
         }
 
-        if (input.contains("資料庫") || input.contains("查詢") || input.contains("sql")) {
+        if (input.contains("database") || input.contains("query") || input.contains("sql") ||
+            input.contains("資料庫") || input.contains("查詢")) {
             recommendations.add(Map.of(
                 "type", "database",
-                "label", "資料庫查詢",
-                "reason", "執行 SQL 查詢"
+                "label", "Database Query",
+                "reason", "Execute SQL queries"
             ));
         }
 
-        if (input.contains("http") || input.contains("api") || input.contains("請求")) {
+        if (input.contains("http") || input.contains("api") || input.contains("request") ||
+            input.contains("請求")) {
             recommendations.add(Map.of(
                 "type", "httpRequest",
-                "label", "HTTP 請求",
-                "reason", "呼叫外部 API"
+                "label", "HTTP Request",
+                "reason", "Call external APIs"
             ));
         }
 
         if (input.contains("slack")) {
             recommendations.add(Map.of(
                 "type", "slack",
-                "label", "Slack 訊息",
-                "reason", "發送 Slack 通知"
+                "label", "Slack Message",
+                "reason", "Send Slack notifications"
             ));
         }
 
         if (input.contains("telegram")) {
             recommendations.add(Map.of(
                 "type", "telegram",
-                "label", "Telegram 訊息",
-                "reason", "發送 Telegram 通知"
+                "label", "Telegram Message",
+                "reason", "Send Telegram notifications"
             ));
         }
 
-        // 儲存推薦結果
         context.setInMemory("discoveryResults", recommendations);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("根據您的需求，我推薦以下節點：\n\n");
+        sb.append("Based on your requirements, I recommend the following nodes:\n\n");
         for (Map<String, Object> rec : recommendations) {
             sb.append("- **").append(rec.get("label")).append("** (`")
                 .append(rec.get("type")).append("`): ")
@@ -433,13 +436,13 @@ public class DiscoveryAgent implements Agent {
             context.setInMemory("discoveryResults", nodes);
 
             StringBuilder sb = new StringBuilder();
-            sb.append("根據您的需求分析，推薦以下流程設計：\n\n");
+            sb.append("Based on your requirements, here is the recommended flow design:\n\n");
 
             if (parsed.containsKey("flowStructure")) {
-                sb.append("**流程結構**: ").append(parsed.get("flowStructure")).append("\n\n");
+                sb.append("**Flow Structure**: ").append(parsed.get("flowStructure")).append("\n\n");
             }
 
-            sb.append("**推薦節點**:\n");
+            sb.append("**Recommended Nodes**:\n");
             for (Map<String, Object> node : nodes) {
                 sb.append("- **").append(node.get("label")).append("** (`")
                     .append(node.get("type")).append("`): ")
@@ -450,7 +453,7 @@ public class DiscoveryAgent implements Agent {
                 @SuppressWarnings("unchecked")
                 List<String> missing = (List<String>) parsed.get("missingCapabilities");
                 if (!missing.isEmpty()) {
-                    sb.append("\n⚠️ **注意**: 可能需要安裝額外元件: ")
+                    sb.append("\n⚠️ **Note**: Additional components may be needed: ")
                         .append(String.join(", ", missing));
                 }
             }
@@ -515,14 +518,15 @@ public class DiscoveryAgent implements Agent {
     }
 
     private static final String RECOMMENDATION_SYSTEM_PROMPT = """
-        你是一個流程編排專家。根據使用者的需求，從可用的節點中選擇最適合的組合。
+        You are a workflow orchestration expert. Select the best combination of nodes based on the user's requirements.
+        Respond in the same language the user used (Chinese, English, or Japanese).
 
-        分析時請考慮：
-        1. 使用者的實際需求是什麼
-        2. 需要什麼觸發方式
-        3. 需要哪些資料處理步驟
-        4. 最終要輸出或通知到哪裡
+        When analyzing, consider:
+        1. What the user actually needs
+        2. What trigger type is appropriate
+        3. What data processing steps are needed
+        4. Where the final output or notification should go
 
-        回應必須是有效的 JSON 格式。
+        Response must be valid JSON format.
         """;
 }

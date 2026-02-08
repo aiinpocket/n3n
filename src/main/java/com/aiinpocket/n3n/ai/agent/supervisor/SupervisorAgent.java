@@ -44,7 +44,7 @@ public class SupervisorAgent implements Agent {
 
     @Override
     public String getDescription() {
-        return "協調多個子代理，分析意圖並路由任務";
+        return "Orchestrates sub-agents, analyzes intent and routes tasks";
     }
 
     @Override

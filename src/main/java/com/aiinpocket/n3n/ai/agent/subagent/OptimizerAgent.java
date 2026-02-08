@@ -50,7 +50,7 @@ public class OptimizerAgent implements Agent {
 
     @Override
     public String getDescription() {
-        return "流程優化代理，負責分析和優化流程結構、效能";
+        return "Optimizer agent for analyzing and optimizing flow structure and performance";
     }
 
     @Override
@@ -166,20 +166,19 @@ public class OptimizerAgent implements Agent {
         int nodeCount = draft.getNodeCount();
         int edgeCount = draft.getEdgeCount();
 
-        // 檢查節點數量
         if (nodeCount > 20) {
             report.addSuggestion(
                 OptimizationSuggestion.high(
-                    "流程過於複雜",
-                    "流程包含 " + nodeCount + " 個節點，建議拆分為多個子流程",
+                    "Flow too complex",
+                    "Flow contains " + nodeCount + " nodes. Consider splitting into sub-workflows",
                     "split_flow"
                 )
             );
         } else if (nodeCount > 10) {
             report.addSuggestion(
                 OptimizationSuggestion.medium(
-                    "流程節點較多",
-                    "考慮是否可以簡化或合併部分節點",
+                    "Many nodes",
+                    "Consider simplifying or merging some nodes",
                     "simplify"
                 )
             );
@@ -195,8 +194,8 @@ public class OptimizerAgent implements Agent {
             if (entry.getValue() >= 3) {
                 report.addSuggestion(
                     OptimizationSuggestion.medium(
-                        "重複節點類型",
-                        "發現 " + entry.getValue() + " 個 " + entry.getKey() + " 節點，可考慮使用迴圈或子流程",
+                        "Duplicate node types",
+                        "Found " + entry.getValue() + " " + entry.getKey() + " nodes. Consider using loops or sub-workflows",
                         "deduplicate"
                     )
                 );
@@ -220,8 +219,8 @@ public class OptimizerAgent implements Agent {
         if (orphanCount > 0) {
             report.addSuggestion(
                 OptimizationSuggestion.high(
-                    "存在孤立節點",
-                    "發現 " + orphanCount + " 個未連接的節點，流程可能無法正確執行",
+                    "Orphan nodes detected",
+                    "Found " + orphanCount + " unconnected node(s). The flow may not execute correctly",
                     "connect_orphans"
                 )
             );
@@ -244,8 +243,8 @@ public class OptimizerAgent implements Agent {
         if (parallelOpportunities > 0) {
             report.addSuggestion(
                 OptimizationSuggestion.medium(
-                    "可並行優化",
-                    "發現 " + parallelOpportunities + " 個可並行執行的節點群組，可提升執行效率",
+                    "Parallelization opportunity",
+                    "Found " + parallelOpportunities + " node group(s) that can run in parallel for better performance",
                     "parallelize"
                 )
             );
@@ -262,8 +261,8 @@ public class OptimizerAgent implements Agent {
         if (httpRequestCount > 5) {
             report.addSuggestion(
                 OptimizationSuggestion.medium(
-                    "HTTP 請求較多",
-                    "流程包含 " + httpRequestCount + " 個 HTTP 請求，考慮使用批次請求或快取",
+                    "Many HTTP requests",
+                    "Flow contains " + httpRequestCount + " HTTP requests. Consider batch requests or caching",
                     "batch_http"
                 )
             );
@@ -297,8 +296,8 @@ public class OptimizerAgent implements Agent {
         if (!hasTrigger && draft.getNodeCount() > 0) {
             report.addSuggestion(
                 OptimizationSuggestion.high(
-                    "缺少觸發器",
-                    "流程沒有觸發器節點，無法自動啟動",
+                    "Missing trigger",
+                    "Flow has no trigger node and cannot start automatically",
                     "add_trigger"
                 )
             );
@@ -307,8 +306,8 @@ public class OptimizerAgent implements Agent {
         if (!hasErrorHandler && draft.getNodeCount() > 3) {
             report.addSuggestion(
                 OptimizationSuggestion.low(
-                    "建議加入錯誤處理",
-                    "流程沒有錯誤處理節點，建議加入以提高穩健性",
+                    "No error handling",
+                    "Flow has no error handler node. Consider adding one for robustness",
                     "add_error_handler"
                 )
             );
@@ -341,8 +340,8 @@ public class OptimizerAgent implements Agent {
                         strValue.length() > 5) {
                         report.addSuggestion(
                             OptimizationSuggestion.high(
-                                "可能的敏感資料洩露",
-                                "節點「" + node.label() + "」的 " + key + " 欄位可能包含硬編碼的敏感資料，建議使用憑證管理",
+                                "Potential sensitive data exposure",
+                                "Node \"" + node.label() + "\" field " + key + " may contain hardcoded sensitive data. Use credential management instead",
                                 "use_credentials"
                             )
                         );
@@ -364,16 +363,16 @@ public class OptimizerAgent implements Agent {
 
             String flowJson = objectMapper.writeValueAsString(draft.toDefinition());
             String prompt = String.format("""
-                分析以下工作流程並提供優化建議（JSON 格式）:
+                Analyze the following workflow and provide optimization suggestions (JSON format):
 
                 %s
 
-                請以 JSON 回應，格式：
+                Respond in JSON format:
                 {
                   "suggestions": [
-                    {"priority": "high/medium/low", "title": "標題", "description": "說明", "action": "操作類型"}
+                    {"priority": "high/medium/low", "title": "title", "description": "description", "action": "action_type"}
                   ],
-                  "summary": "整體評估"
+                  "summary": "overall assessment"
                 }
                 """, flowJson);
 
@@ -449,35 +448,31 @@ public class OptimizerAgent implements Agent {
             List<String> appliedOptimizations, AgentContext context) {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("## 流程優化報告\n\n");
+        sb.append("## Flow Optimization Report\n\n");
 
-        // 摘要
         if (report.summary != null && !report.summary.isEmpty()) {
-            sb.append("### 整體評估\n");
+            sb.append("### Overall Assessment\n");
             sb.append(report.summary).append("\n\n");
         }
 
-        // 統計
-        sb.append("### 流程統計\n");
-        sb.append("- 節點數量: ").append(report.metrics.getOrDefault("nodeCount", 0)).append("\n");
-        sb.append("- 連接數量: ").append(report.metrics.getOrDefault("edgeCount", 0)).append("\n");
+        sb.append("### Flow Statistics\n");
+        sb.append("- Nodes: ").append(report.metrics.getOrDefault("nodeCount", 0)).append("\n");
+        sb.append("- Connections: ").append(report.metrics.getOrDefault("edgeCount", 0)).append("\n");
         if ((int) report.metrics.getOrDefault("orphanCount", 0) > 0) {
-            sb.append("- ⚠️ 孤立節點: ").append(report.metrics.get("orphanCount")).append("\n");
+            sb.append("- ⚠️ Orphan nodes: ").append(report.metrics.get("orphanCount")).append("\n");
         }
         sb.append("\n");
 
-        // 已套用的優化
         if (!appliedOptimizations.isEmpty()) {
-            sb.append("### ✅ 已自動套用\n");
+            sb.append("### ✅ Auto-applied\n");
             for (String opt : appliedOptimizations) {
                 sb.append("- ").append(opt).append("\n");
             }
             sb.append("\n");
         }
 
-        // 優化建議
         if (!report.suggestions.isEmpty()) {
-            sb.append("### 優化建議\n\n");
+            sb.append("### Optimization Suggestions\n\n");
 
             // 按優先級分組
             List<OptimizationSuggestion> high = new ArrayList<>();
@@ -493,7 +488,7 @@ public class OptimizerAgent implements Agent {
             }
 
             if (!high.isEmpty()) {
-                sb.append("**🔴 高優先級**\n");
+                sb.append("**🔴 High Priority**\n");
                 for (OptimizationSuggestion s : high) {
                     sb.append("- **").append(s.title).append("**: ").append(s.description).append("\n");
                 }
@@ -501,7 +496,7 @@ public class OptimizerAgent implements Agent {
             }
 
             if (!medium.isEmpty()) {
-                sb.append("**🟡 中優先級**\n");
+                sb.append("**🟡 Medium Priority**\n");
                 for (OptimizationSuggestion s : medium) {
                     sb.append("- **").append(s.title).append("**: ").append(s.description).append("\n");
                 }
@@ -509,13 +504,13 @@ public class OptimizerAgent implements Agent {
             }
 
             if (!low.isEmpty()) {
-                sb.append("**🟢 建議**\n");
+                sb.append("**🟢 Suggestions**\n");
                 for (OptimizationSuggestion s : low) {
                     sb.append("- **").append(s.title).append("**: ").append(s.description).append("\n");
                 }
             }
         } else {
-            sb.append("✅ 流程結構良好，沒有發現需要優化的問題。\n");
+            sb.append("✅ Flow structure looks good. No optimization issues found.\n");
         }
 
         return AgentResult.builder()
@@ -607,15 +602,16 @@ public class OptimizerAgent implements Agent {
     }
 
     private static final String OPTIMIZER_SYSTEM_PROMPT = """
-        你是一個流程優化專家。分析工作流程並提供優化建議。
+        You are a workflow optimization expert. Analyze workflows and provide optimization suggestions.
+        Respond in the same language the user used (Chinese, English, or Japanese).
 
-        重點關注：
-        1. 流程結構是否合理
-        2. 是否有重複或冗餘的操作
-        3. 是否可以並行執行以提升效能
-        4. 是否符合最佳實踐
-        5. 是否有安全或效能風險
+        Focus on:
+        1. Whether the flow structure is reasonable
+        2. Whether there are redundant or duplicate operations
+        3. Whether nodes can run in parallel for better performance
+        4. Whether the flow follows best practices
+        5. Whether there are security or performance risks
 
-        提供具體、可行的優化建議。
+        Provide specific, actionable optimization suggestions.
         """;
 }
