@@ -10,7 +10,12 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "executions")
+@Table(name = "executions", indexes = {
+        @Index(name = "idx_exec_status_started", columnList = "status, started_at"),
+        @Index(name = "idx_exec_flow_version", columnList = "flow_version_id"),
+        @Index(name = "idx_exec_triggered_by", columnList = "triggered_by"),
+        @Index(name = "idx_exec_completed_status", columnList = "completed_at, status")
+})
 @Data
 @Builder
 @NoArgsConstructor

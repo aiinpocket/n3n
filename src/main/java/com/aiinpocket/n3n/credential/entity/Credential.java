@@ -13,7 +13,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "credentials")
+@Table(name = "credentials", indexes = {
+        @Index(name = "idx_cred_owner", columnList = "owner_id"),
+        @Index(name = "idx_cred_owner_type", columnList = "owner_id, type")
+})
 @Data
 @Builder
 @NoArgsConstructor

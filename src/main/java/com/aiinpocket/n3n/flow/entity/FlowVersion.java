@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "flow_versions")
+@Table(name = "flow_versions", indexes = {
+        @Index(name = "idx_fv_flow_id", columnList = "flow_id")
+})
 @Data
 @Builder
 @NoArgsConstructor

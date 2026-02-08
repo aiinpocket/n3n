@@ -10,7 +10,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "flows")
+@Table(name = "flows", indexes = {
+        @Index(name = "idx_flow_created_by", columnList = "created_by, is_deleted")
+})
 @Data
 @Builder
 @NoArgsConstructor

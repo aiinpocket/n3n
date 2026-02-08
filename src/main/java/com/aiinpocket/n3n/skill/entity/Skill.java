@@ -17,7 +17,9 @@ import java.util.UUID;
  * Skills are essentially pre-built APIs that execute without AI at runtime.
  */
 @Entity
-@Table(name = "skills")
+@Table(name = "skills", indexes = {
+        @Index(name = "idx_skill_owner", columnList = "owner_id")
+})
 @Data
 @Builder
 @NoArgsConstructor

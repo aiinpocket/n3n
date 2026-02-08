@@ -12,7 +12,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "webhooks")
+@Table(name = "webhooks", indexes = {
+        @Index(name = "idx_webhook_flow", columnList = "flow_id"),
+        @Index(name = "idx_webhook_created_by", columnList = "created_by")
+})
 @Data
 @Builder
 @NoArgsConstructor
