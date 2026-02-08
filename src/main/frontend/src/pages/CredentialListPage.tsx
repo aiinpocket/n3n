@@ -243,6 +243,7 @@ const CredentialListPage: React.FC = () => {
                       danger
                       icon={<DisconnectOutlined />}
                       loading={disconnectingId === record.id}
+                      aria-label={t('oauth2.disconnect')}
                     />
                   </Tooltip>
                 </Popconfirm>
@@ -256,6 +257,7 @@ const CredentialListPage: React.FC = () => {
                   onClick={() => handleOAuth2Connect(record.id, detectProvider(record))}
                   disabled={oauth2Loading[record.id]}
                   style={{ color: 'var(--color-primary)' }}
+                  aria-label={t('oauth2.connect')}
                 />
               </Tooltip>
             )
@@ -266,6 +268,7 @@ const CredentialListPage: React.FC = () => {
               icon={<CheckCircleOutlined />}
               loading={testingId === record.id}
               onClick={() => handleTest(record.id)}
+              aria-label={t('credential.testConnection')}
             />
           </Tooltip>
           <Popconfirm
@@ -276,7 +279,7 @@ const CredentialListPage: React.FC = () => {
             cancelText={t('common.cancel')}
             okButtonProps={{ danger: true }}
           >
-            <Button type="link" danger icon={<DeleteOutlined />} title={t('common.delete')} />
+            <Button type="link" danger icon={<DeleteOutlined />} title={t('common.delete')} aria-label={t('common.delete')} />
           </Popconfirm>
         </Space>
       )

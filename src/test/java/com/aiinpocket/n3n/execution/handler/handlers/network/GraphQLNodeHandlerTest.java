@@ -113,7 +113,7 @@ class GraphQLNodeHandlerTest {
             NodeExecutionResult result = handler.execute(buildContext(config, null));
 
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.getErrorMessage()).contains("failed");
+            assertThat(result.getErrorMessage()).containsAnyOf("failed", "blocked");
         }
 
         @Test

@@ -222,6 +222,7 @@ export default function ExecutionListPage() {
                 },
               })
             }}
+            aria-label={t('common.delete')}
           />
         </Space>
       ),

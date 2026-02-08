@@ -177,6 +177,7 @@ export default function AdminUsersPage() {
                     rolesForm.setFieldsValue({ roles: record.roles })
                     setRolesModalOpen(true)
                   }}
+                  aria-label={t('admin.editRoles')}
                 />
               </Tooltip>
             )}
@@ -188,6 +189,7 @@ export default function AdminUsersPage() {
                     size="small"
                     icon={<StopOutlined />}
                     onClick={() => handleStatusChange(record.id, 'suspended')}
+                    aria-label={t('admin.suspend')}
                   />
                 </Tooltip>
               ) : (
@@ -197,6 +199,7 @@ export default function AdminUsersPage() {
                     size="small"
                     icon={<CheckCircleOutlined />}
                     onClick={() => handleStatusChange(record.id, 'active')}
+                    aria-label={t('admin.activate')}
                   />
                 </Tooltip>
               )
@@ -208,6 +211,7 @@ export default function AdminUsersPage() {
                   size="small"
                   icon={<LockOutlined />}
                   onClick={() => handleResetPassword(record.id)}
+                  aria-label={t('admin.resetPassword')}
                 />
               </Tooltip>
             )}

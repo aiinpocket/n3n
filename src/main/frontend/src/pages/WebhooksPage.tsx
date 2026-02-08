@@ -193,6 +193,7 @@ const WebhooksPage: React.FC = () => {
               type="text"
               icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />}
               onClick={() => handleToggleActive(record)}
+              aria-label={record.isActive ? t('webhook.deactivate') : t('webhook.activate')}
             />
           </Tooltip>
           <Tooltip title={t('webhook.copyUrl')}>
@@ -200,6 +201,7 @@ const WebhooksPage: React.FC = () => {
               type="text"
               icon={<CopyOutlined />}
               onClick={() => copyToClipboard(record.webhookUrl)}
+              aria-label={t('webhook.copyUrl')}
             />
           </Tooltip>
           <Tooltip title={t('common.delete')}>
@@ -208,6 +210,7 @@ const WebhooksPage: React.FC = () => {
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.id)}
+              aria-label={t('common.delete')}
             />
           </Tooltip>
         </Space>
