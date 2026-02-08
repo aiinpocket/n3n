@@ -3,6 +3,7 @@ import { Modal, Alert, Button, Input, message, Space } from 'antd';
 import { LockOutlined, KeyOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';
+import { extractApiError } from '../../utils/errorMessages';
 
 interface Credential {
   id: string;
@@ -55,8 +56,7 @@ export default function MigrateCredentialModal({
         message.error(result.message || t('recovery.migrateFailed'));
       }
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      message.error(err.response?.data?.message || t('recovery.migrateFailedCheckKey'));
+      message.error(extractApiError(error, t('recovery.migrateFailedCheckKey')));
     } finally {
       setLoading(false);
     }

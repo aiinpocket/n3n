@@ -121,6 +121,24 @@ public class AdminUserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
+        // Prevent suspending/blocking the last active admin
+        if (!"active".equals(status)) {
+            boolean targetIsAdmin = userRoleRepository.findByUserId(id).stream()
+                .anyMatch(r -> "ADMIN".equals(r.getRole()));
+            if (targetIsAdmin) {
+                long activeAdminCount = countActiveAdmins();
+                if (activeAdminCount <= 1) {
+                    throw new IllegalArgumentException("Cannot deactivate the last admin user");
+                }
+            }
+        }
+
+        // Clear login attempts when reactivating
+        if ("active".equals(status)) {
+            user.setLoginAttempts(0);
+            user.setLockedUntil(null);
+        }
+
         user.setStatus(status);
         user = userRepository.save(user);
 
@@ -196,6 +214,16 @@ public class AdminUserService {
                 throw new IllegalArgumentException("Invalid role: " + role + ". Must be one of: " + VALID_ROLES);
             }
         }
+    }
+
+    private long countActiveAdmins() {
+        return userRoleRepository.findByRole("ADMIN").stream()
+            .map(UserRole::getUserId)
+            .distinct()
+            .filter(userId -> userRepository.findById(userId)
+                .map(u -> "active".equals(u.getStatus()))
+                .orElse(false))
+            .count();
     }
 
     private String generateRandomPassword() {

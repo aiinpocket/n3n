@@ -92,6 +92,8 @@ public class SkillExecutor {
         return SkillResult.failure("NOT_SUPPORTED", "Custom Java skills not yet supported");
     }
 
+    private static final java.time.Duration SKILL_HTTP_TIMEOUT = java.time.Duration.ofSeconds(30);
+
     private SkillResult executeHttpSkill(Skill skill, Map<String, Object> input) {
         // HTTP skills call an external API
         Map<String, Object> config = skill.getImplementationConfig();
@@ -100,6 +102,17 @@ public class SkillExecutor {
 
         if (url == null || url.isBlank()) {
             return SkillResult.failure("CONFIG_ERROR", "HTTP skill missing URL configuration");
+        }
+
+        // SSRF protection: block internal network addresses
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            String host = uri.getHost();
+            if (host != null && isInternalAddress(host)) {
+                return SkillResult.failure("SSRF_BLOCKED", "Access to internal network addresses is not allowed");
+            }
+        } catch (java.net.URISyntaxException e) {
+            return SkillResult.failure("CONFIG_ERROR", "Invalid URL: " + url);
         }
 
         try {
@@ -129,11 +142,22 @@ public class SkillExecutor {
             };
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> response = responseMono.block();
+            Map<String, Object> response = responseMono.timeout(SKILL_HTTP_TIMEOUT).block();
             return SkillResult.success(response != null ? response : Map.of());
         } catch (Exception e) {
             return SkillResult.failure("HTTP_ERROR", "HTTP request failed: " + e.getMessage());
         }
+    }
+
+    private boolean isInternalAddress(String host) {
+        String lower = host.toLowerCase();
+        return lower.equals("localhost") || lower.equals("127.0.0.1") ||
+               lower.equals("0.0.0.0") || lower.equals("::1") ||
+               lower.equals("169.254.169.254") || // Cloud metadata
+               lower.startsWith("10.") ||
+               lower.startsWith("192.168.") ||
+               lower.matches("172\\.(1[6-9]|2\\d|3[01])\\..*") ||
+               lower.endsWith(".internal") || lower.endsWith(".local");
     }
 
     private SkillResult executeScriptSkill(Skill skill, Map<String, Object> input) {

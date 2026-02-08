@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Button,
   Form,
   Input,
   Collapse,
@@ -304,9 +305,9 @@ function UpstreamFieldSelector({
           <Text code style={{ fontSize: 12 }}>
             {value}
           </Text>
-          <a onClick={() => onChange('')} style={{ marginLeft: 8 }}>
+          <Button type="link" size="small" onClick={() => onChange('')} style={{ marginLeft: 8 }}>
             {t('dataMapping.clear')}
-          </a>
+          </Button>
         </div>
       )}
       <Tree

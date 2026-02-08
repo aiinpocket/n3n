@@ -28,7 +28,11 @@ public class OAuth2TokenService {
     private final OAuth2TokenRepository tokenRepository;
     private final ObjectMapper objectMapper;
 
-    private final OkHttpClient httpClient = new OkHttpClient.Builder().build();
+    private final OkHttpClient httpClient = new OkHttpClient.Builder()
+        .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        .build();
 
     /**
      * Get a valid access token for a credential, refreshing if necessary.
