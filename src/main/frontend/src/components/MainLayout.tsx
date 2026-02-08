@@ -14,6 +14,7 @@ import {
   LinkOutlined,
   DesktopOutlined,
   ShopOutlined,
+  AppstoreOutlined,
   CloudServerOutlined,
   DashboardOutlined,
   FileTextOutlined,
@@ -120,6 +121,11 @@ export default function MainLayout() {
           key: '/credentials',
           icon: <KeyOutlined />,
           label: t('nav.credentials'),
+        },
+        {
+          key: '/components',
+          icon: <AppstoreOutlined />,
+          label: t('nav.components'),
         },
         {
           key: '/skills',

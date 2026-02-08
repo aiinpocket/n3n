@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
+import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ public class FlowService {
     private final DagParser dagParser;
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final ExternalServiceService externalServiceService;
+    private final WebhookRepository webhookRepository;
 
     public Page<FlowResponse> listFlows(UUID userId, Pageable pageable) {
         Page<Flow> flowPage = flowRepository.findByCreatedByAndIsDeletedFalse(userId, pageable);
@@ -185,10 +187,11 @@ public class FlowService {
 
         // Clean up related data
         flowShareRepository.deleteByFlowId(id);
+        webhookRepository.deactivateByFlowId(id);
 
         flow.setIsDeleted(true);
         flowRepository.save(flow);
-        log.info("Flow deleted: id={}, shares cleaned up", id);
+        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated", id);
     }
 
     @Transactional
@@ -235,7 +238,7 @@ public class FlowService {
     // Version management
 
     public List<FlowVersionResponse> listVersions(UUID flowId) {
-        if (!flowRepository.existsById(flowId)) {
+        if (flowRepository.findByIdAndIsDeletedFalse(flowId).isEmpty()) {
             throw new ResourceNotFoundException("Flow not found: " + flowId);
         }
 

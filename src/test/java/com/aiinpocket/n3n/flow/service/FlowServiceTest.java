@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
+import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -47,6 +48,9 @@ class FlowServiceTest extends BaseServiceTest {
 
     @Mock
     private ExternalServiceService externalServiceService;
+
+    @Mock
+    private WebhookRepository webhookRepository;
 
     @InjectMocks
     private FlowService flowService;
@@ -414,7 +418,9 @@ class FlowServiceTest extends BaseServiceTest {
         FlowVersion v1 = TestDataFactory.createFlowVersion(flowId, "1.0.0");
         FlowVersion v2 = TestDataFactory.createFlowVersion(flowId, "1.0.1");
 
-        when(flowRepository.existsById(flowId)).thenReturn(true);
+        Flow flow = TestDataFactory.createFlow();
+        flow.setId(flowId);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
         when(flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
                 .thenReturn(List.of(v2, v1));
 
@@ -430,7 +436,7 @@ class FlowServiceTest extends BaseServiceTest {
     void listVersions_nonExistingFlow_throwsException() {
         // Given
         UUID flowId = UUID.randomUUID();
-        when(flowRepository.existsById(flowId)).thenReturn(false);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.empty());
 
         // When/Then
         assertThatThrownBy(() -> flowService.listVersions(flowId))

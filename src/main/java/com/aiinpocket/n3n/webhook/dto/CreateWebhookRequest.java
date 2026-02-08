@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.webhook.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.Map;
@@ -15,9 +16,11 @@ public class CreateWebhookRequest {
     private UUID flowId;
 
     @NotBlank(message = "Name is required")
+    @Size(max = 255, message = "Name must be at most 255 characters")
     private String name;
 
     @NotBlank(message = "Path is required")
+    @Size(max = 500, message = "Path must be at most 500 characters")
     @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Path can only contain alphanumeric characters, hyphens, and underscores")
     private String path;
 
