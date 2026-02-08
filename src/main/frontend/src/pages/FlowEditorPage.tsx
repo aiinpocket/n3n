@@ -210,10 +210,7 @@ export default function FlowEditorPage() {
       }
       autoSaveTimerRef.current = setTimeout(async () => {
         try {
-          const result = await autoSaveDraft()
-          if (result) {
-            message.info({ content: t('editor.autoSaved'), key: 'autosave', duration: 2 })
-          }
+          await autoSaveDraft()
         } catch {
           // Silent fail for auto-save — user can manually save
         }

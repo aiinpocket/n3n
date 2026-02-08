@@ -1034,8 +1034,8 @@ docker build -t n3n:latest .
 # Run with compose (zero-config)
 docker compose up -d
 
-# Run with local AI optimizer
-docker compose --profile optimizer up -d
+# Local AI optimizer starts automatically with the default setup
+# No separate profile needed — it's included by default
 ```
 
 ### Kubernetes

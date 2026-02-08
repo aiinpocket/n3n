@@ -265,20 +265,16 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 
 > **auto 模式**：系統啟動時自動偵測環境（K8s Service Account → Docker Socket → Docker CLI），選擇對應的容器編排引擎。
 
-### AI 流程優化器（選配）
+### AI 流程優化器（預設啟用）
 
 | 變數 | 預設值 | 說明 |
 |------|--------|------|
-| `FLOW_OPTIMIZER_ENABLED` | `false` | 啟用本地 AI 優化器 |
-| `FLOW_OPTIMIZER_URL` | `http://localhost:8081` | 優化器服務位址 |
+| `FLOW_OPTIMIZER_ENABLED` | `true` | 本地 AI 優化器（預設啟用） |
+| `FLOW_OPTIMIZER_URL` | `http://flow-optimizer:8081` | 優化器服務位址 |
 
-啟用本地 AI 優化器：
-```bash
-# 啟動包含 AI 優化器的完整服務
-docker compose --profile optimizer up -d
-```
+本地 AI 優化器隨 `docker compose up -d` 自動啟動，無需額外設定或 API 金鑰。
 
-> **注意**：本地 AI 優化器使用 Phi-3 模型，需要至少 4GB 記憶體。
+> **注意**：本地 AI 優化器在本機執行，首次啟動時需要下載模型（約 2.3GB），且需要至少 4GB 記憶體。
 
 ---
 

@@ -12,7 +12,7 @@ import {
   RocketOutlined,
   AppstoreAddOutlined,
   SyncOutlined,
-  FileTextOutlined,
+  ToolOutlined,
   SafetyOutlined,
   ApiOutlined,
   KeyOutlined,
@@ -195,7 +195,7 @@ export default function DashboardPage() {
               </Button>
               <Button
                 size="large"
-                icon={<FileTextOutlined />}
+                icon={<ToolOutlined />}
                 onClick={() => navigate('/custom-tools')}
                 style={{
                   height: 48,

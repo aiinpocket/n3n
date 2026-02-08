@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { Drawer, Input, Typography, Tag, Empty } from 'antd'
+import { Drawer, Input, Typography, Tag, Empty, type InputRef } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { nodeTypes, nodeCategories, type NodeTypeConfig, type NodeCategoryConfig } from '../../config/nodeTypes'
@@ -16,7 +16,7 @@ const NodeSearchDrawer: React.FC<NodeSearchDrawerProps> = ({ open, onClose, onAd
   const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<InputRef>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -101,7 +101,7 @@ const NodeSearchDrawer: React.FC<NodeSearchDrawerProps> = ({ open, onClose, onAd
       onClose={onClose}
     >
       <Input
-        ref={inputRef as React.Ref<any>}
+        ref={inputRef}
         prefix={<SearchOutlined />}
         placeholder={t('editor.nodeSearch.placeholder')}
         value={searchQuery}

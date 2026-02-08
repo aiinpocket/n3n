@@ -11,7 +11,7 @@ services:
       # Database
       DATABASE_URL: jdbc:postgresql://postgres:5432/n3n
       DATABASE_USERNAME: n3n
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-n3n_dev_only}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-n3n}
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -28,8 +28,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      flow-optimizer:
-        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -45,7 +43,7 @@ services:
     environment:
       POSTGRES_DB: n3n
       POSTGRES_USER: n3n
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-n3n_dev_only}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-n3n}
     # Expose for development only
     ports:
       - "5432:5432"
