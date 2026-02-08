@@ -349,9 +349,10 @@ public class CronTool implements AgentNodeTool {
                     Map.of("valid", true, "fields", parts.length, "hasSeconds", hasSeconds)
             );
         } catch (IllegalArgumentException e) {
+            log.debug("Cron validation failed: {}", e.getMessage(), e);
             return ToolResult.success(
-                    "Validation failed: " + e.getMessage(),
-                    Map.of("valid", false, "error", e.getMessage())
+                    "Validation failed",
+                    Map.of("valid", false, "error", "Invalid cron expression")
             );
         }
     }

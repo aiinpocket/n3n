@@ -120,10 +120,9 @@ final class DatabaseRawOperations {
                 }
                 successCount++;
             } catch (SQLException e) {
+                log.error("SQL execution failed: sqlState={}, error={}", e.getSQLState(), e.getMessage(), e);
                 statementResult.put("success", false);
-                statementResult.put("error", e.getSQLState() != null
-                    ? "SQL error [" + e.getSQLState() + "]: " + truncate(e.getMessage(), 300)
-                    : truncate(e.getMessage(), 300));
+                statementResult.put("error", "SQL execution failed");
                 errorCount++;
 
                 if (stopOnError) {

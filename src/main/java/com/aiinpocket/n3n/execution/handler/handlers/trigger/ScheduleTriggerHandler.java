@@ -103,7 +103,8 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
             try {
                 CronExpression.parse(cronExpr.toString());
             } catch (IllegalArgumentException e) {
-                return ValidationResult.invalid("cronExpression", "Invalid cron expression: " + e.getMessage());
+                log.debug("Cron expression validation failed: {}", e.getMessage(), e);
+                return ValidationResult.invalid("cronExpression", "Invalid cron expression");
             }
         } else if ("interval".equals(scheduleType)) {
             Object interval = config.get("interval");

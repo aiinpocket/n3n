@@ -169,7 +169,7 @@ public class HousekeepingService {
 
         } catch (Exception e) {
             log.error("HOUSEKEEPING_FAILED error={}", e.getMessage(), e);
-            job.fail(e.getMessage());
+            job.fail("Housekeeping job failed");
             jobRepository.save(job);
             throw e;
         }

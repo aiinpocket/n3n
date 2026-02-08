@@ -504,7 +504,7 @@ public class ExecutionService {
                     // Store error info in context for error handling nodes
                     Map<String, Object> errorInfo = new HashMap<>();
                     errorInfo.put("error", true);
-                    errorInfo.put("errorMessage", e.getMessage());
+                    errorInfo.put("errorMessage", "Node execution failed");
                     errorInfo.put("errorType", e.getClass().getName());
                     errorInfo.put("failedNodeId", nodeId);
                     nodeOutputs.put(nodeId, errorInfo);
@@ -784,12 +784,12 @@ public class ExecutionService {
             nodeExecution.setStatus("failed");
             nodeExecution.setCompletedAt(Instant.now());
             nodeExecution.setDurationMs((int) (nodeExecution.getCompletedAt().toEpochMilli() - nodeExecution.getStartedAt().toEpochMilli()));
-            nodeExecution.setErrorMessage(e.getMessage());
+            nodeExecution.setErrorMessage("Execution failed");
             nodeExecution.setErrorStack(e.getClass().getName());
             nodeExecutionRepository.save(nodeExecution);
 
-            stateManager.markNodeFailed(executionId, nodeId, e.getMessage());
-            notificationService.notifyNodeFailed(executionId, nodeId, e.getMessage());
+            stateManager.markNodeFailed(executionId, nodeId, "Execution failed");
+            notificationService.notifyNodeFailed(executionId, nodeId, "Execution failed");
             throw e;
         }
     }

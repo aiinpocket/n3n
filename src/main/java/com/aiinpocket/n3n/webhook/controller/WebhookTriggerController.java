@@ -111,7 +111,7 @@ public class WebhookTriggerController {
             ));
         } catch (Exception e) {
             log.error("Webhook trigger failed for path: {}, sourceIp={}", path, sourceIp, e);
-            activityService.logWebhookTriggerFailed(path, sourceIp, e.getMessage());
+            activityService.logWebhookTriggerFailed(path, sourceIp, "Webhook trigger failed");
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "error", "Webhook processing failed"

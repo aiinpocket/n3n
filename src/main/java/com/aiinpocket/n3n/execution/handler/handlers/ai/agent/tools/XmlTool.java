@@ -274,9 +274,10 @@ public class XmlTool implements AgentNodeTool {
 
             return ToolResult.success("XML format is valid", Map.of("valid", true));
         } catch (Exception e) {
+            log.debug("XML validation failed: {}", e.getMessage(), e);
             return ToolResult.success(
-                    "XML format is invalid: " + e.getMessage(),
-                    Map.of("valid", false, "error", e.getMessage())
+                    "XML format is invalid",
+                    Map.of("valid", false, "error", "XML validation failed")
             );
         }
     }

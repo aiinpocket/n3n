@@ -170,7 +170,8 @@ public class ValidatorTool implements AgentNodeTool {
             }
             return new ValidationResult(true, null);
         } catch (Exception e) {
-            return new ValidationResult(false, "Invalid URL: " + e.getMessage());
+            log.debug("URL validation failed: {}", e.getMessage(), e);
+            return new ValidationResult(false, "Invalid URL format");
         }
     }
 
@@ -230,7 +231,8 @@ public class ValidatorTool implements AgentNodeTool {
             mapper.readTree(value);
             return new ValidationResult(true, null);
         } catch (Exception e) {
-            return new ValidationResult(false, "Invalid JSON: " + e.getMessage());
+            log.debug("JSON validation failed: {}", e.getMessage(), e);
+            return new ValidationResult(false, "Invalid JSON format");
         }
     }
 

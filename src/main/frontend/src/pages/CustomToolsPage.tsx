@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Alert,
   Card,
@@ -331,6 +331,7 @@ function ToolDetailModal({
 // Main Custom Tools Page
 export default function CustomToolsPage() {
   const { t } = useTranslation()
+  const mountedRef = useRef(true)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [plugins, setPlugins] = useState<MarketplacePlugin[]>([])
@@ -369,6 +370,9 @@ export default function CustomToolsPage() {
 
   useEffect(() => {
     loadData()
+    return () => {
+      mountedRef.current = false
+    }
   }, [loadData])
 
   // Re-search when sort or category changes
@@ -398,6 +402,7 @@ export default function CustomToolsPage() {
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         sortBy,
       })
+      if (!mountedRef.current) return
       setPlugins(result.plugins)
     } catch {
       // Keep current data on error
