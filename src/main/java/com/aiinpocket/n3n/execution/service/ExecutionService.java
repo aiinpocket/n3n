@@ -150,6 +150,22 @@ public class ExecutionService {
             // If Redis is down, skip dedup rather than blocking all executions
         }
 
+        try {
+            return doCreateExecution(request, userId);
+        } catch (IllegalStateException e) {
+            throw e; // Dedup exception — don't clear key
+        } catch (Exception e) {
+            // Clean up dedup key so user can retry immediately
+            try {
+                stringRedisTemplate.delete(dedupKey);
+            } catch (Exception ignored) {
+                // Redis cleanup is best-effort
+            }
+            throw e;
+        }
+    }
+
+    private ExecutionResponse doCreateExecution(CreateExecutionRequest request, UUID userId) {
         // Find flow and version
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));

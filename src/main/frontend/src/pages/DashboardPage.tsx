@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, message } from 'antd'
+import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, message, Result } from 'antd'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -16,6 +16,7 @@ import {
   SafetyOutlined,
   ApiOutlined,
   KeyOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -55,39 +56,34 @@ export default function DashboardPage() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+
+  const loadDashboard = async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const [statsRes, execRes, activitiesRes] = await Promise.all([
+        apiClient.get('/dashboard/stats'),
+        apiClient.get('/executions', { params: { size: 5 } }),
+        apiClient.get('/activities', { params: { size: 5 } }),
+      ])
+
+      setStats(statsRes.data)
+
+      const executions = execRes.data.content || []
+      setRecentExecutions(executions)
+
+      const activities = (activitiesRes.data.content || activitiesRes.data || []).slice(0, 5)
+      setRecentActivities(activities)
+    } catch {
+      message.error(t('dashboard.loadFailed'))
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      setLoading(true)
-      try {
-        const [statsRes, execRes, activitiesRes] = await Promise.all([
-          apiClient.get('/dashboard/stats'),
-          apiClient.get('/executions', { params: { size: 5 } }),
-          apiClient.get('/activities', { params: { size: 5 } }),
-        ])
-
-        setStats(statsRes.data)
-
-        const executions = execRes.data.content || []
-        setRecentExecutions(executions)
-
-        const activities = (activitiesRes.data.content || activitiesRes.data || []).slice(0, 5)
-        setRecentActivities(activities)
-      } catch {
-        message.error(t('dashboard.loadFailed'))
-        setStats({
-          totalFlows: 0,
-          totalExecutions: 0,
-          successfulExecutions: 0,
-          failedExecutions: 0,
-          runningExecutions: 0,
-        })
-        setRecentActivities([])
-        setRecentExecutions([])
-      } finally {
-        setLoading(false)
-      }
-    }
     loadDashboard()
   }, [])
 
@@ -122,6 +118,20 @@ export default function DashboardPage() {
           <Col xs={24} lg={12}><Card><Skeleton active paragraph={{ rows: 4 }} /></Card></Col>
         </Row>
       </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <Result
+        status="warning"
+        title={t('dashboard.loadFailed')}
+        extra={
+          <Button type="primary" icon={<ReloadOutlined />} onClick={loadDashboard}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
     )
   }
 

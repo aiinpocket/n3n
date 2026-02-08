@@ -587,6 +587,10 @@ class FlowServiceTest extends BaseServiceTest {
         UUID flowId = UUID.randomUUID();
         FlowVersion version = TestDataFactory.createFlowVersion(flowId, "1.0.0");
 
+        DagParser.ParseResult validResult = new DagParser.ParseResult();
+        validResult.setValid(true);
+        when(dagParser.parse(any())).thenReturn(validResult);
+
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
                 .thenReturn(Optional.of(version));
         when(flowVersionRepository.updateStatusByFlowIdAndStatus(flowId, "published", "deprecated"))
@@ -605,6 +609,10 @@ class FlowServiceTest extends BaseServiceTest {
         // Given
         UUID flowId = UUID.randomUUID();
         FlowVersion newVersion = TestDataFactory.createFlowVersion(flowId, "2.0.0");
+
+        DagParser.ParseResult validResult = new DagParser.ParseResult();
+        validResult.setValid(true);
+        when(dagParser.parse(any())).thenReturn(validResult);
 
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "2.0.0"))
                 .thenReturn(Optional.of(newVersion));

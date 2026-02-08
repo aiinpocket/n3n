@@ -305,6 +305,15 @@ public class FlowService {
             return FlowVersionResponse.from(v);
         }
 
+        // Validate flow definition before publishing
+        if (v.getDefinition() != null) {
+            DagParser.ParseResult validation = dagParser.parse(v.getDefinition());
+            if (!validation.isValid()) {
+                throw new IllegalArgumentException("Cannot publish invalid flow: " +
+                    String.join(", ", validation.getErrors()));
+            }
+        }
+
         // Atomically deprecate current published version (prevents race condition)
         flowVersionRepository.updateStatusByFlowIdAndStatus(
             flowId, Status.FlowVersion.PUBLISHED, Status.FlowVersion.DEPRECATED);

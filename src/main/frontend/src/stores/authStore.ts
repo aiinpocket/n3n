@@ -124,12 +124,8 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiClient.post('/auth/register', { email, password, name })
           const { accessToken, refreshToken, user, isFirstUser } = response.data
 
-          // Auto-login after registration
+          // Auto-login after registration (Zustand persist handles localStorage)
           if (accessToken) {
-            localStorage.setItem('accessToken', accessToken)
-            if (refreshToken) {
-              localStorage.setItem('refreshToken', refreshToken)
-            }
             set({
               accessToken,
               refreshToken,
