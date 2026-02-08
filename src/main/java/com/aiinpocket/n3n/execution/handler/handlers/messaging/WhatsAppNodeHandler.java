@@ -9,6 +9,9 @@ import okhttp3.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -264,6 +267,11 @@ public class WhatsAppNodeHandler extends AbstractNodeHandler {
 
         if (mediaUrl.isEmpty() || mimeType.isEmpty()) {
             return NodeExecutionResult.failure("'mediaUrl' and 'mimeType' are required");
+        }
+
+        // SSRF protection: validate URL before downloading
+        if (!isExternalUrl(mediaUrl)) {
+            return NodeExecutionResult.failure("Media URL is not allowed: access to internal/private addresses is blocked");
         }
 
         // Download the media first
@@ -683,5 +691,42 @@ public class WhatsAppNodeHandler extends AbstractNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    /**
+     * SSRF protection: validate that a URL points to an external host.
+     */
+    private boolean isExternalUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+                return false;
+            }
+            if (host == null || host.isBlank()) {
+                return false;
+            }
+
+            String lowerHost = host.toLowerCase();
+            if (lowerHost.equals("localhost") || lowerHost.equals("0.0.0.0") ||
+                lowerHost.equals("::1") || lowerHost.endsWith(".internal") ||
+                lowerHost.equals("metadata.google.internal") ||
+                lowerHost.equals("169.254.169.254")) {
+                return false;
+            }
+
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            for (InetAddress addr : addresses) {
+                if (addr.isLoopbackAddress() || addr.isSiteLocalAddress() ||
+                    addr.isLinkLocalAddress() || addr.isAnyLocalAddress()) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (URISyntaxException | java.net.UnknownHostException e) {
+            return false;
+        }
     }
 }

@@ -282,6 +282,11 @@ public class DiscordNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("webhookUrl is required");
         }
 
+        // Validate webhook URL scheme
+        if (!webhookUrl.startsWith("https://")) {
+            return NodeExecutionResult.failure("webhookUrl must use HTTPS");
+        }
+
         Map<String, Object> payload = new HashMap<>();
 
         String content = getStringConfig(context, "content", "");
