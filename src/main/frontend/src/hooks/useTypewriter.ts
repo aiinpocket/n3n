@@ -118,10 +118,11 @@ export function useMultiTypewriter(
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [allText, setAllText] = useState('')
+  const intervalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleComplete = useCallback(() => {
     if (currentIndex < texts.length - 1) {
-      setTimeout(() => {
+      intervalTimerRef.current = setTimeout(() => {
         setCurrentIndex((prev) => prev + 1)
       }, interval)
     } else {
@@ -147,6 +148,14 @@ export function useMultiTypewriter(
       setAllText(prevTexts ? prevTexts + '\n' + typewriter.displayText : typewriter.displayText)
     }
   }, [typewriter.displayText, currentIndex, texts])
+
+  useEffect(() => {
+    return () => {
+      if (intervalTimerRef.current) {
+        clearTimeout(intervalTimerRef.current)
+      }
+    }
+  }, [])
 
   return {
     ...typewriter,

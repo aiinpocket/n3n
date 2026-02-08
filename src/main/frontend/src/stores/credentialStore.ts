@@ -36,7 +36,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const response = await credentialApi.list(page, 20)
-      if (requestId !== fetchRequestId) return
+      if (requestId !== fetchRequestId) { set({ loading: false }); return }
       set({
         credentials: response.content,
         totalElements: response.totalElements,
@@ -45,7 +45,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
-      if (requestId !== fetchRequestId) return
+      if (requestId !== fetchRequestId) { set({ loading: false }); return }
       set({ error: extractApiError(error), loading: false })
     }
   },
