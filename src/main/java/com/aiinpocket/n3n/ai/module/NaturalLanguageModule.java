@@ -138,7 +138,7 @@ public class NaturalLanguageModule {
         Thread.startVirtualThread(() -> {
             try {
                 // Phase 1: Analyzing request (0-10%)
-                emitProgress(sink, 0, "正在分析您的需求...", "分析請求");
+                emitProgress(sink, 0, "Analyzing your request...", "analyzing");
                 Thread.sleep(300); // Small delay for UX
 
                 SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
@@ -148,28 +148,28 @@ public class NaturalLanguageModule {
                     return;
                 }
 
-                emitProgress(sink, 10, "AI 服務已連接", "準備生成");
+                emitProgress(sink, 10, "AI service connected", "preparing");
 
                 // Phase 2: Getting available nodes (10-20%)
-                emitProgress(sink, 15, "正在載入可用節點類型...", "載入節點");
+                emitProgress(sink, 15, "Loading available node types...", "loading_nodes");
                 List<NodeHandlerInfo> availableNodes = nodeHandlerRegistry.listHandlerInfo();
-                emitProgress(sink, 20, String.format("已載入 %d 種節點類型", availableNodes.size()), "節點就緒");
+                emitProgress(sink, 20, String.format("Loaded %d node types", availableNodes.size()), "nodes_ready");
 
                 // Phase 3: Building prompts (20-30%)
-                emitProgress(sink, 25, "正在建構 AI 提示...", "建構提示");
+                emitProgress(sink, 25, "Building AI prompt...", "building_prompt");
                 String systemPrompt = promptBuilder.buildSystemPrompt(safeInput);
                 String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, installedNodeTypes);
-                emitProgress(sink, 30, "提示建構完成", "準備生成");
+                emitProgress(sink, 30, "Prompt ready", "preparing");
 
                 // Phase 4: Calling AI (30-70%)
-                sink.tryEmitNext(FlowGenerationChunk.thinking("正在使用 AI 生成流程架構..."));
-                emitProgress(sink, 35, "呼叫 AI 模型中...", "AI 生成");
+                sink.tryEmitNext(FlowGenerationChunk.thinking("Generating flow architecture with AI..."));
+                emitProgress(sink, 35, "Calling AI model...", "ai_generating");
 
                 String response = provider.chat(userPrompt, systemPrompt, 4096, 0.7);
-                emitProgress(sink, 70, "AI 回應已接收", "解析結果");
+                emitProgress(sink, 70, "AI response received", "parsing");
 
                 // Phase 5: Parsing response (70-85%)
-                emitProgress(sink, 75, "正在解析 AI 回應...", "解析中");
+                emitProgress(sink, 75, "Parsing AI response...", "parsing");
                 FlowGenerationResult result = parseFlowGenerationResponse(response, availableNodes, installedNodeTypes);
 
                 if (!result.success()) {
@@ -182,7 +182,7 @@ public class NaturalLanguageModule {
                 if (result.understanding() != null) {
                     sink.tryEmitNext(FlowGenerationChunk.understanding(result.understanding()));
                 }
-                emitProgress(sink, 80, "需求理解完成", "建構流程");
+                emitProgress(sink, 80, "Understanding complete", "building_flow");
 
                 // Phase 6: Emit nodes one by one (85-95%)
                 @SuppressWarnings("unchecked")
@@ -220,7 +220,7 @@ public class NaturalLanguageModule {
 
                     sink.tryEmitNext(FlowGenerationChunk.nodeAdded(nodeData));
                     emitProgress(sink, progressPercent,
-                            String.format("新增節點: %s", nodeData.getLabel()), "建構流程");
+                            String.format("Adding node: %s", nodeData.getLabel()), "building_flow");
 
                     nodeIndex++;
                     Thread.sleep(150); // Small delay for animation effect
@@ -240,7 +240,7 @@ public class NaturalLanguageModule {
 
                 // Phase 7: Check for missing nodes (95-100%)
                 if (!result.missingNodes().isEmpty()) {
-                    emitProgress(sink, 95, "檢測到缺失的節點類型", "檢查依賴");
+                    emitProgress(sink, 95, "Missing node types detected", "checking_deps");
 
                     List<FlowGenerationChunk.MissingNodeInfo> missingNodeInfos =
                             buildMissingNodeInfos(result.missingNodes());
@@ -248,7 +248,7 @@ public class NaturalLanguageModule {
                 }
 
                 // Final: Emit completion
-                emitProgress(sink, 100, "流程生成完成！", "完成");
+                emitProgress(sink, 100, "Flow generation complete!", "done");
                 sink.tryEmitNext(FlowGenerationChunk.done(
                         result.flowDefinition(),
                         result.requiredNodes()
@@ -325,7 +325,7 @@ public class NaturalLanguageModule {
         if (!codexList.isEmpty()) {
             return codexList.get(0).getDescription();
         }
-        return "需要安裝此節點類型才能使用";
+        return "This node type needs to be installed before use";
     }
 
     /**

@@ -811,7 +811,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text strong>{streamStage || t('flowGenerator.preparing')}</Text>
+            <Text strong>{streamStage ? (t(`flowGenerator.stage.${streamStage}`, { defaultValue: streamStage }) as string) : t('flowGenerator.preparing')}</Text>
             <Text type="secondary">{streamProgress}%</Text>
           </div>
           <Progress

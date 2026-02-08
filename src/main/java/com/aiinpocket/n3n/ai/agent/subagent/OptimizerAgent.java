@@ -93,8 +93,8 @@ public class OptimizerAgent implements Agent {
     public Flux<AgentStreamChunk> executeStream(AgentContext context) {
         return Flux.create(sink -> {
             try {
-                sink.next(AgentStreamChunk.thinking("正在分析流程..."));
-                sink.next(AgentStreamChunk.progress(10, "檢查流程結構"));
+                sink.next(AgentStreamChunk.thinking("Analyzing flow..."));
+                sink.next(AgentStreamChunk.progress(10, "checking_structure"));
 
                 WorkingFlowDraft draft = context.getFlowDraft();
                 if (draft == null || !draft.hasContent()) {
@@ -103,13 +103,13 @@ public class OptimizerAgent implements Agent {
                     return;
                 }
 
-                sink.next(AgentStreamChunk.progress(30, "識別優化機會"));
+                sink.next(AgentStreamChunk.progress(30, "identifying_optimizations"));
                 OptimizationReport report = analyzeFlow(draft, context);
 
-                sink.next(AgentStreamChunk.progress(60, "評估優化建議"));
+                sink.next(AgentStreamChunk.progress(60, "evaluating_suggestions"));
                 List<String> applied = applyHighPriorityOptimizations(report, context);
 
-                sink.next(AgentStreamChunk.progress(90, "生成報告"));
+                sink.next(AgentStreamChunk.progress(90, "generating_report"));
                 AgentResult result = buildOptimizationResponse(report, applied, context);
 
                 sink.next(AgentStreamChunk.text(result.getContent()));
@@ -121,7 +121,7 @@ public class OptimizerAgent implements Agent {
                     )));
                 }
 
-                sink.next(AgentStreamChunk.progress(100, "完成"));
+                sink.next(AgentStreamChunk.progress(100, "done"));
                 sink.next(AgentStreamChunk.done());
                 sink.complete();
 

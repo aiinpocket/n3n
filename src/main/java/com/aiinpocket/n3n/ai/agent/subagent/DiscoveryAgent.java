@@ -97,7 +97,7 @@ public class DiscoveryAgent implements Agent {
     public Flux<AgentStreamChunk> executeStream(AgentContext context) {
         return Flux.create(sink -> {
             try {
-                sink.next(AgentStreamChunk.thinking("搜尋相關元件..."));
+                sink.next(AgentStreamChunk.thinking("Searching related components..."));
 
                 AgentResult result = execute(context);
 

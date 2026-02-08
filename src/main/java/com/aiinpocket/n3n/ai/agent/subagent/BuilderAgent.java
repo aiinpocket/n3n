@@ -103,12 +103,12 @@ public class BuilderAgent implements Agent {
     public Flux<AgentStreamChunk> executeStream(AgentContext context) {
         return Flux.create(sink -> {
             try {
-                sink.next(AgentStreamChunk.thinking("正在建構流程..."));
-                sink.next(AgentStreamChunk.progress(10, "分析需求"));
+                sink.next(AgentStreamChunk.thinking("Building flow..."));
+                sink.next(AgentStreamChunk.progress(10, "analyzing"));
 
                 AgentResult result = execute(context);
 
-                sink.next(AgentStreamChunk.progress(80, "驗證流程"));
+                sink.next(AgentStreamChunk.progress(80, "validating"));
 
                 if (result.isSuccess()) {
                     sink.next(AgentStreamChunk.text(result.getContent()));
@@ -122,7 +122,7 @@ public class BuilderAgent implements Agent {
                     sink.next(AgentStreamChunk.error(result.getError()));
                 }
 
-                sink.next(AgentStreamChunk.progress(100, "完成"));
+                sink.next(AgentStreamChunk.progress(100, "done"));
                 sink.next(AgentStreamChunk.done());
                 sink.complete();
             } catch (Exception e) {

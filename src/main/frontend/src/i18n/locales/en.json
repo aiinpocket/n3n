@@ -1454,7 +1454,24 @@
     "confirmAndGenerate": "Confirm & Generate",
     "editRequirements": "Continue Editing",
     "generateNow": "Generate Now",
-    "needMoreChanges": "I have more changes to make"
+    "needMoreChanges": "I have more changes to make",
+    "stage": {
+      "analyzing": "Analyzing",
+      "preparing": "Preparing",
+      "loading_nodes": "Loading Nodes",
+      "nodes_ready": "Nodes Ready",
+      "building_prompt": "Building Prompt",
+      "ai_generating": "AI Generating",
+      "parsing": "Parsing",
+      "building_flow": "Building Flow",
+      "checking_deps": "Checking Dependencies",
+      "done": "Done",
+      "checking_structure": "Checking Structure",
+      "identifying_optimizations": "Identifying Optimizations",
+      "evaluating_suggestions": "Evaluating Suggestions",
+      "generating_report": "Generating Report",
+      "validating": "Validating"
+    }
   },
   "aiPanel": {
     "title": "AI Assistant",

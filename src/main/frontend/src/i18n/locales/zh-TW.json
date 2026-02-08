@@ -1454,7 +1454,24 @@
     "confirmAndGenerate": "確認並生成",
     "editRequirements": "繼續修改",
     "generateNow": "直接生成",
-    "needMoreChanges": "我還有需要修改的地方"
+    "needMoreChanges": "我還有需要修改的地方",
+    "stage": {
+      "analyzing": "分析中",
+      "preparing": "準備中",
+      "loading_nodes": "載入節點",
+      "nodes_ready": "節點就緒",
+      "building_prompt": "建構提示",
+      "ai_generating": "AI 生成中",
+      "parsing": "解析中",
+      "building_flow": "建構流程",
+      "checking_deps": "檢查依賴",
+      "done": "完成",
+      "checking_structure": "檢查結構",
+      "identifying_optimizations": "識別優化機會",
+      "evaluating_suggestions": "評估建議",
+      "generating_report": "生成報告",
+      "validating": "驗證中"
+    }
   },
   "aiPanel": {
     "title": "AI 助手",

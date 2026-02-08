@@ -1454,7 +1454,24 @@
     "confirmAndGenerate": "確認して生成",
     "editRequirements": "編集を続ける",
     "generateNow": "今すぐ生成",
-    "needMoreChanges": "まだ変更したい箇所があります"
+    "needMoreChanges": "まだ変更したい箇所があります",
+    "stage": {
+      "analyzing": "分析中",
+      "preparing": "準備中",
+      "loading_nodes": "ノード読込中",
+      "nodes_ready": "ノード準備完了",
+      "building_prompt": "プロンプト構築中",
+      "ai_generating": "AI 生成中",
+      "parsing": "解析中",
+      "building_flow": "フロー構築中",
+      "checking_deps": "依存関係チェック",
+      "done": "完了",
+      "checking_structure": "構造チェック",
+      "identifying_optimizations": "最適化候補の特定",
+      "evaluating_suggestions": "提案の評価",
+      "generating_report": "レポート生成",
+      "validating": "検証中"
+    }
   },
   "aiPanel": {
     "title": "AIアシスタント",

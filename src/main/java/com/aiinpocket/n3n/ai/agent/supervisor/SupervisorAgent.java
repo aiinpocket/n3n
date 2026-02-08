@@ -121,7 +121,7 @@ public class SupervisorAgent implements Agent {
         return Flux.create(sink -> {
             try {
                 // 分析意圖
-                sink.next(AgentStreamChunk.thinking("分析您的需求..."));
+                sink.next(AgentStreamChunk.thinking("Analyzing your request..."));
                 Intent intent = intentAnalyzer.analyze(context);
                 context.setIntent(intent);
 
@@ -143,7 +143,7 @@ public class SupervisorAgent implements Agent {
                 Agent targetAgent = agentRegistry.getAgent(targetAgentId);
 
                 sink.next(AgentStreamChunk.thinking(
-                    "交給 " + targetAgent.getName() + " 處理..."));
+                    "Routing to " + targetAgent.getName() + "..."));
 
                 // 執行子代理串流
                 targetAgent.executeStream(context)

@@ -152,7 +152,7 @@ public class RequirementClarificationService {
             log.warn("Failed to parse clarification response: {}", e.getClass().getSimpleName());
             return RequirementClarificationResponse.question(
                 conversationId,
-                "我正在思考您的需求，請再描述一下您想要的流程。",
+                "I'm thinking about your requirements. Could you describe the flow you want in more detail?",
                 List.of()
             );
         }

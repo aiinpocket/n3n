@@ -121,13 +121,13 @@ public class PromptSanitizer {
 
         // 長度檢查
         if (input.length() > maxPromptLength) {
-            return ValidationResult.rejected("輸入長度超過限制 (" + maxPromptLength + " 字元)");
+            return ValidationResult.rejected("Input length exceeds limit (" + maxPromptLength + " characters)");
         }
 
         // 危險字元檢查
         for (String sequence : DANGEROUS_SEQUENCES) {
             if (input.contains(sequence)) {
-                return ValidationResult.rejected("輸入包含不允許的字元");
+                return ValidationResult.rejected("Input contains disallowed characters");
             }
         }
 
@@ -136,7 +136,7 @@ public class PromptSanitizer {
             String normalized = normalizeWhitespace(input);
             for (Pattern pattern : INJECTION_PATTERNS) {
                 if (pattern.matcher(normalized).find()) {
-                    return ValidationResult.rejected("偵測到可能的安全威脅");
+                    return ValidationResult.rejected("Potential security threat detected");
                 }
             }
         }
