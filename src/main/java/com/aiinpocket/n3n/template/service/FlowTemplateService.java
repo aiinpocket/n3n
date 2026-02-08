@@ -36,9 +36,9 @@ public class FlowTemplateService {
     private final FlowVersionRepository flowVersionRepository;
     private final ObjectMapper objectMapper;
 
-    // Official templates loaded from JSON
-    private List<OfficialTemplateDto> officialTemplates = new ArrayList<>();
-    private List<OfficialTemplateDto.CategoryDto> officialCategories = new ArrayList<>();
+    // Official templates loaded from JSON (volatile for thread-safe publication from @PostConstruct)
+    private volatile List<OfficialTemplateDto> officialTemplates = List.of();
+    private volatile List<OfficialTemplateDto.CategoryDto> officialCategories = List.of();
 
     @PostConstruct
     public void loadOfficialTemplates() {
@@ -50,19 +50,21 @@ public class FlowTemplateService {
                 // Load templates
                 JsonNode templatesNode = root.get("templates");
                 if (templatesNode != null && templatesNode.isArray()) {
-                    officialTemplates = new ArrayList<>();
+                    List<OfficialTemplateDto> templates = new ArrayList<>();
                     for (JsonNode node : templatesNode) {
-                        officialTemplates.add(parseOfficialTemplate(node));
+                        templates.add(parseOfficialTemplate(node));
                     }
+                    officialTemplates = List.copyOf(templates);
                 }
 
                 // Load categories
                 JsonNode categoriesNode = root.get("categories");
                 if (categoriesNode != null && categoriesNode.isArray()) {
-                    officialCategories = new ArrayList<>();
+                    List<OfficialTemplateDto.CategoryDto> categories = new ArrayList<>();
                     for (JsonNode node : categoriesNode) {
-                        officialCategories.add(parseOfficialCategory(node));
+                        categories.add(parseOfficialCategory(node));
                     }
+                    officialCategories = List.copyOf(categories);
                 }
 
                 log.info("Loaded {} official templates in {} categories",

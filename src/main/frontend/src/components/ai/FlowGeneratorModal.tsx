@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Modal,
   Input,
@@ -79,7 +79,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [previewNodes, setPreviewNodes] = useState<NodeData[]>([])
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
-  const [abortController, setAbortController] = useState<AbortController | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // AI understanding edit state
   const [isEditingUnderstanding, setIsEditingUnderstanding] = useState(false)
@@ -202,9 +202,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStreamMissingNodes([])
     setThinkingStage(0)
     setThinkingThoughts([])
-    if (abortController) {
-      abortController.abort()
-      setAbortController(null)
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
     }
   }
 
@@ -229,7 +229,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     // Create abort controller for cancellation
     const controller = new AbortController()
-    setAbortController(controller)
+    abortControllerRef.current = controller
 
     try {
       await generateFlowStream(
@@ -290,7 +290,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         setStep('error')
       }
     } finally {
-      setAbortController(null)
+      abortControllerRef.current = null
     }
   }
 
@@ -338,7 +338,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       : `${originalLabel}：${userInput}\n\n${correctedLabel}：${editedUnderstanding}`
 
     const controller = new AbortController()
-    setAbortController(controller)
+    abortControllerRef.current = controller
 
     try {
       await generateFlowStream(
@@ -400,7 +400,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       }
     } finally {
       setIsRegenerating(false)
-      setAbortController(null)
+      abortControllerRef.current = null
     }
   }
 
@@ -562,9 +562,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       <div style={{ textAlign: 'center', marginTop: 16 }}>
         <Button
           onClick={() => {
-            if (abortController) {
-              abortController.abort()
-              setAbortController(null)
+            if (abortControllerRef.current) {
+              abortControllerRef.current.abort()
+              abortControllerRef.current = null
             }
             handleReset()
           }}
