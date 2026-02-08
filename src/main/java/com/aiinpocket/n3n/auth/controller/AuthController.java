@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.auth.dto.request.*;
 import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.exception.BadCredentialsException;
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.auth.security.LoginRateLimiter;
 import com.aiinpocket.n3n.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final LoginRateLimiter loginRateLimiter;
+    private final IpRateLimiter ipRateLimiter;
     private final ActivityService activityService;
 
     @PostMapping("/login")
@@ -63,7 +65,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("register", getClientIp(httpRequest), 5, 300);
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -136,13 +141,19 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("forgot-password", getClientIp(httpRequest), 3, 300);
         authService.requestPasswordReset(request.getEmail());
         return ResponseEntity.ok(Map.of("message", "If this email is registered, a reset link has been sent."));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("reset-password", getClientIp(httpRequest), 5, 300);
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(Map.of("message", "Password has been reset successfully."));
     }

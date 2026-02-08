@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.auth.dto.response.AuthResponse;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.exception.BadCredentialsException;
 import com.aiinpocket.n3n.auth.exception.EmailAlreadyExistsException;
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.auth.security.LoginRateLimiter;
 import com.aiinpocket.n3n.auth.service.AuthService;
 import com.aiinpocket.n3n.base.TestDataFactory;
@@ -42,6 +43,9 @@ class AuthControllerTest {
 
     @Mock
     private LoginRateLimiter loginRateLimiter;
+
+    @Mock
+    private IpRateLimiter ipRateLimiter;
 
     @Mock
     private ActivityService activityService;
@@ -117,11 +121,12 @@ class AuthControllerTest {
         // Given
         RegisterRequest request = TestDataFactory.createRegisterRequest();
         AuthResponse response = createAuthResponse();
+        HttpServletRequest httpRequest = createMockHttpRequest();
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(response);
 
         // When
-        ResponseEntity<AuthResponse> result = authController.register(request);
+        ResponseEntity<AuthResponse> result = authController.register(request, httpRequest);
 
         // Then
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -133,12 +138,13 @@ class AuthControllerTest {
     void register_duplicateEmail_throwsException() {
         // Given
         RegisterRequest request = TestDataFactory.createRegisterRequest();
+        HttpServletRequest httpRequest = createMockHttpRequest();
 
         when(authService.register(any(RegisterRequest.class)))
                 .thenThrow(new EmailAlreadyExistsException("Email already registered"));
 
         // When/Then
-        assertThatThrownBy(() -> authController.register(request))
+        assertThatThrownBy(() -> authController.register(request, httpRequest))
                 .isInstanceOf(EmailAlreadyExistsException.class);
     }
 
