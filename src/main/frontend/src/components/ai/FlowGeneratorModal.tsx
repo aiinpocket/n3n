@@ -98,6 +98,19 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
+  const mountedRef = useRef(true)
+  const conversationIdRef = useRef<string | undefined>()
+
+  // Keep conversationIdRef in sync
+  useEffect(() => {
+    conversationIdRef.current = conversationId
+  }, [conversationId])
+
+  // Track mount status
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   // AI understanding edit state
   const [isEditingUnderstanding, setIsEditingUnderstanding] = useState(false)
@@ -243,7 +256,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
   // Start conversation-based clarification
   const handleStartConversation = async () => {
-    if (!userInput.trim()) return
+    if (!userInput.trim() || isClarifying) return
 
     setStep('conversation')
     const userMsg: ChatMessage = { role: 'user', content: userInput.trim() }
@@ -256,14 +269,16 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         language: i18n.language || getLocale(),
       })
 
+      if (!mountedRef.current) return
       handleClarificationResponse(response, [userMsg])
-    } catch (err) {
+    } catch {
+      if (!mountedRef.current) return
       setChatMessages(prev => [...prev, {
         role: 'assistant',
         content: t('flowGenerator.clarifyError'),
       }])
     } finally {
-      setIsClarifying(false)
+      if (mountedRef.current) setIsClarifying(false)
     }
   }
 
@@ -276,7 +291,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   // Send a message in the conversation
   const handleSendMessage = async (messageText?: string) => {
     const text = messageText || chatInput.trim()
-    if (!text) return
+    if (!text || isClarifying) return
 
     setChatInput('')
     const userMsg: ChatMessage = { role: 'user', content: text }
@@ -287,19 +302,21 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     try {
       const response = await aiAssistantApi.clarifyRequirements({
         message: text,
-        conversationId,
+        conversationId: conversationIdRef.current,
         history: updatedMessages.map(m => ({ role: m.role, content: m.content })),
         language: i18n.language || getLocale(),
       })
 
+      if (!mountedRef.current) return
       handleClarificationResponse(response, updatedMessages)
-    } catch (err) {
+    } catch {
+      if (!mountedRef.current) return
       setChatMessages(prev => [...prev, {
         role: 'assistant',
         content: t('flowGenerator.clarifyError'),
       }])
     } finally {
-      setIsClarifying(false)
+      if (mountedRef.current) setIsClarifying(false)
     }
   }
 
@@ -361,6 +378,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   }
 
   const handleGenerateFromDescription = async (description: string) => {
+    // Abort any previous generation
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+
     setStep('generating')
     setError(null)
     setThinkingStage(0)
@@ -380,9 +403,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         { userInput: description, language: i18n.language || getLocale() },
         {
           onThinking: (msg) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setThinkingThoughts((prev) => [...prev, msg])
           },
           onProgress: (percent, stage, msg) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setStreamProgress(percent)
             setStreamStage(stage)
             if (msg) setStreamMessage(msg)
@@ -393,21 +418,26 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             else setThinkingStage(4)
           },
           onUnderstanding: (understanding) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setResult((prev) => ({
               ...(prev || { success: true, aiAvailable: true }),
               understanding,
             }))
           },
           onNodeAdded: (node) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setPreviewNodes((prev) => [...prev, node])
           },
           onEdgeAdded: (edge) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setPreviewEdges((prev) => [...prev, edge])
           },
           onMissingNodes: (missing) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setStreamMissingNodes(missing)
           },
           onDone: (flowDefinition, requiredNodes) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setResult({
               success: true,
               aiAvailable: true,
@@ -419,6 +449,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             setStep('preview')
           },
           onError: (err) => {
+            if (!mountedRef.current || controller.signal.aborted) return
             setError(err)
             setStep('error')
           },
@@ -426,12 +457,15 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         controller
       )
     } catch (err) {
+      if (!mountedRef.current) return
       if ((err as Error).name !== 'AbortError') {
         setError(err instanceof Error ? err.message : t('common.error'))
         setStep('error')
       }
     } finally {
-      abortControllerRef.current = null
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null
+      }
     }
   }
 
@@ -455,6 +489,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
   const handleRegenerateWithFeedback = async () => {
     if (!feedbackText.trim() && !editedUnderstanding.trim()) return
+    if (isRegenerating) return
 
     setIsRegenerating(true)
     const originalLabel = t('aiAssistant.originalRequirement')
@@ -467,9 +502,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setIsEditingUnderstanding(false)
     setEditedUnderstanding('')
     setFeedbackText('')
-    setIsRegenerating(false)
 
-    await handleGenerateFromDescription(feedbackInput)
+    try {
+      await handleGenerateFromDescription(feedbackInput)
+    } finally {
+      if (mountedRef.current) setIsRegenerating(false)
+    }
   }
 
   const handleSelectSimilarFlow = (flowId: string) => {
