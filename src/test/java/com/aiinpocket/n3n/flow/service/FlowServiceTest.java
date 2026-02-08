@@ -589,8 +589,8 @@ class FlowServiceTest extends BaseServiceTest {
 
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
                 .thenReturn(Optional.of(version));
-        when(flowVersionRepository.findByFlowIdAndStatus(flowId, "published"))
-                .thenReturn(Optional.empty());
+        when(flowVersionRepository.updateStatusByFlowIdAndStatus(flowId, "published", "deprecated"))
+                .thenReturn(0);
         when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -605,19 +605,19 @@ class FlowServiceTest extends BaseServiceTest {
         // Given
         UUID flowId = UUID.randomUUID();
         FlowVersion newVersion = TestDataFactory.createFlowVersion(flowId, "2.0.0");
-        FlowVersion oldVersion = TestDataFactory.createPublishedVersion(flowId, "1.0.0");
 
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "2.0.0"))
                 .thenReturn(Optional.of(newVersion));
-        when(flowVersionRepository.findByFlowIdAndStatus(flowId, "published"))
-                .thenReturn(Optional.of(oldVersion));
+        when(flowVersionRepository.updateStatusByFlowIdAndStatus(flowId, "published", "deprecated"))
+                .thenReturn(1); // 1 row updated atomically
         when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         flowService.publishVersion(flowId, "2.0.0");
 
         // Then
-        verify(flowVersionRepository, times(2)).save(any(FlowVersion.class));
+        verify(flowVersionRepository).updateStatusByFlowIdAndStatus(flowId, "published", "deprecated");
+        verify(flowVersionRepository).save(any(FlowVersion.class));
     }
 
     @Test

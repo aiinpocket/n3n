@@ -305,12 +305,9 @@ public class FlowService {
             return FlowVersionResponse.from(v);
         }
 
-        // Deprecate current published version
-        flowVersionRepository.findByFlowIdAndStatus(flowId, Status.FlowVersion.PUBLISHED)
-            .ifPresent(current -> {
-                current.setStatus(Status.FlowVersion.DEPRECATED);
-                flowVersionRepository.save(current);
-            });
+        // Atomically deprecate current published version (prevents race condition)
+        flowVersionRepository.updateStatusByFlowIdAndStatus(
+            flowId, Status.FlowVersion.PUBLISHED, Status.FlowVersion.DEPRECATED);
 
         v.setStatus(Status.FlowVersion.PUBLISHED);
         v = flowVersionRepository.save(v);

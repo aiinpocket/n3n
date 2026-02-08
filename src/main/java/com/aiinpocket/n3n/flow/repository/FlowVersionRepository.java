@@ -2,6 +2,9 @@ package com.aiinpocket.n3n.flow.repository;
 
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +19,12 @@ public interface FlowVersionRepository extends JpaRepository<FlowVersion, UUID> 
     Optional<FlowVersion> findByFlowIdAndVersion(UUID flowId, String version);
 
     Optional<FlowVersion> findByFlowIdAndStatus(UUID flowId, String status);
+
+    @Modifying
+    @Query("UPDATE FlowVersion v SET v.status = :newStatus WHERE v.flowId = :flowId AND v.status = :currentStatus")
+    int updateStatusByFlowIdAndStatus(@Param("flowId") UUID flowId,
+                                      @Param("currentStatus") String currentStatus,
+                                      @Param("newStatus") String newStatus);
 
     boolean existsByFlowIdAndVersion(UUID flowId, String version);
 

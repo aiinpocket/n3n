@@ -110,7 +110,7 @@ public class ConnectionTestService {
             credential.setMetadata(metadata);
             credentialRepository.save(credential);
         } catch (Exception e) {
-            log.warn("Failed to update credential metadata: {}", e.getMessage());
+            log.warn("Failed to update credential metadata for id={}: {}", credential.getId(), e.getMessage(), e);
         }
     }
 

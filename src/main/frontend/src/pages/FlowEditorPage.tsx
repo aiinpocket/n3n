@@ -219,7 +219,7 @@ export default function FlowEditorPage() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [isDirty, saving, nodes, edges, autoSaveDraft])
+  }, [isDirty, saving, autoSaveDraft, t])
 
   // Warn before closing with unsaved changes
   useEffect(() => {
@@ -232,113 +232,115 @@ export default function FlowEditorPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if in execution mode or if target is an input/textarea
-      if (executionMode) return
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return
-      }
+  // Keyboard shortcuts - use ref to avoid re-registering listener on every state change
+  const keyboardHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {})
+  keyboardHandlerRef.current = (e: KeyboardEvent) => {
+    // Skip if in execution mode or if target is an input/textarea
+    if (executionMode) return
+    const target = e.target as HTMLElement
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return
+    }
 
-      // Ctrl+S or Cmd+S to save
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        if (isDirty || !currentVersion) {
-          if (currentVersion?.status === 'draft') {
-            saveForm.setFieldsValue({ version: currentVersion.version })
-          }
-          setSaveModalOpen(true)
+    // Ctrl+S or Cmd+S to save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault()
+      if (isDirty || !currentVersion) {
+        if (currentVersion?.status === 'draft') {
+          saveForm.setFieldsValue({ version: currentVersion.version })
         }
-      }
-      // Ctrl+Shift+P or Cmd+Shift+P to publish
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
-        e.preventDefault()
-        if (currentVersion && currentVersion.status !== 'published') {
-          handlePublish()
-        }
-      }
-      // Ctrl+C or Cmd+C to copy
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-        e.preventDefault()
-        copySelectedNodes()
-        message.info(t('editor.copied'))
-      }
-      // Ctrl+X or Cmd+X to cut
-      if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
-        e.preventDefault()
-        cutSelectedNodes()
-        message.info(t('editor.cut'))
-      }
-      // Ctrl+V or Cmd+V to paste
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        e.preventDefault()
-        pasteNodes()
-        message.info(t('editor.pasted'))
-      }
-      // Ctrl+D or Cmd+D to duplicate
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault()
-        duplicateSelectedNodes()
-        message.info(t('editor.duplicated'))
-      }
-      // Ctrl+A or Cmd+A to select all
-      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-        e.preventDefault()
-        selectAllNodes()
-      }
-      // Ctrl+Z or Cmd+Z to undo
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
-        e.preventDefault()
-        if (canUndo()) {
-          undo()
-          message.info(t('editor.undone'))
-        }
-      }
-      // Ctrl+Shift+Z or Cmd+Shift+Z to redo
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
-        e.preventDefault()
-        if (canRedo()) {
-          redo()
-          message.info(t('editor.redone'))
-        }
-      }
-      // Ctrl+Y or Cmd+Y to redo (alternative)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-        e.preventDefault()
-        if (canRedo()) {
-          redo()
-          message.info(t('editor.redone'))
-        }
-      }
-      // Delete or Backspace to delete selected nodes
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault()
-        if (selectedNodeIds.length > 0) {
-          removeSelectedNodes()
-          message.info(t('editor.nodesDeleted'))
-        }
-      }
-      // Ctrl+K or Cmd+K to open command palette
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault()
-        setCommandPaletteOpen(true)
-      }
-      // Ctrl+I or Cmd+I to open AI assistant panel
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault()
-        openAIPanel()
-      }
-      // Ctrl+F or Cmd+F to open node search
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault()
-        setNodeSearchOpen(true)
+        setSaveModalOpen(true)
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isDirty, currentVersion, saveForm, executionMode, selectedNodeIds, copySelectedNodes, cutSelectedNodes, pasteNodes, duplicateSelectedNodes, selectAllNodes, undo, redo, canUndo, canRedo, removeSelectedNodes, openAIPanel])
+    // Ctrl+Shift+P or Cmd+Shift+P to publish
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
+      e.preventDefault()
+      if (currentVersion && currentVersion.status !== 'published') {
+        handlePublish()
+      }
+    }
+    // Ctrl+C or Cmd+C to copy
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      e.preventDefault()
+      copySelectedNodes()
+      message.info(t('editor.copied'))
+    }
+    // Ctrl+X or Cmd+X to cut
+    if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+      e.preventDefault()
+      cutSelectedNodes()
+      message.info(t('editor.cut'))
+    }
+    // Ctrl+V or Cmd+V to paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      e.preventDefault()
+      pasteNodes()
+      message.info(t('editor.pasted'))
+    }
+    // Ctrl+D or Cmd+D to duplicate
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault()
+      duplicateSelectedNodes()
+      message.info(t('editor.duplicated'))
+    }
+    // Ctrl+A or Cmd+A to select all
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      e.preventDefault()
+      selectAllNodes()
+    }
+    // Ctrl+Z or Cmd+Z to undo
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+      e.preventDefault()
+      if (canUndo()) {
+        undo()
+        message.info(t('editor.undone'))
+      }
+    }
+    // Ctrl+Shift+Z or Cmd+Shift+Z to redo
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+      e.preventDefault()
+      if (canRedo()) {
+        redo()
+        message.info(t('editor.redone'))
+      }
+    }
+    // Ctrl+Y or Cmd+Y to redo (alternative)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      e.preventDefault()
+      if (canRedo()) {
+        redo()
+        message.info(t('editor.redone'))
+      }
+    }
+    // Delete or Backspace to delete selected nodes
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault()
+      if (selectedNodeIds.length > 0) {
+        removeSelectedNodes()
+        message.info(t('editor.nodesDeleted'))
+      }
+    }
+    // Ctrl+K or Cmd+K to open command palette
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault()
+      setCommandPaletteOpen(true)
+    }
+    // Ctrl+I or Cmd+I to open AI assistant panel
+    if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+      e.preventDefault()
+      openAIPanel()
+    }
+    // Ctrl+F or Cmd+F to open node search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      e.preventDefault()
+      setNodeSearchOpen(true)
+    }
+  }
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => keyboardHandlerRef.current(e)
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   // Format last saved time
   const formatLastSaved = () => {

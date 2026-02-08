@@ -156,8 +156,17 @@ public class WebhookService {
             if (!expectedSignature.equals(signature)) {
                 throw new SecurityException("Invalid webhook signature");
             }
+        } catch (SecurityException e) {
+            throw e;
+        } catch (java.security.NoSuchAlgorithmException e) {
+            log.error("HMAC algorithm not available: {}", e.getMessage());
+            throw new SecurityException("Internal cryptographic error");
+        } catch (java.security.InvalidKeyException e) {
+            log.error("Invalid HMAC key for webhook: {}", e.getMessage());
+            throw new SecurityException("Invalid webhook secret key configuration");
         } catch (Exception e) {
-            throw new SecurityException("Signature validation failed: " + e.getMessage());
+            log.error("Unexpected error during HMAC validation: {}", e.getMessage(), e);
+            throw new SecurityException("Signature validation failed");
         }
     }
 }
