@@ -82,7 +82,7 @@ public class EncryptionService {
     }
 
     public String decryptFromBase64(String encryptedBase64) {
-        String[] parts = encryptedBase64.split(":");
+        String[] parts = encryptedBase64.split(":", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid encrypted data format");
         }

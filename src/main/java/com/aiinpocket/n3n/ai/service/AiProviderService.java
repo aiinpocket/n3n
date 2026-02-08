@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * AI Provider 管理服務
@@ -213,7 +215,7 @@ public class AiProviderService {
 
         long startTime = System.currentTimeMillis();
         try {
-            boolean success = provider.testConnection(apiKey, config.getBaseUrl()).get();
+            boolean success = provider.testConnection(apiKey, config.getBaseUrl()).get(30, TimeUnit.SECONDS);
             long latency = System.currentTimeMillis() - startTime;
 
             if (success) {
@@ -238,10 +240,13 @@ public class AiProviderService {
         String apiKey = getDecryptedApiKey(config, userId);
 
         try {
-            List<AiModel> models = provider.fetchModels(apiKey, config.getBaseUrl()).get();
+            List<AiModel> models = provider.fetchModels(apiKey, config.getBaseUrl()).get(30, TimeUnit.SECONDS);
             return models.stream()
                     .map(AiModelResponse::from)
                     .toList();
+        } catch (TimeoutException e) {
+            log.error("Timeout fetching models for config {}", configId);
+            throw new RuntimeException("Failed to fetch models: request timed out", e);
         } catch (Exception e) {
             log.error("Failed to fetch models for config {}", configId, e);
             throw new RuntimeException("Failed to fetch models: " + e.getMessage(), e);
@@ -255,7 +260,7 @@ public class AiProviderService {
         AiProvider provider = providerFactory.getProvider(providerId);
 
         try {
-            List<AiModel> models = provider.fetchModels(apiKey, baseUrl).get();
+            List<AiModel> models = provider.fetchModels(apiKey, baseUrl).get(30, TimeUnit.SECONDS);
             return models.stream()
                     .map(AiModelResponse::from)
                     .toList();

@@ -243,7 +243,8 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
         log.info("Stopping container: {}", containerId);
         try {
             ProcessBuilder pb = new ProcessBuilder("docker", "stop", containerId);
-            pb.start().waitFor(30, TimeUnit.SECONDS);
+            Process p = pb.start();
+            try { p.waitFor(30, TimeUnit.SECONDS); } finally { p.destroyForcibly(); }
         } catch (Exception e) {
             log.warn("Failed to stop container {}: {}", containerId, e.getMessage());
         }
@@ -253,10 +254,12 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     public void stopAndRemove(String name) {
         try {
             ProcessBuilder stop = new ProcessBuilder("docker", "stop", name);
-            stop.start().waitFor(30, TimeUnit.SECONDS);
+            Process sp = stop.start();
+            try { sp.waitFor(30, TimeUnit.SECONDS); } finally { sp.destroyForcibly(); }
 
             ProcessBuilder rm = new ProcessBuilder("docker", "rm", name);
-            rm.start().waitFor(10, TimeUnit.SECONDS);
+            Process rp = rm.start();
+            try { rp.waitFor(10, TimeUnit.SECONDS); } finally { rp.destroyForcibly(); }
         } catch (Exception e) {
             log.debug("Container {} might not exist: {}", name, e.getMessage());
         }
