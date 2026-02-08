@@ -102,7 +102,7 @@ export default function ExecutionListPage() {
         prev.map((exec) => {
           const realtime = realtimeExecutions.find((r) => r.id === exec.id)
           if (realtime) {
-            return { ...exec, status: realtime.status }
+            return { ...exec, ...realtime }
           }
           return exec
         })

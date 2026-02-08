@@ -34,4 +34,6 @@ public interface PluginInstallationRepository extends JpaRepository<PluginInstal
     List<PluginInstallation> findEnabledByUserIdWithDetails(@Param("userId") UUID userId);
 
     void deleteByPluginIdAndUserId(UUID pluginId, UUID userId);
+
+    boolean existsByPluginIdAndUserIdNot(UUID pluginId, UUID userId);
 }

@@ -74,6 +74,7 @@ export default function ApprovalsPage() {
   }
 
   const handleAction = async (approvalId: string, action: 'approve' | 'reject') => {
+    if (submittingIds[approvalId]) return
     setSubmittingIds(prev => ({ ...prev, [approvalId]: true }))
     try {
       await approvalApi.submitApproval(approvalId, action, comment || undefined)

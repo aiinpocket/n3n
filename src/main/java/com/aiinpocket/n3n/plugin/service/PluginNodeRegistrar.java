@@ -170,8 +170,8 @@ public class PluginNodeRegistrar {
             userHandlers.remove(nodeType);
 
             // Check if any other users still have this plugin installed
-            boolean stillInUse = pluginInstallationRepository.findAll().stream()
-                    .anyMatch(inst -> inst.getPluginId().equals(plugin.getId()) && !inst.getUserId().equals(userId));
+            boolean stillInUse = pluginInstallationRepository
+                    .existsByPluginIdAndUserIdNot(plugin.getId(), userId);
 
             if (!stillInUse) {
                 globalPluginHandlers.remove(nodeType);

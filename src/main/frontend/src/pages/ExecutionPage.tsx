@@ -528,7 +528,7 @@ export default function ExecutionPage() {
         </Space>
       </Card>
 
-      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => setCancelModalOpen(false)}>
+      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => { setCancelModalOpen(false); setCancelReason('') }}>
         <Input.TextArea placeholder={t('execution.cancelReasonPlaceholder')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
       </Modal>
 
