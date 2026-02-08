@@ -181,8 +181,13 @@ public class FilterNodeHandler extends AbstractNodeHandler {
                 return fieldValue == null || !Boolean.parseBoolean(fieldValue.toString());
 
             case "regex":
-                return fieldValue != null && compareValue != null &&
-                    fieldValue.toString().matches(compareValue.toString());
+                if (fieldValue == null || compareValue == null) return false;
+                try {
+                    return fieldValue.toString().matches(compareValue.toString());
+                } catch (java.util.regex.PatternSyntaxException e) {
+                    log.warn("Invalid regex pattern in filter: {}", compareValue);
+                    return false;
+                }
 
             default:
                 log.warn("Unknown filter operator: {}", operator);

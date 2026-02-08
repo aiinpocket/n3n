@@ -54,7 +54,7 @@ public class FlowOptimizerService {
             return FlowOptimizationResponse.error("Optimizer service unavailable");
         } catch (Exception e) {
             log.error("Error analyzing flow", e);
-            return FlowOptimizationResponse.error(e.getMessage());
+            return FlowOptimizationResponse.error("Failed to analyze flow");
         }
     }
 
@@ -110,13 +110,18 @@ public class FlowOptimizerService {
             .retrieve()
             .bodyToMono(Map.class)
             .timeout(Duration.ofMillis(config.getTimeoutMs()))
-            .block();
+            .block(Duration.ofMillis(config.getTimeoutMs()));
 
-        if (response != null && response.containsKey("choices")) {
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-            if (!choices.isEmpty()) {
-                Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                return (String) message.get("content");
+        if (response != null && response.get("choices") instanceof List<?> choicesList && !choicesList.isEmpty()) {
+            Object firstChoice = choicesList.get(0);
+            if (firstChoice instanceof Map<?, ?> choiceMap) {
+                Object message = choiceMap.get("message");
+                if (message instanceof Map<?, ?> messageMap) {
+                    Object content = messageMap.get("content");
+                    if (content instanceof String s) {
+                        return s;
+                    }
+                }
             }
         }
 

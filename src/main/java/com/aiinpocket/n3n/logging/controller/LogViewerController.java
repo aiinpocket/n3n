@@ -61,7 +61,11 @@ public class LogViewerController {
                 emitter.send(SseEmitter.event()
                         .name("log")
                         .data(json, MediaType.APPLICATION_JSON));
+            } catch (java.io.IOException e) {
+                log.debug("SSE log stream client disconnected");
+                emitter.completeWithError(e);
             } catch (Exception e) {
+                log.warn("Failed to send log entry via SSE: {}", e.getMessage());
                 emitter.completeWithError(e);
             }
         };
