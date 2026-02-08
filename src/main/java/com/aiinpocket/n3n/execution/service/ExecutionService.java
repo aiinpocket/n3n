@@ -464,7 +464,7 @@ public class ExecutionService {
                 Map<String, Object> nodeResumeData = null;
                 if (isResume && nodeId.equals(waitingNodeId)) {
                     nodeResumeData = stateManager.getResumeData(executionId, nodeId);
-                    if (!nodeResumeData.isEmpty()) {
+                    if (nodeResumeData != null && !nodeResumeData.isEmpty()) {
                         context.put("_resumeData", nodeResumeData);
                         log.info("Injected resume data for node {}", nodeId);
                     }

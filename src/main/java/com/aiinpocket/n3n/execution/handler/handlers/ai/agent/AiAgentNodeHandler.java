@@ -331,11 +331,14 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
             );
 
             CompletableFuture<AgentNodeTool.ToolResult> future = tool.execute(arguments, toolContext);
-            return future.get();  // 同步等待
+            return future.get(120, java.util.concurrent.TimeUnit.SECONDS);
 
+        } catch (java.util.concurrent.TimeoutException e) {
+            log.warn("Tool execution timed out: {}", toolCall.getName());
+            return AgentNodeTool.ToolResult.failure("Tool execution timed out");
         } catch (Exception e) {
             log.error("Tool execution failed: {}", e.getMessage());
-            return AgentNodeTool.ToolResult.failure("Tool execution failed: " + e.getMessage());
+            return AgentNodeTool.ToolResult.failure("Tool execution failed");
         }
     }
 
