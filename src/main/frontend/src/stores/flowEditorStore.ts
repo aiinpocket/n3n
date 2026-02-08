@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { Node, Edge } from '@xyflow/react'
 import { Flow, FlowVersion, flowApi, FlowDefinition } from '../api/flow'
 import { logger } from '../utils/logger'
+import { extractApiError } from '../utils/errorMessages'
 import { ClipboardData, FlowSnapshot } from '../types'
 import i18n from '../i18n'
 
@@ -120,7 +121,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
         })
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load flow'
+      const msg = extractApiError(err, i18n.t('common.loadFailed'))
       logger.error('Failed to load flow:', msg)
       set({ error: msg, currentFlow: null })
     } finally {
@@ -421,7 +422,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
 
       return flowVersion
     } catch (error) {
-      set({ error: (error as Error).message })
+      set({ error: extractApiError(error) })
       throw error
     } finally {
       set({ saving: false })
@@ -494,7 +495,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
 
       return flowVersion
     } catch (error) {
-      set({ error: (error as Error).message })
+      set({ error: extractApiError(error) })
       throw error
     }
   },

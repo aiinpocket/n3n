@@ -6,6 +6,8 @@ import com.aiinpocket.n3n.agent.service.GatewaySettingsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -152,7 +154,7 @@ public class AgentRegistrationController {
      * Install script - user runs curl ... | bash
      */
     @GetMapping(value = "/install.sh", produces = "text/plain")
-    public ResponseEntity<String> getInstallScript(@RequestParam String token) {
+    public ResponseEntity<String> getInstallScript(@RequestParam @NotBlank @Size(min = 10, max = 255) String token) {
 
         String serverUrl = resolveServerUrl();
 
@@ -244,7 +246,7 @@ public class AgentRegistrationController {
      * Download Agent config
      */
     @GetMapping("/config")
-    public ResponseEntity<?> downloadConfig(@RequestParam String token) {
+    public ResponseEntity<?> downloadConfig(@RequestParam @NotBlank @Size(min = 10, max = 255) String token) {
         try {
             // Validate token and get config
             var registration = registrationService.getRegistrationByToken(token);

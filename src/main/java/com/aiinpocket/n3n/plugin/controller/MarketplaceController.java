@@ -3,6 +3,9 @@ package com.aiinpocket.n3n.plugin.controller;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.plugin.dto.*;
 import com.aiinpocket.n3n.plugin.service.PluginService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,9 +43,9 @@ public class MarketplaceController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String pricing,
             @RequestParam(required = false, name = "q") String query,
-            @RequestParam(required = false, defaultValue = "popular") String sortBy,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "20") int pageSize,
+            @RequestParam(required = false, defaultValue = "popular") @Pattern(regexp = "^(popular|rating|recent|trending)$", message = "sortBy must be one of: popular, rating, recent, trending") String sortBy,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
+            @RequestParam(required = false, defaultValue = "20") @Min(1) @Max(100) int pageSize,
             @AuthenticationPrincipal User user) {
 
         UUID userId = user != null ? user.getId() : null;

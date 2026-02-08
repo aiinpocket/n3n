@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { webhookApi, type Webhook, type CreateWebhookRequest } from '../api/webhook'
 import { logger } from '../utils/logger'
+import { extractApiError } from '../utils/errorMessages'
 
 interface WebhookState {
   webhooks: Webhook[]
@@ -35,7 +36,7 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
       set({ webhooks, isLoading: false })
     } catch (error) {
       logger.error('Failed to fetch webhooks:', error)
-      set({ error: (error as Error).message, isLoading: false })
+      set({ error: extractApiError(error), isLoading: false })
     }
   },
 
@@ -46,7 +47,7 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
       set({ flowWebhooks, isLoading: false })
     } catch (error) {
       logger.error('Failed to fetch webhooks for flow:', error)
-      set({ error: (error as Error).message, isLoading: false })
+      set({ error: extractApiError(error), isLoading: false })
     }
   },
 
@@ -57,7 +58,7 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
       return webhook
     } catch (error) {
       logger.error('Failed to get webhook:', error)
-      set({ error: (error as Error).message })
+      set({ error: extractApiError(error) })
       throw error
     }
   },

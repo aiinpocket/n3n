@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.admin.dto.CreateUserRequest;
 import com.aiinpocket.n3n.admin.dto.UserResponse;
 import com.aiinpocket.n3n.admin.service.AdminUserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +52,7 @@ public class AdminController {
     @PatchMapping("/users/{id}/status")
     public ResponseEntity<UserResponse> updateUserStatus(
             @PathVariable UUID id,
-            @RequestParam String status,
+            @RequestParam @Pattern(regexp = "^(active|suspended|deleted)$", message = "Status must be one of: active, suspended, deleted") String status,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID adminId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(adminUserService.updateUserStatus(id, status, adminId));
