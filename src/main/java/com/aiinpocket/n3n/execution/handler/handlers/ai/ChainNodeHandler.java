@@ -10,6 +10,7 @@ import com.aiinpocket.n3n.ai.chain.impl.SequentialChain;
 import com.aiinpocket.n3n.ai.memory.MemoryManager;
 import com.aiinpocket.n3n.ai.service.AiService;
 import com.aiinpocket.n3n.execution.handler.AbstractNodeHandler;
+import com.aiinpocket.n3n.execution.handler.NodeCategory;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getCategory() {
-        return "ai";
+        return NodeCategory.AI;
     }
 
     @Override

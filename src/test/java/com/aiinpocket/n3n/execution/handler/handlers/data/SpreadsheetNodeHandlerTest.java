@@ -29,8 +29,8 @@ class SpreadsheetNodeHandlerTest {
     }
 
     @Test
-    void getCategory_returnsDataTransformation() {
-        assertThat(handler.getCategory()).isEqualTo("Data Transformation");
+    void getCategory_returnsDataTransform() {
+        assertThat(handler.getCategory()).isEqualTo("Data Transform");
     }
 
     @Test

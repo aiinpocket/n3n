@@ -53,8 +53,8 @@ class ChainNodeHandlerTest {
         }
 
         @Test
-        void getCategory_returnsAi() {
-            assertThat(handler.getCategory()).isEqualTo("ai");
+        void getCategory_returnsAI() {
+            assertThat(handler.getCategory()).isEqualTo("AI");
         }
 
         @Test

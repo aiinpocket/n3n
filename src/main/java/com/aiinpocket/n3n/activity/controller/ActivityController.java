@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.activity.controller;
 
-import com.aiinpocket.n3n.activity.entity.UserActivity;
+import com.aiinpocket.n3n.activity.dto.UserActivityResponse;
 import com.aiinpocket.n3n.activity.service.ActivityService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +29,15 @@ public class ActivityController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserActivity>> listAllActivities(
+    public ResponseEntity<Page<UserActivityResponse>> listAllActivities(
             @RequestParam(required = false) String type,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<UserActivity> activities;
         if (type != null && !type.isBlank()) {
-            activities = activityService.getActivitiesByType(type, pageable);
-        } else {
-            activities = activityService.getAllActivities(pageable);
+            return ResponseEntity.ok(activityService.getActivitiesByType(type, pageable)
+                    .map(UserActivityResponse::from));
         }
-        return ResponseEntity.ok(activities);
+        return ResponseEntity.ok(activityService.getAllActivities(pageable)
+                .map(UserActivityResponse::from));
     }
 
     /**
@@ -46,30 +45,30 @@ public class ActivityController {
      * Supports optional ?type=XXX filter for activity type.
      */
     @GetMapping("/my")
-    public ResponseEntity<Page<UserActivity>> listMyActivities(
+    public ResponseEntity<Page<UserActivityResponse>> listMyActivities(
             @RequestParam(required = false) String type,
             @AuthenticationPrincipal UserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        Page<UserActivity> activities;
         if (type != null && !type.isBlank()) {
-            activities = activityService.getUserActivitiesByType(userId, type, pageable);
-        } else {
-            activities = activityService.getUserActivities(userId, pageable);
+            return ResponseEntity.ok(activityService.getUserActivitiesByType(userId, type, pageable)
+                    .map(UserActivityResponse::from));
         }
-        return ResponseEntity.ok(activities);
+        return ResponseEntity.ok(activityService.getUserActivities(userId, pageable)
+                .map(UserActivityResponse::from));
     }
 
     /**
      * Get activities for a specific resource (only current user's activities on that resource).
      */
     @GetMapping("/resource/{resourceType}/{resourceId}")
-    public ResponseEntity<Page<UserActivity>> getResourceActivities(
+    public ResponseEntity<Page<UserActivityResponse>> getResourceActivities(
             @PathVariable String resourceType,
             @PathVariable UUID resourceId,
             @AuthenticationPrincipal UserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(activityService.getUserResourceActivities(userId, resourceType, resourceId, pageable));
+        return ResponseEntity.ok(activityService.getUserResourceActivities(userId, resourceType, resourceId, pageable)
+                .map(UserActivityResponse::from));
     }
 }

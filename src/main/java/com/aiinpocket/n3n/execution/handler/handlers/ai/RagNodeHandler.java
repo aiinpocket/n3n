@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.execution.handler.handlers.ai;
 import com.aiinpocket.n3n.ai.rag.RagService;
 import com.aiinpocket.n3n.ai.rag.document.Document;
 import com.aiinpocket.n3n.execution.handler.AbstractNodeHandler;
+import com.aiinpocket.n3n.execution.handler.NodeCategory;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getCategory() {
-        return "ai";
+        return NodeCategory.AI;
     }
 
     @Override

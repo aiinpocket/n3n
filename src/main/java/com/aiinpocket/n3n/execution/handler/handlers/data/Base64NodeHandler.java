@@ -32,7 +32,7 @@ public class Base64NodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getCategory() {
-        return "Data Transformation";
+        return NodeCategory.DATA_TRANSFORM;
     }
 
     @Override

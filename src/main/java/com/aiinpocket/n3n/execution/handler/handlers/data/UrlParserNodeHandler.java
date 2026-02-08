@@ -34,7 +34,7 @@ public class UrlParserNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getCategory() {
-        return "Data Transformation";
+        return NodeCategory.DATA_TRANSFORM;
     }
 
     @Override

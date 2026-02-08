@@ -33,7 +33,7 @@ public class CompareDatasetNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getCategory() {
-        return "Data Transformation";
+        return NodeCategory.DATA_TRANSFORM;
     }
 
     @Override
