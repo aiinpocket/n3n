@@ -36,6 +36,26 @@ function resetAllStores() {
     pendingChanges: [], currentFlowId: null, currentFlowDefinition: null,
     flowHistory: [], historyIndex: -1, error: null,
   })).catch(() => {})
+  import('./flowEditorStore').then(m => m.useFlowEditorStore.setState({
+    currentFlow: null, currentVersion: null, versions: [], nodes: [], edges: [],
+    selectedNodeId: null, selectedNodeIds: [], isDirty: false, saving: false,
+    lastSavedAt: null, loading: false, error: null, clipboard: null,
+    history: [], historyIndex: -1, pinnedData: {},
+  })).catch(() => {})
+  import('./flowListStore').then(m => m.useFlowListStore.setState({
+    flows: [], totalElements: 0, loading: false, error: null,
+    currentPage: 0, pageSize: 20, searchQuery: '',
+  })).catch(() => {})
+  import('./executionStore').then(m => {
+    // Disconnect WebSocket and clear subscriptions
+    m.useExecutionStore.getState().disconnect()
+    m.useExecutionStore.setState({
+      executions: new Map(), activeSubscriptions: new Map(), isConnected: false,
+    })
+  }).catch(() => {})
+  import('./monitoringStore').then(m => m.useMonitoringStore.setState({
+    systemMetrics: null, flowStats: null, healthStatus: null, loading: false, error: null,
+  })).catch(() => {})
 }
 
 interface User {

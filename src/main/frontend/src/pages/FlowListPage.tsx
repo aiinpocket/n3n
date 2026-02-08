@@ -337,6 +337,17 @@ export default function FlowListPage() {
     },
   ]
 
+  if (!loading && flowListError) {
+    return (
+      <Result
+        status="error"
+        title={t('common.loadFailed')}
+        subTitle={flowListError}
+        extra={<Button type="primary" onClick={() => fetchFlows()}>{t('common.retry')}</Button>}
+      />
+    )
+  }
+
   return (
     <>
       <Card
