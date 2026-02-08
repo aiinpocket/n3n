@@ -102,10 +102,17 @@ public class WebhookTriggerController {
                 "success", false,
                 "error", "Invalid signature"
             ));
+        } catch (com.aiinpocket.n3n.common.exception.ResourceNotFoundException e) {
+            log.warn("Webhook not found: path={}, sourceIp={}", path, sourceIp);
+            activityService.logWebhookTriggerFailed(path, sourceIp, "Not found");
+            return ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "error", "Webhook not found"
+            ));
         } catch (Exception e) {
             log.error("Webhook trigger failed for path: {}, sourceIp={}", path, sourceIp, e);
             activityService.logWebhookTriggerFailed(path, sourceIp, e.getMessage());
-            return ResponseEntity.status(404).body(Map.of(
+            return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "error", "Webhook processing failed"
             ));
