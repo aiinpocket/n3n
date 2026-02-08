@@ -39,6 +39,8 @@ interface ExecutionStore {
   clearExecution: (executionId: string) => void;
 }
 
+const MAX_EXECUTIONS = 100;
+
 export const useExecutionStore = create<ExecutionStore>((set, get) => ({
   executions: new Map(),
   activeSubscriptions: new Map(),
@@ -211,6 +213,18 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
     }
 
     newExecutions.set(executionId, execution);
+
+    // Prune completed executions if map exceeds limit
+    if (newExecutions.size > MAX_EXECUTIONS) {
+      const { activeSubscriptions } = get();
+      for (const [id, exec] of newExecutions) {
+        if (newExecutions.size <= MAX_EXECUTIONS) break;
+        if (['completed', 'failed', 'cancelled'].includes(exec.status) && !activeSubscriptions.has(id)) {
+          newExecutions.delete(id);
+        }
+      }
+    }
+
     set({ executions: newExecutions });
   },
 

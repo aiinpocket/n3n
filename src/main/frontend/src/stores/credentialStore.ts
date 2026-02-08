@@ -20,6 +20,8 @@ interface CredentialState {
   clearError: () => void
 }
 
+let fetchRequestId = 0
+
 export const useCredentialStore = create<CredentialState>((set, get) => ({
   credentials: [],
   credentialTypes: [],
@@ -30,9 +32,11 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
   currentPage: 0,
 
   fetchCredentials: async (page = 0) => {
+    const requestId = ++fetchRequestId
     set({ loading: true, error: null })
     try {
       const response = await credentialApi.list(page, 20)
+      if (requestId !== fetchRequestId) return
       set({
         credentials: response.content,
         totalElements: response.totalElements,
@@ -41,6 +45,7 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
     } catch (error: unknown) {
+      if (requestId !== fetchRequestId) return
       set({ error: extractApiError(error), loading: false })
     }
   },
