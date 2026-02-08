@@ -158,8 +158,12 @@ public class ExecutionArchivalService {
     @Scheduled(cron = "0 0 3 1 * ?")
     @Transactional
     public void cleanupOldArchives() {
-        Instant oneYearAgo = Instant.now().minus(365, ChronoUnit.DAYS);
-        int deleted = archiveRepository.deleteByArchivedAtBefore(oneYearAgo);
-        log.info("Cleaned up {} archive records older than 1 year", deleted);
+        try {
+            Instant oneYearAgo = Instant.now().minus(365, ChronoUnit.DAYS);
+            int deleted = archiveRepository.deleteByArchivedAtBefore(oneYearAgo);
+            log.info("Cleaned up {} archive records older than 1 year", deleted);
+        } catch (Exception e) {
+            log.error("Failed to cleanup old archives", e);
+        }
     }
 }
