@@ -358,9 +358,10 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     }
 
     private boolean isPortResponding(int port) {
+        HttpURLConnection conn = null;
         try {
             URL url = new URL("http://localhost:" + port + "/health");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(2000);
             conn.setReadTimeout(2000);
             conn.setRequestMethod("GET");
@@ -368,6 +369,10 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
             return responseCode >= 200 && responseCode < 400;
         } catch (Exception e) {
             return false;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 }

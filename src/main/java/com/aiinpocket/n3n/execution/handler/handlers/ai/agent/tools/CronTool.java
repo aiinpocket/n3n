@@ -153,13 +153,17 @@ public class CronTool implements AgentNodeTool {
 
         if (field.contains("/")) {
             String[] parts = field.split("/");
-            return String.format("從 %s 開始，每隔 %s %s",
-                    parts[0].equals("*") ? "0" : parts[0], parts[1], getTypeName(type));
+            if (parts.length >= 2) {
+                return String.format("從 %s 開始，每隔 %s %s",
+                        parts[0].equals("*") ? "0" : parts[0], parts[1], getTypeName(type));
+            }
         }
 
         if (field.contains("-")) {
             String[] parts = field.split("-");
-            return String.format("%s 到 %s", parts[0], parts[1]);
+            if (parts.length >= 2) {
+                return String.format("%s 到 %s", parts[0], parts[1]);
+            }
         }
 
         if (field.contains(",")) {
@@ -204,10 +208,12 @@ public class CronTool implements AgentNodeTool {
         }
 
         // Time patterns
+        String[] minuteParts = minute.contains("/") ? minute.split("/") : null;
+        String minuteInterval = minuteParts != null && minuteParts.length >= 2 ? minuteParts[1] : minute;
         if (hour.equals("*") && minute.contains("/")) {
-            summary.append("每 ").append(minute.split("/")[1]).append(" 分鐘執行");
+            summary.append("每 ").append(minuteInterval).append(" 分鐘執行");
         } else if (minute.contains("/") && hour.equals("*")) {
-            summary.append("每 ").append(minute.split("/")[1]).append(" 分鐘執行");
+            summary.append("每 ").append(minuteInterval).append(" 分鐘執行");
         } else if (!hour.equals("*") && !minute.equals("*")) {
             summary.append("在 ").append(hour).append(":").append(minute.length() == 1 ? "0" + minute : minute).append(" 執行");
         } else if (hour.equals("*") && minute.equals("0")) {

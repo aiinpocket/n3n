@@ -317,6 +317,9 @@ public class JsonNodeHandler extends MultiOperationNodeHandler {
         JsonNode valueNode = objectMapper.readTree(valueStr);
 
         String[] parts = path.split("\\.");
+        if (parts.length == 0) {
+            return NodeExecutionResult.failure("Path cannot be empty");
+        }
         ObjectNode current = node;
 
         for (int i = 0; i < parts.length - 1; i++) {
