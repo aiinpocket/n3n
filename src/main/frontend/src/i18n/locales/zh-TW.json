@@ -1035,7 +1035,8 @@
     "overview": "概覽",
     "changelog": "更新日誌",
     "capabilities": "功能",
-    "noChangelog": "暫無更新日誌"
+    "noChangelog": "暫無更新日誌",
+    "loadDetailFailed": "無法載入插件詳情"
   },
   "share": {
     "share": "分享",

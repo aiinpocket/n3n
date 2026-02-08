@@ -106,7 +106,7 @@ export async function chatStream(
  * Send chat message without streaming (regular POST)
  */
 export async function chat(request: ChatStreamRequest) {
-  const response = await client.post('/api/ai-assistant/chat', request)
+  const response = await client.post('/ai-assistant/chat', request)
   return response.data
 }
 
@@ -114,7 +114,7 @@ export async function chat(request: ChatStreamRequest) {
  * Get conversation history
  */
 export async function getConversationHistory(conversationId: string) {
-  const response = await client.get(`/api/ai-assistant/conversations/${conversationId}`)
+  const response = await client.get(`/ai-assistant/conversations/${conversationId}`)
   return response.data
 }
 
@@ -123,7 +123,7 @@ export async function getConversationHistory(conversationId: string) {
  */
 export async function listConversations(flowId?: string) {
   const params = flowId ? { flowId } : {}
-  const response = await client.get('/api/ai-assistant/conversations', { params })
+  const response = await client.get('/ai-assistant/conversations', { params })
   return response.data
 }
 
@@ -131,7 +131,7 @@ export async function listConversations(flowId?: string) {
  * Delete a conversation
  */
 export async function deleteConversation(conversationId: string) {
-  const response = await client.delete(`/api/ai-assistant/conversations/${conversationId}`)
+  const response = await client.delete(`/ai-assistant/conversations/${conversationId}`)
   return response.data
 }
 
@@ -297,7 +297,7 @@ export interface PluginInstallTaskStatus {
  * Install missing node types
  */
 export async function installMissingNodes(nodeTypes: string[]) {
-  const response = await client.post('/api/plugins/install/missing', { nodeTypes })
+  const response = await client.post('/plugins/install/missing', { nodeTypes })
   return response.data
 }
 
@@ -305,7 +305,7 @@ export async function installMissingNodes(nodeTypes: string[]) {
  * Get install task status
  */
 export async function getInstallTaskStatus(taskId: string): Promise<PluginInstallTaskStatus> {
-  const response = await client.get(`/api/plugins/install/tasks/${taskId}`)
+  const response = await client.get(`/plugins/install/tasks/${taskId}`)
   return response.data
 }
 
@@ -313,7 +313,7 @@ export async function getInstallTaskStatus(taskId: string): Promise<PluginInstal
  * Get active install tasks
  */
 export async function getActiveInstallTasks(): Promise<PluginInstallTaskStatus[]> {
-  const response = await client.get('/api/plugins/install/tasks')
+  const response = await client.get('/plugins/install/tasks')
   return response.data
 }
 
@@ -321,6 +321,6 @@ export async function getActiveInstallTasks(): Promise<PluginInstallTaskStatus[]
  * Cancel install task
  */
 export async function cancelInstallTask(taskId: string) {
-  const response = await client.delete(`/api/plugins/install/tasks/${taskId}`)
+  const response = await client.delete(`/plugins/install/tasks/${taskId}`)
   return response.data
 }

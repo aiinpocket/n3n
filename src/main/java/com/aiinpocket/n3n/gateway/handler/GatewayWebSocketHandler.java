@@ -41,8 +41,9 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
     private final DeviceKeyStore deviceKeyStore;
 
     /**
-     * Pending requests waiting for responses
+     * Pending requests waiting for responses (bounded to prevent memory leaks)
      */
+    private static final int MAX_PENDING_REQUESTS = 10_000;
     private final Map<String, CompletableFuture<GatewayResponse>> pendingRequests = new ConcurrentHashMap<>();
 
     /**
@@ -328,6 +329,13 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
                     );
                 }
 
+                // Reject if too many pending requests to prevent memory exhaustion
+                if (pendingRequests.size() >= MAX_PENDING_REQUESTS) {
+                    return CompletableFuture.<GatewayResponse>completedFuture(
+                        GatewayResponse.error("", "TOO_MANY_REQUESTS", "Too many pending requests")
+                    );
+                }
+
                 GatewayRequest request = GatewayRequest.create("node.invoke", Map.of(
                     "capability", capability,
                     "args", args
@@ -345,8 +353,9 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
                     );
                 }
 
-                // Set timeout
+                // Set timeout and clean up pending entry on completion
                 return future.orTimeout(30, TimeUnit.SECONDS)
+                    .whenComplete((res, ex) -> pendingRequests.remove(request.getId()))
                     .exceptionally(e -> GatewayResponse.error(request.getId(), "TIMEOUT", "Request timed out"));
             })
             .orElse(CompletableFuture.completedFuture(

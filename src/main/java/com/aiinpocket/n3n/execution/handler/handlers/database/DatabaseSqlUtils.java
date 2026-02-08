@@ -145,11 +145,16 @@ final class DatabaseSqlUtils {
             }
             if (identifier.contains(".")) {
                 String[] parts = identifier.split("\\.");
-                return quote + parts[0] + quote + "." + quote + parts[1] + quote;
+                return quote + escapeIdentifier(parts[0], quote) + quote + "." + quote + escapeIdentifier(parts[1], quote) + quote;
             }
-            return quote + identifier + quote;
+            return quote + escapeIdentifier(identifier, quote) + quote;
         } catch (SQLException e) {
-            return "\"" + identifier + "\"";
+            return "\"" + escapeIdentifier(identifier, "\"") + "\"";
         }
+    }
+
+    private static String escapeIdentifier(String identifier, String quoteChar) {
+        // Double the quote character to escape it (SQL standard)
+        return identifier.replace(quoteChar, quoteChar + quoteChar);
     }
 }

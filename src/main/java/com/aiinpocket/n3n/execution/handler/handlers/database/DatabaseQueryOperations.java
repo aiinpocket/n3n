@@ -28,7 +28,7 @@ final class DatabaseQueryOperations {
         return switch (operation) {
             case "select" -> executeSelect(conn, params, objectMapper);
             case "selectOne" -> executeSelectOne(conn, params, objectMapper);
-            case "count" -> executeCount(conn, params);
+            case "count" -> executeCount(conn, params, objectMapper);
             default -> NodeExecutionResult.failure("Unknown query operation: " + operation);
         };
     }
@@ -103,10 +103,12 @@ final class DatabaseQueryOperations {
 
     private static NodeExecutionResult executeCount(
             Connection conn,
-            Map<String, Object> params
+            Map<String, Object> params,
+            ObjectMapper objectMapper
     ) throws Exception {
         String table = DatabaseSqlUtils.getRequiredParam(params, "table");
         String where = DatabaseSqlUtils.getParam(params, "where", "");
+        String paramsJson = DatabaseSqlUtils.getParam(params, "params", "");
 
         if (!DatabaseSqlUtils.isValidIdentifier(table)) {
             return NodeExecutionResult.failure("Invalid table name: " + table);
@@ -117,12 +119,17 @@ final class DatabaseQueryOperations {
             sql += " WHERE " + where;
         }
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                return NodeExecutionResult.success(Map.of("count", rs.getLong(1)));
+        Object[] sqlParams = DatabaseSqlUtils.parseParams(objectMapper, paramsJson, sql);
+        String processedSql = DatabaseSqlUtils.processNamedParams(sql, paramsJson);
+
+        try (PreparedStatement stmt = conn.prepareStatement(processedSql)) {
+            DatabaseSqlUtils.setParameters(stmt, sqlParams);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return NodeExecutionResult.success(Map.of("count", rs.getLong(1)));
+                }
+                return NodeExecutionResult.success(Map.of("count", 0));
             }
-            return NodeExecutionResult.success(Map.of("count", 0));
         }
     }
 }

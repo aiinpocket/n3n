@@ -1035,7 +1035,8 @@
     "overview": "概要",
     "changelog": "変更履歴",
     "capabilities": "機能",
-    "noChangelog": "変更履歴がありません"
+    "noChangelog": "変更履歴がありません",
+    "loadDetailFailed": "プラグイン詳細の読み込みに失敗しました"
   },
   "share": {
     "share": "共有",

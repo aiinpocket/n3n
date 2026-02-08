@@ -1,6 +1,7 @@
 import SockJS from 'sockjs-client';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { logger } from '../utils/logger';
+import { useAuthStore } from '../stores/authStore';
 
 export interface ExecutionEvent {
   type:
@@ -37,9 +38,11 @@ class WebSocketService {
         return;
       }
 
-      const socket = new SockJS('/ws');
+      const token = useAuthStore.getState().accessToken;
+      const socket = new SockJS(token ? `/ws?token=${encodeURIComponent(token)}` : '/ws');
       this.client = new Client({
         webSocketFactory: () => socket as unknown as WebSocket,
+        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
         debug: (str) => {
           logger.debug('[STOMP] ' + str);
         },

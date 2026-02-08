@@ -1035,7 +1035,8 @@
     "overview": "Overview",
     "changelog": "Changelog",
     "capabilities": "Capabilities",
-    "noChangelog": "No changelog available"
+    "noChangelog": "No changelog available",
+    "loadDetailFailed": "Failed to load plugin details"
   },
   "share": {
     "share": "Share",

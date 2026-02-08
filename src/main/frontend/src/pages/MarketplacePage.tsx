@@ -49,7 +49,6 @@ import logger from '../utils/logger'
 
 const { Search } = Input
 const { Text, Paragraph, Title } = Typography
-const { TabPane } = Tabs
 
 // Plugin Card Component
 function PluginCard({
@@ -309,50 +308,65 @@ function PluginDetailModal({
         )}
       </div>
 
-      <Tabs defaultActiveKey="overview">
-        <TabPane tab={t('marketplace.overview')} key="overview">
-          <Paragraph>{plugin.description}</Paragraph>
-          {plugin.readme && (
-            <div
-              style={{
-                background: 'var(--color-bg-elevated)',
-                padding: 16,
-                borderRadius: 8,
-                maxHeight: 400,
-                overflow: 'auto',
-              }}
-            >
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{plugin.readme}</pre>
-            </div>
-          )}
-        </TabPane>
-        <TabPane tab={t('marketplace.changelog')} key="changelog">
-          {plugin.changelog ? (
-            <div
-              style={{
-                background: 'var(--color-bg-elevated)',
-                padding: 16,
-                borderRadius: 8,
-                maxHeight: 400,
-                overflow: 'auto',
-              }}
-            >
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{plugin.changelog}</pre>
-            </div>
-          ) : (
-            <Empty description={t('marketplace.noChangelog')} />
-          )}
-        </TabPane>
-        <TabPane tab={t('marketplace.capabilities')} key="capabilities">
-          <Space wrap>
-            {plugin.capabilities.map(cap => (
-              <Tag key={cap} color="blue">
-                {cap}
-              </Tag>
-            ))}
-          </Space>
-        </TabPane>
-      </Tabs>
+      <Tabs
+        defaultActiveKey="overview"
+        items={[
+          {
+            key: 'overview',
+            label: t('marketplace.overview'),
+            children: (
+              <>
+                <Paragraph>{plugin.description}</Paragraph>
+                {plugin.readme && (
+                  <div
+                    style={{
+                      background: 'var(--color-bg-elevated)',
+                      padding: 16,
+                      borderRadius: 8,
+                      maxHeight: 400,
+                      overflow: 'auto',
+                    }}
+                  >
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{plugin.readme}</pre>
+                  </div>
+                )}
+              </>
+            ),
+          },
+          {
+            key: 'changelog',
+            label: t('marketplace.changelog'),
+            children: plugin.changelog ? (
+              <div
+                style={{
+                  background: 'var(--color-bg-elevated)',
+                  padding: 16,
+                  borderRadius: 8,
+                  maxHeight: 400,
+                  overflow: 'auto',
+                }}
+              >
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{plugin.changelog}</pre>
+              </div>
+            ) : (
+              <Empty description={t('marketplace.noChangelog')} />
+            ),
+          },
+          {
+            key: 'capabilities',
+            label: t('marketplace.capabilities'),
+            children: (
+              <Space wrap>
+                {plugin.capabilities.map(cap => (
+                  <Tag key={cap} color="blue">
+                    {cap}
+                  </Tag>
+                ))}
+              </Space>
+            ),
+          },
+        ]}
+      />
     </Modal>
   )
 }
@@ -395,147 +409,6 @@ export default function MarketplacePage() {
     } catch (error) {
       logger.error('Failed to load marketplace data:', error)
       setIsOffline(true)
-      // Use mock data for development
-      setCategories([
-        { id: 'ai', name: 'ai', displayName: 'AI & ML', description: 'AI integrations', icon: '🤖', count: 15 },
-        { id: 'data', name: 'data', displayName: 'Data', description: 'Data processing', icon: '📊', count: 23 },
-        { id: 'messaging', name: 'messaging', displayName: 'Messaging', description: 'Chat integrations', icon: '💬', count: 12 },
-        { id: 'storage', name: 'storage', displayName: 'Storage', description: 'Cloud storage', icon: '☁️', count: 8 },
-        { id: 'utility', name: 'utility', displayName: 'Utility', description: 'Helper tools', icon: '🔧', count: 31 },
-      ])
-
-      const mockPlugins: MarketplacePlugin[] = [
-        {
-          id: '1',
-          name: 'openai-integration',
-          displayName: 'OpenAI Integration',
-          description: 'Connect to OpenAI APIs for GPT, DALL-E, and Whisper models',
-          category: 'ai',
-          author: 'N3N Team',
-          version: '1.2.0',
-          downloads: 15420,
-          rating: 4.8,
-          ratingCount: 234,
-          icon: null,
-          screenshots: [],
-          tags: ['ai', 'gpt', 'openai', 'llm'],
-          pricing: 'free',
-          price: null,
-          isInstalled: true,
-          installedVersion: '1.1.0',
-          publishedAt: '2024-01-15',
-          updatedAt: '2024-03-01',
-        },
-        {
-          id: '2',
-          name: 'slack-connector',
-          displayName: 'Slack Connector',
-          description: 'Send messages, manage channels, and automate Slack workflows',
-          category: 'messaging',
-          author: 'Community',
-          version: '2.0.1',
-          downloads: 8932,
-          rating: 4.5,
-          ratingCount: 156,
-          icon: null,
-          screenshots: [],
-          tags: ['slack', 'messaging', 'notifications'],
-          pricing: 'free',
-          price: null,
-          isInstalled: false,
-          installedVersion: null,
-          publishedAt: '2023-11-20',
-          updatedAt: '2024-02-15',
-        },
-        {
-          id: '3',
-          name: 'google-sheets',
-          displayName: 'Google Sheets',
-          description: 'Read, write, and manage Google Sheets spreadsheets',
-          category: 'data',
-          author: 'N3N Team',
-          version: '1.5.0',
-          downloads: 12345,
-          rating: 4.7,
-          ratingCount: 198,
-          icon: null,
-          screenshots: [],
-          tags: ['google', 'sheets', 'spreadsheet', 'data'],
-          pricing: 'free',
-          price: null,
-          isInstalled: true,
-          installedVersion: '1.5.0',
-          publishedAt: '2023-09-01',
-          updatedAt: '2024-01-20',
-        },
-        {
-          id: '4',
-          name: 'aws-s3',
-          displayName: 'AWS S3 Storage',
-          description: 'Upload, download, and manage files in Amazon S3 buckets',
-          category: 'storage',
-          author: 'Community',
-          version: '1.0.0',
-          downloads: 5678,
-          rating: 4.3,
-          ratingCount: 87,
-          icon: null,
-          screenshots: [],
-          tags: ['aws', 's3', 'storage', 'cloud'],
-          pricing: 'free',
-          price: null,
-          isInstalled: false,
-          installedVersion: null,
-          publishedAt: '2024-02-01',
-          updatedAt: '2024-02-01',
-        },
-        {
-          id: '5',
-          name: 'json-transformer',
-          displayName: 'JSON Transformer',
-          description: 'Transform, filter, and manipulate JSON data with JSONPath expressions',
-          category: 'utility',
-          author: 'N3N Team',
-          version: '2.1.0',
-          downloads: 9876,
-          rating: 4.9,
-          ratingCount: 312,
-          icon: null,
-          screenshots: [],
-          tags: ['json', 'transform', 'utility'],
-          pricing: 'free',
-          price: null,
-          isInstalled: false,
-          installedVersion: null,
-          publishedAt: '2023-08-15',
-          updatedAt: '2024-02-28',
-        },
-        {
-          id: '6',
-          name: 'discord-bot',
-          displayName: 'Discord Bot',
-          description: 'Build Discord bots with message handling and slash commands',
-          category: 'messaging',
-          author: 'Community',
-          version: '1.3.0',
-          downloads: 7654,
-          rating: 4.6,
-          ratingCount: 143,
-          icon: null,
-          screenshots: [],
-          tags: ['discord', 'bot', 'messaging'],
-          pricing: 'freemium',
-          price: null,
-          isInstalled: false,
-          installedVersion: null,
-          publishedAt: '2023-10-10',
-          updatedAt: '2024-01-05',
-        },
-      ]
-
-      setPlugins(mockPlugins)
-      setFeaturedPlugins(mockPlugins.slice(0, 3))
-      setInstalledPlugins(mockPlugins.filter(p => p.isInstalled))
     } finally {
       setLoading(false)
     }
@@ -613,24 +486,7 @@ export default function MarketplacePage() {
       const detail = await getPluginDetail(id)
       setDetailModal({ visible: true, plugin: detail })
     } catch {
-      // Use mock detail
-      const plugin = plugins.find(p => p.id === id)
-      if (plugin) {
-        setDetailModal({
-          visible: true,
-          plugin: {
-            ...plugin,
-            readme: '# ' + plugin.displayName + '\n\n' + plugin.description,
-            changelog: '## v' + plugin.version + '\n- Initial release',
-            dependencies: [],
-            configSchema: {},
-            capabilities: ['execute'],
-            supportUrl: null,
-            documentationUrl: null,
-            repositoryUrl: null,
-          },
-        })
-      }
+      message.error(t('marketplace.loadDetailFailed'))
     }
   }
 
@@ -669,23 +525,128 @@ export default function MarketplacePage() {
         />
       )}
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane
-          tab={
-            <span>
-              <AppstoreOutlined />
-              {t('marketplace.browse')}
-            </span>
-          }
-          key="browse"
-        >
-          {/* Featured Section */}
-          {featuredPlugins.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <Title level={5}>{t('marketplace.featured')}</Title>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'browse',
+            label: (
+              <span>
+                <AppstoreOutlined />
+                {t('marketplace.browse')}
+              </span>
+            ),
+            children: (
+              <>
+                {/* Featured Section */}
+                {featuredPlugins.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <Title level={5}>{t('marketplace.featured')}</Title>
+                    <Row gutter={[16, 16]}>
+                      {featuredPlugins.map(plugin => (
+                        <Col xs={24} sm={12} md={8} lg={8} key={plugin.id}>
+                          <PluginCard
+                            plugin={plugin}
+                            onInstall={handleInstall}
+                            onUninstall={handleUninstall}
+                            onUpdate={handleUpdate}
+                            onViewDetails={handleViewDetails}
+                            loading={actionLoading}
+                          />
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                )}
+
+                {/* Filters */}
+                <Card style={{ marginBottom: 16 }}>
+                  <Row gutter={16} align="middle">
+                    <Col flex="300px">
+                      <Search
+                        placeholder={t('marketplace.searchPlaceholder')}
+                        allowClear
+                        enterButton={<SearchOutlined />}
+                        onSearch={handleSearch}
+                        onChange={e => !e.target.value && handleSearch('')}
+                      />
+                    </Col>
+                    <Col flex="auto">
+                      <Space wrap>
+                        <Segmented
+                          options={[
+                            { label: t('marketplace.all'), value: 'all' },
+                            ...categories.map(c => ({ label: `${c.icon} ${c.displayName}`, value: c.id })),
+                          ]}
+                          value={selectedCategory}
+                          onChange={value => setSelectedCategory(value as string)}
+                        />
+                      </Space>
+                    </Col>
+                    <Col>
+                      <Space>
+                        <Select
+                          value={pricingFilter}
+                          onChange={setPricingFilter}
+                          style={{ width: 120 }}
+                          options={[
+                            { label: t('marketplace.allPricing'), value: 'all' },
+                            { label: t('marketplace.free'), value: 'free' },
+                            { label: t('marketplace.paid'), value: 'paid' },
+                            { label: t('marketplace.freemium'), value: 'freemium' },
+                          ]}
+                        />
+                        <Select
+                          value={sortBy}
+                          onChange={setSortBy}
+                          style={{ width: 120 }}
+                          options={[
+                            { label: t('marketplace.sortPopular'), value: 'popular' },
+                            { label: t('marketplace.sortRecent'), value: 'recent' },
+                            { label: t('marketplace.sortRating'), value: 'rating' },
+                            { label: t('marketplace.sortName'), value: 'name' },
+                          ]}
+                        />
+                      </Space>
+                    </Col>
+                  </Row>
+                </Card>
+
+                {/* Plugin Grid */}
+                {filteredPlugins.length > 0 ? (
+                  <Row gutter={[16, 16]}>
+                    {filteredPlugins.map(plugin => (
+                      <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
+                        <PluginCard
+                          plugin={plugin}
+                          onInstall={handleInstall}
+                          onUninstall={handleUninstall}
+                          onUpdate={handleUpdate}
+                          onViewDetails={handleViewDetails}
+                          loading={actionLoading}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                ) : (
+                  <Empty description={t('marketplace.noPlugins')} />
+                )}
+              </>
+            ),
+          },
+          {
+            key: 'installed',
+            label: (
+              <span>
+                <CheckCircleOutlined />
+                {t('marketplace.installed')} ({installedPlugins.length})
+              </span>
+            ),
+            children: installedPlugins.length > 0 ? (
               <Row gutter={[16, 16]}>
-                {featuredPlugins.map(plugin => (
-                  <Col xs={24} sm={12} md={8} lg={8} key={plugin.id}>
+                {installedPlugins.map(plugin => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
                     <PluginCard
                       plugin={plugin}
                       onInstall={handleInstall}
@@ -697,112 +658,12 @@ export default function MarketplacePage() {
                   </Col>
                 ))}
               </Row>
-            </div>
-          )}
-
-          {/* Filters */}
-          <Card style={{ marginBottom: 16 }}>
-            <Row gutter={16} align="middle">
-              <Col flex="300px">
-                <Search
-                  placeholder={t('marketplace.searchPlaceholder')}
-                  allowClear
-                  enterButton={<SearchOutlined />}
-                  onSearch={handleSearch}
-                  onChange={e => !e.target.value && handleSearch('')}
-                />
-              </Col>
-              <Col flex="auto">
-                <Space wrap>
-                  <Segmented
-                    options={[
-                      { label: t('marketplace.all'), value: 'all' },
-                      ...categories.map(c => ({ label: `${c.icon} ${c.displayName}`, value: c.id })),
-                    ]}
-                    value={selectedCategory}
-                    onChange={value => setSelectedCategory(value as string)}
-                  />
-                </Space>
-              </Col>
-              <Col>
-                <Space>
-                  <Select
-                    value={pricingFilter}
-                    onChange={setPricingFilter}
-                    style={{ width: 120 }}
-                    options={[
-                      { label: t('marketplace.allPricing'), value: 'all' },
-                      { label: t('marketplace.free'), value: 'free' },
-                      { label: t('marketplace.paid'), value: 'paid' },
-                      { label: t('marketplace.freemium'), value: 'freemium' },
-                    ]}
-                  />
-                  <Select
-                    value={sortBy}
-                    onChange={setSortBy}
-                    style={{ width: 120 }}
-                    options={[
-                      { label: t('marketplace.sortPopular'), value: 'popular' },
-                      { label: t('marketplace.sortRecent'), value: 'recent' },
-                      { label: t('marketplace.sortRating'), value: 'rating' },
-                      { label: t('marketplace.sortName'), value: 'name' },
-                    ]}
-                  />
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-
-          {/* Plugin Grid */}
-          {filteredPlugins.length > 0 ? (
-            <Row gutter={[16, 16]}>
-              {filteredPlugins.map(plugin => (
-                <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
-                  <PluginCard
-                    plugin={plugin}
-                    onInstall={handleInstall}
-                    onUninstall={handleUninstall}
-                    onUpdate={handleUpdate}
-                    onViewDetails={handleViewDetails}
-                    loading={actionLoading}
-                  />
-                </Col>
-              ))}
-            </Row>
-          ) : (
-            <Empty description={t('marketplace.noPlugins')} />
-          )}
-        </TabPane>
-
-        <TabPane
-          tab={
-            <span>
-              <CheckCircleOutlined />
-              {t('marketplace.installed')} ({installedPlugins.length})
-            </span>
-          }
-          key="installed"
-        >
-          {installedPlugins.length > 0 ? (
-            <Row gutter={[16, 16]}>
-              {installedPlugins.map(plugin => (
-                <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
-                  <PluginCard
-                    plugin={plugin}
-                    onInstall={handleInstall}
-                    onUninstall={handleUninstall}
-                    onUpdate={handleUpdate}
-                    onViewDetails={handleViewDetails}
-                    loading={actionLoading}
-                  />
-                </Col>
-              ))}
-            </Row>
-          ) : (
-            <Empty description={t('marketplace.noInstalledPlugins')} />
-          )}
-        </TabPane>
-      </Tabs>
+            ) : (
+              <Empty description={t('marketplace.noInstalledPlugins')} />
+            ),
+          },
+        ]}
+      />
 
       <PluginDetailModal
         visible={detailModal.visible}
