@@ -138,6 +138,12 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
 
             sendMessage(session, response);
 
+            // Close session on authentication failure to prevent unauthenticated connections
+            if ("connect".equals(method) && !response.isOk()) {
+                log.warn("Closing session {} due to authentication failure: {}", session.getId(), response.getError());
+                session.close(org.springframework.web.socket.CloseStatus.POLICY_VIOLATION);
+            }
+
         } catch (Exception e) {
             log.error("Error handling request {}: {}", method, e.getMessage());
             sendError(session, request.getId(), "INTERNAL_ERROR", "An internal error occurred");

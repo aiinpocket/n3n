@@ -133,6 +133,8 @@ public class ExecutionService {
             .toList();
     }
 
+    private static final String DEDUP_MESSAGE = "An execution for this flow is already being created. Please wait a moment.";
+
     @Transactional
     public ExecutionResponse createExecution(CreateExecutionRequest request, UUID userId) {
         // Dedup: prevent rapid double-execution (5 second window per flow+user)
@@ -141,7 +143,7 @@ public class ExecutionService {
             Boolean acquired = stringRedisTemplate.opsForValue()
                 .setIfAbsent(dedupKey, "1", 5, TimeUnit.SECONDS);
             if (Boolean.FALSE.equals(acquired)) {
-                throw new IllegalStateException("An execution for this flow is already being created. Please wait a moment.");
+                throw new IllegalStateException(DEDUP_MESSAGE);
             }
         } catch (IllegalStateException e) {
             throw e; // Re-throw our own dedup exception
@@ -152,14 +154,14 @@ public class ExecutionService {
 
         try {
             return doCreateExecution(request, userId);
-        } catch (IllegalStateException e) {
-            throw e; // Dedup exception — don't clear key
         } catch (Exception e) {
-            // Clean up dedup key so user can retry immediately
-            try {
-                stringRedisTemplate.delete(dedupKey);
-            } catch (Exception ignored) {
-                // Redis cleanup is best-effort
+            // Clean up dedup key so user can retry immediately (unless it's a dedup collision)
+            if (!(e instanceof IllegalStateException && DEDUP_MESSAGE.equals(e.getMessage()))) {
+                try {
+                    stringRedisTemplate.delete(dedupKey);
+                } catch (Exception ignored) {
+                    // Redis cleanup is best-effort
+                }
             }
             throw e;
         }
