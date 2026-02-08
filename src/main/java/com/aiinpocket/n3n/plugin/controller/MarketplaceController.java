@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -107,7 +108,7 @@ public class MarketplaceController {
 
         try {
             Map<String, Object> result = pluginService.installPlugin(id, user.getId(), request);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,

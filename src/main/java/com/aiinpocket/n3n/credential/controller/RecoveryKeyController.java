@@ -94,7 +94,7 @@ public class RecoveryKeyController {
 
         } catch (Exception e) {
             log.error("Credential migration failed: {}", e.getMessage());
-            return ResponseEntity.ok(MigrateResponse.builder()
+            return ResponseEntity.badRequest().body(MigrateResponse.builder()
                     .success(false)
                     .message("Migration failed. Please verify your recovery key and try again.")
                     .build());
@@ -135,7 +135,7 @@ public class RecoveryKeyController {
 
         } catch (Exception e) {
             log.error("Emergency restore failed: {}", e.getMessage());
-            return ResponseEntity.ok(MigrateResponse.builder()
+            return ResponseEntity.badRequest().body(MigrateResponse.builder()
                     .success(false)
                     .message("Restore failed. Please verify your recovery key and password.")
                     .build());

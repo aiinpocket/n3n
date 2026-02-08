@@ -68,6 +68,10 @@ export default function LogViewerPage() {
   }, [level, search])
 
   useEffect(() => {
+    // Always close previous EventSource before opening a new one
+    eventSourceRef.current?.close()
+    eventSourceRef.current = null
+
     if (streaming) {
       const es = createLogStream(
         (entry) => {
@@ -81,12 +85,10 @@ export default function LogViewerPage() {
         },
       )
       eventSourceRef.current = es
-    } else {
-      eventSourceRef.current?.close()
-      eventSourceRef.current = null
     }
     return () => {
       eventSourceRef.current?.close()
+      eventSourceRef.current = null
     }
   }, [streaming])
 

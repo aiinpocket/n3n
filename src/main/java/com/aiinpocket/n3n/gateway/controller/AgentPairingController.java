@@ -188,7 +188,7 @@ public class AgentPairingController {
             UUID userId = UUID.fromString(userDetails.getUsername());
             pairingService.unpairDevice(userId, deviceId);
 
-            return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.noContent().build();
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

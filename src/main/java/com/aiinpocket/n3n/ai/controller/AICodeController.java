@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.ai.service.AIAssistantService;
 import com.aiinpocket.n3n.auth.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,7 +46,8 @@ public class AICodeController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Code generation failed", e);
-            return ResponseEntity.ok(GenerateCodeResponse.failure(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(GenerateCodeResponse.failure(e.getMessage()));
         }
     }
 }
