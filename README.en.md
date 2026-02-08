@@ -156,7 +156,8 @@ docker compose up -d --build
 - **Error Handling Routes** - Visually distinguish normal flow and error handling paths (green/red/blue connections)
 - **Real-time Monitoring** - See every step of workflow execution with live node status updates
 - **Webhook Triggers** - Let external systems (GitHub, Slack, etc.) automatically trigger workflows
-- **58+ Official Templates** - Includes scheduling, notifications, data processing, AI, monitoring, approvals, integrations, web scraping, and more
+- **Flow Template Library** - 58+ official templates with a dedicated page for browsing, searching, creating templates from existing flows, and sharing across the platform
+- **Execution Approval System** - Workflows pause at approval nodes; approvers can approve or reject with comments from the Execution detail page
 - **Skills System** - Built-in automation skills, no extra setup needed
 - **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
 - **Custom Docker Tools** - Pull tool containers from Docker Hub, auto-register as flow nodes

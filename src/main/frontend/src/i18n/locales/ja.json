@@ -114,7 +114,8 @@
     "groupSystem": "システム",
     "accountSettings": "アカウント設定",
     "dashboard": "ダッシュボード",
-    "adminUsers": "ユーザー管理"
+    "adminUsers": "ユーザー管理",
+    "templates": "テンプレート"
   },
   "auth": {
     "login": "ログイン",
@@ -2088,6 +2089,28 @@
     "documentation": "APIドキュメント",
     "keyboardShortcuts": "キーボードショートカット",
     "reportIssue": "問題を報告"
+  },
+  "template": {
+    "title": "フローテンプレート",
+    "description": "再利用可能なワークフローテンプレートですぐに開始",
+    "create": "テンプレートを作成",
+    "useTemplate": "テンプレートを使用",
+    "delete": "テンプレートを削除",
+    "deleteConfirm": "このテンプレートを削除しますか？",
+    "name": "テンプレート名",
+    "namePlaceholder": "テンプレート名を入力",
+    "category": "カテゴリ",
+    "search": "テンプレートを検索...",
+    "noTemplates": "テンプレートが見つかりません",
+    "noTemplatesDesc": "既存のフローから最初のテンプレートを作成してください",
+    "flowName": "新しいフロー名",
+    "flowNamePlaceholder": "新しいフロー名を入力",
+    "useSuccess": "テンプレートからフローを作成しました",
+    "deleteSuccess": "テンプレートを削除しました",
+    "allCategories": "すべて",
+    "myTemplates": "マイテンプレート",
+    "usage": "{{count}}回使用",
+    "official": "公式テンプレート"
   },
   "shortcuts": {
     "commandPalette": "コマンドパレット",

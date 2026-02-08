@@ -321,9 +321,13 @@ class FlowShareServiceTest extends BaseServiceTest {
 
             flowShareService.acceptPendingInvitations(otherUserId, "newuser@test.com");
 
-            verify(flowShareRepository).save(argThat(s ->
-                s.getUserId().equals(otherUserId) && s.getAcceptedAt() != null
-            ));
+            verify(flowShareRepository).saveAll(argThat((Iterable<FlowShare> iter) -> {
+                var items = new ArrayList<FlowShare>();
+                iter.forEach(items::add);
+                return items.size() == 1 &&
+                    items.get(0).getUserId().equals(otherUserId) &&
+                    items.get(0).getAcceptedAt() != null;
+            }));
         }
 
         @Test
@@ -333,7 +337,7 @@ class FlowShareServiceTest extends BaseServiceTest {
 
             flowShareService.acceptPendingInvitations(otherUserId, "nobody@test.com");
 
-            verify(flowShareRepository, never()).save(any());
+            verify(flowShareRepository, never()).saveAll(any());
         }
     }
 }

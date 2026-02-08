@@ -17,8 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -124,9 +125,7 @@ public class FlowShareService {
             throw new IllegalArgumentException("You don't have permission to view shares");
         }
 
-        return flowShareRepository.findByFlowId(flowId).stream()
-            .map(this::enrichShareResponse)
-            .toList();
+        return enrichShareResponses(flowShareRepository.findByFlowId(flowId));
     }
 
     /**
@@ -188,11 +187,14 @@ public class FlowShareService {
     public void acceptPendingInvitations(UUID userId, String email) {
         List<FlowShare> pendingShares = flowShareRepository.findByInvitedEmailAndAcceptedAtIsNull(email);
 
+        Instant now = Instant.now();
         for (FlowShare share : pendingShares) {
             share.setUserId(userId);
-            share.setAcceptedAt(Instant.now());
-            flowShareRepository.save(share);
+            share.setAcceptedAt(now);
             log.info("User {} accepted invitation for flow {}", userId, share.getFlowId());
+        }
+        if (!pendingShares.isEmpty()) {
+            flowShareRepository.saveAll(pendingShares);
         }
     }
 
@@ -200,9 +202,7 @@ public class FlowShareService {
      * 取得用戶被分享的流程
      */
     public List<FlowShareResponse> getSharedWithMe(UUID userId) {
-        return flowShareRepository.findByUserId(userId).stream()
-            .map(this::enrichShareResponse)
-            .toList();
+        return enrichShareResponses(flowShareRepository.findByUserId(userId));
     }
 
     /**
@@ -254,6 +254,57 @@ public class FlowShareService {
 
     private boolean hasAnyPermission(UUID flowId, UUID userId) {
         return flowShareRepository.findByFlowIdAndUserId(flowId, userId).isPresent();
+    }
+
+    /**
+     * Batch-enrich share responses to avoid N+1 queries.
+     */
+    private List<FlowShareResponse> enrichShareResponses(List<FlowShare> shares) {
+        if (shares.isEmpty()) return List.of();
+
+        // Collect all unique user IDs and flow IDs
+        Set<UUID> userIds = new HashSet<>();
+        Set<UUID> flowIds = new HashSet<>();
+        for (FlowShare share : shares) {
+            if (share.getUserId() != null) userIds.add(share.getUserId());
+            userIds.add(share.getSharedBy());
+            flowIds.add(share.getFlowId());
+        }
+
+        // Batch load users and flows
+        Map<UUID, User> usersMap = userRepository.findAllById(userIds).stream()
+            .collect(Collectors.toMap(User::getId, Function.identity()));
+        Map<UUID, Flow> flowsMap = flowRepository.findAllById(flowIds).stream()
+            .collect(Collectors.toMap(Flow::getId, Function.identity()));
+
+        return shares.stream().map(share -> {
+            String userName = null;
+            String userEmail = null;
+            String sharedByName = null;
+
+            if (share.getUserId() != null) {
+                User user = usersMap.get(share.getUserId());
+                if (user != null) {
+                    userName = user.getName();
+                    userEmail = user.getEmail();
+                }
+            }
+
+            User sharedByUser = usersMap.get(share.getSharedBy());
+            if (sharedByUser != null) {
+                sharedByName = sharedByUser.getName();
+            }
+
+            FlowShareResponse response = FlowShareResponse.from(share, userName, userEmail, sharedByName);
+
+            Flow flow = flowsMap.get(share.getFlowId());
+            if (flow != null) {
+                response.setFlowName(flow.getName());
+                response.setFlowDescription(flow.getDescription());
+            }
+
+            return response;
+        }).toList();
     }
 
     private FlowShareResponse enrichShareResponse(FlowShare share) {

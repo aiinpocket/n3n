@@ -29,6 +29,7 @@ const SkillsPage = lazy(() => import('./pages/SkillsPage'))
 const WebhooksPage = lazy(() => import('./pages/WebhooksPage'))
 const DeviceManagementPage = lazy(() => import('./pages/DeviceManagementPage'))
 const GatewaySettingsPage = lazy(() => import('./pages/GatewaySettingsPage'))
+const TemplatePage = lazy(() => import('./pages/TemplatePage'))
 const CustomToolsPage = lazy(() => import('./pages/CustomToolsPage'))
 const MonitoringPage = lazy(() => import('./pages/MonitoringPage'))
 const LogViewerPage = lazy(() => import('./pages/LogViewerPage'))
@@ -206,6 +207,7 @@ function App() {
             <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />
+            <Route path="templates" element={<TemplatePage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />

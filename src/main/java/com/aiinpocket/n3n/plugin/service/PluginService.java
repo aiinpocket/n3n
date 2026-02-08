@@ -43,12 +43,8 @@ public class PluginService {
      * Get all categories with plugin counts.
      */
     public List<PluginCategoryDto> getCategories() {
-        List<String> categories = pluginRepository.findAllCategories();
-        return categories.stream()
-                .map(cat -> {
-                    long count = pluginRepository.findByCategory(cat).size();
-                    return PluginCategoryDto.fromName(cat, count);
-                })
+        return pluginRepository.countByCategory().stream()
+                .map(row -> PluginCategoryDto.fromName((String) row[0], (Long) row[1]))
                 .collect(Collectors.toList());
     }
 

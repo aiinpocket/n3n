@@ -185,7 +185,7 @@ com.aiinpocket.n3n/
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
 ├── skill/           # Skill management and execution
-├── template/        # Flow templates
+├── template/        # Flow templates (frontend UI at /templates)
 └── webhook/         # Webhook triggers
 ```
 
@@ -215,7 +215,8 @@ Flow management with version control.
 
 #### execution/
 Flow execution engine with node handlers.
-- `ExecutionService` - Trigger, cancel, retry executions
+- `ExecutionService` - Trigger, cancel, retry, resume executions
+- `ExecutionApprovalService` - Approval lifecycle (pending → approved/rejected → auto-resume)
 - `StateManager` - Redis-backed execution state
 - `NodeHandler` - Interface for node type handlers
 - 90+ built-in handlers organized in `execution/handler/handlers/` across categories:
@@ -384,6 +385,35 @@ Skill management and execution.
   "input": { "key": "value" }
 }
 ```
+
+### Execution Approvals
+
+When an execution reaches an Approval node, it pauses with `waiting` status until approved or rejected. The frontend ExecutionPage displays an approval card for waiting executions, allowing users to approve/reject with comments.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/executions/{executionId}/approval` | Get pending approval for execution |
+| GET | `/api/executions/{executionId}/approvals` | List all approvals for execution |
+| POST | `/api/executions/{executionId}/approval` | Submit approval action (approve/reject) |
+| POST | `/api/executions/{executionId}/resume` | Manually resume a waiting execution |
+| GET | `/api/approvals/pending` | List all pending approvals for current user |
+| GET | `/api/approvals/{approvalId}` | Get approval details by ID |
+| POST | `/api/approvals/{approvalId}` | Submit approval action by approval ID |
+
+### Flow Templates
+
+Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`/templates`) offers template browsing with card grid, search, category filter, use-template modal, and a my-templates tab. Previously API-only; now fully accessible from the UI.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/templates` | List templates (paginated, with optional `category` and `search` filters) |
+| GET | `/api/templates/categories` | List template categories |
+| GET | `/api/templates/mine` | List current user's templates |
+| GET | `/api/templates/{id}` | Get template details |
+| POST | `/api/templates` | Create template |
+| POST | `/api/templates/from-flow/{flowId}/version/{version}` | Create template from existing flow version |
+| POST | `/api/templates/{id}/use?flowName=name` | Create a new flow from template |
+| DELETE | `/api/templates/{id}` | Delete template |
 
 ### Credentials
 

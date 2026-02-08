@@ -41,6 +41,9 @@ public interface PluginRepository extends JpaRepository<Plugin, UUID> {
     @Query("SELECT DISTINCT p.category FROM Plugin p ORDER BY p.category")
     List<String> findAllCategories();
 
+    @Query("SELECT p.category, COUNT(p) FROM Plugin p GROUP BY p.category ORDER BY p.category")
+    List<Object[]> countByCategory();
+
     @Query(value = "SELECT * FROM plugins WHERE CAST(:tag AS TEXT) = ANY(tags)", nativeQuery = true)
     List<Plugin> findByTag(@Param("tag") String tag);
 }

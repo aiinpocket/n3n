@@ -114,7 +114,8 @@
     "groupSystem": "System",
     "accountSettings": "Account Settings",
     "dashboard": "Dashboard",
-    "adminUsers": "User Management"
+    "adminUsers": "User Management",
+    "templates": "Templates"
   },
   "auth": {
     "login": "Login",
@@ -2088,6 +2089,28 @@
     "documentation": "API Documentation",
     "keyboardShortcuts": "Keyboard Shortcuts",
     "reportIssue": "Report an Issue"
+  },
+  "template": {
+    "title": "Flow Templates",
+    "description": "Reusable workflow templates to get started quickly",
+    "create": "Create Template",
+    "useTemplate": "Use Template",
+    "delete": "Delete Template",
+    "deleteConfirm": "Are you sure you want to delete this template?",
+    "name": "Template Name",
+    "namePlaceholder": "Enter template name",
+    "category": "Category",
+    "search": "Search templates...",
+    "noTemplates": "No templates found",
+    "noTemplatesDesc": "Create your first template from an existing flow",
+    "flowName": "New Flow Name",
+    "flowNamePlaceholder": "Enter name for new flow",
+    "useSuccess": "Flow created from template successfully",
+    "deleteSuccess": "Template deleted",
+    "allCategories": "All",
+    "myTemplates": "My Templates",
+    "usage": "Used {{count}} times",
+    "official": "Official Template"
   },
   "shortcuts": {
     "commandPalette": "Command Palette",

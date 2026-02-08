@@ -30,9 +30,10 @@ import {
   DatabaseOutlined,
   DownOutlined,
   UpOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { executionApi, ExecutionResponse, NodeExecutionResponse } from '../api/execution'
+import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
 import { useExecutionMonitor, useExecutionActions } from '../hooks/useExecutionMonitor'
 import { flowApi } from '../api/flow'
 import logger from '../utils/logger'
@@ -87,6 +88,9 @@ export default function ExecutionPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadingNodeData, setLoadingNodeData] = useState(false)
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set())
+  const [approvalData, setApprovalData] = useState<ApprovalResponse | null>(null)
+  const [approvalComment, setApprovalComment] = useState('')
+  const [submittingApproval, setSubmittingApproval] = useState(false)
 
   const { execution, isConnected } = useExecutionMonitor(id)
   const { startExecution, cancelExecution } = useExecutionActions()
@@ -102,6 +106,12 @@ export default function ExecutionPage() {
 
       const nodes = await executionApi.getNodeExecutions(id)
       setNodeExecutions(nodes)
+
+      // Load approval data if execution is waiting
+      if (data.status === 'waiting') {
+        const approval = await executionApi.getApproval(id)
+        setApprovalData(approval)
+      }
     } catch (error) {
       logger.error('Failed to load execution:', error)
       setLoadError(t('common.loadFailed'))
@@ -251,6 +261,22 @@ export default function ExecutionPage() {
     }
   }
 
+  const handleApprovalAction = async (action: 'approve' | 'reject') => {
+    if (!id) return
+    setSubmittingApproval(true)
+    try {
+      await executionApi.submitApproval(id, action, approvalComment || undefined)
+      message.success(t(`approval.${action === 'approve' ? 'approved' : 'rejected'}`))
+      setApprovalComment('')
+      setApprovalData(null)
+      loadExecution()
+    } catch (error) {
+      message.error(extractApiError(error, t('common.operationFailed')))
+    } finally {
+      setSubmittingApproval(false)
+    }
+  }
+
   // New execution mode
   if (!id && flowId) {
     return (
@@ -369,6 +395,61 @@ export default function ExecutionPage() {
             {executionData.waitingNodeId && <Descriptions.Item label={t('execution.waitingNode')}>{executionData.waitingNodeId}</Descriptions.Item>}
             {executionData.resumeCondition && <Descriptions.Item label={t('execution.resumeCondition')}>{executionData.resumeCondition}</Descriptions.Item>}
           </Descriptions>
+
+          {approvalData && approvalData.status === 'pending' && (
+            <Card
+              title={
+                <Space>
+                  <ExclamationCircleOutlined style={{ color: '#F59E0B' }} />
+                  <span>{t('approval.title')}</span>
+                </Space>
+              }
+              style={{ borderColor: '#F59E0B', borderWidth: 2 }}
+              size="small"
+            >
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                {approvalData.message && (
+                  <div>
+                    <Text strong>{t('approval.message')}:</Text>
+                    <div style={{ marginTop: 4, padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
+                      {approvalData.message}
+                    </div>
+                  </div>
+                )}
+                <Descriptions column={2} size="small">
+                  <Descriptions.Item label={t(`approval.mode.${approvalData.approvalMode}`)}>{approvalData.approvalMode}</Descriptions.Item>
+                  <Descriptions.Item label={t('approval.waitingFor', { count: approvalData.requiredApprovers })}>{approvalData.requiredApprovers}</Descriptions.Item>
+                  <Descriptions.Item label={t('approval.approvedCount', { count: approvalData.approvedCount })}>{approvalData.approvedCount}</Descriptions.Item>
+                  <Descriptions.Item label={t('approval.rejectedCount', { count: approvalData.rejectedCount })}>{approvalData.rejectedCount}</Descriptions.Item>
+                </Descriptions>
+                <Input.TextArea
+                  placeholder={t('approval.commentPlaceholder')}
+                  value={approvalComment}
+                  onChange={(e) => setApprovalComment(e.target.value)}
+                  rows={2}
+                />
+                <Space>
+                  <Button
+                    type="primary"
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleApprovalAction('approve')}
+                    loading={submittingApproval}
+                    style={{ background: '#22C55E', borderColor: '#22C55E' }}
+                  >
+                    {t('approval.approve')}
+                  </Button>
+                  <Button
+                    danger
+                    icon={<CloseCircleOutlined />}
+                    onClick={() => handleApprovalAction('reject')}
+                    loading={submittingApproval}
+                  >
+                    {t('approval.reject')}
+                  </Button>
+                </Space>
+              </Space>
+            </Card>
+          )}
 
           <Card title={`${t('execution.nodeExecutions')} (${nodeExecutions.length})`} size="small">
             {nodeExecutions.length === 0 ? (

@@ -65,6 +65,32 @@ export interface ExecutionListParams {
   search?: string;
 }
 
+export interface ApprovalAction {
+  id: string;
+  userId: string;
+  action: string;
+  comment: string | null;
+  createdAt: string;
+}
+
+export interface ApprovalResponse {
+  id: string;
+  executionId: string;
+  nodeId: string;
+  approvalType: string;
+  message: string;
+  requiredApprovers: number;
+  approvalMode: string;
+  status: string;
+  approvedCount: number;
+  rejectedCount: number;
+  expiresAt: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  metadata: Record<string, unknown> | null;
+  actions: ApprovalAction[];
+}
+
 export const executionApi = {
   list: async (page = 0, size = 20, status?: string, search?: string): Promise<Page<ExecutionResponse>> => {
     const params: Record<string, unknown> = { page, size };
@@ -140,6 +166,20 @@ export const executionApi = {
     const response = await apiClient.post<ExecutionResponse>(`/executions/${id}/pause`, null, {
       params: reason ? { reason } : undefined,
     });
+    return response.data;
+  },
+
+  getApproval: async (executionId: string): Promise<ApprovalResponse | null> => {
+    try {
+      const response = await apiClient.get(`/executions/${executionId}/approval`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  submitApproval: async (executionId: string, action: string, comment?: string): Promise<ApprovalResponse> => {
+    const response = await apiClient.post(`/executions/${executionId}/approval`, { action, comment });
     return response.data;
   },
 };

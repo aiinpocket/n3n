@@ -79,6 +79,9 @@ public class GatewayWebSocketConfig implements WebSocketConfigurer {
             return new String[]{"http://localhost:3000", "http://localhost:8080"};
         }
 
-        return allowedOriginsConfig.split(",");
+        return java.util.Arrays.stream(allowedOriginsConfig.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toArray(String[]::new);
     }
 }

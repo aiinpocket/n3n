@@ -1,5 +1,7 @@
 package com.aiinpocket.n3n.ai.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +21,8 @@ public class GenerateCodeRequest {
     /**
      * 使用者描述的程式邏輯需求
      */
+    @NotBlank
+    @Size(max = 5000)
     private String description;
 
     /**

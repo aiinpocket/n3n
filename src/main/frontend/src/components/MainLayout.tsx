@@ -50,6 +50,7 @@ export default function MainLayout() {
       '/devices': t('nav.devices'),
       '/credentials': t('nav.credentials'),
       '/skills': t('nav.skills'),
+      '/templates': t('nav.templates'),
       '/custom-tools': t('nav.customTools'),
       '/ai-assistant': t('nav.aiAssistant'),
       '/settings/ai': t('nav.aiSettings'),
@@ -130,6 +131,11 @@ export default function MainLayout() {
           key: '/skills',
           icon: <ToolOutlined />,
           label: t('nav.skills'),
+        },
+        {
+          key: '/templates',
+          icon: <BookOutlined />,
+          label: t('nav.templates'),
         },
         {
           key: '/custom-tools',

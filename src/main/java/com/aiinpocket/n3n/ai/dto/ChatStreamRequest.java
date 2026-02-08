@@ -1,5 +1,7 @@
 package com.aiinpocket.n3n.ai.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -15,6 +17,8 @@ public class ChatStreamRequest {
     /**
      * 使用者訊息
      */
+    @NotBlank
+    @Size(max = 10000)
     private String message;
 
     /**

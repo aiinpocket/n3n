@@ -114,7 +114,8 @@
     "groupSystem": "系統",
     "accountSettings": "帳戶設定",
     "dashboard": "儀表板",
-    "adminUsers": "使用者管理"
+    "adminUsers": "使用者管理",
+    "templates": "範本"
   },
   "auth": {
     "login": "登入",
@@ -1907,6 +1908,28 @@
     "documentation": "API 文件",
     "keyboardShortcuts": "鍵盤快捷鍵",
     "reportIssue": "回報問題"
+  },
+  "template": {
+    "title": "流程範本",
+    "description": "可重複使用的工作流範本，快速開始建立流程",
+    "create": "建立範本",
+    "useTemplate": "使用範本",
+    "delete": "刪除範本",
+    "deleteConfirm": "確定要刪除此範本嗎？",
+    "name": "範本名稱",
+    "namePlaceholder": "輸入範本名稱",
+    "category": "分類",
+    "search": "搜尋範本...",
+    "noTemplates": "找不到範本",
+    "noTemplatesDesc": "從現有流程建立您的第一個範本",
+    "flowName": "新流程名稱",
+    "flowNamePlaceholder": "輸入新流程名稱",
+    "useSuccess": "已從範本成功建立流程",
+    "deleteSuccess": "範本已刪除",
+    "allCategories": "全部",
+    "myTemplates": "我的範本",
+    "usage": "已使用 {{count}} 次",
+    "official": "官方範本"
   },
   "shortcuts": {
     "commandPalette": "命令面板",
