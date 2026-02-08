@@ -115,11 +115,11 @@ public class DefaultMemoryManager implements MemoryManager {
                 .collect(Collectors.joining("\n"));
 
         String summaryPrompt = """
-                請將以下對話內容摘要為簡潔的要點，保留關鍵資訊和上下文：
+                Summarize the following conversation into concise key points, preserving critical information and context:
 
                 %s
 
-                請用繁體中文回答，摘要要簡潔但包含所有重要資訊。
+                Respond in the same language the conversation used. Keep the summary concise but include all important information.
                 """.formatted(conversationText);
 
         try {
@@ -208,7 +208,7 @@ public class DefaultMemoryManager implements MemoryManager {
         String summary = memoryStore.getSummary(conversationId).orElse(null);
         if (summary != null && !summary.isEmpty()) {
             result.add(MemoryMessage.systemMessage(conversationId,
-                    "以下是之前對話的摘要：\n" + summary));
+                    "Summary of previous conversation:\n" + summary));
         }
 
         // 加入最近幾個訊息

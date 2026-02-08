@@ -56,7 +56,7 @@ public class BuilderAgent implements Agent {
 
     @Override
     public String getDescription() {
-        return "流程建構代理，負責建立、修改、驗證流程";
+        return "Flow builder agent, responsible for creating, modifying, and validating flows";
     }
 
     @Override
@@ -201,7 +201,7 @@ public class BuilderAgent implements Agent {
                 pendingChanges.add(AgentResult.PendingChange.builder()
                     .id(UUID.randomUUID().toString())
                     .type("add_node")
-                    .description("新增節點: " + label)
+                    .description("Add node: " + label)
                     .after(result.getData())
                     .build());
             }
@@ -222,19 +222,18 @@ public class BuilderAgent implements Agent {
         ToolResult validationResult = validateFlowTool.execute(Map.of(), context);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("已建立流程，包含 ").append(draft.getNodeCount()).append(" 個節點：\n\n");
+        sb.append("Flow created with ").append(draft.getNodeCount()).append(" nodes:\n\n");
 
         for (WorkingFlowDraft.Node node : draft.getNodes()) {
             sb.append("- **").append(node.label()).append("** (`")
                 .append(node.type()).append("`)\n");
         }
 
-        // 加入驗證警告
         if (validationResult.isSuccess()) {
             @SuppressWarnings("unchecked")
             List<String> warnings = (List<String>) validationResult.getData().get("warnings");
             if (warnings != null && !warnings.isEmpty()) {
-                sb.append("\n⚠️ **提醒**:\n");
+                sb.append("\n**Warnings**:\n");
                 for (String warning : warnings) {
                     sb.append("- ").append(warning).append("\n");
                 }
@@ -243,7 +242,7 @@ public class BuilderAgent implements Agent {
             @SuppressWarnings("unchecked")
             List<String> missingNodes = (List<String>) validationResult.getData().get("missingNodes");
             if (missingNodes != null && !missingNodes.isEmpty()) {
-                sb.append("\n🔧 **需要安裝的元件**:\n");
+                sb.append("\n**Missing components**:\n");
                 for (String missing : missingNodes) {
                     sb.append("- `").append(missing).append("`\n");
                 }
@@ -271,13 +270,13 @@ public class BuilderAgent implements Agent {
 
         try {
             String prompt = String.format("""
-                使用者需求: %s
+                User requirement: %s
 
-                請規劃流程，指定要新增的節點和連接方式。
-                以 JSON 格式回應:
+                Plan the flow by specifying nodes to add and how to connect them.
+                Respond in JSON format:
                 {
                   "nodes": [
-                    {"type": "節點類型", "label": "標籤", "config": {}},
+                    {"type": "nodeType", "label": "label", "config": {}},
                     ...
                   ],
                   "connections": [
@@ -286,7 +285,7 @@ public class BuilderAgent implements Agent {
                   ]
                 }
 
-                常用節點類型: trigger, scheduleTrigger, webhookTrigger, httpRequest,
+                Common node types: trigger, scheduleTrigger, webhookTrigger, httpRequest,
                 sendEmail, database, code, condition, slack, telegram
                 """, context.getUserInput());
 
@@ -346,7 +345,7 @@ public class BuilderAgent implements Agent {
 
             return AgentResult.builder()
                 .success(true)
-                .content("已根據您的需求建立流程，包含 " + draft.getNodeCount() + " 個節點。")
+                .content("Flow created with " + draft.getNodeCount() + " nodes based on your requirements.")
                 .flowDefinition(draft.toDefinition())
                 .build();
 
@@ -383,7 +382,7 @@ public class BuilderAgent implements Agent {
         WorkingFlowDraft draft = context.getFlowDraft();
         return AgentResult.builder()
             .success(true)
-            .content("已新增節點「" + (label != null ? label : nodeType) + "」")
+            .content("Added node: " + (label != null ? label : nodeType))
             .flowDefinition(draft.toDefinition())
             .build();
     }
@@ -411,13 +410,13 @@ public class BuilderAgent implements Agent {
         WorkingFlowDraft draft = context.getFlowDraft();
         return AgentResult.builder()
             .success(true)
-            .content("已移除節點")
+            .content("Node removed")
             .flowDefinition(draft.toDefinition())
             .pendingChanges(List.of(
                 AgentResult.PendingChange.builder()
                     .id(UUID.randomUUID().toString())
                     .type("remove_node")
-                    .description("移除節點")
+                    .description("Remove node")
                     .before(result.getData())
                     .build()
             ))
@@ -447,7 +446,7 @@ public class BuilderAgent implements Agent {
         WorkingFlowDraft draft = context.getFlowDraft();
         return AgentResult.builder()
             .success(true)
-            .content("已建立連接")
+            .content("Connection created")
             .flowDefinition(draft.toDefinition())
             .build();
     }
@@ -480,7 +479,7 @@ public class BuilderAgent implements Agent {
         WorkingFlowDraft draft = context.getFlowDraft();
         return AgentResult.builder()
             .success(true)
-            .content("已更新節點配置")
+            .content("Node configuration updated")
             .flowDefinition(draft.toDefinition())
             .build();
     }
@@ -514,34 +513,32 @@ public class BuilderAgent implements Agent {
         }
         for (Map.Entry<String, Long> entry : typeCounts.entrySet()) {
             if (entry.getValue() > 1) {
-                optimizations.add("發現 " + entry.getValue() + " 個相同類型的 " +
-                    entry.getKey() + " 節點，可考慮合併");
+                optimizations.add("Found " + entry.getValue() + " nodes of type " +
+                    entry.getKey() + ", consider merging them");
             }
         }
 
-        // 檢查節點數量
         if (draft.getNodeCount() > 10) {
-            optimizations.add("流程節點較多，建議考慮拆分為子流程");
+            optimizations.add("Flow has many nodes, consider splitting into sub-workflows");
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("## 流程優化分析\n\n");
+        sb.append("## Flow Optimization Analysis\n\n");
 
         if (optimizations.isEmpty()) {
-            sb.append("流程結構良好，沒有明顯的優化建議。\n");
+            sb.append("Flow structure looks good, no obvious optimizations needed.\n");
         } else {
-            sb.append("**優化建議**:\n");
+            sb.append("**Suggestions**:\n");
             for (String opt : optimizations) {
                 sb.append("- ").append(opt).append("\n");
             }
         }
 
-        // 加入驗證結果
         if (validationResult.isSuccess()) {
             @SuppressWarnings("unchecked")
             List<String> warnings = (List<String>) validationResult.getData().get("warnings");
             if (warnings != null && !warnings.isEmpty()) {
-                sb.append("\n**注意事項**:\n");
+                sb.append("\n**Notes**:\n");
                 for (String warning : warnings) {
                     sb.append("- ").append(warning).append("\n");
                 }
@@ -569,7 +566,7 @@ public class BuilderAgent implements Agent {
         }
 
         return AgentResult.needsFollowUp(
-            "需要先搜尋適合的節點。請描述您想要建立什麼樣的流程？",
+            "I need to search for suitable nodes first. Please describe what kind of flow you'd like to create.",
             "discovery"
         );
     }
@@ -589,14 +586,15 @@ public class BuilderAgent implements Agent {
     }
 
     private static final String BUILDER_SYSTEM_PROMPT = """
-        你是一個流程建構專家。根據使用者需求規劃流程結構。
+        You are a workflow construction expert. Plan the flow structure based on user requirements.
+        Respond in the same language the user used.
 
-        規劃時請考慮：
-        1. 流程需要什麼觸發方式
-        2. 資料如何在節點間流動
-        3. 是否需要條件判斷或迴圈
-        4. 最終輸出是什麼
+        When planning, consider:
+        1. What trigger mechanism the flow needs
+        2. How data flows between nodes
+        3. Whether conditions or loops are needed
+        4. What the final output should be
 
-        回應必須是有效的 JSON 格式，包含 nodes 和 connections 陣列。
+        Response must be valid JSON containing nodes and connections arrays.
         """;
 }

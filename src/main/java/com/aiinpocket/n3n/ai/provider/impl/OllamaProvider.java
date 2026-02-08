@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 public class OllamaProvider implements AiProvider {
 
     private static final String PROVIDER_ID = "ollama";
-    private static final String DISPLAY_NAME = "Ollama (本地)";
+    private static final String DISPLAY_NAME = "Ollama (Local)";
     private static final String DEFAULT_BASE_URL = "http://localhost:11434";
     private static final int DEFAULT_TIMEOUT_MS = 300000; // 本地模型可能較慢
 
@@ -188,12 +188,12 @@ public class OllamaProvider implements AiProvider {
                         "baseUrl", Map.of(
                                 "type", "string",
                                 "default", DEFAULT_BASE_URL,
-                                "description", "Ollama 服務位址"
+                                "description", "Ollama service URL"
                         ),
                         "keepAlive", Map.of(
                                 "type", "string",
                                 "default", "5m",
-                                "description", "模型保持載入時間"
+                                "description", "Model keep-alive duration"
                         )
                 )
         );

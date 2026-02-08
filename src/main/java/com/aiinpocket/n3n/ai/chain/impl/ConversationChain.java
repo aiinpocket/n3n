@@ -24,8 +24,9 @@ import java.util.UUID;
 public class ConversationChain implements Chain {
 
     private static final String DEFAULT_SYSTEM_PROMPT = """
-            你是一個有幫助的 AI 助手。請用繁體中文回答使用者的問題。
-            請根據對話歷史提供連貫且有幫助的回答。
+            You are a helpful AI assistant.
+            Respond in the same language the user used.
+            Provide coherent and helpful answers based on conversation history.
             """;
 
     @Getter
@@ -87,7 +88,7 @@ public class ConversationChain implements Chain {
 
             // 新增對話歷史
             if (!contextMessages.isEmpty()) {
-                promptBuilder.append("對話歷史：\n");
+                promptBuilder.append("Conversation History:\n");
                 promptBuilder.append(memoryManager.formatMessagesAsPrompt(contextMessages));
                 promptBuilder.append("\n\n");
             }

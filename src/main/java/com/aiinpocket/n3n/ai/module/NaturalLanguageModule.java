@@ -410,7 +410,7 @@ public class NaturalLanguageModule {
         return """
             You are a workflow automation expert. Generate workflow definitions from user descriptions.
             Always respond with valid JSON only.
-            Use Traditional Chinese for display names and descriptions.
+            Respond in the same language the user used for display names and descriptions.
             """;
     }
 
@@ -424,12 +424,12 @@ public class NaturalLanguageModule {
             Respond ONLY with this JSON format:
             ```json
             {
-              "understanding": "Brief summary of what you understood (in Traditional Chinese)",
+              "understanding": "Brief summary of what you understood (in user's language)",
               "nodes": [
                 {
                   "id": "node_1",
                   "type": "trigger|scheduleTrigger|httpRequest|code|condition|...",
-                  "label": "Node display name in Traditional Chinese",
+                  "label": "Node display name (in user's language)",
                   "config": {}
                 }
               ],
@@ -541,7 +541,7 @@ public class NaturalLanguageModule {
         return """
             You are a workflow automation expert. Recommend useful nodes based on context.
             Always respond with valid JSON only.
-            Use Traditional Chinese for descriptions and reasons.
+            Respond in the same language the user used for descriptions and reasons.
             """;
     }
 
@@ -574,15 +574,15 @@ public class NaturalLanguageModule {
               "recommendations": [
                 {
                   "nodeType": "httpRequest",
-                  "displayName": "HTTP 請求",
-                  "reason": "Why this node is useful (in Traditional Chinese)",
-                  "pros": ["優點1", "優點2"],
-                  "cons": ["注意事項1"]
+                  "displayName": "HTTP Request",
+                  "reason": "Why this node is useful (in user's language)",
+                  "pros": ["Pro 1", "Pro 2"],
+                  "cons": ["Consideration 1"]
                 }
               ]
             }
             ```
-            """.formatted(context, searchQuery != null ? searchQuery : "(無特定搜尋)", nodesList);
+            """.formatted(context, searchQuery != null ? searchQuery : "(no specific search)", nodesList);
     }
 
     private NodeRecommendationResult parseNodeRecommendationResponse(String content, Set<String> installedTypes) {

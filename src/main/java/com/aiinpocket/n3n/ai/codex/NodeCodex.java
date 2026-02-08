@@ -188,26 +188,26 @@ public class NodeCodex {
     public String toPromptDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append("## ").append(displayName).append(" (").append(type).append(")\n");
-        sb.append("- 分類: ").append(category).append("\n");
-        sb.append("- 說明: ").append(description).append("\n");
+        sb.append("- Category: ").append(category).append("\n");
+        sb.append("- Description: ").append(description).append("\n");
 
         if (keywords != null && !keywords.isEmpty()) {
-            sb.append("- 關鍵字: ").append(String.join(", ", keywords)).append("\n");
+            sb.append("- Keywords: ").append(String.join(", ", keywords)).append("\n");
         }
 
         if (useCases != null && !useCases.isEmpty()) {
-            sb.append("- 用途:\n");
+            sb.append("- Use Cases:\n");
             for (String useCase : useCases) {
                 sb.append("  * ").append(useCase).append("\n");
             }
         }
 
         if (relatedNodes != null && !relatedNodes.isEmpty()) {
-            sb.append("- 相關節點: ").append(String.join(", ", relatedNodes)).append("\n");
+            sb.append("- Related Nodes: ").append(String.join(", ", relatedNodes)).append("\n");
         }
 
         if (bestPractices != null && !bestPractices.isBlank()) {
-            sb.append("- 最佳實踐: ").append(bestPractices).append("\n");
+            sb.append("- Best Practices: ").append(bestPractices).append("\n");
         }
 
         return sb.toString();

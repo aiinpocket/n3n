@@ -53,15 +53,15 @@ public class PromptBuilder {
         // 2. Relevant nodes based on query
         List<NodeCodex> relevantNodes = nodeKnowledgeBase.searchNodes(userQuery, MAX_RELEVANT_NODES);
         if (!relevantNodes.isEmpty()) {
-            sb.append("# 相關節點\n\n");
-            sb.append("以下是與使用者需求最相關的節點：\n\n");
+            sb.append("# Relevant Nodes\n\n");
+            sb.append("The following nodes are most relevant to the user's requirements:\n\n");
             for (NodeCodex node : relevantNodes) {
                 sb.append(node.toPromptDescription()).append("\n");
             }
         }
 
         // 3. Category summary for reference
-        sb.append("# 所有節點分類\n\n");
+        sb.append("# All Node Categories\n\n");
         for (String category : nodeKnowledgeBase.getAllCategories()) {
             List<NodeCodex> nodes = nodeKnowledgeBase.getNodesByCategory(category);
             if (!nodes.isEmpty()) {
@@ -76,11 +76,11 @@ public class PromptBuilder {
         // 4. Few-shot examples
         List<FewShotExample> relevantExamples = findRelevantExamples(userQuery, MAX_FEW_SHOT_EXAMPLES);
         if (!relevantExamples.isEmpty()) {
-            sb.append("\n# 範例\n\n");
+            sb.append("\n# Examples\n\n");
             for (FewShotExample example : relevantExamples) {
-                sb.append("## 範例: ").append(example.title).append("\n");
-                sb.append("**需求**: ").append(example.userRequest).append("\n");
-                sb.append("**解答**:\n```json\n").append(example.solution).append("\n```\n\n");
+                sb.append("## Example: ").append(example.title).append("\n");
+                sb.append("**Request**: ").append(example.userRequest).append("\n");
+                sb.append("**Solution**:\n```json\n").append(example.solution).append("\n```\n\n");
             }
         }
 
@@ -110,15 +110,15 @@ public class PromptBuilder {
 
         // If iterating on existing flow, adjust the instruction
         if (existingFlow != null) {
-            sb.append("# 改進已有流程\n\n");
-            sb.append("使用者希望改進以下已有流程，而不是從頭建立新流程。\n\n");
+            sb.append("# Improve Existing Flow\n\n");
+            sb.append("The user wants to improve the following existing flow, not create a new one.\n\n");
 
             if (existingFlow.getUnderstanding() != null) {
-                sb.append("## AI 先前的理解\n");
+                sb.append("## Previous Understanding\n");
                 sb.append(existingFlow.getUnderstanding()).append("\n\n");
             }
 
-            sb.append("## 已有流程定義\n");
+            sb.append("## Existing Flow Definition\n");
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 sb.append("```json\n");
@@ -130,45 +130,45 @@ public class PromptBuilder {
             }
 
             if (feedback != null && !feedback.isBlank()) {
-                sb.append("## 使用者反饋\n");
+                sb.append("## User Feedback\n");
                 sb.append(feedback).append("\n\n");
             }
 
-            sb.append("## 修改指示\n");
+            sb.append("## Modification Instructions\n");
             sb.append(userInput).append("\n\n");
         } else {
-            sb.append("# 使用者需求\n\n");
+            sb.append("# User Requirements\n\n");
             sb.append(userInput).append("\n\n");
         }
 
         // Inject structured requirements from clarification conversation
         if (context != null) {
-            sb.append("# 需求分析（已通過對話確認）\n\n");
+            sb.append("# Requirements Analysis (confirmed via conversation)\n\n");
             if (context.getTriggerType() != null || context.getTriggerDescription() != null) {
-                sb.append("- **觸發方式**: ");
+                sb.append("- **Trigger**: ");
                 if (context.getTriggerType() != null) sb.append("[").append(context.getTriggerType()).append("] ");
                 if (context.getTriggerDescription() != null) sb.append(context.getTriggerDescription());
                 sb.append("\n");
             }
             if (context.getDataSource() != null) {
-                sb.append("- **資料來源**: ").append(context.getDataSource()).append("\n");
+                sb.append("- **Data Source**: ").append(context.getDataSource()).append("\n");
             }
             if (context.getProcessSteps() != null && !context.getProcessSteps().isEmpty()) {
-                sb.append("- **處理步驟**:\n");
+                sb.append("- **Processing Steps**:\n");
                 for (int i = 0; i < context.getProcessSteps().size(); i++) {
                     sb.append("  ").append(i + 1).append(". ").append(context.getProcessSteps().get(i)).append("\n");
                 }
             }
             if (context.getOutputTarget() != null) {
-                sb.append("- **輸出目標**: ").append(context.getOutputTarget()).append("\n");
+                sb.append("- **Output Target**: ").append(context.getOutputTarget()).append("\n");
             }
             if (context.getErrorHandling() != null) {
-                sb.append("- **錯誤處理**: ").append(context.getErrorHandling()).append("\n");
+                sb.append("- **Error Handling**: ").append(context.getErrorHandling()).append("\n");
             }
             sb.append("\n");
         }
 
-        sb.append("# 可用節點\n\n");
+        sb.append("# Available Nodes\n\n");
 
         // Group by category
         Map<String, List<NodeCodex>> nodesByCategory = new HashMap<>();
@@ -189,9 +189,9 @@ public class PromptBuilder {
 
         // Language instruction for user-facing text
         if (language != null && !language.isBlank()) {
-            sb.append("# 語言要求\n\n");
+            sb.append("# Language Requirement\n\n");
             if (language.startsWith("zh")) {
-                sb.append("所有 understanding、label、description 欄位請使用繁體中文。\n\n");
+                sb.append("All understanding, label, and description fields must be in Traditional Chinese (繁體中文).\n\n");
             } else if (language.startsWith("ja")) {
                 sb.append("All understanding, label, and description fields must be in Japanese (日本語).\n\n");
             } else {
@@ -199,7 +199,7 @@ public class PromptBuilder {
             }
         }
 
-        sb.append("# 輸出格式\n\n");
+        sb.append("# Output Format\n\n");
         sb.append(getOutputFormatInstructions());
 
         return sb.toString();
@@ -215,36 +215,36 @@ public class PromptBuilder {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("# 當前流程上下文\n\n");
+        sb.append("# Current Flow Context\n\n");
         if (currentFlow != null && currentFlow.containsKey("nodes")) {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> nodes = (List<Map<String, Object>>) currentFlow.get("nodes");
-            sb.append("目前流程包含 ").append(nodes.size()).append(" 個節點：\n");
+            sb.append("Current flow contains ").append(nodes.size()).append(" nodes:\n");
             for (Map<String, Object> node : nodes) {
                 sb.append("- ").append(node.get("type")).append("\n");
             }
         } else {
-            sb.append("目前沒有任何節點。\n");
+            sb.append("No nodes in the current flow.\n");
         }
 
-        sb.append("\n# 使用者搜尋\n\n");
-        sb.append(searchQuery != null ? searchQuery : "(無特定搜尋)").append("\n\n");
+        sb.append("\n# User Search\n\n");
+        sb.append(searchQuery != null ? searchQuery : "(no specific search)").append("\n\n");
 
-        sb.append("# 可推薦的節點\n\n");
+        sb.append("# Available Nodes for Recommendation\n\n");
         List<NodeCodex> candidates = nodeKnowledgeBase.searchNodes(searchQuery, 15);
         for (NodeCodex node : candidates) {
             if (!installedNodeTypes.contains(node.getType())) {
                 sb.append("- **").append(node.getType()).append("** (").append(node.getCategory()).append("): ");
                 sb.append(node.getDescription());
                 if (node.getKeywords() != null && !node.getKeywords().isEmpty()) {
-                    sb.append(" [關鍵字: ").append(String.join(", ", node.getKeywords())).append("]");
+                    sb.append(" [keywords: ").append(String.join(", ", node.getKeywords())).append("]");
                 }
                 sb.append("\n");
             }
         }
 
-        sb.append("\n請根據當前流程和搜尋需求，推薦 3-5 個最適合的節點。\n");
-        sb.append("對於每個推薦，說明為什麼這個節點適合，以及使用時的注意事項。\n");
+        sb.append("\nBased on the current flow and search query, recommend 3-5 most suitable nodes.\n");
+        sb.append("For each recommendation, explain why the node is suitable and any usage considerations.\n");
 
         return sb.toString();
     }
@@ -258,33 +258,29 @@ public class PromptBuilder {
         }
 
         return """
-            # 角色定義
+            # Role
 
-            你是 N3N 工作流程設計專家，專門協助用戶建立自動化工作流程。
-            你精通各種整合服務（API、資料庫、訊息通知等）的使用方式。
+            You are an N3N workflow design expert, specializing in helping users build automation workflows.
+            You are proficient in various integration services (APIs, databases, messaging, etc.).
+            Respond in the same language the user used (Chinese, English, or Japanese).
 
-            # 核心能力
+            # Core Capabilities
 
-            1. **理解需求**: 準確理解用戶的口語化描述，識別關鍵的觸發條件、處理步驟和輸出目標
-            2. **選擇節點**: 根據需求選擇最適合的節點類型，考慮效能和維護性
-            3. **設計流程**: 建立合理的節點連接和資料流向
-            4. **錯誤處理**: 考慮可能的錯誤情況並建議適當的處理方式
+            1. **Understand requirements**: Accurately interpret natural language descriptions, identifying triggers, processing steps, and outputs
+            2. **Select nodes**: Choose the most suitable node types based on requirements, considering performance and maintainability
+            3. **Design flows**: Create proper node connections and data flow
+            4. **Error handling**: Consider potential failures and suggest appropriate handling
 
-            # 設計原則
+            # Design Principles
 
-            1. **簡潔優先**: 使用最少的節點完成任務
-            2. **可讀性**: 節點標籤使用清晰的繁體中文描述
-            3. **可維護性**: 複雜邏輯拆分成多個節點
-            4. **錯誤處理**: 對外部服務調用考慮錯誤處理
+            1. **Simplicity first**: Use the minimum nodes needed to complete the task
+            2. **Readability**: Use clear, descriptive node labels in the user's language
+            3. **Maintainability**: Split complex logic into multiple nodes
+            4. **Error handling**: Add error handling for external service calls
 
-            # 輸出語言
+            # Response Format
 
-            - 所有顯示名稱、標籤、描述使用繁體中文
-            - 技術配置值（URL、變數名等）使用英文
-
-            # 回應格式
-
-            請嚴格使用 JSON 格式回應，不要包含其他文字。
+            Respond strictly in JSON format with no additional text.
             """;
     }
 
@@ -293,34 +289,34 @@ public class PromptBuilder {
      */
     private String getOutputFormatInstructions() {
         return """
-            請嚴格按照以下 JSON 格式回應：
+            Respond strictly in the following JSON format:
 
             ```json
             {
-              "understanding": "對使用者需求的理解摘要（繁體中文）",
+              "understanding": "Summary of your understanding of the user's requirements (in user's language)",
               "nodes": [
                 {
                   "id": "node_1",
-                  "type": "節點類型（如 trigger、httpRequest、condition）",
-                  "label": "節點顯示名稱（繁體中文）",
+                  "type": "node type (e.g. trigger, httpRequest, condition)",
+                  "label": "node display label (in user's language)",
                   "config": {
-                    "配置項": "配置值"
+                    "configKey": "configValue"
                   }
                 }
               ],
               "edges": [
                 {"source": "node_1", "target": "node_2"}
               ],
-              "requiredNodes": ["使用到的節點類型列表"],
-              "missingNodes": ["不在可用清單中的節點類型"]
+              "requiredNodes": ["list of node types used"],
+              "missingNodes": ["node types not in available list"]
             }
             ```
 
-            注意事項：
-            1. 每個節點必須有唯一的 id
-            2. 第一個節點通常是觸發器（trigger 類型）
-            3. edges 定義節點之間的連接關係
-            4. 如果需要的節點不在可用清單中，將其列入 missingNodes
+            Important notes:
+            1. Each node must have a unique id
+            2. The first node is usually a trigger node
+            3. edges define connections between nodes
+            4. If a required node type is not in the available list, add it to missingNodes
             """;
     }
 
@@ -376,62 +372,62 @@ public class PromptBuilder {
      */
     private void addDefaultExamples() {
         fewShotExamples.add(new FewShotExample(
-                "每日天氣通知",
-                "每天早上 8 點查詢天氣預報並發送到 Slack",
+                "Daily Weather Notification",
+                "Every day at 8 AM, fetch weather forecast and send to Slack",
                 """
                 {
-                  "understanding": "建立一個每天早上 8 點執行的排程任務，呼叫天氣 API 取得預報資訊，然後發送到 Slack 頻道",
+                  "understanding": "Create a scheduled task that runs daily at 8 AM, calls a weather API to get forecast data, then sends it to a Slack channel",
                   "nodes": [
-                    {"id": "1", "type": "scheduleTrigger", "label": "每日早上 8 點", "config": {"cron": "0 8 * * *"}},
-                    {"id": "2", "type": "httpRequest", "label": "取得天氣預報", "config": {"method": "GET", "url": "https://api.weather.gov/forecast"}},
-                    {"id": "3", "type": "slack", "label": "發送天氣通知", "config": {"channel": "#general"}}
+                    {"id": "1", "type": "scheduleTrigger", "label": "Daily at 8 AM", "config": {"cron": "0 8 * * *"}},
+                    {"id": "2", "type": "httpRequest", "label": "Fetch Weather Forecast", "config": {"method": "GET", "url": "https://api.weather.gov/forecast"}},
+                    {"id": "3", "type": "slack", "label": "Send Weather Notification", "config": {"channel": "#general"}}
                   ],
                   "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}],
                   "requiredNodes": ["scheduleTrigger", "httpRequest", "slack"],
                   "missingNodes": []
                 }
                 """,
-                List.of("排程", "天氣", "通知", "slack")
+                List.of("schedule", "weather", "notification", "slack", "排程", "天氣", "通知", "スケジュール", "天気", "通知")
         ));
 
         fewShotExamples.add(new FewShotExample(
-                "API 監控與告警",
-                "每 5 分鐘檢查網站是否正常，如果回應時間超過 3 秒就發送告警郵件",
+                "API Monitoring & Alerting",
+                "Every 5 minutes check if website is healthy; if response time exceeds 3s, send alert email",
                 """
                 {
-                  "understanding": "建立一個每 5 分鐘執行的監控任務，呼叫目標 API 並檢查回應時間，如果超過閾值則發送告警郵件",
+                  "understanding": "Create a monitoring task that runs every 5 minutes, calls the target API and checks response time; if it exceeds the threshold, sends an alert email",
                   "nodes": [
-                    {"id": "1", "type": "scheduleTrigger", "label": "每 5 分鐘執行", "config": {"interval": "5m"}},
-                    {"id": "2", "type": "httpRequest", "label": "檢查網站", "config": {"method": "GET", "url": "https://example.com/health"}},
-                    {"id": "3", "type": "condition", "label": "回應時間檢查", "config": {"rules": [{"field": "responseTime", "operator": "gt", "value": 3000}]}},
-                    {"id": "4", "type": "sendEmail", "label": "發送告警郵件", "config": {"to": "admin@example.com", "subject": "網站回應緩慢告警"}}
+                    {"id": "1", "type": "scheduleTrigger", "label": "Every 5 Minutes", "config": {"interval": "5m"}},
+                    {"id": "2", "type": "httpRequest", "label": "Check Website Health", "config": {"method": "GET", "url": "https://example.com/health"}},
+                    {"id": "3", "type": "condition", "label": "Response Time Check", "config": {"rules": [{"field": "responseTime", "operator": "gt", "value": 3000}]}},
+                    {"id": "4", "type": "sendEmail", "label": "Send Alert Email", "config": {"to": "admin@example.com", "subject": "Slow Response Alert"}}
                   ],
                   "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}, {"source": "3", "target": "4", "sourceHandle": "true"}],
                   "requiredNodes": ["scheduleTrigger", "httpRequest", "condition", "sendEmail"],
                   "missingNodes": []
                 }
                 """,
-                List.of("監控", "API", "告警", "郵件", "條件")
+                List.of("monitor", "API", "alert", "email", "condition", "監控", "告警", "郵件", "監視", "アラート")
         ));
 
         fewShotExamples.add(new FewShotExample(
-                "資料同步",
-                "從 Google Sheets 讀取資料並寫入資料庫",
+                "Data Synchronization",
+                "Read data from Google Sheets and write to database",
                 """
                 {
-                  "understanding": "從 Google Sheets 試算表讀取資料，然後批次寫入資料庫",
+                  "understanding": "Read data from a Google Sheets spreadsheet, then batch-insert into the database",
                   "nodes": [
-                    {"id": "1", "type": "trigger", "label": "手動觸發", "config": {}},
-                    {"id": "2", "type": "googleSheets", "label": "讀取試算表", "config": {"operation": "read", "sheetId": ""}},
-                    {"id": "3", "type": "loop", "label": "逐筆處理", "config": {}},
-                    {"id": "4", "type": "database", "label": "寫入資料庫", "config": {"operation": "insert"}}
+                    {"id": "1", "type": "trigger", "label": "Manual Trigger", "config": {}},
+                    {"id": "2", "type": "googleSheets", "label": "Read Spreadsheet", "config": {"operation": "read", "sheetId": ""}},
+                    {"id": "3", "type": "loop", "label": "Process Each Row", "config": {}},
+                    {"id": "4", "type": "database", "label": "Write to Database", "config": {"operation": "insert"}}
                   ],
                   "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}, {"source": "3", "target": "4"}],
                   "requiredNodes": ["trigger", "googleSheets", "loop", "database"],
                   "missingNodes": []
                 }
                 """,
-                List.of("資料", "同步", "sheets", "資料庫", "批次")
+                List.of("data", "sync", "sheets", "database", "batch", "資料", "同步", "資料庫", "データ", "同期")
         ));
     }
 
@@ -479,16 +475,16 @@ public class PromptBuilder {
 
     private String getCategoryDisplayName(String category) {
         return switch (category) {
-            case "trigger" -> "觸發器";
+            case "trigger" -> "Triggers";
             case "ai" -> "AI & ML";
-            case "data" -> "資料處理";
-            case "messaging" -> "訊息通知";
-            case "database" -> "資料庫";
-            case "cloud" -> "雲端服務";
-            case "integration" -> "外部整合";
-            case "utility" -> "工具類";
-            case "flow" -> "流程控制";
-            default -> "其他";
+            case "data" -> "Data Processing";
+            case "messaging" -> "Messaging";
+            case "database" -> "Database";
+            case "cloud" -> "Cloud Services";
+            case "integration" -> "Integration";
+            case "utility" -> "Utilities";
+            case "flow" -> "Flow Control";
+            default -> "Other";
         };
     }
 

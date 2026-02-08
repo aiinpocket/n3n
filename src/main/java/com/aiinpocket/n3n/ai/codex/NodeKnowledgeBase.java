@@ -138,7 +138,7 @@ public class NodeKnowledgeBase {
         List<NodeCodex> relevantNodes = searchNodes(userQuery, maxNodes);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("# 可用節點\n\n");
+        sb.append("# Available Nodes\n\n");
 
         for (NodeCodex codex : relevantNodes) {
             sb.append(codex.toPromptDescription()).append("\n");
@@ -152,12 +152,12 @@ public class NodeKnowledgeBase {
      */
     public String generateCategorySummary() {
         StringBuilder sb = new StringBuilder();
-        sb.append("# 節點分類\n\n");
+        sb.append("# Node Categories\n\n");
 
         for (String category : getAllCategories()) {
             List<NodeCodex> nodes = getNodesByCategory(category);
             sb.append("## ").append(getCategoryDisplayName(category))
-                    .append(" (").append(nodes.size()).append(" 個節點)\n");
+                    .append(" (").append(nodes.size()).append(" nodes)\n");
 
             for (NodeCodex node : nodes) {
                 sb.append("- ").append(node.getDisplayName())
@@ -334,16 +334,16 @@ public class NodeKnowledgeBase {
 
     private String getCategoryDisplayName(String category) {
         return switch (category) {
-            case "trigger" -> "觸發器";
+            case "trigger" -> "Triggers";
             case "ai" -> "AI & ML";
-            case "data" -> "資料處理";
-            case "messaging" -> "訊息通知";
-            case "database" -> "資料庫";
-            case "cloud" -> "雲端服務";
-            case "integration" -> "外部整合";
-            case "utility" -> "工具類";
-            case "flow" -> "流程控制";
-            default -> "其他";
+            case "data" -> "Data Processing";
+            case "messaging" -> "Messaging";
+            case "database" -> "Database";
+            case "cloud" -> "Cloud Services";
+            case "integration" -> "Integration";
+            case "utility" -> "Utilities";
+            case "flow" -> "Flow Control";
+            default -> "Other";
         };
     }
 }

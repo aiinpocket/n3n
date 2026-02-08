@@ -27,37 +27,38 @@ public class IntentAnalyzer {
     private final ObjectMapper objectMapper;
 
     private static final String SYSTEM_PROMPT = """
-        你是一個意圖分析專家。分析使用者輸入並識別其意圖。
+        You are an intent analysis expert. Analyze the user's input and identify their intent.
+        Respond to the user in the SAME LANGUAGE they used (Chinese, English, or Japanese).
 
-        可能的意圖類型：
-        - SEARCH_NODE: 搜尋節點或元件（例如：有什麼節點可以發送郵件？）
-        - GET_DOCUMENTATION: 取得文件或說明（例如：HTTP 節點怎麼用？）
-        - FIND_EXAMPLES: 尋找範例（例如：有沒有排程的範例？）
-        - SEARCH_SKILL: 搜尋可用技能
-        - CREATE_FLOW: 建立新的工作流程（例如：建立一個每天發送報表的流程）
-        - ADD_NODE: 新增節點到現有流程（例如：加一個錯誤處理節點）
-        - REMOVE_NODE: 移除節點（例如：把那個 HTTP 節點刪掉）
-        - CONNECT_NODES: 連接節點（例如：把觸發器連到 HTTP 節點）
-        - CONFIGURE_NODE: 配置節點參數（例如：把 HTTP 節點的 URL 改成...）
-        - MODIFY_FLOW: 修改現有流程
-        - OPTIMIZE_FLOW: 優化流程效能
-        - EXPLAIN: 解釋或說明（例如：這個流程是做什麼的？）
-        - CLARIFY: 需要使用者澄清
-        - CONFIRM: 確認操作
-        - COMPOUND: 複合意圖（多個意圖組合）
-        - CHITCHAT: 閒聊
-        - UNKNOWN: 無法識別
+        Possible intent types:
+        - SEARCH_NODE: Search for nodes/components (e.g., "What nodes can send email?")
+        - GET_DOCUMENTATION: Get documentation (e.g., "How do I use the HTTP node?")
+        - FIND_EXAMPLES: Find examples (e.g., "Is there a scheduling example?")
+        - SEARCH_SKILL: Search available skills
+        - CREATE_FLOW: Create a new workflow (e.g., "Create a daily report flow")
+        - ADD_NODE: Add a node to existing flow (e.g., "Add an error handler node")
+        - REMOVE_NODE: Remove a node (e.g., "Delete the HTTP node")
+        - CONNECT_NODES: Connect nodes (e.g., "Connect trigger to HTTP node")
+        - CONFIGURE_NODE: Configure node parameters
+        - MODIFY_FLOW: Modify existing flow
+        - OPTIMIZE_FLOW: Optimize flow performance
+        - EXPLAIN: Explain or describe (e.g., "What does this flow do?")
+        - CLARIFY: Needs user clarification
+        - CONFIRM: Confirm operation
+        - COMPOUND: Multiple intents combined
+        - CHITCHAT: Casual chat
+        - UNKNOWN: Cannot identify
 
-        請以 JSON 格式回應，只回應 JSON，不要有其他文字：
+        Respond in JSON format only, no other text:
         {
-          "type": "意圖類型",
+          "type": "INTENT_TYPE",
           "confidence": 0.95,
-          "understanding": "對使用者需求的理解（繁體中文）",
+          "understanding": "Understanding of user's request (in user's language)",
           "entities": {
-            "targetNode": "提取的節點名稱（如有）",
-            "action": "要執行的動作",
-            "nodeType": "節點類型（如有）",
-            "label": "節點標籤（如有）"
+            "targetNode": "extracted node name (if any)",
+            "action": "action to perform",
+            "nodeType": "node type (if any)",
+            "label": "node label (if any)"
           }
         }
         """;
@@ -89,32 +90,30 @@ public class IntentAnalyzer {
      */
     private String buildPrompt(AgentContext context) {
         StringBuilder sb = new StringBuilder();
-        sb.append("使用者輸入: ").append(context.getUserInput()).append("\n\n");
+        sb.append("User input: ").append(context.getUserInput()).append("\n\n");
 
-        // 加入對話歷史上下文
         if (context.getConversationHistory() != null &&
             !context.getConversationHistory().isEmpty()) {
-            sb.append("最近對話:\n");
+            sb.append("Recent conversation:\n");
             int count = 0;
             for (Message msg : context.getConversationHistory()) {
-                if (count++ >= 5) break;
+                if (count++ >= 10) break;
                 sb.append("- ").append(msg.getRole()).append(": ")
-                    .append(truncate(msg.getContent(), 100)).append("\n");
+                    .append(truncate(msg.getContent(), 200)).append("\n");
             }
         }
 
-        // 加入當前流程上下文
         if (context.getFlowDraft() != null && context.getFlowDraft().hasContent()) {
-            sb.append("\n當前流程草稿有 ")
+            sb.append("\nCurrent flow draft has ")
                 .append(context.getFlowDraft().getNodeCount())
-                .append(" 個節點\n");
+                .append(" nodes\n");
         } else if (context.getCurrentNodes() != null && !context.getCurrentNodes().isEmpty()) {
-            sb.append("\n當前流程有 ")
+            sb.append("\nCurrent flow has ")
                 .append(context.getCurrentNodes().size())
-                .append(" 個節點\n");
+                .append(" nodes\n");
         }
 
-        sb.append("\n請分析此使用者的意圖，只回應 JSON。");
+        sb.append("\nAnalyze the user's intent and respond with JSON only.");
         return sb.toString();
     }
 
@@ -164,65 +163,76 @@ public class IntentAnalyzer {
         String lower = input.toLowerCase();
         Map<String, Object> entities = new HashMap<>();
 
-        // 建立流程
-        if (containsAny(lower, "建立", "創建", "新增", "做一個", "幫我做", "設計") &&
-            containsAny(lower, "流程", "工作流", "workflow", "自動化")) {
+        // 建立流程 (zh + en + ja)
+        if (containsAny(lower, "建立", "創建", "新增", "做一個", "幫我做", "設計",
+                "create", "build", "make", "design", "generate",
+                "作成", "構築", "フロー作成") &&
+            containsAny(lower, "流程", "工作流", "workflow", "自動化",
+                "flow", "automation", "pipeline",
+                "フロー", "ワークフロー")) {
             return Intent.builder()
                 .type(Intent.IntentType.CREATE_FLOW)
                 .confidence(0.8)
-                .understanding("使用者想要建立新的工作流程")
                 .entities(entities)
                 .build();
         }
 
-        // 新增節點
-        if (containsAny(lower, "加", "新增", "添加", "放", "加入") &&
-            containsAny(lower, "節點", "node", "元件")) {
+        // 新增節點 (zh + en + ja)
+        if (containsAny(lower, "加", "新增", "添加", "放", "加入",
+                "add", "insert", "include",
+                "追加", "ノード追加") &&
+            containsAny(lower, "節點", "node", "元件", "component",
+                "ノード", "コンポーネント")) {
             return Intent.builder()
                 .type(Intent.IntentType.ADD_NODE)
                 .confidence(0.8)
-                .understanding("使用者想要新增節點")
                 .entities(entities)
                 .build();
         }
 
-        // 移除節點
-        if (containsAny(lower, "刪除", "移除", "刪掉", "拿掉", "remove")) {
+        // 移除節點 (zh + en + ja)
+        if (containsAny(lower, "刪除", "移除", "刪掉", "拿掉",
+                "remove", "delete", "drop",
+                "削除", "取り除く")) {
             return Intent.builder()
                 .type(Intent.IntentType.REMOVE_NODE)
                 .confidence(0.7)
-                .understanding("使用者想要移除節點")
                 .entities(entities)
                 .build();
         }
 
-        // 搜尋節點
-        if (containsAny(lower, "有什麼", "哪些", "搜尋", "找", "查詢") &&
-            containsAny(lower, "節點", "node", "元件", "可以")) {
+        // 搜尋節點 (zh + en + ja)
+        if (containsAny(lower, "有什麼", "哪些", "搜尋", "找", "查詢",
+                "search", "find", "what", "which", "list",
+                "検索", "探す") &&
+            containsAny(lower, "節點", "node", "元件", "可以",
+                "component", "available",
+                "ノード", "コンポーネント")) {
             return Intent.builder()
                 .type(Intent.IntentType.SEARCH_NODE)
                 .confidence(0.7)
-                .understanding("使用者想要搜尋節點")
                 .entities(entities)
                 .build();
         }
 
-        // 解釋
-        if (containsAny(lower, "什麼", "怎麼", "如何", "解釋", "說明", "為什麼")) {
+        // 解釋 (zh + en + ja)
+        if (containsAny(lower, "什麼", "怎麼", "如何", "解釋", "說明", "為什麼",
+                "explain", "what is", "how does", "why",
+                "説明", "教えて", "なぜ")) {
             return Intent.builder()
                 .type(Intent.IntentType.EXPLAIN)
                 .confidence(0.6)
-                .understanding("使用者需要解釋")
                 .entities(entities)
                 .build();
         }
 
-        // 優化
-        if (containsAny(lower, "優化", "改善", "提升", "效能", "效率")) {
+        // 優化 (zh + en + ja)
+        if (containsAny(lower, "優化", "改善", "提升", "效能", "效率",
+                "optimize", "improve", "performance", "efficiency",
+                "最適化", "改善", "パフォーマンス")) {
             return Intent.builder()
                 .type(Intent.IntentType.OPTIMIZE_FLOW)
                 .confidence(0.7)
-                .understanding("使用者想要優化流程")
                 .entities(entities)
                 .build();
         }
@@ -231,7 +241,6 @@ public class IntentAnalyzer {
         return Intent.builder()
             .type(Intent.IntentType.CHITCHAT)
             .confidence(0.4)
-            .understanding("無法明確識別意圖")
             .entities(entities)
             .build();
     }

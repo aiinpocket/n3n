@@ -158,17 +158,16 @@ public class RequirementClarificationService {
     private String buildPrompt(RequirementClarificationRequest request) {
         StringBuilder sb = new StringBuilder();
 
-        // 加入對話歷史
         if (request.getHistory() != null && !request.getHistory().isEmpty()) {
-            sb.append("=== 對話歷史 ===\n");
+            sb.append("=== Conversation History ===\n");
             for (RequirementClarificationRequest.ChatMessage msg : request.getHistory()) {
-                String roleLabel = "user".equals(msg.getRole()) ? "使用者" : "助手";
-                sb.append(roleLabel).append("：").append(msg.getContent()).append("\n\n");
+                String roleLabel = "user".equals(msg.getRole()) ? "User" : "Assistant";
+                sb.append(roleLabel).append(": ").append(msg.getContent()).append("\n\n");
             }
-            sb.append("=== 最新訊息 ===\n");
+            sb.append("=== Latest Message ===\n");
         }
 
-        sb.append("使用者：").append(request.getMessage());
+        sb.append("User: ").append(request.getMessage());
 
         return sb.toString();
     }

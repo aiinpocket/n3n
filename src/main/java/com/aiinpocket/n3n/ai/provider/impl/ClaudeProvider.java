@@ -175,7 +175,7 @@ public class ClaudeProvider implements AiProvider {
                         "anthropicVersion", Map.of(
                                 "type", "string",
                                 "default", API_VERSION,
-                                "description", "Anthropic API 版本"
+                                "description", "Anthropic API version"
                         )
                 )
         );
