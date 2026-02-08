@@ -43,8 +43,9 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
     private final AgentRegistrationService agentRegistrationService;
 
     /**
-     * Pending requests waiting for responses
+     * Pending requests waiting for responses (bounded to prevent memory leaks)
      */
+    private static final int MAX_PENDING_REQUESTS = 10_000;
     private final Map<String, CompletableFuture<GatewayResponse>> pendingRequests = new ConcurrentHashMap<>();
 
     /**
@@ -414,6 +415,12 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
                     "args", args
                 ));
 
+                if (pendingRequests.size() >= MAX_PENDING_REQUESTS) {
+                    return CompletableFuture.<GatewayResponse>completedFuture(
+                        GatewayResponse.error("", "TOO_MANY_REQUESTS", "Too many pending requests")
+                    );
+                }
+
                 CompletableFuture<GatewayResponse> future = new CompletableFuture<>();
                 pendingRequests.put(request.getId(), future);
 
@@ -427,6 +434,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
                 }
 
                 return future.orTimeout(30, TimeUnit.SECONDS)
+                    .whenComplete((result, ex) -> pendingRequests.remove(request.getId()))
                     .exceptionally(e -> GatewayResponse.error(request.getId(), "TIMEOUT", "Request timed out"));
             })
             .orElse(CompletableFuture.completedFuture(
