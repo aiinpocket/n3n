@@ -121,7 +121,7 @@ public class ApprovalNodeHandler extends AbstractNodeHandler {
             return createPauseResult(approval);
         } catch (Exception e) {
             log.error("Failed to create approval: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Failed to create approval: " + e.getMessage());
+            return NodeExecutionResult.failure("Failed to create approval");
         }
     }
 

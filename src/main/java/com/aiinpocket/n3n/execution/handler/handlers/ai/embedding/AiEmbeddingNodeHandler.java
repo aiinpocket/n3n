@@ -162,7 +162,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
 
         } catch (Exception e) {
             log.error("Embedding error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Embedding error: " + e.getMessage());
+            return NodeExecutionResult.failure("Embedding error");
         }
     }
 

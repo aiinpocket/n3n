@@ -208,7 +208,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             };
         } catch (Exception e) {
             log.error("Chain execution failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Chain execution failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Chain execution failed");
         }
     }
 
@@ -339,7 +339,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
                     return response.getContent();
                 } catch (Exception e) {
                     log.error("Map phase error: {}", e.getMessage());
-                    return "Error processing document: " + e.getMessage();
+                    return "Error processing document";
                 }
             });
 
@@ -520,7 +520,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
 
             } catch (Exception e) {
                 log.error("Chain stream error: {}", e.getMessage());
-                sink.tryEmitNext(StreamChunk.error(e.getMessage()));
+                sink.tryEmitNext(StreamChunk.error("Chain stream error"));
             } finally {
                 sink.tryEmitComplete();
             }

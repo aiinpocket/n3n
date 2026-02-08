@@ -172,7 +172,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
 
         } catch (Exception e) {
             log.error("AI Agent error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("AI Agent error: " + e.getMessage());
+            return NodeExecutionResult.failure("AI Agent error");
         }
     }
 
@@ -319,7 +319,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                     new TypeReference<Map<String, Object>>() {}
                 );
             } catch (Exception e) {
-                return AgentNodeTool.ToolResult.failure("Invalid tool arguments: " + e.getMessage());
+                return AgentNodeTool.ToolResult.failure("Invalid tool arguments");
             }
 
             // 執行工具
@@ -391,7 +391,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
 
             } catch (Exception e) {
                 log.error("AI Agent stream error: {}", e.getMessage());
-                sink.tryEmitNext(StreamChunk.error(e.getMessage()));
+                sink.tryEmitNext(StreamChunk.error("AI Agent stream error"));
             } finally {
                 sink.tryEmitComplete();
             }

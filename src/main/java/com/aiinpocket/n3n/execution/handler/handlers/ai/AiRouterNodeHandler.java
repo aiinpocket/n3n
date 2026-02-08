@@ -105,7 +105,7 @@ public class AiRouterNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("AI Router execution failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("AI Router failed: " + e.getMessage());
+            return NodeExecutionResult.failure("AI Router failed");
         }
     }
 

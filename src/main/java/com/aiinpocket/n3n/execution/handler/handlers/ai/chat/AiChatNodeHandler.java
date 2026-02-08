@@ -177,7 +177,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
 
         } catch (Exception e) {
             log.error("AI Chat error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("AI Chat error: " + e.getMessage());
+            return NodeExecutionResult.failure("AI Chat error");
         }
     }
 
@@ -294,12 +294,12 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 })
                 .onErrorResume(e -> {
                     log.error("AI Chat stream error: {}", e.getMessage());
-                    return Flux.just(StreamChunk.error(e.getMessage()));
+                    return Flux.just(StreamChunk.error("AI Chat stream error"));
                 });
 
         } catch (Exception e) {
             log.error("AI Chat stream setup error: {}", e.getMessage());
-            return Flux.just(StreamChunk.error(e.getMessage()));
+            return Flux.just(StreamChunk.error("AI Chat stream error"));
         }
     }
 

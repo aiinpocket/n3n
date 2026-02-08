@@ -77,7 +77,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
             log.error("Chain execution failed", e);
             return NodeExecutionResult.builder()
                     .success(false)
-                    .errorMessage("Chain execution failed: " + e.getMessage())
+                    .errorMessage("Chain execution failed")
                     .build();
         }
     }

@@ -72,7 +72,7 @@ public class WaitNodeHandler extends AbstractNodeHandler {
             Thread.sleep(waitMs);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return NodeExecutionResult.failure("Wait interrupted: " + e.getMessage());
+            return NodeExecutionResult.failure("Wait interrupted");
         }
 
         // Pass through input data with wait metadata

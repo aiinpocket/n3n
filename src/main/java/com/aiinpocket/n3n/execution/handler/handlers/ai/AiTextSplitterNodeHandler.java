@@ -126,7 +126,7 @@ public class AiTextSplitterNodeHandler extends AbstractNodeHandler {
 
         } catch (Exception e) {
             log.error("Text splitting failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Text splitting failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Text splitting failed");
         }
     }
 

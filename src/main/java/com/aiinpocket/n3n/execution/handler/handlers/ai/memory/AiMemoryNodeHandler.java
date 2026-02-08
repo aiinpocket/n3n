@@ -185,7 +185,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
             };
         } catch (Exception e) {
             log.error("Memory operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Memory operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Memory operation failed");
         }
     }
 
