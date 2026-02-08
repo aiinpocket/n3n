@@ -15,11 +15,12 @@ export interface ChatStreamRequest {
 }
 
 export interface ChatStreamChunk {
-  type: 'thinking' | 'text' | 'structured' | 'progress' | 'error' | 'done'
+  type: 'thinking' | 'text' | 'structured' | 'progress' | 'error' | 'done' | 'metadata'
   text?: string
   structuredData?: Record<string, unknown>
   progress?: number
   stage?: string
+  conversationId?: string
   timestamp?: string
 }
 
@@ -28,6 +29,7 @@ export interface StreamCallbacks {
   onText?: (text: string) => void
   onStructured?: (data: Record<string, unknown>) => void
   onProgress?: (percent: number, stage: string) => void
+  onMetadata?: (conversationId: string) => void
   onError?: (error: string) => void
   onDone?: () => void
 }
@@ -81,6 +83,11 @@ export async function chatStream(
             break
           case 'progress':
             callbacks.onProgress?.(chunk.progress || 0, chunk.stage || '')
+            break
+          case 'metadata':
+            if (chunk.conversationId) {
+              callbacks.onMetadata?.(chunk.conversationId)
+            }
             break
           case 'error':
             callbacks.onError?.(chunk.text || 'Unknown error')

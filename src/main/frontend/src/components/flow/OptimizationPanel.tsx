@@ -13,6 +13,7 @@ import {
   Tooltip,
   Badge,
   Divider,
+  message,
 } from 'antd'
 import {
   ThunderboltOutlined,
@@ -24,6 +25,7 @@ import {
   CheckCircleOutlined,
   InfoCircleOutlined,
   ReloadOutlined,
+  PlayCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import {
@@ -34,6 +36,7 @@ import {
   getSuggestionTypeName,
   getPriorityLabel,
 } from '../../api/optimizer'
+import { aiAssistantApi } from '../../api/aiAssistant'
 import type { FlowDefinition } from '../../api/flow'
 
 const { Text, Paragraph } = Typography
@@ -42,19 +45,25 @@ interface OptimizationPanelProps {
   visible: boolean
   onClose: () => void
   flowDefinition: FlowDefinition | null
+  flowId?: string
   onHighlightNodes?: (nodeIds: string[]) => void
+  onApplyOptimization?: (updatedDefinition: FlowDefinition) => void
 }
 
 const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
   visible,
   onClose,
   flowDefinition,
+  flowId,
   onHighlightNodes,
+  onApplyOptimization,
 }) => {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<FlowOptimizationResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
+  const [applying, setApplying] = useState(false)
 
   const handleAnalyze = async () => {
     if (!flowDefinition) return
@@ -91,8 +100,53 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
     onHighlightNodes?.(nodeIds)
   }
 
+  const handleApplySuggestions = async (suggestionIds: string[]) => {
+    if (!flowDefinition || !result?.suggestions) return
+
+    setApplying(true)
+    try {
+      const suggestionsToApply = result.suggestions
+        .filter((_, i) => suggestionIds.includes(`suggestion-${i}`))
+        .map((s, i) => ({
+          id: `suggestion-${i}`,
+          type: s.type,
+          affectedNodes: s.affectedNodes,
+        }))
+
+      const response = await aiAssistantApi.applySuggestions({
+        flowId: flowId || '',
+        version: '',
+        suggestionIds: suggestionsToApply.map(s => s.id),
+      })
+
+      if (response.success && response.updatedDefinition) {
+        const newApplied = new Set(appliedIds)
+        response.appliedSuggestions.forEach(id => newApplied.add(id))
+        setAppliedIds(newApplied)
+
+        onApplyOptimization?.(response.updatedDefinition as unknown as FlowDefinition)
+        message.success(t('optimizer.applySuccess', { count: response.appliedCount }))
+      } else {
+        message.error(response.error || t('optimizer.applyFailed'))
+      }
+    } catch {
+      message.error(t('optimizer.applyFailed'))
+    } finally {
+      setApplying(false)
+    }
+  }
+
+  const handleApplyAll = () => {
+    if (!result?.suggestions) return
+    const allIds = result.suggestions.map((_, i) => `suggestion-${i}`)
+      .filter(id => !appliedIds.has(id))
+    handleApplySuggestions(allIds)
+  }
+
   const renderSuggestion = (suggestion: OptimizationSuggestion, index: number) => {
     const priorityInfo = getPriorityLabel(suggestion.priority)
+    const suggestionId = `suggestion-${index}`
+    const isApplied = appliedIds.has(suggestionId)
 
     return (
       <Card
@@ -100,20 +154,40 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
         size="small"
         style={{
           marginBottom: 12,
-          borderLeft: `3px solid ${getSuggestionTypeColor(suggestion.type)}`,
+          borderLeft: `3px solid ${isApplied ? '#22C55E' : getSuggestionTypeColor(suggestion.type)}`,
+          opacity: isApplied ? 0.7 : 1,
         }}
         bodyStyle={{ padding: 12 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <Space>
-            <span style={{ color: getSuggestionTypeColor(suggestion.type), fontSize: 16 }}>
-              {getSuggestionIcon(suggestion.type)}
+            <span style={{ color: isApplied ? '#22C55E' : getSuggestionTypeColor(suggestion.type), fontSize: 16 }}>
+              {isApplied ? <CheckCircleOutlined /> : getSuggestionIcon(suggestion.type)}
             </span>
-            <Text strong>{suggestion.title}</Text>
+            <Text strong style={isApplied ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>
+              {suggestion.title}
+            </Text>
           </Space>
-          <Tag color={priorityInfo.color} style={{ margin: 0 }}>
-            {t(priorityInfo.text)}
-          </Tag>
+          <Space size={4}>
+            <Tag color={priorityInfo.color} style={{ margin: 0 }}>
+              {t(priorityInfo.text)}
+            </Tag>
+            {!isApplied && (
+              <Tooltip title={t('optimizer.applySuggestion')}>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<PlayCircleOutlined />}
+                  onClick={() => handleApplySuggestions([suggestionId])}
+                  loading={applying}
+                  style={{ padding: 0 }}
+                />
+              </Tooltip>
+            )}
+            {isApplied && (
+              <Tag color="success" style={{ margin: 0 }}>{t('optimizer.applied')}</Tag>
+            )}
+          </Space>
         </div>
 
         <Paragraph
@@ -282,12 +356,25 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
 
           {result.suggestions.length > 0 && (
             <>
-              <Alert
-                type="info"
-                message={t('optimizer.suggestionsFound', { count: result.suggestions.length })}
-                style={{ marginBottom: 16 }}
-                showIcon
-              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Alert
+                  type="info"
+                  message={t('optimizer.suggestionsFound', { count: result.suggestions.length })}
+                  showIcon
+                  style={{ flex: 1, marginRight: 8 }}
+                />
+                {appliedIds.size < result.suggestions.length && (
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<PlayCircleOutlined />}
+                    onClick={handleApplyAll}
+                    loading={applying}
+                  >
+                    {t('optimizer.applyAll')}
+                  </Button>
+                )}
+              </div>
 
               {result.analysisTimeMs && (
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>

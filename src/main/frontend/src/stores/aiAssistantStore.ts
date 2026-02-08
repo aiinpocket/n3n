@@ -119,6 +119,9 @@ interface AIAssistantState {
   pushHistory: (snapshot: FlowSnapshot) => void
   clearHistory: () => void
 
+  // Session ID sync with backend
+  updateSessionId: (newId: string) => void
+
   // Error handling
   setError: (error: string | null) => void
   clearError: () => void
@@ -457,6 +460,19 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       clearHistory: () => set({
         flowHistory: [],
         historyIndex: -1,
+      }),
+
+      // Session ID sync with backend
+      updateSessionId: (newId) => set((state) => {
+        if (!state.currentSession) return state
+        const oldId = state.currentSession.id
+        const updatedSession = { ...state.currentSession, id: newId }
+        return {
+          currentSession: updatedSession,
+          sessions: state.sessions.map((s) =>
+            s.id === oldId ? updatedSession : s
+          ),
+        }
       }),
 
       // Error handling

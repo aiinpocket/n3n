@@ -1,7 +1,10 @@
 package com.aiinpocket.n3n.ai.controller;
 
+import com.aiinpocket.n3n.ai.conversation.ConversationManager;
 import com.aiinpocket.n3n.ai.dto.*;
+import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.service.AIAssistantService;
+import com.aiinpocket.n3n.ai.service.RequirementClarificationService;
 import com.aiinpocket.n3n.ai.service.SimilarFlowsService;
 import com.aiinpocket.n3n.auth.dto.response.UserResponse;
 import com.aiinpocket.n3n.auth.service.AuthService;
@@ -18,6 +21,7 @@ import reactor.core.publisher.Flux;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,9 +32,11 @@ import java.util.UUID;
 public class AIAssistantController {
 
     private final AIAssistantService aiAssistantService;
+    private final RequirementClarificationService requirementClarificationService;
     private final AuthService authService;
     private final SimilarFlowsService similarFlowsService;
     private final FlowShareService flowShareService;
+    private final ConversationManager conversationManager;
 
     /**
      * AI 對話串流 API
@@ -213,6 +219,106 @@ public class AIAssistantController {
         int safeLimit = Math.min(Math.max(limit, 1), 50);
         List<SimilarFlow> flows = similarFlowsService.findSimilarFlows(userId, query, safeLimit);
         return ResponseEntity.ok(flows);
+    }
+
+    /**
+     * Requirement clarification - multi-turn conversation to clarify flow requirements
+     * POST /api/ai-assistant/clarify-requirements
+     *
+     * Helps users define their flow requirements through guided conversation.
+     * AI asks clarifying questions until requirements are complete.
+     */
+    @PostMapping("/clarify-requirements")
+    public ResponseEntity<RequirementClarificationResponse> clarifyRequirements(
+            @Valid @RequestBody RequirementClarificationRequest request,
+            Principal principal) {
+        log.info("Clarifying requirements: message={}",
+            request.getMessage() != null ?
+                request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
+
+        UUID userId = getUserId(principal);
+        RequirementClarificationResponse response = requirementClarificationService.clarify(request, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== Conversation Management ====================
+
+    /**
+     * List user's conversations
+     * GET /api/ai-assistant/conversations
+     */
+    @GetMapping("/conversations")
+    public ResponseEntity<List<ConversationSummary>> listConversations(
+            @RequestParam(required = false) String flowId,
+            Principal principal) {
+        UUID userId = getUserId(principal);
+        if (userId == null) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Conversation> conversations;
+        if (flowId != null && !flowId.isBlank()) {
+            conversations = conversationManager.getFlowConversations(userId, UUID.fromString(flowId));
+        } else {
+            conversations = conversationManager.getUserConversations(userId);
+        }
+
+        List<ConversationSummary> summaries = conversations.stream()
+            .map(c -> ConversationSummary.builder()
+                .id(c.getId())
+                .title(c.getTitle())
+                .flowId(c.getFlowId())
+                .messageCount(c.getMessageCount())
+                .createdAt(c.getCreatedAt() != null ? c.getCreatedAt().toString() : null)
+                .updatedAt(c.getUpdatedAt() != null ? c.getUpdatedAt().toString() : null)
+                .build())
+            .toList();
+
+        return ResponseEntity.ok(summaries);
+    }
+
+    /**
+     * Get conversation history
+     * GET /api/ai-assistant/conversations/{conversationId}
+     */
+    @GetMapping("/conversations/{conversationId}")
+    public ResponseEntity<Map<String, Object>> getConversation(
+            @PathVariable UUID conversationId,
+            Principal principal) {
+        UUID userId = getUserId(principal);
+        return conversationManager.getConversation(conversationId)
+            .filter(c -> c.getUserId().equals(userId))
+            .map(c -> {
+                Map<String, Object> result = Map.of(
+                    "id", c.getId(),
+                    "title", c.getTitle() != null ? c.getTitle() : "",
+                    "flowId", c.getFlowId() != null ? c.getFlowId().toString() : "",
+                    "messages", c.getMessages() != null ? c.getMessages() : List.of(),
+                    "summary", c.getSummary() != null ? c.getSummary() : "",
+                    "messageCount", c.getMessageCount()
+                );
+                return ResponseEntity.ok(result);
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Delete a conversation
+     * DELETE /api/ai-assistant/conversations/{conversationId}
+     */
+    @DeleteMapping("/conversations/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(
+            @PathVariable UUID conversationId,
+            Principal principal) {
+        UUID userId = getUserId(principal);
+        // Verify ownership
+        return conversationManager.getConversation(conversationId)
+            .filter(c -> c.getUserId().equals(userId))
+            .map(c -> {
+                conversationManager.deleteConversation(conversationId);
+                return ResponseEntity.noContent().<Void>build();
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     private UUID getUserId(Principal principal) {

@@ -13,6 +13,7 @@ import {
   Progress,
   List,
   message,
+  Spin,
 } from 'antd'
 import {
   RobotOutlined,
@@ -28,9 +29,12 @@ import {
   DislikeOutlined,
   AudioOutlined,
   AudioMutedOutlined,
+  SendOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import type { GenerateFlowResponse } from '../../api/aiAssistant'
+import type { GenerateFlowResponse, RequirementClarificationResponse, RequirementSummary } from '../../api/aiAssistant'
+import { aiAssistantApi } from '../../api/aiAssistant'
 import {
   installMissingNodes,
   getInstallTaskStatus,
@@ -55,7 +59,13 @@ interface Props {
   onCreateFlow?: (flowDefinition: GenerateFlowResponse['flowDefinition']) => void
 }
 
-type Step = 'input' | 'generating' | 'preview' | 'error'
+type Step = 'input' | 'conversation' | 'generating' | 'preview' | 'error'
+
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  suggestions?: string[]
+}
 
 export const FlowGeneratorModal: React.FC<Props> = ({
   open,
@@ -67,6 +77,14 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [userInput, setUserInput] = useState('')
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Conversation state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [isClarifying, setIsClarifying] = useState(false)
+  const [requirementSummary, setRequirementSummary] = useState<RequirementSummary | null>(null)
+  const [conversationId, setConversationId] = useState<string | undefined>()
+  const chatEndRef = useRef<HTMLDivElement>(null)
 
   // AI thinking progress state
   const [thinkingStage, setThinkingStage] = useState(0)
@@ -103,13 +121,22 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     continuous: true,
     onResult: (text, isFinal) => {
       if (isFinal) {
-        setUserInput((prev) => prev + text)
+        if (step === 'input') {
+          setUserInput((prev) => prev + text)
+        } else if (step === 'conversation') {
+          setChatInput((prev) => prev + text)
+        }
       }
     },
     onError: (err) => {
       message.error(err)
     },
   })
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages])
 
   // Poll for install task status
   useEffect(() => {
@@ -135,7 +162,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       )
       setInstallTasks(updatedTasks)
 
-      // Update installed nodes
       const newInstalled = new Set(installedNodes)
       updatedTasks.forEach((t) => {
         if (t.status === 'COMPLETED') {
@@ -144,7 +170,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       })
       setInstalledNodes(newInstalled)
 
-      // Check if all done
       const allDone = updatedTasks.every((t) =>
         ['COMPLETED', 'FAILED', 'CANCELLED'].includes(t.status)
       )
@@ -170,7 +195,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setIsInstalling(true)
     try {
       const response = await installMissingNodes(result.missingNodes)
-      // Initialize tasks with pending status
       const initialTasks: PluginInstallTaskStatus[] = response.taskIds.map((taskId: string, i: number) => ({
         taskId,
         nodeType: result.missingNodes![i],
@@ -193,7 +217,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setInstallTasks([])
     setInstalledNodes(new Set())
     setIsInstalling(false)
-    // Reset streaming state
+    setChatMessages([])
+    setChatInput('')
+    setIsClarifying(false)
+    setRequirementSummary(null)
+    setConversationId(undefined)
     setStreamProgress(0)
     setStreamStage('')
     setStreamMessage('')
@@ -213,9 +241,126 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     onClose()
   }
 
-  const handleGenerate = async () => {
+  // Start conversation-based clarification
+  const handleStartConversation = async () => {
     if (!userInput.trim()) return
 
+    setStep('conversation')
+    const userMsg: ChatMessage = { role: 'user', content: userInput.trim() }
+    setChatMessages([userMsg])
+    setIsClarifying(true)
+
+    try {
+      const response = await aiAssistantApi.clarifyRequirements({
+        message: userInput.trim(),
+        language: i18n.language || getLocale(),
+      })
+
+      handleClarificationResponse(response, [userMsg])
+    } catch (err) {
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: t('flowGenerator.clarifyError'),
+      }])
+    } finally {
+      setIsClarifying(false)
+    }
+  }
+
+  // Skip conversation, go directly to generation
+  const handleSkipConversation = () => {
+    if (!userInput.trim()) return
+    handleGenerateFromDescription(userInput.trim())
+  }
+
+  // Send a message in the conversation
+  const handleSendMessage = async (messageText?: string) => {
+    const text = messageText || chatInput.trim()
+    if (!text) return
+
+    setChatInput('')
+    const userMsg: ChatMessage = { role: 'user', content: text }
+    const updatedMessages = [...chatMessages, userMsg]
+    setChatMessages(updatedMessages)
+    setIsClarifying(true)
+
+    try {
+      const response = await aiAssistantApi.clarifyRequirements({
+        message: text,
+        conversationId,
+        history: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+        language: i18n.language || getLocale(),
+      })
+
+      handleClarificationResponse(response, updatedMessages)
+    } catch (err) {
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: t('flowGenerator.clarifyError'),
+      }])
+    } finally {
+      setIsClarifying(false)
+    }
+  }
+
+  const handleClarificationResponse = (
+    response: RequirementClarificationResponse,
+    currentMessages: ChatMessage[]
+  ) => {
+    if (response.conversationId) {
+      setConversationId(response.conversationId)
+    }
+
+    if (response.requirementComplete && response.summary) {
+      setRequirementSummary(response.summary)
+      setChatMessages([
+        ...currentMessages,
+        {
+          role: 'assistant',
+          content: response.message || t('flowGenerator.requirementComplete'),
+        },
+      ])
+    } else {
+      setChatMessages([
+        ...currentMessages,
+        {
+          role: 'assistant',
+          content: response.message || '',
+          suggestions: response.suggestedReplies,
+        },
+      ])
+    }
+  }
+
+  // Generate from the clarified requirements
+  const handleConfirmAndGenerate = () => {
+    const fullDescription = requirementSummary?.fullDescription
+      || buildDescriptionFromSummary()
+    handleGenerateFromDescription(fullDescription)
+  }
+
+  const buildDescriptionFromSummary = (): string => {
+    if (!requirementSummary) return userInput
+    const parts: string[] = []
+    if (requirementSummary.triggerDescription) {
+      parts.push(requirementSummary.triggerDescription)
+    }
+    if (requirementSummary.dataSource) {
+      parts.push(requirementSummary.dataSource)
+    }
+    if (requirementSummary.processSteps?.length) {
+      parts.push(requirementSummary.processSteps.join('，'))
+    }
+    if (requirementSummary.outputTarget) {
+      parts.push(requirementSummary.outputTarget)
+    }
+    if (requirementSummary.errorHandling) {
+      parts.push(requirementSummary.errorHandling)
+    }
+    return parts.join('。') || userInput
+  }
+
+  const handleGenerateFromDescription = async (description: string) => {
     setStep('generating')
     setError(null)
     setThinkingStage(0)
@@ -227,13 +372,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setPreviewEdges([])
     setStreamMissingNodes([])
 
-    // Create abort controller for cancellation
     const controller = new AbortController()
     abortControllerRef.current = controller
 
     try {
       await generateFlowStream(
-        { userInput, language: i18n.language || getLocale() },
+        { userInput: description, language: i18n.language || getLocale() },
         {
           onThinking: (msg) => {
             setThinkingThoughts((prev) => [...prev, msg])
@@ -242,7 +386,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             setStreamProgress(percent)
             setStreamStage(stage)
             if (msg) setStreamMessage(msg)
-            // Map progress to thinking stage
             if (percent < 20) setThinkingStage(0)
             else if (percent < 40) setThinkingStage(1)
             else if (percent < 70) setThinkingStage(2)
@@ -250,7 +393,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             else setThinkingStage(4)
           },
           onUnderstanding: (understanding) => {
-            // Update result with understanding as it comes
             setResult((prev) => ({
               ...(prev || { success: true, aiAvailable: true }),
               understanding,
@@ -266,7 +408,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             setStreamMissingNodes(missing)
           },
           onDone: (flowDefinition, requiredNodes) => {
-            // Finalize result
             setResult({
               success: true,
               aiAvailable: true,
@@ -301,35 +442,21 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     }
   }
 
-  // 開始編輯 AI 理解
   const handleStartEditUnderstanding = () => {
     setEditedUnderstanding(result?.understanding || '')
     setIsEditingUnderstanding(true)
   }
 
-  // 取消編輯
   const handleCancelEditUnderstanding = () => {
     setIsEditingUnderstanding(false)
     setEditedUnderstanding('')
     setFeedbackText('')
   }
 
-  // 帶反饋重新生成
   const handleRegenerateWithFeedback = async () => {
     if (!feedbackText.trim() && !editedUnderstanding.trim()) return
 
     setIsRegenerating(true)
-    setStep('generating')
-    setThinkingStage(0)
-    setThinkingThoughts([])
-    setStreamProgress(0)
-    setStreamStage('')
-    setStreamMessage('')
-    setPreviewNodes([])
-    setPreviewEdges([])
-    setStreamMissingNodes([])
-
-    // 建構帶反饋的輸入
     const originalLabel = t('aiAssistant.originalRequirement')
     const feedbackLabel = t('aiAssistant.userFeedback')
     const correctedLabel = t('aiAssistant.correctedUnderstanding')
@@ -337,84 +464,24 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       ? `${originalLabel}：${userInput}\n\n${feedbackLabel}：${feedbackText}\n\n${correctedLabel}：${editedUnderstanding || result?.understanding}`
       : `${originalLabel}：${userInput}\n\n${correctedLabel}：${editedUnderstanding}`
 
-    const controller = new AbortController()
-    abortControllerRef.current = controller
+    setIsEditingUnderstanding(false)
+    setEditedUnderstanding('')
+    setFeedbackText('')
+    setIsRegenerating(false)
 
-    try {
-      await generateFlowStream(
-        { userInput: feedbackInput, language: i18n.language || getLocale() },
-        {
-          onThinking: (msg) => {
-            setThinkingThoughts((prev) => [...prev, msg])
-          },
-          onProgress: (percent, stage, msg) => {
-            setStreamProgress(percent)
-            setStreamStage(stage)
-            if (msg) setStreamMessage(msg)
-            if (percent < 20) setThinkingStage(0)
-            else if (percent < 40) setThinkingStage(1)
-            else if (percent < 70) setThinkingStage(2)
-            else if (percent < 90) setThinkingStage(3)
-            else setThinkingStage(4)
-          },
-          onUnderstanding: (understanding) => {
-            setResult((prev) => ({
-              ...(prev || { success: true, aiAvailable: true }),
-              understanding,
-            }))
-          },
-          onNodeAdded: (node) => {
-            setPreviewNodes((prev) => [...prev, node])
-          },
-          onEdgeAdded: (edge) => {
-            setPreviewEdges((prev) => [...prev, edge])
-          },
-          onMissingNodes: (missing) => {
-            setStreamMissingNodes(missing)
-          },
-          onDone: (flowDefinition, requiredNodes) => {
-            setResult({
-              success: true,
-              aiAvailable: true,
-              understanding: result?.understanding || '',
-              flowDefinition: flowDefinition as GenerateFlowResponse['flowDefinition'],
-              requiredNodes,
-              missingNodes: streamMissingNodes.map((m) => m.nodeType),
-            })
-            setIsEditingUnderstanding(false)
-            setEditedUnderstanding('')
-            setFeedbackText('')
-            setStep('preview')
-          },
-          onError: (err) => {
-            setError(err)
-            setStep('error')
-          },
-        },
-        controller
-      )
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        setError(err instanceof Error ? err.message : t('common.error'))
-        setStep('error')
-      }
-    } finally {
-      setIsRegenerating(false)
-      abortControllerRef.current = null
-    }
+    await handleGenerateFromDescription(feedbackInput)
   }
 
   const handleSelectSimilarFlow = (flowId: string) => {
-    // 導航到流程編輯頁面
     window.open(`/flows/${flowId}`, '_blank')
   }
 
   const handleUseAsTemplate = async (flowId: string) => {
-    // 載入流程作為模板
     message.info(t('flowGenerator.loadingTemplate'))
-    // TODO: 實作載入流程定義並填入當前生成器
     handleSelectSimilarFlow(flowId)
   }
+
+  // ==================== Render Steps ====================
 
   const renderInputStep = () => (
     <div>
@@ -463,13 +530,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               gap: 4,
             }}
           >
-            <span
-              style={{
-                animation: 'pulse 1s infinite',
-                // Respect prefers-reduced-motion via CSS
-              }}
-              className="recording-indicator"
-            >●</span>
+            <span className="recording-indicator">●</span>
             {t('flowGenerator.recording')}
           </div>
         )}
@@ -479,11 +540,10 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         type="info"
         showIcon
         icon={<RobotOutlined />}
-        message={t('flowGenerator.tip')}
-        description={t('flowGenerator.tipDesc')}
+        message={t('flowGenerator.conversationTip')}
+        description={t('flowGenerator.conversationTipDesc')}
       />
 
-      {/* 類似流程推薦 */}
       <SimilarFlowsPanel
         query={userInput}
         onSelectFlow={handleSelectSimilarFlow}
@@ -494,9 +554,213 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     </div>
   )
 
+  const renderConversationStep = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 400 }}>
+      {/* Chat messages */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '12px 0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        {chatMessages.map((msg, idx) => (
+          <div
+            key={idx}
+            style={{
+              display: 'flex',
+              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              gap: 8,
+            }}
+          >
+            {msg.role === 'assistant' && (
+              <div style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #8B5CF6, #14B8A6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <RobotOutlined style={{ color: '#fff', fontSize: 14 }} />
+              </div>
+            )}
+            <div
+              style={{
+                maxWidth: '80%',
+                padding: '8px 12px',
+                borderRadius: msg.role === 'user'
+                  ? '12px 12px 2px 12px'
+                  : '12px 12px 12px 2px',
+                background: msg.role === 'user'
+                  ? 'var(--color-primary, #14B8A6)'
+                  : 'var(--color-bg-container, #1E293B)',
+                color: msg.role === 'user' ? '#fff' : 'inherit',
+                border: msg.role === 'assistant'
+                  ? '1px solid var(--color-border, #334155)'
+                  : 'none',
+              }}
+            >
+              <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {msg.content}
+              </div>
+              {/* Suggested replies */}
+              {msg.suggestions && msg.suggestions.length > 0 && (
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {msg.suggestions.map((suggestion, sIdx) => (
+                    <Tag
+                      key={sIdx}
+                      style={{
+                        cursor: 'pointer',
+                        borderStyle: 'dashed',
+                      }}
+                      onClick={() => handleSendMessage(suggestion)}
+                    >
+                      {suggestion}
+                    </Tag>
+                  ))}
+                </div>
+              )}
+            </div>
+            {msg.role === 'user' && (
+              <div style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: 'var(--color-primary, #14B8A6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <UserOutlined style={{ color: '#fff', fontSize: 14 }} />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {isClarifying && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #8B5CF6, #14B8A6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <RobotOutlined style={{ color: '#fff', fontSize: 14 }} />
+            </div>
+            <div style={{
+              padding: '8px 12px',
+              borderRadius: '12px 12px 12px 2px',
+              background: 'var(--color-bg-container, #1E293B)',
+              border: '1px solid var(--color-border, #334155)',
+            }}>
+              <Spin size="small" /> <Text type="secondary">{t('flowGenerator.thinking')}</Text>
+            </div>
+          </div>
+        )}
+
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Requirement Summary (when complete) */}
+      {requirementSummary && (
+        <Card
+          size="small"
+          style={{
+            marginBottom: 8,
+            border: '1px solid var(--color-primary, #14B8A6)',
+            borderRadius: 8,
+          }}
+          title={
+            <Space>
+              <CheckCircleOutlined style={{ color: 'var(--color-primary, #14B8A6)' }} />
+              <span>{t('flowGenerator.requirementSummary')}</span>
+            </Space>
+          }
+        >
+          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+            {requirementSummary.triggerType && (
+              <div>
+                <Text type="secondary">{t('flowGenerator.summaryTrigger')}:</Text>{' '}
+                <Text>{requirementSummary.triggerDescription || requirementSummary.triggerType}</Text>
+              </div>
+            )}
+            {requirementSummary.dataSource && (
+              <div>
+                <Text type="secondary">{t('flowGenerator.summaryData')}:</Text>{' '}
+                <Text>{requirementSummary.dataSource}</Text>
+              </div>
+            )}
+            {requirementSummary.processSteps && requirementSummary.processSteps.length > 0 && (
+              <div>
+                <Text type="secondary">{t('flowGenerator.summarySteps')}:</Text>
+                <ol style={{ margin: '4px 0 0 16px', padding: 0 }}>
+                  {requirementSummary.processSteps.map((s, i) => (
+                    <li key={i}><Text>{s}</Text></li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {requirementSummary.outputTarget && (
+              <div>
+                <Text type="secondary">{t('flowGenerator.summaryOutput')}:</Text>{' '}
+                <Text>{requirementSummary.outputTarget}</Text>
+              </div>
+            )}
+            {requirementSummary.errorHandling && (
+              <div>
+                <Text type="secondary">{t('flowGenerator.summaryErrorHandling')}:</Text>{' '}
+                <Text>{requirementSummary.errorHandling}</Text>
+              </div>
+            )}
+          </Space>
+        </Card>
+      )}
+
+      {/* Chat input */}
+      {!requirementSummary && (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Input
+            placeholder={t('flowGenerator.chatPlaceholder')}
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onPressEnter={() => handleSendMessage()}
+            disabled={isClarifying}
+            suffix={
+              isSpeechSupported ? (
+                <Button
+                  type="text"
+                  size="small"
+                  danger={isListening}
+                  icon={isListening ? <AudioMutedOutlined /> : <AudioOutlined />}
+                  onClick={isListening ? stopListening : startListening}
+                />
+              ) : undefined
+            }
+          />
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={() => handleSendMessage()}
+            disabled={!chatInput.trim() || isClarifying}
+          />
+        </div>
+      )}
+    </div>
+  )
+
   const renderGeneratingStep = () => (
     <div>
-      {/* Progress and Stage */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -520,7 +784,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         </Space>
       </Card>
 
-      {/* AI Thinking Indicator */}
       <AIThinkingIndicator
         currentStage={thinkingStage}
         thoughts={thinkingThoughts}
@@ -529,7 +792,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         animated={true}
       />
 
-      {/* Real-time Preview (show when we have nodes) */}
       {previewNodes.length > 0 && (
         <Card
           title={
@@ -558,7 +820,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         </Card>
       )}
 
-      {/* Cancel Button */}
       <div style={{ textAlign: 'center', marginTop: 16 }}>
         <Button
           onClick={() => {
@@ -583,7 +844,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     return (
       <div>
-        {/* AI Understanding - Editable */}
         <Card
           style={{ marginBottom: 16 }}
           size="small"
@@ -659,10 +919,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         </Card>
 
         <Card title={t('flowGenerator.generatedPreview')} size="small" style={{ marginBottom: 16 }}>
-          {/* Mini Flow Preview */}
           <MiniFlowPreview nodes={nodes} edges={edges} height={220} />
 
-          {/* Node and Edge Summary */}
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
             <Space split={<span style={{ color: '#d9d9d9' }}>|</span>}>
               <Text type="secondary">
@@ -711,7 +969,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   })}
                 </Space>
 
-                {/* Installation Progress */}
                 {installTasks.length > 0 && (
                   <List
                     size="small"
@@ -744,7 +1001,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   />
                 )}
 
-                {/* Install Button */}
                 {installedNodes.size < missingNodes.length && !isInstalling && (
                   <Button
                     type="primary"
@@ -781,6 +1037,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     switch (step) {
       case 'input':
         return renderInputStep()
+      case 'conversation':
+        return renderConversationStep()
       case 'generating':
         return renderGeneratingStep()
       case 'preview':
@@ -794,12 +1052,101 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     switch (step) {
       case 'input':
         return 0
-      case 'generating':
+      case 'conversation':
         return 1
+      case 'generating':
+        return 2
       case 'preview':
       case 'error':
-        return 2
+        return 3
     }
+  }
+
+  const getFooter = () => {
+    switch (step) {
+      case 'input':
+        return (
+          <Space>
+            <Button onClick={handleClose}>{t('common.cancel')}</Button>
+            <Button
+              onClick={handleSkipConversation}
+              disabled={!userInput.trim()}
+            >
+              {t('flowGenerator.skipConversation')}
+            </Button>
+            <Button
+              type="primary"
+              icon={<RobotOutlined />}
+              onClick={handleStartConversation}
+              disabled={!userInput.trim()}
+            >
+              {t('flowGenerator.startConversation')}
+            </Button>
+          </Space>
+        )
+      case 'conversation':
+        return (
+          <Space>
+            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
+            {requirementSummary ? (
+              <>
+                <Button onClick={() => {
+                  setRequirementSummary(null)
+                  setChatMessages(prev => [...prev, {
+                    role: 'user',
+                    content: t('flowGenerator.needMoreChanges'),
+                  }])
+                  // Continue conversation
+                  handleSendMessage(t('flowGenerator.needMoreChanges'))
+                }}>
+                  {t('flowGenerator.editRequirements')}
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<ThunderboltOutlined />}
+                  onClick={handleConfirmAndGenerate}
+                >
+                  {t('flowGenerator.confirmAndGenerate')}
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => {
+                  const desc = buildDescriptionFromChat()
+                  handleGenerateFromDescription(desc)
+                }}
+                disabled={chatMessages.length < 2}
+              >
+                {t('flowGenerator.generateNow')}
+              </Button>
+            )}
+          </Space>
+        )
+      case 'preview':
+        return (
+          <Space>
+            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={handleCreateFlow}
+            >
+              {t('flowGenerator.createFlow')}
+            </Button>
+          </Space>
+        )
+      case 'error':
+        return <Button onClick={handleClose}>{t('common.close')}</Button>
+      default:
+        return null
+    }
+  }
+
+  const buildDescriptionFromChat = (): string => {
+    return chatMessages
+      .filter(m => m.role === 'user')
+      .map(m => m.content)
+      .join('\n')
   }
 
   return (
@@ -812,35 +1159,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       }
       open={open}
       onCancel={handleClose}
-      width={640}
-      footer={
-        step === 'input' ? (
-          <Space>
-            <Button onClick={handleClose}>{t('common.cancel')}</Button>
-            <Button
-              type="primary"
-              icon={<RobotOutlined />}
-              onClick={handleGenerate}
-              disabled={!userInput.trim()}
-            >
-              {t('flowGenerator.startGenerate')}
-            </Button>
-          </Space>
-        ) : step === 'preview' ? (
-          <Space>
-            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
-            <Button
-              type="primary"
-              icon={<CheckCircleOutlined />}
-              onClick={handleCreateFlow}
-            >
-              {t('flowGenerator.createFlow')}
-            </Button>
-          </Space>
-        ) : step === 'error' ? (
-          <Button onClick={handleClose}>{t('common.close')}</Button>
-        ) : null
-      }
+      width={680}
+      footer={getFooter()}
     >
       <Steps
         current={getStepIndex()}
@@ -848,6 +1168,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         style={{ marginBottom: 24 }}
         items={[
           { title: t('flowGenerator.stepDescribe') },
+          { title: t('flowGenerator.stepClarify') },
           { title: t('flowGenerator.stepAnalyze') },
           { title: t('flowGenerator.stepConfirm') },
         ]}

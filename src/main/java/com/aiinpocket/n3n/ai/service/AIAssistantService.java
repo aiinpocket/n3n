@@ -3,8 +3,11 @@ package com.aiinpocket.n3n.ai.service;
 import com.aiinpocket.n3n.ai.agent.AgentContext;
 import com.aiinpocket.n3n.ai.agent.AgentResult;
 import com.aiinpocket.n3n.ai.agent.AgentStreamChunk;
+import com.aiinpocket.n3n.ai.agent.Message;
 import com.aiinpocket.n3n.ai.agent.supervisor.SupervisorAgent;
+import com.aiinpocket.n3n.ai.conversation.ConversationManager;
 import com.aiinpocket.n3n.ai.dto.*;
+import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.module.FlowOptimizationModule;
 import com.aiinpocket.n3n.ai.module.NaturalLanguageModule;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
@@ -31,6 +34,7 @@ public class AIAssistantService {
     private final PluginInstallationRepository pluginInstallationRepository;
     private final SupervisorAgent supervisorAgent;
     private final SimpleAIProviderRegistry simpleAIProviderRegistry;
+    private final ConversationManager conversationManager;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -50,16 +54,56 @@ public class AIAssistantService {
     /**
      * AI 對話串流
      * 使用多代理協作系統處理使用者訊息
+     * 支持對話持久化：自動載入歷史、儲存新訊息
      */
     public Flux<ChatStreamChunk> chatStream(ChatStreamRequest request, UUID userId) {
         log.info("Starting chat stream for user: {}", userId);
 
-        // 建立 Agent 上下文
-        AgentContext context = buildAgentContext(request, userId);
+        // 確保對話存在（如果 conversationId 為空則建立新對話）
+        UUID conversationId = ensureConversation(request, userId);
+
+        // 儲存使用者訊息
+        try {
+            conversationManager.addMessage(conversationId, "user", request.getMessage(), null);
+        } catch (Exception e) {
+            log.warn("Failed to save user message to conversation {}", conversationId, e);
+        }
+
+        // 建立帶有歷史的 Agent 上下文
+        AgentContext context = buildAgentContext(request, userId, conversationId);
+
+        // 用於收集完整回應
+        StringBuilder responseCollector = new StringBuilder();
+
+        // 先發送含 conversationId 的 metadata chunk
+        ChatStreamChunk metaChunk = ChatStreamChunk.builder()
+            .type("metadata")
+            .conversationId(conversationId.toString())
+            .build();
 
         // 執行 Supervisor Agent 串流
-        return supervisorAgent.executeStream(context)
-            .map(this::convertToChunk)
+        return Flux.just(metaChunk)
+            .concatWith(
+                supervisorAgent.executeStream(context)
+                    .map(this::convertToChunk)
+                    .doOnNext(chunk -> {
+                        // 收集文字回應
+                        if ("text".equals(chunk.getType()) && chunk.getText() != null) {
+                            responseCollector.append(chunk.getText());
+                        }
+                    })
+                    .doOnComplete(() -> {
+                        // 儲存 AI 回應
+                        String fullResponse = responseCollector.toString();
+                        if (!fullResponse.isBlank()) {
+                            try {
+                                conversationManager.addMessage(conversationId, "assistant", fullResponse, null);
+                            } catch (Exception e) {
+                                log.warn("Failed to save assistant response to conversation {}", conversationId, e);
+                            }
+                        }
+                    })
+            )
             .onErrorResume(e -> {
                 log.error("Chat stream error", e);
                 return Flux.just(ChatStreamChunk.error("AI service error"));
@@ -68,19 +112,39 @@ public class AIAssistantService {
 
     /**
      * AI 對話（非串流）
+     * 支持對話持久化：自動載入歷史、儲存新訊息
      */
     public ChatResponse chat(ChatStreamRequest request, UUID userId) {
         log.info("Starting chat for user: {}", userId);
 
         try {
-            // 建立 Agent 上下文
-            AgentContext context = buildAgentContext(request, userId);
+            // 確保對話存在
+            UUID conversationId = ensureConversation(request, userId);
+
+            // 儲存使用者訊息
+            try {
+                conversationManager.addMessage(conversationId, "user", request.getMessage(), null);
+            } catch (Exception e) {
+                log.warn("Failed to save user message to conversation {}", conversationId, e);
+            }
+
+            // 建立帶有歷史的 Agent 上下文
+            AgentContext context = buildAgentContext(request, userId, conversationId);
 
             // 執行 Supervisor Agent
             AgentResult result = supervisorAgent.execute(context);
 
             if (!result.isSuccess()) {
                 return ChatResponse.error(result.getError());
+            }
+
+            // 儲存 AI 回應
+            if (result.getContent() != null && !result.getContent().isBlank()) {
+                try {
+                    conversationManager.addMessage(conversationId, "assistant", result.getContent(), null);
+                } catch (Exception e) {
+                    log.warn("Failed to save assistant response to conversation {}", conversationId, e);
+                }
             }
 
             // 轉換待確認變更
@@ -98,7 +162,7 @@ public class AIAssistantService {
             }
 
             return ChatResponse.successWithFlow(
-                context.getConversationId(),
+                conversationId,
                 result.getContent(),
                 result.getFlowDefinition(),
                 pendingChanges
@@ -111,15 +175,50 @@ public class AIAssistantService {
     }
 
     /**
-     * 建立 Agent 執行上下文
+     * 確保對話存在。如果 request 中有 conversationId 就使用它，
+     * 否則建立新的對話。
      */
-    private AgentContext buildAgentContext(ChatStreamRequest request, UUID userId) {
+    private UUID ensureConversation(ChatStreamRequest request, UUID userId) {
+        if (request.getConversationId() != null) {
+            // 驗證對話存在
+            Optional<Conversation> existing = conversationManager.getConversation(request.getConversationId());
+            if (existing.isPresent()) {
+                return request.getConversationId();
+            }
+        }
+
+        // 建立新對話
+        UUID flowId = request.getFlowId() != null ? UUID.fromString(request.getFlowId()) : null;
+        String title = truncateForTitle(request.getMessage());
+        Conversation conversation = conversationManager.createConversation(userId, flowId, title);
+        // 回寫到 request 供後續使用
+        request.setConversationId(conversation.getId());
+        return conversation.getId();
+    }
+
+    /**
+     * 建立 Agent 執行上下文（含對話歷史）
+     */
+    private AgentContext buildAgentContext(ChatStreamRequest request, UUID userId, UUID conversationId) {
         AgentContext.AgentContextBuilder builder = AgentContext.builder()
-            .conversationId(request.getConversationId() != null ?
-                request.getConversationId() : UUID.randomUUID())
+            .conversationId(conversationId)
             .userId(userId)
             .userInput(request.getMessage())
             .flowId(request.getFlowId());
+
+        // 載入對話歷史
+        try {
+            List<Map<String, Object>> historyMaps = conversationManager.getContextForAI(conversationId);
+            List<Message> history = historyMaps.stream()
+                .map(m -> Message.builder()
+                    .role((String) m.get("role"))
+                    .content((String) m.get("content"))
+                    .build())
+                .toList();
+            builder.conversationHistory(new ArrayList<>(history));
+        } catch (Exception e) {
+            log.warn("Failed to load conversation history for {}", conversationId, e);
+        }
 
         // 如果有流程定義，設置當前節點和邊
         if (request.getFlowDefinition() != null) {
@@ -128,6 +227,12 @@ public class AIAssistantService {
         }
 
         return builder.build();
+    }
+
+    private String truncateForTitle(String message) {
+        if (message == null) return "New Conversation";
+        String clean = message.replaceAll("\\s+", " ").trim();
+        return clean.length() > 50 ? clean.substring(0, 50) + "..." : clean;
     }
 
     /**

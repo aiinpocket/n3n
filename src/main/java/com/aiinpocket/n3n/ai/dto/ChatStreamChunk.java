@@ -42,6 +42,11 @@ public class ChatStreamChunk {
     private String stage;
 
     /**
+     * 對話 ID（在第一個 chunk 中回傳，供前端追蹤）
+     */
+    private String conversationId;
+
+    /**
      * 時間戳記
      */
     @Builder.Default

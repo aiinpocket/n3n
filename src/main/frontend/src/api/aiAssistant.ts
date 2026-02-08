@@ -106,6 +106,37 @@ export interface NodeRecommendationResponse {
   error?: string
 }
 
+// Requirement Clarification Types
+export interface RequirementClarificationRequest {
+  message: string
+  conversationId?: string
+  history?: Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }>
+  language?: string
+}
+
+export interface RequirementSummary {
+  triggerType?: string
+  triggerDescription?: string
+  dataSource?: string
+  processSteps?: string[]
+  outputTarget?: string
+  errorHandling?: string
+  fullDescription?: string
+}
+
+export interface RequirementClarificationResponse {
+  success: boolean
+  conversationId?: string
+  message?: string
+  requirementComplete: boolean
+  summary?: RequirementSummary
+  suggestedReplies?: string[]
+  error?: string
+}
+
 // Flow Generation Types
 export interface GenerateFlowRequest {
   userInput: string
@@ -191,6 +222,19 @@ export const aiAssistantApi = {
   ): Promise<NodeRecommendationResponse> => {
     const response = await client.post<NodeRecommendationResponse>(
       '/ai-assistant/recommend-nodes',
+      request
+    )
+    return response.data
+  },
+
+  /**
+   * Clarify requirements through multi-turn conversation
+   */
+  clarifyRequirements: async (
+    request: RequirementClarificationRequest
+  ): Promise<RequirementClarificationResponse> => {
+    const response = await client.post<RequirementClarificationResponse>(
+      '/ai-assistant/clarify-requirements',
       request
     )
     return response.data

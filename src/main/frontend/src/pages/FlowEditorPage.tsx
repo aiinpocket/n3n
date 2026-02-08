@@ -24,6 +24,7 @@ import {
   RobotOutlined,
   SearchOutlined,
   ReloadOutlined,
+  LinkOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -61,6 +62,7 @@ import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
 import { extractApiError } from '../utils/errorMessages'
+import { formApi } from '../api/form'
 
 const { Text } = Typography
 
@@ -165,6 +167,24 @@ export default function FlowEditorPage() {
   // AI Assistant Store
   const { openPanel: openAIPanel } = useAIAssistantStore()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Check if the flow has a Form Trigger node
+  const hasFormTrigger = useMemo(
+    () => nodes.some((n) => n.type === 'formTrigger'),
+    [nodes]
+  )
+
+  // Copy the form URL to clipboard
+  const handleCopyFormUrl = useCallback(async () => {
+    if (!id) return
+    try {
+      const { url } = await formApi.getFormUrl(id)
+      await navigator.clipboard.writeText(url)
+      message.success(t('form.formUrlCopied'))
+    } catch (err) {
+      message.error(extractApiError(err, t('form.formUrlFailed')))
+    }
+  }, [id, t])
 
   // Load flow on mount
   useEffect(() => {
@@ -651,6 +671,13 @@ export default function FlowEditorPage() {
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
               {t('editor.externalServices')}
             </Button>
+            {hasFormTrigger && (
+              <Tooltip title={t('form.getFormUrl')}>
+                <Button icon={<LinkOutlined />} onClick={handleCopyFormUrl}>
+                  {t('form.getFormUrl')}
+                </Button>
+              </Tooltip>
+            )}
             <Dropdown
               menu={{
                 items: [
@@ -967,6 +994,7 @@ export default function FlowEditorPage() {
       <OptimizationPanel
         visible={optimizationPanelOpen}
         onClose={() => setOptimizationPanelOpen(false)}
+        flowId={id}
         flowDefinition={nodes.length > 0 ? {
           nodes: nodes.map(n => ({
             id: n.id,
@@ -981,10 +1009,25 @@ export default function FlowEditorPage() {
           })),
         } : null}
         onHighlightNodes={(nodeIds) => {
-          // Highlight the selected nodes by selecting the first one
           if (nodeIds.length > 0) {
             setSelectedNodeId(nodeIds[0])
           }
+        }}
+        onApplyOptimization={(updatedDef) => {
+          pushHistory()
+          const newNodes = updatedDef.nodes.map((n, i) => ({
+            id: n.id,
+            type: n.type || 'unknown',
+            position: n.position || { x: 250, y: i * 120 + 50 },
+            data: n.data as Record<string, unknown>,
+          }))
+          setNodes(newNodes)
+          setEdges(updatedDef.edges.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+          })))
+          message.success(t('optimizer.flowOptimized'))
         }}
       />
 

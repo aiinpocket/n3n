@@ -78,6 +78,7 @@ export default function AIPanelDrawer({
     clearError,
     exportSession,
     importSession,
+    updateSessionId,
   } = useAIAssistantStore()
 
   const [inputValue, setInputValue] = useState('')
@@ -204,6 +205,12 @@ export default function AIPanelDrawer({
           onProgress: (percent, stage) => {
             updateStreamingContent('', `${stage} (${percent}%)`)
           },
+          onMetadata: (conversationId) => {
+            // Sync local session ID with server-persisted conversation ID
+            if (conversationId && currentSession?.id !== conversationId) {
+              updateSessionId(conversationId)
+            }
+          },
           onError: (errorMsg) => {
             setError(errorMsg)
             finalizeStreaming()
@@ -233,6 +240,7 @@ export default function AIPanelDrawer({
     addPendingChange,
     setError,
     finalizeStreaming,
+    updateSessionId,
   ])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
