@@ -15,6 +15,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -515,6 +516,18 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    @PreDestroy
+    void shutdown() {
+        clients.forEach((key, entry) -> {
+            try {
+                entry.client.close();
+            } catch (Exception e) {
+                log.warn("Error closing MongoDB client on shutdown: {}", e.getMessage());
+            }
+        });
+        clients.clear();
     }
 
     // Client cache entry

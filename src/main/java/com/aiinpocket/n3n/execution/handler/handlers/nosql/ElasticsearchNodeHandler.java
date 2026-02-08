@@ -19,6 +19,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -481,6 +482,18 @@ public class ElasticsearchNodeHandler extends MultiOperationNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    @PreDestroy
+    void shutdown() {
+        clients.forEach((key, entry) -> {
+            try {
+                entry.transport.close();
+            } catch (Exception e) {
+                log.warn("Error closing Elasticsearch client on shutdown: {}", e.getMessage());
+            }
+        });
+        clients.clear();
     }
 
     // Client cache entry

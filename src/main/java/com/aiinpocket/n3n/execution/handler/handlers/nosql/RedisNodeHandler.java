@@ -13,6 +13,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -724,6 +725,19 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    @PreDestroy
+    void shutdown() {
+        clients.forEach((key, entry) -> {
+            try {
+                entry.connection.close();
+                entry.client.shutdown();
+            } catch (Exception e) {
+                log.warn("Error closing Redis client on shutdown: {}", e.getMessage());
+            }
+        });
+        clients.clear();
     }
 
     // Client cache entry
