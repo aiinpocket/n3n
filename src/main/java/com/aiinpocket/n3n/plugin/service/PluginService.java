@@ -140,17 +140,33 @@ public class PluginService {
      */
     public List<PluginDto> getInstalledPlugins(UUID userId) {
         List<PluginInstallation> installations = pluginInstallationRepository.findByUserIdWithDetails(userId);
+        if (installations.isEmpty()) {
+            return List.of();
+        }
+
+        // Batch fetch all needed data to avoid N+1 queries
+        List<UUID> pluginIds = installations.stream()
+                .map(inst -> inst.getPlugin().getId())
+                .collect(Collectors.toList());
+
+        Map<UUID, PluginVersion> latestVersions = pluginVersionRepository.findLatestByPluginIds(pluginIds)
+                .stream().collect(Collectors.toMap(PluginVersion::getPluginId, v -> v));
+
+        Map<UUID, Long> downloadCounts = pluginVersionRepository.getTotalDownloadsByPluginIds(pluginIds)
+                .stream().collect(Collectors.toMap(r -> (UUID) r[0], r -> (Long) r[1]));
+
+        Map<UUID, Double> avgRatings = new HashMap<>();
+        Map<UUID, Long> ratingCounts = new HashMap<>();
+        for (Object[] row : pluginRatingRepository.getRatingStatsByPluginIds(pluginIds)) {
+            avgRatings.put((UUID) row[0], (Double) row[1]);
+            ratingCounts.put((UUID) row[0], (Long) row[2]);
+        }
 
         return installations.stream()
                 .map(inst -> {
                     Plugin plugin = inst.getPlugin();
                     PluginVersion installedVersion = inst.getPluginVersion();
-                    PluginVersion latestVersion = pluginVersionRepository.findLatestByPluginId(plugin.getId())
-                            .orElse(installedVersion);
-
-                    Long downloads = pluginVersionRepository.getTotalDownloads(plugin.getId());
-                    Double rating = pluginRatingRepository.getAverageRating(plugin.getId());
-                    Long ratingCount = pluginRatingRepository.getRatingCount(plugin.getId());
+                    PluginVersion latestVersion = latestVersions.getOrDefault(plugin.getId(), installedVersion);
 
                     return PluginDto.builder()
                             .id(plugin.getId())
@@ -164,9 +180,9 @@ public class PluginService {
                             .price(plugin.getPrice())
                             .tags(plugin.getTags())
                             .version(latestVersion != null ? latestVersion.getVersion() : null)
-                            .downloads(downloads != null ? downloads : 0L)
-                            .rating(rating != null ? rating : 0.0)
-                            .ratingCount(ratingCount != null ? ratingCount : 0L)
+                            .downloads(downloadCounts.getOrDefault(plugin.getId(), 0L))
+                            .rating(avgRatings.getOrDefault(plugin.getId(), 0.0))
+                            .ratingCount(ratingCounts.getOrDefault(plugin.getId(), 0L))
                             .isInstalled(true)
                             .installedVersion(installedVersion.getVersion())
                             .updatedAt(plugin.getUpdatedAt())

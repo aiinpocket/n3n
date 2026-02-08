@@ -21,9 +21,10 @@ public class Flow {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
+    @Column(length = 5000)
     private String description;
 
     @Column(name = "created_by", nullable = false)

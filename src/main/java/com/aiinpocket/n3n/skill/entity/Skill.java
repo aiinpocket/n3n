@@ -28,17 +28,19 @@ public class Skill {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 255)
     private String name;
 
-    @Column(name = "display_name", nullable = false)
+    @Column(name = "display_name", nullable = false, length = 255)
     private String displayName;
 
+    @Column(length = 2000)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String category;
 
+    @Column(length = 100)
     private String icon;
 
     @Column(name = "is_builtin")

@@ -26,13 +26,13 @@ public class Webhook {
     @Column(name = "flow_id", nullable = false)
     private UUID flowId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 255)
     private String path;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10)
     @Builder.Default
     private String method = "POST";
 
@@ -40,7 +40,7 @@ public class Webhook {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(name = "auth_type")
+    @Column(name = "auth_type", length = 50)
     private String authType;
 
     @JdbcTypeCode(SqlTypes.JSON)

@@ -24,12 +24,13 @@ public class Credential {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String type;
 
+    @Column(length = 1000)
     private String description;
 
     @Column(name = "owner_id", nullable = false)
