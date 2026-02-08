@@ -103,9 +103,12 @@ public class FormNodeHandler extends AbstractNodeHandler {
 
         // Include all form data
         if (resumeData.containsKey("formData")) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> formData = (Map<String, Object>) resumeData.get("formData");
-            output.putAll(formData);
+            Object formDataObj = resumeData.get("formData");
+            if (formDataObj instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> formData = (Map<String, Object>) formDataObj;
+                output.putAll(formData);
+            }
         } else {
             // Resume data is the form data itself
             output.putAll(resumeData);
@@ -180,7 +183,10 @@ public class FormNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> getResumeData(NodeExecutionContext context) {
         Map<String, Object> globalContext = context.getGlobalContext();
         if (globalContext != null && globalContext.containsKey("_resumeData")) {
-            return (Map<String, Object>) globalContext.get("_resumeData");
+            Object resumeObj = globalContext.get("_resumeData");
+            if (resumeObj instanceof Map<?, ?>) {
+                return (Map<String, Object>) resumeObj;
+            }
         }
         return null;
     }

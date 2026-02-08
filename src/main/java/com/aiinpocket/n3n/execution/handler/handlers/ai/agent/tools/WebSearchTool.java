@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 網路搜索工具
- * 讓 AI Agent 能夠搜索網路資訊
+ * Web search tool
+ * Allows AI Agent to search the web for information
  *
- * 支援多個搜索引擎 API（可配置）
+ * Supports multiple search engine APIs (configurable)
  */
 @Component
 @Slf4j
@@ -124,7 +124,7 @@ public class WebSearchTool implements AgentNodeTool {
     }
 
     private List<SearchResult> performSearch(String query, int maxResults) throws Exception {
-        // 使用 DuckDuckGo Instant Answer API（免費，不需要 API key）
+        // Use DuckDuckGo Instant Answer API (free, no API key required)
         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
         String url = "https://api.duckduckgo.com/?q=" + encodedQuery + "&format=json&no_html=1&skip_disambig=1";
 
@@ -144,7 +144,7 @@ public class WebSearchTool implements AgentNodeTool {
         JsonNode json = objectMapper.readTree(response.body());
         List<SearchResult> results = new ArrayList<>();
 
-        // 嘗試獲取 Abstract（最相關的結果）
+        // Try to get Abstract (most relevant result)
         String abstractText = json.path("AbstractText").asText("");
         String abstractUrl = json.path("AbstractURL").asText("");
         String abstractSource = json.path("AbstractSource").asText("");
@@ -156,7 +156,7 @@ public class WebSearchTool implements AgentNodeTool {
             ));
         }
 
-        // 嘗試獲取 RelatedTopics
+        // Try to get RelatedTopics
         JsonNode topics = json.path("RelatedTopics");
         if (topics.isArray()) {
             for (JsonNode topic : topics) {
@@ -166,14 +166,14 @@ public class WebSearchTool implements AgentNodeTool {
                 String topicUrl = topic.path("FirstURL").asText("");
 
                 if (!text.isEmpty() && !topicUrl.isEmpty()) {
-                    // 從 URL 提取標題
+                    // Extract title from text
                     String title = extractTitleFromText(text);
                     results.add(new SearchResult(title, topicUrl, text));
                 }
             }
         }
 
-        // 如果沒有結果，嘗試 Infobox
+        // If no results, try Infobox
         if (results.isEmpty()) {
             JsonNode infobox = json.path("Infobox");
             if (infobox.isObject()) {
@@ -200,12 +200,12 @@ public class WebSearchTool implements AgentNodeTool {
     }
 
     private String extractTitleFromText(String text) {
-        // DuckDuckGo 的 Text 格式通常是 "Title - Description"
+        // DuckDuckGo Text format is typically "Title - Description"
         int dashIndex = text.indexOf(" - ");
         if (dashIndex > 0 && dashIndex < 100) {
             return text.substring(0, dashIndex);
         }
-        // 否則取前 50 個字元
+        // Otherwise take first 50 characters
         if (text.length() > 50) {
             return text.substring(0, 50) + "...";
         }

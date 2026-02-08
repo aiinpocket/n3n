@@ -186,15 +186,19 @@ public class JwtNodeHandler extends AbstractNodeHandler {
         // Check expiration
         boolean expired = false;
         if (checkExpiration && payload.containsKey("exp")) {
-            long exp = ((Number) payload.get("exp")).longValue();
-            expired = Instant.now().getEpochSecond() > exp;
+            Object expObj = payload.get("exp");
+            if (expObj instanceof Number n) {
+                expired = Instant.now().getEpochSecond() > n.longValue();
+            }
         }
 
         // Check not-before
         boolean notYetValid = false;
         if (payload.containsKey("nbf")) {
-            long nbf = ((Number) payload.get("nbf")).longValue();
-            notYetValid = Instant.now().getEpochSecond() < nbf;
+            Object nbfObj = payload.get("nbf");
+            if (nbfObj instanceof Number n) {
+                notYetValid = Instant.now().getEpochSecond() < n.longValue();
+            }
         }
 
         boolean valid = signatureValid && !expired && !notYetValid;
@@ -254,17 +258,17 @@ public class JwtNodeHandler extends AbstractNodeHandler {
         if (payload.containsKey("iss")) claims.put("issuer", payload.get("iss"));
         if (payload.containsKey("sub")) claims.put("subject", payload.get("sub"));
         if (payload.containsKey("aud")) claims.put("audience", payload.get("aud"));
-        if (payload.containsKey("iat")) {
-            long iat = ((Number) payload.get("iat")).longValue();
+        if (payload.containsKey("iat") && payload.get("iat") instanceof Number iatNum) {
+            long iat = iatNum.longValue();
             claims.put("issuedAt", Instant.ofEpochSecond(iat).toString());
         }
-        if (payload.containsKey("exp")) {
-            long exp = ((Number) payload.get("exp")).longValue();
+        if (payload.containsKey("exp") && payload.get("exp") instanceof Number expNum) {
+            long exp = expNum.longValue();
             claims.put("expiresAt", Instant.ofEpochSecond(exp).toString());
             claims.put("expired", Instant.now().getEpochSecond() > exp);
         }
-        if (payload.containsKey("nbf")) {
-            long nbf = ((Number) payload.get("nbf")).longValue();
+        if (payload.containsKey("nbf") && payload.get("nbf") instanceof Number nbfNum) {
+            long nbf = nbfNum.longValue();
             claims.put("notBefore", Instant.ofEpochSecond(nbf).toString());
         }
         if (payload.containsKey("jti")) claims.put("tokenId", payload.get("jti"));

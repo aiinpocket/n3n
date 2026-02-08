@@ -81,9 +81,12 @@ public class SwitchNodeHandler extends AbstractNodeHandler {
 
         // Evaluate each case
         for (Map<String, Object> caseConfig : cases) {
-            String branch = (String) caseConfig.getOrDefault("branch", "case_" + matchedBranches.size());
-            String field = (String) caseConfig.get("field");
-            String operator = (String) caseConfig.getOrDefault("operator", "equals");
+            Object branchObj = caseConfig.getOrDefault("branch", "case_" + matchedBranches.size());
+            String branch = branchObj != null ? branchObj.toString() : "case_" + matchedBranches.size();
+            Object fieldObj = caseConfig.get("field");
+            String field = fieldObj != null ? fieldObj.toString() : null;
+            Object operatorObj = caseConfig.getOrDefault("operator", "equals");
+            String operator = operatorObj != null ? operatorObj.toString() : "equals";
             Object compareValue = caseConfig.get("value");
 
             // Get field value from input

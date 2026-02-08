@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Base64 編解碼工具
+ * Base64 encoding/decoding tool
  */
 @Component
 @Slf4j
@@ -30,16 +30,16 @@ public class Base64Tool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                Base64 編碼和解碼工具。
+                Base64 encoding and decoding tool.
 
-                操作類型：
-                - encode: 將文字編碼為 Base64
-                - decode: 將 Base64 解碼為文字
+                Operations:
+                - encode: Encode text to Base64
+                - decode: Decode Base64 to text
 
-                參數：
-                - text: 要處理的文字
-                - operation: 操作類型（encode 或 decode）
-                - urlSafe: 是否使用 URL 安全的 Base64（預設 false）
+                Parameters:
+                - text: Text to process
+                - operation: Operation type (encode or decode)
+                - urlSafe: Whether to use URL-safe Base64 (default false)
                 """;
     }
 
@@ -50,17 +50,17 @@ public class Base64Tool implements AgentNodeTool {
                 "properties", Map.of(
                         "text", Map.of(
                                 "type", "string",
-                                "description", "要處理的文字"
+                                "description", "Text to process"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("encode", "decode"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "encode"
                         ),
                         "urlSafe", Map.of(
                                 "type", "boolean",
-                                "description", "是否使用 URL 安全的 Base64",
+                                "description", "Whether to use URL-safe Base64",
                                 "default", false
                         )
                 ),
@@ -74,7 +74,7 @@ public class Base64Tool implements AgentNodeTool {
             try {
                 String text = (String) parameters.get("text");
                 if (text == null || text.isEmpty()) {
-                    return ToolResult.failure("文字不能為空");
+                    return ToolResult.failure("Text cannot be empty");
                 }
 
                 String operation = (String) parameters.getOrDefault("operation", "encode");
@@ -88,11 +88,11 @@ public class Base64Tool implements AgentNodeTool {
                     Base64.Decoder decoder = urlSafe ? Base64.getUrlDecoder() : Base64.getDecoder();
                     result = new String(decoder.decode(text), StandardCharsets.UTF_8);
                 } else {
-                    return ToolResult.failure("不支援的操作: " + operation);
+                    return ToolResult.failure("Unsupported operation: " + operation);
                 }
 
-                String output = String.format("Base64 %s 結果：\n%s",
-                        "encode".equals(operation) ? "編碼" : "解碼", result);
+                String output = String.format("Base64 %s result:\n%s",
+                        "encode".equals(operation) ? "encode" : "decode", result);
 
                 return ToolResult.success(output, Map.of(
                         "operation", operation,
@@ -101,10 +101,10 @@ public class Base64Tool implements AgentNodeTool {
                 ));
 
             } catch (IllegalArgumentException e) {
-                return ToolResult.failure("Base64 解碼失敗：輸入不是有效的 Base64 字串");
+                return ToolResult.failure("Base64 decoding failed: input is not a valid Base64 string");
             } catch (Exception e) {
                 log.error("Base64 operation failed", e);
-                return ToolResult.failure("Base64 操作失敗");
+                return ToolResult.failure("Base64 operation failed");
             }
         });
     }

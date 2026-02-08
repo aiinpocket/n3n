@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * URL Slug 生成工具
- * 將文字轉換為 URL 友善的 slug
+ * URL Slug generation tool
+ * Converts text into a URL-friendly slug
  */
 @Component
 @Slf4j
@@ -30,22 +30,22 @@ public class SlugifyTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                將文字轉換為 URL 友善的 slug。
+                Converts text into a URL-friendly slug.
 
-                功能：
-                - 移除變音符號
-                - 轉換為小寫
-                - 將空格和特殊字元替換為連字號
-                - 移除連續的連字號
-                - 移除開頭和結尾的連字號
+                Features:
+                - Removes diacritical marks (accents)
+                - Converts to lowercase
+                - Replaces spaces and special characters with hyphens
+                - Removes consecutive hyphens
+                - Removes leading and trailing hyphens
 
-                參數：
-                - text: 要轉換的文字
-                - separator: 分隔符（預設 -）
-                - lowercase: 是否轉小寫（預設 true）
-                - maxLength: 最大長度（預設 100）
+                Parameters:
+                - text: Text to convert
+                - separator: Separator character (default: -)
+                - lowercase: Whether to convert to lowercase (default: true)
+                - maxLength: Maximum length (default: 100)
 
-                範例：
+                Examples:
                 "Hello World!" → "hello-world"
                 "Café Résumé" → "cafe-resume"
                 """;
@@ -58,21 +58,21 @@ public class SlugifyTool implements AgentNodeTool {
                 "properties", Map.of(
                         "text", Map.of(
                                 "type", "string",
-                                "description", "要轉換的文字"
+                                "description", "Text to convert"
                         ),
                         "separator", Map.of(
                                 "type", "string",
-                                "description", "分隔符",
+                                "description", "Separator character",
                                 "default", "-"
                         ),
                         "lowercase", Map.of(
                                 "type", "boolean",
-                                "description", "是否轉小寫",
+                                "description", "Whether to convert to lowercase",
                                 "default", true
                         ),
                         "maxLength", Map.of(
                                 "type", "integer",
-                                "description", "最大長度",
+                                "description", "Maximum length",
                                 "default", 100
                         )
                 ),
@@ -92,12 +92,12 @@ public class SlugifyTool implements AgentNodeTool {
                         : 100;
 
                 if (text == null || text.isEmpty()) {
-                    return ToolResult.failure("文字不能為空");
+                    return ToolResult.failure("Text cannot be empty");
                 }
 
                 // Security: limit separator length
                 if (separator.length() > 3) {
-                    return ToolResult.failure("分隔符最長 3 個字元");
+                    return ToolResult.failure("Separator must be at most 3 characters");
                 }
 
                 // Limit max length
@@ -106,7 +106,7 @@ public class SlugifyTool implements AgentNodeTool {
                 String slug = slugify(text, separator, lowercase, maxLength);
 
                 return ToolResult.success(
-                        String.format("Slug 生成成功\n原文：%s\nSlug：%s", text, slug),
+                        String.format("Slug generated successfully\nOriginal: %s\nSlug: %s", text, slug),
                         Map.of(
                                 "slug", slug,
                                 "original", text,
@@ -117,7 +117,7 @@ public class SlugifyTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Slugify failed", e);
-                return ToolResult.failure("Slug 生成失敗");
+                return ToolResult.failure("Slug generation failed");
             }
         });
     }

@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Redis 記憶儲存實作
- * 使用 Redis List 儲存對話歷史
+ * Redis memory store implementation.
+ * Uses Redis List to store conversation history.
  */
 @Component
 @Slf4j
@@ -55,7 +55,7 @@ public class RedisMemoryStore implements MemoryStore {
                     return List.of();
                 }
 
-                // 取得最後 N 筆
+                // Get the last N entries
                 long start = Math.max(0, size - limit);
                 List<String> jsonList = redisTemplate.opsForList().range(key, start, -1);
                 if (jsonList == null) {
@@ -87,8 +87,8 @@ public class RedisMemoryStore implements MemoryStore {
 
     @Override
     public CompletableFuture<List<MemoryEntry>> search(String sessionId, String query, int limit) {
-        // Redis 基本實作：回傳最近的記憶（不支援語意搜尋）
-        // 若需語意搜尋，請使用 VectorMemoryStore
+        // Basic Redis implementation: returns recent memories (no semantic search support)
+        // For semantic search, use VectorMemoryStore
         return getHistory(sessionId, limit);
     }
 

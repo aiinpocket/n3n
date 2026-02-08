@@ -15,14 +15,14 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * JSON 操作工具
+ * JSON operation tool
  *
- * 允許 AI Agent 進行 JSON 資料操作：
- * - 解析 JSON 字串
- * - 提取特定路徑的值
- * - 格式化/美化 JSON
- * - 合併 JSON 物件
- * - 驗證 JSON 格式
+ * Allows AI Agent to perform JSON data operations:
+ * - Parse JSON strings
+ * - Extract values by path
+ * - Format/prettify JSON
+ * - Merge JSON objects
+ * - Validate JSON format
  */
 @Component
 @RequiredArgsConstructor
@@ -44,22 +44,22 @@ public class JsonTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                JSON 資料操作工具。支援的操作：
-                - parse: 解析 JSON 字串
-                - get: 使用路徑提取值（如 user.name、items[0].id）
-                - format: 美化 JSON（縮排格式化）
-                - minify: 壓縮 JSON（移除空白）
-                - validate: 驗證 JSON 格式是否正確
-                - merge: 合併多個 JSON 物件
-                - keys: 取得物件的所有鍵
-                - values: 取得物件的所有值
-                - count: 計算陣列長度或物件屬性數量
-                - filter: 過濾陣列元素
+                JSON data operation tool. Supported operations:
+                - parse: Parse JSON string
+                - get: Extract value by path (e.g. user.name, items[0].id)
+                - format: Prettify JSON (indented formatting)
+                - minify: Compact JSON (remove whitespace)
+                - validate: Validate JSON format
+                - merge: Merge multiple JSON objects
+                - keys: Get all keys of an object
+                - values: Get all values of an object
+                - count: Count array length or object property count
+                - filter: Filter array elements
 
-                路徑語法：
-                - 使用點號分隔：user.profile.name
-                - 陣列索引：items[0]、items[-1]（最後一個）
-                - 萬用字元：items[*].id（所有元素的 id）
+                Path syntax:
+                - Dot notation: user.profile.name
+                - Array index: items[0], items[-1] (last element)
+                - Wildcard: items[*].id (id of all elements)
                 """;
     }
 
@@ -71,24 +71,24 @@ public class JsonTool implements AgentNodeTool {
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("parse", "get", "format", "minify", "validate", "merge", "keys", "values", "count", "filter"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "parse"
                         ),
                         "json", Map.of(
                                 "type", "string",
-                                "description", "JSON 字串"
+                                "description", "JSON string"
                         ),
                         "path", Map.of(
                                 "type", "string",
-                                "description", "JSON 路徑（用於 get 操作）"
+                                "description", "JSON path (for get operation)"
                         ),
                         "json2", Map.of(
                                 "type", "string",
-                                "description", "第二個 JSON（用於 merge 操作）"
+                                "description", "Second JSON (for merge operation)"
                         ),
                         "condition", Map.of(
                                 "type", "string",
-                                "description", "過濾條件（用於 filter 操作，如 status=active）"
+                                "description", "Filter condition (for filter operation, e.g. status=active)"
                         )
                 ),
                 "required", List.of("json")
@@ -101,7 +101,7 @@ public class JsonTool implements AgentNodeTool {
             try {
                 String jsonStr = (String) parameters.get("json");
                 if (jsonStr == null || jsonStr.isBlank()) {
-                    return ToolResult.failure("JSON 字串不能為空");
+                    return ToolResult.failure("JSON string cannot be empty");
                 }
 
                 String operation = (String) parameters.getOrDefault("operation", "parse");
@@ -117,21 +117,21 @@ public class JsonTool implements AgentNodeTool {
                     case "values" -> handleValues(jsonStr);
                     case "count" -> handleCount(jsonStr);
                     case "filter" -> handleFilter(jsonStr, (String) parameters.get("condition"));
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (JsonProcessingException e) {
                 log.error("JSON parsing failed", e);
-                return ToolResult.failure("JSON 解析錯誤");
+                return ToolResult.failure("JSON parsing error");
             } catch (Exception e) {
                 log.error("JSON operation failed", e);
-                return ToolResult.failure("JSON 操作失敗");
+                return ToolResult.failure("JSON operation failed");
             }
         });
     }
 
     /**
-     * 解析 JSON
+     * Parse JSON
      */
     private ToolResult handleParse(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
@@ -149,17 +149,17 @@ public class JsonTool implements AgentNodeTool {
         }
 
         return ToolResult.success(
-                String.format("JSON 類型: %s\n%s", type, objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node)),
+                String.format("JSON type: %s\n%s", type, objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node)),
                 data
         );
     }
 
     /**
-     * 使用路徑取值
+     * Get value by path
      */
     private ToolResult handleGet(String jsonStr, String path) throws JsonProcessingException {
         if (path == null || path.isBlank()) {
-            return ToolResult.failure("get 操作需要提供 path 參數");
+            return ToolResult.failure("The get operation requires a path parameter");
         }
 
         JsonNode root = objectMapper.readTree(jsonStr);
@@ -167,7 +167,7 @@ public class JsonTool implements AgentNodeTool {
 
         if (result == null || result.isMissingNode()) {
             return ToolResult.success(
-                    String.format("路徑 '%s' 未找到值", path),
+                    String.format("No value found at path '%s'", path),
                     Map.of("path", path, "found", false)
             );
         }
@@ -175,7 +175,7 @@ public class JsonTool implements AgentNodeTool {
         Object value = objectMapper.convertValue(result, Object.class);
 
         return ToolResult.success(
-                String.format("路徑 '%s' 的值: %s", path, result.toString()),
+                String.format("Value at path '%s': %s", path, result.toString()),
                 Map.of(
                         "path", path,
                         "value", value,
@@ -186,7 +186,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 格式化 JSON
+     * Format JSON
      */
     private ToolResult handleFormat(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
@@ -199,7 +199,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 壓縮 JSON
+     * Minify JSON
      */
     private ToolResult handleMinify(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
@@ -219,7 +219,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 驗證 JSON
+     * Validate JSON
      */
     private ToolResult handleValidate(String jsonStr) {
         try {
@@ -227,30 +227,30 @@ public class JsonTool implements AgentNodeTool {
             String type = getNodeType(node);
 
             return ToolResult.success(
-                    "JSON 格式有效 (" + type + ")",
+                    "Valid JSON (" + type + ")",
                     Map.of("valid", true, "type", type)
             );
         } catch (JsonProcessingException e) {
             return ToolResult.success(
-                    "JSON 格式無效: " + e.getOriginalMessage(),
+                    "Invalid JSON: " + e.getOriginalMessage(),
                     Map.of("valid", false, "error", e.getOriginalMessage())
             );
         }
     }
 
     /**
-     * 合併 JSON
+     * Merge JSON
      */
     private ToolResult handleMerge(String jsonStr, String json2Str) throws JsonProcessingException {
         if (json2Str == null || json2Str.isBlank()) {
-            return ToolResult.failure("merge 操作需要提供 json2 參數");
+            return ToolResult.failure("The merge operation requires a json2 parameter");
         }
 
         JsonNode node1 = objectMapper.readTree(jsonStr);
         JsonNode node2 = objectMapper.readTree(json2Str);
 
         if (!node1.isObject() || !node2.isObject()) {
-            return ToolResult.failure("merge 操作僅支援物件類型的 JSON");
+            return ToolResult.failure("The merge operation only supports object-type JSON");
         }
 
         ObjectNode merged = ((ObjectNode) node1).deepCopy();
@@ -259,37 +259,37 @@ public class JsonTool implements AgentNodeTool {
         String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(merged);
 
         return ToolResult.success(
-                "合併結果:\n" + result,
+                "Merge result:\n" + result,
                 Map.of("merged", objectMapper.convertValue(merged, Object.class))
         );
     }
 
     /**
-     * 取得所有鍵
+     * Get all keys
      */
     private ToolResult handleKeys(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
 
         if (!node.isObject()) {
-            return ToolResult.failure("keys 操作僅支援物件類型的 JSON");
+            return ToolResult.failure("The keys operation only supports object-type JSON");
         }
 
         List<String> keys = getObjectKeys(node);
 
         return ToolResult.success(
-                "JSON 物件包含 " + keys.size() + " 個鍵: " + String.join(", ", keys),
+                "JSON object contains " + keys.size() + " keys: " + String.join(", ", keys),
                 Map.of("keys", keys, "count", keys.size())
         );
     }
 
     /**
-     * 取得所有值
+     * Get all values
      */
     private ToolResult handleValues(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
 
         if (!node.isObject()) {
-            return ToolResult.failure("values 操作僅支援物件類型的 JSON");
+            return ToolResult.failure("The values operation only supports object-type JSON");
         }
 
         List<Object> values = new ArrayList<>();
@@ -298,43 +298,43 @@ public class JsonTool implements AgentNodeTool {
         });
 
         return ToolResult.success(
-                "JSON 物件包含 " + values.size() + " 個值",
+                "JSON object contains " + values.size() + " values",
                 Map.of("values", values, "count", values.size())
         );
     }
 
     /**
-     * 計算數量
+     * Count elements
      */
     private ToolResult handleCount(String jsonStr) throws JsonProcessingException {
         JsonNode node = objectMapper.readTree(jsonStr);
         int count = node.size();
-        String type = node.isArray() ? "陣列元素" : "物件屬性";
+        String type = node.isArray() ? "array elements" : "object properties";
 
         return ToolResult.success(
-                String.format("JSON 包含 %d 個%s", count, type),
+                String.format("JSON contains %d %s", count, type),
                 Map.of("count", count, "type", getNodeType(node))
         );
     }
 
     /**
-     * 過濾陣列
+     * Filter array
      */
     private ToolResult handleFilter(String jsonStr, String condition) throws JsonProcessingException {
         if (condition == null || condition.isBlank()) {
-            return ToolResult.failure("filter 操作需要提供 condition 參數（如 status=active）");
+            return ToolResult.failure("The filter operation requires a condition parameter (e.g. status=active)");
         }
 
         JsonNode node = objectMapper.readTree(jsonStr);
 
         if (!node.isArray()) {
-            return ToolResult.failure("filter 操作僅支援陣列類型的 JSON");
+            return ToolResult.failure("The filter operation only supports array-type JSON");
         }
 
-        // 解析條件
+        // Parse condition
         String[] parts = condition.split("=", 2);
         if (parts.length != 2) {
-            return ToolResult.failure("條件格式無效，應為 key=value");
+            return ToolResult.failure("Invalid condition format, should be key=value");
         }
 
         String key = parts[0].trim();
@@ -351,7 +351,7 @@ public class JsonTool implements AgentNodeTool {
         }
 
         return ToolResult.success(
-                String.format("過濾結果: %d 個元素符合條件 '%s'\n%s",
+                String.format("Filter result: %d elements match condition '%s'\n%s",
                         filtered.size(), condition,
                         objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(filtered)),
                 Map.of(
@@ -363,7 +363,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 根據路徑取值
+     * Get value by path
      */
     private JsonNode getByPath(JsonNode node, String path) {
         if (path == null || path.isEmpty()) {
@@ -378,7 +378,7 @@ public class JsonTool implements AgentNodeTool {
                 return null;
             }
 
-            // 處理陣列索引 [n] 或 [*]
+            // Handle array index [n] or [*]
             if (part.contains("[")) {
                 int bracketStart = part.indexOf('[');
                 String fieldName = part.substring(0, bracketStart);
@@ -393,7 +393,7 @@ public class JsonTool implements AgentNodeTool {
 
                 if (current.isArray()) {
                     if (indexStr.equals("*")) {
-                        // 萬用字元：返回所有元素
+                        // Wildcard: return all elements
                         ArrayNode results = objectMapper.createArrayNode();
                         for (JsonNode element : current) {
                             results.add(element);
@@ -402,7 +402,7 @@ public class JsonTool implements AgentNodeTool {
                     } else {
                         int index = Integer.parseInt(indexStr);
                         if (index < 0) {
-                            index = current.size() + index; // 負數索引
+                            index = current.size() + index; // Negative index
                         }
                         current = current.get(index);
                     }
@@ -416,7 +416,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 取得節點類型
+     * Get node type
      */
     private String getNodeType(JsonNode node) {
         if (node.isObject()) return "object";
@@ -429,7 +429,7 @@ public class JsonTool implements AgentNodeTool {
     }
 
     /**
-     * 取得物件的所有鍵
+     * Get all keys of an object
      */
     private List<String> getObjectKeys(JsonNode node) {
         List<String> keys = new ArrayList<>();

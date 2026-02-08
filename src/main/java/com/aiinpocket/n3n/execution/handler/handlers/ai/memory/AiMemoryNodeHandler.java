@@ -15,13 +15,13 @@ import reactor.core.publisher.Flux;
 import java.util.*;
 
 /**
- * AI Memory 節點處理器
+ * AI Memory Node Handler
  *
- * 功能：
- * - 對話記憶存取
- * - 會話管理
- * - 記憶摘要生成
- * - 支援多種儲存後端
+ * Features:
+ * - Conversation memory storage and retrieval
+ * - Session management
+ * - Memory summarization
+ * - Multiple storage backend support
  */
 @Component
 @Slf4j
@@ -74,7 +74,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         Map<String, List<OperationDef>> operations = new LinkedHashMap<>();
 
         operations.put("memory", List.of(
-            // 儲存訊息
+            // Store message
             OperationDef.create("store", "Store Message")
                 .description("Store a message in conversation memory")
                 .fields(List.of(
@@ -92,7 +92,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Confirmation of stored message")
                 .build(),
 
-            // 取得歷史
+            // Get history
             OperationDef.create("getHistory", "Get History")
                 .description("Retrieve conversation history")
                 .fields(List.of(
@@ -107,7 +107,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Returns array of messages with role, content, and timestamp")
                 .build(),
 
-            // 清除記憶
+            // Clear memory
             OperationDef.create("clear", "Clear Memory")
                 .description("Clear all memory for a session")
                 .fields(List.of(
@@ -118,7 +118,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Confirmation of cleared memory")
                 .build(),
 
-            // 搜尋記憶
+            // Search memory
             OperationDef.create("search", "Search Memory")
                 .description("Search conversation memory")
                 .fields(List.of(
@@ -135,7 +135,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Returns matching messages")
                 .build(),
 
-            // 取得/設定摘要
+            // Get/set summary
             OperationDef.create("getSummary", "Get Summary")
                 .description("Get session summary")
                 .fields(List.of(

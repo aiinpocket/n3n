@@ -14,8 +14,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * JWT 解析工具
- * 解析和驗證 JWT Token（僅解析，不產生）
+ * JWT parsing tool
+ * Parse and inspect JWT tokens (parsing only, not generation)
  */
 @Component
 @RequiredArgsConstructor
@@ -37,17 +37,17 @@ public class JwtTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                JWT（JSON Web Token）解析工具。
+                JWT (JSON Web Token) parsing tool.
 
-                功能：
-                - 解析 JWT 的 Header 和 Payload
-                - 顯示過期時間和發行時間
-                - 檢查是否過期
+                Features:
+                - Parse JWT Header and Payload
+                - Display expiration and issued-at times
+                - Check if token is expired
 
-                參數：
-                - token: JWT 字串
+                Parameters:
+                - token: JWT string
 
-                注意：此工具只能解析 JWT，不能驗證簽名或產生新的 JWT。
+                Note: This tool can only parse JWTs, it cannot verify signatures or generate new JWTs.
                 """;
     }
 
@@ -72,12 +72,12 @@ public class JwtTool implements AgentNodeTool {
                 String token = (String) parameters.get("token");
 
                 if (token == null || token.isBlank()) {
-                    return ToolResult.failure("Token 不能為空");
+                    return ToolResult.failure("Token cannot be empty");
                 }
 
                 // Security: limit token size
                 if (token.length() > 10_000) {
-                    return ToolResult.failure("Token 過長");
+                    return ToolResult.failure("Token too long");
                 }
 
                 // Remove Bearer prefix if present
@@ -88,7 +88,7 @@ public class JwtTool implements AgentNodeTool {
                 // Split JWT
                 String[] parts = token.split("\\.");
                 if (parts.length != 3) {
-                    return ToolResult.failure("無效的 JWT 格式，應該有 3 個部分以點號分隔");
+                    return ToolResult.failure("Invalid JWT format, should have 3 parts separated by dots");
                 }
 
                 // Decode header and payload
@@ -96,7 +96,7 @@ public class JwtTool implements AgentNodeTool {
                 Map<String, Object> payload = decodeBase64Json(parts[1]);
 
                 if (header == null || payload == null) {
-                    return ToolResult.failure("無法解析 JWT");
+                    return ToolResult.failure("Cannot parse JWT");
                 }
 
                 // Check expiration
@@ -126,33 +126,33 @@ public class JwtTool implements AgentNodeTool {
                 }
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("JWT 解析結果：\n\n");
+                sb.append("JWT parse result:\n\n");
 
                 sb.append("=== Header ===\n");
-                sb.append(String.format("- 演算法 (alg): %s\n", header.get("alg")));
-                sb.append(String.format("- 類型 (typ): %s\n", header.getOrDefault("typ", "JWT")));
+                sb.append(String.format("- Algorithm (alg): %s\n", header.get("alg")));
+                sb.append(String.format("- Type (typ): %s\n", header.getOrDefault("typ", "JWT")));
                 if (header.containsKey("kid")) {
-                    sb.append(String.format("- 金鑰 ID (kid): %s\n", header.get("kid")));
+                    sb.append(String.format("- Key ID (kid): %s\n", header.get("kid")));
                 }
 
                 sb.append("\n=== Payload ===\n");
                 if (payload.containsKey("sub")) {
-                    sb.append(String.format("- 主體 (sub): %s\n", payload.get("sub")));
+                    sb.append(String.format("- Subject (sub): %s\n", payload.get("sub")));
                 }
                 if (payload.containsKey("iss")) {
-                    sb.append(String.format("- 發行者 (iss): %s\n", payload.get("iss")));
+                    sb.append(String.format("- Issuer (iss): %s\n", payload.get("iss")));
                 }
                 if (payload.containsKey("aud")) {
-                    sb.append(String.format("- 受眾 (aud): %s\n", payload.get("aud")));
+                    sb.append(String.format("- Audience (aud): %s\n", payload.get("aud")));
                 }
                 if (issuedAt != null) {
-                    sb.append(String.format("- 發行時間 (iat): %s\n", issuedAt));
+                    sb.append(String.format("- Issued at (iat): %s\n", issuedAt));
                 }
                 if (expiration != null) {
-                    sb.append(String.format("- 過期時間 (exp): %s\n", expiration));
+                    sb.append(String.format("- Expiration (exp): %s\n", expiration));
                 }
                 if (notBefore != null) {
-                    sb.append(String.format("- 生效時間 (nbf): %s\n", notBefore));
+                    sb.append(String.format("- Not before (nbf): %s\n", notBefore));
                 }
                 if (payload.containsKey("jti")) {
                     sb.append(String.format("- Token ID (jti): %s\n", payload.get("jti")));
@@ -160,7 +160,7 @@ public class JwtTool implements AgentNodeTool {
 
                 // Custom claims
                 Set<String> standardClaims = Set.of("sub", "iss", "aud", "exp", "iat", "nbf", "jti");
-                sb.append("\n=== 自訂聲明 ===\n");
+                sb.append("\n=== Custom Claims ===\n");
                 boolean hasCustomClaims = false;
                 for (Map.Entry<String, Object> entry : payload.entrySet()) {
                     if (!standardClaims.contains(entry.getKey())) {
@@ -169,16 +169,16 @@ public class JwtTool implements AgentNodeTool {
                     }
                 }
                 if (!hasCustomClaims) {
-                    sb.append("（無）\n");
+                    sb.append("(none)\n");
                 }
 
-                sb.append("\n=== 狀態 ===\n");
+                sb.append("\n=== Status ===\n");
                 if (isExpired) {
-                    sb.append("⚠️ Token 已過期！\n");
+                    sb.append("WARNING: Token is expired!\n");
                 } else if (expiration != null) {
-                    sb.append("✅ Token 未過期\n");
+                    sb.append("OK: Token is not expired\n");
                 } else {
-                    sb.append("⚠️ Token 沒有設定過期時間\n");
+                    sb.append("WARNING: Token has no expiration time set\n");
                 }
 
                 return ToolResult.success(sb.toString(), Map.of(
@@ -191,7 +191,7 @@ public class JwtTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("JWT parsing failed", e);
-                return ToolResult.failure("JWT 解析失敗");
+                return ToolResult.failure("JWT parsing failed");
             }
         });
     }

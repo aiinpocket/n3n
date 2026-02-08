@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * 程式碼執行工具
- * 讓 AI Agent 能夠執行 JavaScript 程式碼
+ * Code execution tool
+ * Allows AI Agent to execute JavaScript code
  *
- * 使用 GraalVM Polyglot 在沙盒環境中執行
+ * Runs in a sandboxed environment using GraalVM Polyglot
  */
 @Component
 @Slf4j
@@ -51,7 +51,7 @@ public class CodeExecutionTool implements AgentNodeTool {
 
     @Override
     public boolean requiresConfirmation() {
-        return true;  // 程式碼執行需要確認
+        return true;  // Code execution requires confirmation
     }
 
     @Override
@@ -96,13 +96,13 @@ public class CodeExecutionTool implements AgentNodeTool {
                     .err(errorStream)
                     .build()) {
 
-                // 注入變數
+                // Inject variables
                 Value bindings = jsContext.getBindings("js");
                 for (Map.Entry<String, Object> entry : variables.entrySet()) {
                     bindings.putMember(entry.getKey(), entry.getValue());
                 }
 
-                // 注入 console.log
+                // Inject console.log
                 jsContext.eval("js", """
                     var console = {
                         log: function() {
@@ -117,7 +117,7 @@ public class CodeExecutionTool implements AgentNodeTool {
                     };
                     """);
 
-                // 執行程式碼（帶超時）
+                // Execute code (with timeout)
                 CompletableFuture<Value> future = CompletableFuture.supplyAsync(() ->
                     jsContext.eval("js", code)
                 );
@@ -129,11 +129,11 @@ public class CodeExecutionTool implements AgentNodeTool {
                     return ToolResult.failure("Code execution timed out after " + timeout + " seconds");
                 }
 
-                // 收集輸出
+                // Collect output
                 String stdout = outputStream.toString();
                 String stderr = errorStream.toString();
 
-                // 格式化結果
+                // Format result
                 String resultStr = formatResult(result);
                 StringBuilder output = new StringBuilder();
 
@@ -181,7 +181,7 @@ public class CodeExecutionTool implements AgentNodeTool {
         }
         if (result.hasArrayElements()) {
             StringBuilder sb = new StringBuilder("[");
-            long size = Math.min(result.getArraySize(), 100);  // 限制顯示數量
+            long size = Math.min(result.getArraySize(), 100);  // Limit display count
             for (long i = 0; i < size; i++) {
                 if (i > 0) sb.append(", ");
                 sb.append(formatResult(result.getArrayElement(i)));

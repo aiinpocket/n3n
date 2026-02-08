@@ -14,14 +14,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 日期時間工具
+ * Date/time tool
  *
- * 允許 AI Agent 進行日期時間操作：
- * - 取得當前時間
- * - 格式化日期時間
- * - 計算日期差異
- * - 日期加減運算
- * - 時區轉換
+ * Allows AI Agent to perform date/time operations:
+ * - Get current time
+ * - Format date/time
+ * - Calculate date differences
+ * - Date arithmetic (add/subtract)
+ * - Timezone conversion
  */
 @Component
 @Slf4j
@@ -34,7 +34,7 @@ public class DateTimeTool implements AgentNodeTool {
             "datetime", "yyyy-MM-dd HH:mm:ss",
             "rfc", "EEE, dd MMM yyyy HH:mm:ss z",
             "short", "yy/MM/dd",
-            "long", "yyyy年MM月dd日 HH時mm分ss秒"
+            "long", "MMMM dd, yyyy HH:mm:ss"
     );
 
     @Override
@@ -50,16 +50,16 @@ public class DateTimeTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                日期時間操作工具。支援的操作：
-                - now: 取得當前日期時間
-                - format: 格式化日期時間
-                - parse: 解析日期時間字串
-                - diff: 計算兩個日期的差異
-                - add: 日期加減運算
-                - convert: 時區轉換
+                Date/time operation tool. Supported operations:
+                - now: Get current date/time
+                - format: Format date/time
+                - parse: Parse date/time string
+                - diff: Calculate difference between two dates
+                - add: Date arithmetic (add/subtract)
+                - convert: Timezone conversion
 
-                預設格式：iso, date, time, datetime, rfc, short, long
-                自訂格式使用 Java DateTimeFormatter 語法
+                Preset formats: iso, date, time, datetime, rfc, short, long
+                Custom formats use Java DateTimeFormatter syntax
                 """;
     }
 
@@ -71,39 +71,39 @@ public class DateTimeTool implements AgentNodeTool {
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("now", "format", "parse", "diff", "add", "convert"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "now"
                         ),
                         "datetime", Map.of(
                                 "type", "string",
-                                "description", "日期時間字串（ISO 8601 格式）"
+                                "description", "Date/time string (ISO 8601 format)"
                         ),
                         "datetime2", Map.of(
                                 "type", "string",
-                                "description", "第二個日期時間（用於 diff 操作）"
+                                "description", "Second date/time (for diff operation)"
                         ),
                         "format", Map.of(
                                 "type", "string",
-                                "description", "日期時間格式（預設 iso）",
+                                "description", "Date/time format (default iso)",
                                 "default", "iso"
                         ),
                         "timezone", Map.of(
                                 "type", "string",
-                                "description", "時區（如 Asia/Taipei, UTC, America/New_York）",
+                                "description", "Timezone (e.g. Asia/Taipei, UTC, America/New_York)",
                                 "default", "Asia/Taipei"
                         ),
                         "target_timezone", Map.of(
                                 "type", "string",
-                                "description", "目標時區（用於 convert 操作）"
+                                "description", "Target timezone (for convert operation)"
                         ),
                         "amount", Map.of(
                                 "type", "integer",
-                                "description", "加減的數量（用於 add 操作）"
+                                "description", "Amount to add/subtract (for add operation)"
                         ),
                         "unit", Map.of(
                                 "type", "string",
                                 "enum", List.of("years", "months", "weeks", "days", "hours", "minutes", "seconds"),
-                                "description", "時間單位（用於 add、diff 操作）",
+                                "description", "Time unit (for add, diff operations)",
                                 "default", "days"
                         )
                 ),
@@ -122,7 +122,7 @@ public class DateTimeTool implements AgentNodeTool {
                 try {
                     zoneId = ZoneId.of(timezone);
                 } catch (Exception e) {
-                    return ToolResult.failure("無效的時區: " + timezone);
+                    return ToolResult.failure("Invalid timezone: " + timezone);
                 }
 
                 return switch (operation.toLowerCase()) {
@@ -132,18 +132,18 @@ public class DateTimeTool implements AgentNodeTool {
                     case "diff" -> handleDiff(parameters, zoneId);
                     case "add" -> handleAdd(parameters, zoneId);
                     case "convert" -> handleConvert(parameters, zoneId);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("DateTime operation failed", e);
-                return ToolResult.failure("日期時間操作失敗");
+                return ToolResult.failure("Date/time operation failed");
             }
         });
     }
 
     /**
-     * 取得當前時間
+     * Get current time
      */
     private ToolResult handleNow(Map<String, Object> parameters, ZoneId zoneId) {
         String formatName = (String) parameters.getOrDefault("format", "iso");
@@ -166,18 +166,18 @@ public class DateTimeTool implements AgentNodeTool {
         data.put("timestamp", now.toEpochSecond());
 
         return ToolResult.success(
-                String.format("現在時間（%s）: %s", zoneId, formatted),
+                String.format("Current time (%s): %s", zoneId, formatted),
                 data
         );
     }
 
     /**
-     * 格式化日期時間
+     * Format date/time
      */
     private ToolResult handleFormat(Map<String, Object> parameters, ZoneId zoneId) {
         String datetimeStr = (String) parameters.get("datetime");
         if (datetimeStr == null || datetimeStr.isBlank()) {
-            return ToolResult.failure("format 操作需要提供 datetime 參數");
+            return ToolResult.failure("The format operation requires a datetime parameter");
         }
 
         String formatName = (String) parameters.getOrDefault("format", "iso");
@@ -185,13 +185,13 @@ public class DateTimeTool implements AgentNodeTool {
 
         ZonedDateTime datetime = parseDateTime(datetimeStr, zoneId);
         if (datetime == null) {
-            return ToolResult.failure("無法解析日期時間: " + datetimeStr);
+            return ToolResult.failure("Cannot parse date/time: " + datetimeStr);
         }
 
         String formatted = datetime.format(formatter);
 
         return ToolResult.success(
-                String.format("格式化結果: %s", formatted),
+                String.format("Formatted result: %s", formatted),
                 Map.of(
                         "input", datetimeStr,
                         "format", formatName,
@@ -201,17 +201,17 @@ public class DateTimeTool implements AgentNodeTool {
     }
 
     /**
-     * 解析日期時間
+     * Parse date/time
      */
     private ToolResult handleParse(Map<String, Object> parameters, ZoneId zoneId) {
         String datetimeStr = (String) parameters.get("datetime");
         if (datetimeStr == null || datetimeStr.isBlank()) {
-            return ToolResult.failure("parse 操作需要提供 datetime 參數");
+            return ToolResult.failure("The parse operation requires a datetime parameter");
         }
 
         ZonedDateTime datetime = parseDateTime(datetimeStr, zoneId);
         if (datetime == null) {
-            return ToolResult.failure("無法解析日期時間: " + datetimeStr);
+            return ToolResult.failure("Cannot parse date/time: " + datetimeStr);
         }
 
         Map<String, Object> data = new HashMap<>();
@@ -227,27 +227,27 @@ public class DateTimeTool implements AgentNodeTool {
         data.put("dayOfYear", datetime.getDayOfYear());
 
         return ToolResult.success(
-                String.format("解析結果: %s", datetime),
+                String.format("Parse result: %s", datetime),
                 data
         );
     }
 
     /**
-     * 計算日期差異
+     * Calculate date difference
      */
     private ToolResult handleDiff(Map<String, Object> parameters, ZoneId zoneId) {
         String datetime1Str = (String) parameters.get("datetime");
         String datetime2Str = (String) parameters.get("datetime2");
 
         if (datetime1Str == null || datetime2Str == null) {
-            return ToolResult.failure("diff 操作需要提供 datetime 和 datetime2 參數");
+            return ToolResult.failure("The diff operation requires datetime and datetime2 parameters");
         }
 
         ZonedDateTime datetime1 = parseDateTime(datetime1Str, zoneId);
         ZonedDateTime datetime2 = parseDateTime(datetime2Str, zoneId);
 
         if (datetime1 == null || datetime2 == null) {
-            return ToolResult.failure("無法解析日期時間");
+            return ToolResult.failure("Cannot parse date/time");
         }
 
         String unit = (String) parameters.getOrDefault("unit", "days");
@@ -255,7 +255,7 @@ public class DateTimeTool implements AgentNodeTool {
 
         long diff = chronoUnit.between(datetime1, datetime2);
 
-        // 計算詳細差異
+        // Calculate detailed difference
         Duration duration = Duration.between(datetime1, datetime2);
         long totalSeconds = Math.abs(duration.getSeconds());
         long days = totalSeconds / 86400;
@@ -270,17 +270,17 @@ public class DateTimeTool implements AgentNodeTool {
         data.put("total_hours", duration.toHours());
         data.put("total_minutes", duration.toMinutes());
         data.put("total_seconds", totalSeconds);
-        data.put("human_readable", String.format("%d 天 %d 小時 %d 分 %d 秒", days, hours, minutes, seconds));
+        data.put("human_readable", String.format("%d days %d hours %d minutes %d seconds", days, hours, minutes, seconds));
 
         return ToolResult.success(
-                String.format("日期差異: %d %s (%d 天 %d 小時 %d 分 %d 秒)",
+                String.format("Date difference: %d %s (%d days %d hours %d minutes %d seconds)",
                         diff, unit, days, hours, minutes, seconds),
                 data
         );
     }
 
     /**
-     * 日期加減
+     * Date arithmetic
      */
     private ToolResult handleAdd(Map<String, Object> parameters, ZoneId zoneId) {
         String datetimeStr = (String) parameters.get("datetime");
@@ -289,7 +289,7 @@ public class DateTimeTool implements AgentNodeTool {
                 : null;
 
         if (amount == null) {
-            return ToolResult.failure("add 操作需要提供 amount 參數");
+            return ToolResult.failure("The add operation requires an amount parameter");
         }
 
         ZonedDateTime datetime;
@@ -298,7 +298,7 @@ public class DateTimeTool implements AgentNodeTool {
         } else {
             datetime = parseDateTime(datetimeStr, zoneId);
             if (datetime == null) {
-                return ToolResult.failure("無法解析日期時間: " + datetimeStr);
+                return ToolResult.failure("Cannot parse date/time: " + datetimeStr);
             }
         }
 
@@ -314,7 +314,7 @@ public class DateTimeTool implements AgentNodeTool {
             default -> datetime.plusDays(amount);
         };
 
-        String operation = amount >= 0 ? "加" : "減";
+        String operation = amount >= 0 ? "+" : "-";
         int absAmount = Math.abs(amount);
 
         return ToolResult.success(
@@ -332,21 +332,21 @@ public class DateTimeTool implements AgentNodeTool {
     }
 
     /**
-     * 時區轉換
+     * Timezone conversion
      */
     private ToolResult handleConvert(Map<String, Object> parameters, ZoneId sourceZone) {
         String datetimeStr = (String) parameters.get("datetime");
         String targetTz = (String) parameters.get("target_timezone");
 
         if (targetTz == null || targetTz.isBlank()) {
-            return ToolResult.failure("convert 操作需要提供 target_timezone 參數");
+            return ToolResult.failure("The convert operation requires a target_timezone parameter");
         }
 
         ZoneId targetZone;
         try {
             targetZone = ZoneId.of(targetTz);
         } catch (Exception e) {
-            return ToolResult.failure("無效的目標時區: " + targetTz);
+            return ToolResult.failure("Invalid target timezone: " + targetTz);
         }
 
         ZonedDateTime datetime;
@@ -355,14 +355,14 @@ public class DateTimeTool implements AgentNodeTool {
         } else {
             datetime = parseDateTime(datetimeStr, sourceZone);
             if (datetime == null) {
-                return ToolResult.failure("無法解析日期時間: " + datetimeStr);
+                return ToolResult.failure("Cannot parse date/time: " + datetimeStr);
             }
         }
 
         ZonedDateTime converted = datetime.withZoneSameInstant(targetZone);
 
         return ToolResult.success(
-                String.format("時區轉換: %s (%s) -> %s (%s)",
+                String.format("Timezone conversion: %s (%s) -> %s (%s)",
                         datetime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), sourceZone,
                         converted.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), targetZone),
                 Map.of(
@@ -375,7 +375,7 @@ public class DateTimeTool implements AgentNodeTool {
     }
 
     /**
-     * 取得格式化器
+     * Get formatter
      */
     private DateTimeFormatter getFormatter(String formatName) {
         String pattern = FORMAT_PRESETS.getOrDefault(formatName.toLowerCase(), formatName);
@@ -387,25 +387,25 @@ public class DateTimeTool implements AgentNodeTool {
     }
 
     /**
-     * 解析日期時間字串
+     * Parse date/time string
      */
     private ZonedDateTime parseDateTime(String datetimeStr, ZoneId defaultZone) {
         try {
-            // 嘗試解析 ZonedDateTime
+            // Try parsing ZonedDateTime
             return ZonedDateTime.parse(datetimeStr);
         } catch (DateTimeParseException e1) {
             try {
-                // 嘗試解析 LocalDateTime
+                // Try parsing LocalDateTime
                 LocalDateTime ldt = LocalDateTime.parse(datetimeStr);
                 return ldt.atZone(defaultZone);
             } catch (DateTimeParseException e2) {
                 try {
-                    // 嘗試解析 LocalDate
+                    // Try parsing LocalDate
                     LocalDate ld = LocalDate.parse(datetimeStr);
                     return ld.atStartOfDay(defaultZone);
                 } catch (DateTimeParseException e3) {
                     try {
-                        // 嘗試常見格式
+                        // Try common format
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                         LocalDateTime ldt = LocalDateTime.parse(datetimeStr, formatter);
                         return ldt.atZone(defaultZone);
@@ -418,7 +418,7 @@ public class DateTimeTool implements AgentNodeTool {
     }
 
     /**
-     * 取得 ChronoUnit
+     * Get ChronoUnit
      */
     private ChronoUnit getChronoUnit(String unit) {
         return switch (unit.toLowerCase()) {

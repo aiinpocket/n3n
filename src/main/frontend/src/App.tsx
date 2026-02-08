@@ -39,6 +39,8 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const HousekeepingPage = lazy(() => import('./pages/HousekeepingPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
+const FormPage = lazy(() => import('./pages/FormPage'))
+const OAuth2CallbackPage = lazy(() => import('./pages/OAuth2CallbackPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Map i18n language to Ant Design locale
@@ -183,6 +185,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/reset-password" element={<PasswordResetPage />} />
+            <Route path="/forms/:token" element={<FormPage />} />
+            <Route path="/oauth2/callback" element={<OAuth2CallbackPage />} />
 
           {/* Protected routes */}
           <Route

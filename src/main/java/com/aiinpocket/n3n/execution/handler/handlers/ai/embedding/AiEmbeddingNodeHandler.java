@@ -15,12 +15,12 @@ import reactor.core.publisher.Flux;
 import java.util.*;
 
 /**
- * AI Embedding 節點處理器
+ * AI Embedding Node Handler
  *
- * 功能：
- * - 將文本轉換為向量嵌入
- * - 支援多種嵌入模型
- * - 批量處理支援
+ * Features:
+ * - Convert text to vector embeddings
+ * - Multiple embedding model support
+ * - Batch processing support
  */
 @Component
 @Slf4j
@@ -67,7 +67,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
         Map<String, List<OperationDef>> operations = new LinkedHashMap<>();
 
         operations.put("embedding", List.of(
-            // 單文本嵌入
+            // Single text embedding
             OperationDef.create("embed", "Embed Text")
                 .description("Convert text to a vector embedding")
                 .fields(List.of(
@@ -94,7 +94,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Returns vector array and dimensions")
                 .build(),
 
-            // 批量嵌入
+            // Batch embedding
             OperationDef.create("embedBatch", "Embed Batch")
                 .description("Convert multiple texts to embeddings")
                 .fields(List.of(
@@ -211,7 +211,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
         List<List<Float>> embeddings = new ArrayList<>();
         int totalTokens = 0;
 
-        // 批量處理（部分 API 支援批量，這裡做通用實作）
+        // Batch processing (some APIs support batch natively; this is a generic implementation)
         for (String text : texts) {
             AiEmbeddingRequest request = AiEmbeddingRequest.builder()
                 .model(model)

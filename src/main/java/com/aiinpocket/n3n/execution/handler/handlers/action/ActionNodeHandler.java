@@ -72,8 +72,9 @@ public class ActionNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> executeTransform(Map<String, Object> input, Map<String, Object> config) {
         Map<String, Object> output = new HashMap<>();
 
+        Object mappingsObj = config.get("mappings");
         @SuppressWarnings("unchecked")
-        Map<String, String> mappings = (Map<String, String>) config.get("mappings");
+        Map<String, String> mappings = mappingsObj instanceof Map<?, ?> ? (Map<String, String>) mappingsObj : null;
 
         if (mappings != null && input != null) {
             for (Map.Entry<String, String> entry : mappings.entrySet()) {
@@ -91,8 +92,9 @@ public class ActionNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> executeSet(Map<String, Object> input, Map<String, Object> config) {
         Map<String, Object> output = input != null ? new HashMap<>(input) : new HashMap<>();
 
+        Object valuesObj = config.get("values");
         @SuppressWarnings("unchecked")
-        Map<String, Object> values = (Map<String, Object>) config.get("values");
+        Map<String, Object> values = valuesObj instanceof Map<?, ?> ? (Map<String, Object>) valuesObj : null;
 
         if (values != null) {
             output.putAll(values);
@@ -104,8 +106,9 @@ public class ActionNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> executeMerge(Map<String, Object> input, Map<String, Object> config) {
         Map<String, Object> output = input != null ? new HashMap<>(input) : new HashMap<>();
 
+        Object additionalDataObj = config.get("additionalData");
         @SuppressWarnings("unchecked")
-        Map<String, Object> additionalData = (Map<String, Object>) config.get("additionalData");
+        Map<String, Object> additionalData = additionalDataObj instanceof Map<?, ?> ? (Map<String, Object>) additionalDataObj : null;
 
         if (additionalData != null) {
             output.putAll(additionalData);

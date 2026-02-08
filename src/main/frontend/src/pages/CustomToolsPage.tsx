@@ -338,7 +338,7 @@ export default function CustomToolsPage() {
   const [categories, setCategories] = useState<MarketplaceCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'rating' | 'name'>('recent')
+  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'name'>('recent')
   const [activeTab, setActiveTab] = useState('browse')
   const [isOffline, setIsOffline] = useState(false)
   const [detailModal, setDetailModal] = useState<{ visible: boolean; plugin: PluginDetail | null }>({
@@ -371,11 +371,22 @@ export default function CustomToolsPage() {
     loadData()
   }, [loadData])
 
-  const handleSearch = async (value: string) => {
-    setSearchQuery(value)
+  // Re-search when sort or category changes
+  useEffect(() => {
+    if (plugins.length > 0 || searchQuery) {
+      handleSearch()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy, selectedCategory])
+
+  const handleSearch = async (value?: string) => {
+    const query = value !== undefined ? value : searchQuery
+    if (value !== undefined) {
+      setSearchQuery(query)
+    }
     try {
       const result = await searchPlugins({
-        query: value,
+        query: query || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         sortBy,
       })

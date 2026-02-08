@@ -15,13 +15,13 @@ import reactor.core.publisher.Flux;
 import java.util.*;
 
 /**
- * AI Chat 節點處理器
+ * AI Chat Node Handler
  *
- * 功能:
- * - 多 Provider 支援 (OpenAI, Claude, Gemini, Ollama)
- * - 對話歷史管理
- * - 串流/非串流輸出
- * - 系統提示詞配置
+ * Features:
+ * - Multi-provider support (OpenAI, Claude, Gemini, Ollama)
+ * - Conversation history management
+ * - Streaming/non-streaming output
+ * - System prompt configuration
  */
 @Component
 @Slf4j
@@ -136,14 +136,14 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         boolean includeHistory = getBoolParam(params, "includeHistory", false);
 
         try {
-            // 取得 Provider
+            // Get provider
             AiProvider provider = resolveProvider(providerId);
             AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-            // 建構訊息列表
+            // Build message list
             List<AiMessage> messages = buildMessages(context, systemPrompt, prompt, includeHistory);
 
-            // 建構請求
+            // Build request
             AiChatRequest request = AiChatRequest.builder()
                 .model(model)
                 .messages(messages)
@@ -152,10 +152,10 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .maxTokens(maxTokens)
                 .build();
 
-            // 執行請求
+            // Execute request
             AiResponse response = provider.chat(request, settings).get();
 
-            // 記錄 Token 使用量
+            // Record token usage
             if (response.getUsage() != null) {
                 recordTokenUsage(
                     context.getUserId(),
@@ -166,7 +166,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 );
             }
 
-            // 建構輸出
+            // Build output
             Map<String, Object> output = buildOutput(response, messages, prompt);
 
             log.info("AI Chat completed - provider: {}, model: {}, tokens: {}",
@@ -190,14 +190,16 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
     ) {
         List<AiMessage> messages = new ArrayList<>();
 
-        // 加入對話歷史
+        // Add conversation history
         if (includeHistory) {
             Object historyInput = context.getInput("history", null);
             if (historyInput instanceof List<?> list) {
                 for (Object item : list) {
                     if (item instanceof Map<?, ?> map) {
-                        String role = (String) map.get("role");
-                        String content = (String) map.get("content");
+                        Object roleObj = map.get("role");
+                        Object contentObj = map.get("content");
+                        String role = roleObj != null ? roleObj.toString() : null;
+                        String content = contentObj != null ? contentObj.toString() : null;
                         if (role != null && content != null) {
                             messages.add(AiMessage.builder()
                                 .role(role)
@@ -209,7 +211,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
             }
         }
 
-        // 加入使用者訊息
+        // Add user message
         messages.add(AiMessage.user(prompt));
 
         return messages;
@@ -222,12 +224,12 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
     ) {
         Map<String, Object> output = new LinkedHashMap<>();
 
-        // 主要回應內容
+        // Main response content
         output.put("content", response.getContent());
         output.put("model", response.getModel());
         output.put("finishReason", response.getStopReason());
 
-        // Token 使用量
+        // Token usage
         if (response.getUsage() != null) {
             output.put("usage", Map.of(
                 "inputTokens", response.getUsage().getInputTokens(),
@@ -236,7 +238,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
             ));
         }
 
-        // 更新對話歷史
+        // Update conversation history
         List<Map<String, String>> updatedHistory = new ArrayList<>();
         for (AiMessage msg : messages) {
             updatedHistory.add(Map.of(
@@ -264,15 +266,15 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         boolean includeHistory = getBooleanConfig(context, "includeHistory", false);
 
         try {
-            // 取得 Provider
+            // Get provider
             AiProvider provider = resolveProvider(providerId);
             Map<String, Object> credential = resolveCredential(context);
             AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-            // 建構訊息列表
+            // Build message list
             List<AiMessage> messages = buildMessages(context, systemPrompt, prompt, includeHistory);
 
-            // 建構請求
+            // Build request
             AiChatRequest request = AiChatRequest.builder()
                 .model(model)
                 .messages(messages)
@@ -281,7 +283,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .maxTokens(maxTokens)
                 .build();
 
-            // 執行串流請求
+            // Execute streaming request
             return provider.chatStream(request, settings)
                 .map(chunk -> {
                     if (chunk.isDone()) {

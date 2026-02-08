@@ -10,8 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * 文字統計工具
- * 分析文字的各種統計資訊
+ * Text statistics tool
+ * Analyzes various statistical information about text
  */
 @Component
 @Slf4j
@@ -30,20 +30,20 @@ public class TextStatsTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                文字統計工具，分析文字的各種統計資訊。
+                Text statistics tool that analyzes various statistical information about text.
 
-                統計項目：
-                - 字元數（含/不含空格）
-                - 字數
-                - 句子數
-                - 段落數
-                - 行數
-                - 最常見的詞彙
-                - 平均句子長度
-                - 閱讀時間估計
+                Statistics include:
+                - Character count (with/without spaces)
+                - Word count
+                - Sentence count
+                - Paragraph count
+                - Line count
+                - Most frequent words
+                - Average sentence length
+                - Estimated reading time
 
-                參數：
-                - text: 要分析的文字
+                Parameters:
+                - text: Text to analyze
                 """;
     }
 
@@ -54,7 +54,7 @@ public class TextStatsTool implements AgentNodeTool {
                 "properties", Map.of(
                         "text", Map.of(
                                 "type", "string",
-                                "description", "要分析的文字"
+                                "description", "Text to analyze"
                         )
                 ),
                 "required", List.of("text")
@@ -68,12 +68,12 @@ public class TextStatsTool implements AgentNodeTool {
                 String text = (String) parameters.get("text");
 
                 if (text == null || text.isEmpty()) {
-                    return ToolResult.failure("文字不能為空");
+                    return ToolResult.failure("Text cannot be empty");
                 }
 
                 // Security: limit input size
                 if (text.length() > 1_000_000) {
-                    return ToolResult.failure("文字過長，最大限制 1MB");
+                    return ToolResult.failure("Text too long, maximum limit is 1MB");
                 }
 
                 // Calculate statistics
@@ -101,24 +101,24 @@ public class TextStatsTool implements AgentNodeTool {
                 int speakingTimeMinutes = (int) Math.ceil((double) wordCount / 150);
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("文字統計結果：\n\n");
-                sb.append("=== 基本統計 ===\n");
-                sb.append(String.format("- 字元數（含空格）: %,d\n", charCount));
-                sb.append(String.format("- 字元數（不含空格）: %,d\n", charCountNoSpaces));
-                sb.append(String.format("- 字數: %,d\n", wordCount));
-                sb.append(String.format("- 句子數: %,d\n", sentenceCount));
-                sb.append(String.format("- 段落數: %,d\n", paragraphCount));
-                sb.append(String.format("- 行數: %,d\n", lineCount));
+                sb.append("Text statistics result:\n\n");
+                sb.append("=== Basic Statistics ===\n");
+                sb.append(String.format("- Characters (with spaces): %,d\n", charCount));
+                sb.append(String.format("- Characters (without spaces): %,d\n", charCountNoSpaces));
+                sb.append(String.format("- Words: %,d\n", wordCount));
+                sb.append(String.format("- Sentences: %,d\n", sentenceCount));
+                sb.append(String.format("- Paragraphs: %,d\n", paragraphCount));
+                sb.append(String.format("- Lines: %,d\n", lineCount));
 
-                sb.append("\n=== 進階統計 ===\n");
-                sb.append(String.format("- 平均句子長度: %.1f 字\n", avgSentenceLength));
-                sb.append(String.format("- 預估閱讀時間: %d 分鐘\n", readingTimeMinutes));
-                sb.append(String.format("- 預估朗讀時間: %d 分鐘\n", speakingTimeMinutes));
+                sb.append("\n=== Advanced Statistics ===\n");
+                sb.append(String.format("- Average sentence length: %.1f words\n", avgSentenceLength));
+                sb.append(String.format("- Estimated reading time: %d minutes\n", readingTimeMinutes));
+                sb.append(String.format("- Estimated speaking time: %d minutes\n", speakingTimeMinutes));
 
-                sb.append("\n=== 最常見詞彙（前 10）===\n");
+                sb.append("\n=== Most Frequent Words (Top 10) ===\n");
                 for (int i = 0; i < topWords.size(); i++) {
                     Map.Entry<String, Integer> entry = topWords.get(i);
-                    sb.append(String.format("%d. \"%s\" - %d 次\n", i + 1, entry.getKey(), entry.getValue()));
+                    sb.append(String.format("%d. \"%s\" - %d occurrences\n", i + 1, entry.getKey(), entry.getValue()));
                 }
 
                 Map<String, Object> stats = new LinkedHashMap<>();
@@ -139,7 +139,7 @@ public class TextStatsTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Text stats failed", e);
-                return ToolResult.failure("文字統計失敗");
+                return ToolResult.failure("Text statistics analysis failed");
             }
         });
     }

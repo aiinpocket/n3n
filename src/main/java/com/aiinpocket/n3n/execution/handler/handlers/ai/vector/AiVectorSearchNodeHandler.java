@@ -15,12 +15,12 @@ import reactor.core.publisher.Flux;
 import java.util.*;
 
 /**
- * AI Vector Search 節點處理器
+ * AI Vector Search Node Handler
  *
- * 功能：
- * - 向量存儲和檢索
- * - 語意相似度搜尋
- * - RAG（檢索增強生成）支援
+ * Features:
+ * - Vector storage and retrieval
+ * - Semantic similarity search
+ * - RAG (Retrieval-Augmented Generation) support
  */
 @Component
 @Slf4j
@@ -73,7 +73,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         Map<String, List<OperationDef>> operations = new LinkedHashMap<>();
 
         operations.put("vector", List.of(
-            // 插入向量
+            // Upsert vector
             OperationDef.create("upsert", "Upsert Document")
                 .description("Insert or update a document with its embedding")
                 .fields(List.of(
@@ -95,7 +95,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Confirmation of upsert")
                 .build(),
 
-            // 語意搜尋（帶自動嵌入）
+            // Semantic search (with auto-embedding)
             OperationDef.create("search", "Semantic Search")
                 .description("Search for similar documents by text query (auto-embeds)")
                 .fields(List.of(
@@ -123,7 +123,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Returns matching documents with scores")
                 .build(),
 
-            // 向量搜尋（直接用向量）
+            // Vector search (using pre-computed vector directly)
             OperationDef.create("searchByVector", "Search by Vector")
                 .description("Search using a pre-computed vector")
                 .fields(List.of(
@@ -141,7 +141,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Returns matching documents with scores")
                 .build(),
 
-            // 刪除
+            // Delete
             OperationDef.create("delete", "Delete Document")
                 .description("Delete a document by ID")
                 .fields(List.of(
@@ -154,7 +154,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
                 .outputDescription("Confirmation of deletion")
                 .build(),
 
-            // 統計
+            // Statistics
             OperationDef.create("count", "Count Documents")
                 .description("Count documents in namespace")
                 .fields(List.of(
@@ -237,7 +237,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         @SuppressWarnings("unchecked")
         Map<String, Object> filter = (Map<String, Object>) params.getOrDefault("filter", Map.of());
 
-        // 生成查詢向量
+        // Generate query vector
         AiProvider provider = resolveProvider(embeddingProvider);
         AiProviderSettings settings = buildProviderSettings(credential, embeddingProvider);
 
@@ -254,7 +254,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
 
         List<Float> queryVector = embeddingResponse.getEmbeddings().get(0);
 
-        // 執行搜尋
+        // Execute search
         List<VectorStore.SearchResult> results = vectorStore.search(namespace, queryVector, topK, filter).get();
 
         List<Map<String, Object>> resultMaps = results.stream()

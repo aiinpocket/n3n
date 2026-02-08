@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 雜湊計算工具
- * 支援 MD5, SHA-1, SHA-256, SHA-512 等雜湊演算法
+ * Hash computation tool
+ * Supports MD5, SHA-1, SHA-256, SHA-512 and other hash algorithms
  */
 @Component
 @Slf4j
@@ -36,16 +36,16 @@ public class HashTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                計算文字或資料的雜湊值。支援的演算法：
-                - MD5: 128 位元雜湊（不建議用於安全用途）
-                - SHA-1: 160 位元雜湊（不建議用於安全用途）
-                - SHA-256: 256 位元雜湊（推薦）
-                - SHA-384: 384 位元雜湊
-                - SHA-512: 512 位元雜湊
+                Compute hash values for text or data. Supported algorithms:
+                - MD5: 128-bit hash (not recommended for security purposes)
+                - SHA-1: 160-bit hash (not recommended for security purposes)
+                - SHA-256: 256-bit hash (recommended)
+                - SHA-384: 384-bit hash
+                - SHA-512: 512-bit hash
 
-                參數：
-                - text: 要計算雜湊的文字
-                - algorithm: 雜湊演算法（預設 SHA-256）
+                Parameters:
+                - text: Text to hash
+                - algorithm: Hash algorithm (default SHA-256)
                 """;
     }
 
@@ -56,12 +56,12 @@ public class HashTool implements AgentNodeTool {
                 "properties", Map.of(
                         "text", Map.of(
                                 "type", "string",
-                                "description", "要計算雜湊的文字"
+                                "description", "Text to hash"
                         ),
                         "algorithm", Map.of(
                                 "type", "string",
                                 "enum", SUPPORTED_ALGORITHMS,
-                                "description", "雜湊演算法",
+                                "description", "Hash algorithm",
                                 "default", "SHA-256"
                         )
                 ),
@@ -75,19 +75,19 @@ public class HashTool implements AgentNodeTool {
             try {
                 String text = (String) parameters.get("text");
                 if (text == null) {
-                    return ToolResult.failure("文字不能為空");
+                    return ToolResult.failure("Text cannot be empty");
                 }
 
                 String algorithm = (String) parameters.getOrDefault("algorithm", "SHA-256");
                 if (!SUPPORTED_ALGORITHMS.contains(algorithm)) {
-                    return ToolResult.failure("不支援的演算法: " + algorithm);
+                    return ToolResult.failure("Unsupported algorithm: " + algorithm);
                 }
 
                 MessageDigest digest = MessageDigest.getInstance(algorithm);
                 byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
                 String hexHash = HexFormat.of().formatHex(hash);
 
-                String output = String.format("雜湊結果 (%s):\n%s", algorithm, hexHash);
+                String output = String.format("Hash result (%s):\n%s", algorithm, hexHash);
 
                 return ToolResult.success(output, Map.of(
                         "algorithm", algorithm,
@@ -97,7 +97,7 @@ public class HashTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Hash calculation failed", e);
-                return ToolResult.failure("雜湊計算失敗");
+                return ToolResult.failure("Hash calculation failed");
             }
         });
     }

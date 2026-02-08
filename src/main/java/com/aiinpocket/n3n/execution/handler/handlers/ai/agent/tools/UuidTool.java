@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * UUID 生成工具
+ * UUID generation tool
  */
 @Component
 @Slf4j
@@ -30,12 +30,12 @@ public class UuidTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                生成 UUID（通用唯一識別碼）。
+                Generates UUID (Universally Unique Identifier).
 
-                參數：
-                - count: 要生成的 UUID 數量（預設 1，最多 100）
-                - format: 格式（standard=標準 36 字元, compact=無連字號 32 字元）
-                - uppercase: 是否使用大寫（預設 false）
+                Parameters:
+                - count: Number of UUIDs to generate (default: 1, max: 100)
+                - format: Format (standard = 36 characters with hyphens, compact = 32 characters without hyphens)
+                - uppercase: Whether to use uppercase (default: false)
                 """;
     }
 
@@ -46,7 +46,7 @@ public class UuidTool implements AgentNodeTool {
                 "properties", Map.of(
                         "count", Map.of(
                                 "type", "integer",
-                                "description", "要生成的數量",
+                                "description", "Number of UUIDs to generate",
                                 "default", 1,
                                 "minimum", 1,
                                 "maximum", 100
@@ -54,12 +54,12 @@ public class UuidTool implements AgentNodeTool {
                         "format", Map.of(
                                 "type", "string",
                                 "enum", List.of("standard", "compact"),
-                                "description", "輸出格式",
+                                "description", "Output format",
                                 "default", "standard"
                         ),
                         "uppercase", Map.of(
                                 "type", "boolean",
-                                "description", "是否大寫",
+                                "description", "Whether to use uppercase",
                                 "default", false
                         )
                 ),
@@ -90,9 +90,9 @@ public class UuidTool implements AgentNodeTool {
 
                 StringBuilder sb = new StringBuilder();
                 if (count == 1) {
-                    sb.append("生成的 UUID：\n").append(uuids.get(0));
+                    sb.append("Generated UUID:\n").append(uuids.get(0));
                 } else {
-                    sb.append(String.format("生成了 %d 個 UUID：\n", count));
+                    sb.append(String.format("Generated %d UUIDs:\n", count));
                     for (int i = 0; i < uuids.size(); i++) {
                         sb.append(String.format("%d. %s\n", i + 1, uuids.get(i)));
                     }
@@ -106,7 +106,7 @@ public class UuidTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("UUID generation failed", e);
-                return ToolResult.failure("UUID 生成失敗");
+                return ToolResult.failure("UUID generation failed");
             }
         });
     }

@@ -6,60 +6,60 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 對話記憶儲存介面
- * 支援多種後端儲存（Redis, PostgreSQL, 等）
+ * Conversation memory store interface.
+ * Supports multiple storage backends (Redis, PostgreSQL, etc.)
  */
 public interface MemoryStore {
 
     /**
-     * 儲存記憶項目
+     * Store a memory entry
      *
-     * @param sessionId 會話 ID
-     * @param entry 記憶項目
+     * @param sessionId session ID
+     * @param entry memory entry
      */
     CompletableFuture<Void> store(String sessionId, MemoryEntry entry);
 
     /**
-     * 取得會話的所有記憶
+     * Get all memories for a session
      *
-     * @param sessionId 會話 ID
-     * @param limit 最大數量
+     * @param sessionId session ID
+     * @param limit maximum number of entries
      */
     CompletableFuture<List<MemoryEntry>> getHistory(String sessionId, int limit);
 
     /**
-     * 清除會話記憶
+     * Clear session memory
      *
-     * @param sessionId 會話 ID
+     * @param sessionId session ID
      */
     CompletableFuture<Void> clear(String sessionId);
 
     /**
-     * 搜尋相關記憶（語意搜尋，如支援）
+     * Search for related memories (semantic search, if supported)
      *
-     * @param sessionId 會話 ID
-     * @param query 搜尋查詢
-     * @param limit 最大數量
+     * @param sessionId session ID
+     * @param query search query
+     * @param limit maximum number of entries
      */
     CompletableFuture<List<MemoryEntry>> search(String sessionId, String query, int limit);
 
     /**
-     * 取得會話摘要
+     * Get session summary
      *
-     * @param sessionId 會話 ID
+     * @param sessionId session ID
      */
     CompletableFuture<Optional<String>> getSummary(String sessionId);
 
     /**
-     * 儲存會話摘要
+     * Save session summary
      *
-     * @param sessionId 會話 ID
-     * @param summary 摘要內容
+     * @param sessionId session ID
+     * @param summary summary content
      */
     CompletableFuture<Void> saveSummary(String sessionId, String summary);
 
     /**
-     * 記憶項目
+     * Memory entry
      */
     record MemoryEntry(
         String id,

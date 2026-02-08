@@ -12,8 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 /**
- * 資料驗證工具
- * 支援常見的資料格式驗證
+ * Data validation tool
+ * Supports common data format validation
  */
 @Component
 @Slf4j
@@ -48,22 +48,22 @@ public class ValidatorTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                資料驗證工具，支援多種格式驗證：
-                - email: 電子郵件格式
-                - url: URL 格式
-                - phone: 電話號碼
-                - ipv4: IPv4 位址
-                - uuid: UUID 格式
-                - creditCard: 信用卡號（使用 Luhn 演算法）
-                - json: JSON 格式
-                - number: 數字
-                - integer: 整數
-                - date: 日期格式（ISO 8601）
+                Data validation tool, supports multiple format validations:
+                - email: Email format
+                - url: URL format
+                - phone: Phone number
+                - ipv4: IPv4 address
+                - uuid: UUID format
+                - creditCard: Credit card number (using Luhn algorithm)
+                - json: JSON format
+                - number: Number
+                - integer: Integer
+                - date: Date format (ISO 8601)
 
-                參數：
-                - value: 要驗證的值
-                - type: 驗證類型
-                - required: 是否必填（預設 true）
+                Parameters:
+                - value: Value to validate
+                - type: Validation type
+                - required: Whether the value is required (default true)
                 """;
     }
 
@@ -74,17 +74,17 @@ public class ValidatorTool implements AgentNodeTool {
                 "properties", Map.of(
                         "value", Map.of(
                                 "type", "string",
-                                "description", "要驗證的值"
+                                "description", "Value to validate"
                         ),
                         "type", Map.of(
                                 "type", "string",
                                 "enum", List.of("email", "url", "phone", "ipv4", "uuid",
                                         "creditCard", "json", "number", "integer", "date"),
-                                "description", "驗證類型"
+                                "description", "Validation type"
                         ),
                         "required", Map.of(
                                 "type", "boolean",
-                                "description", "是否必填",
+                                "description", "Whether the value is required",
                                 "default", true
                         )
                 ),
@@ -101,18 +101,18 @@ public class ValidatorTool implements AgentNodeTool {
                 boolean required = !Boolean.FALSE.equals(parameters.get("required"));
 
                 if (type == null || type.isEmpty()) {
-                    return ToolResult.failure("驗證類型不能為空");
+                    return ToolResult.failure("Validation type cannot be empty");
                 }
 
-                // 檢查必填
+                // Check required
                 if (value == null || value.isEmpty()) {
                     if (required) {
-                        return ToolResult.success("驗證失敗：值為空（必填）", Map.of(
+                        return ToolResult.success("Validation failed: value is empty (required)", Map.of(
                                 "valid", false,
-                                "error", "值不能為空"
+                                "error", "Value cannot be empty"
                         ));
                     } else {
-                        return ToolResult.success("驗證通過：值為空（非必填）", Map.of(
+                        return ToolResult.success("Validation passed: value is empty (optional)", Map.of(
                                 "valid", true
                         ));
                     }
@@ -122,19 +122,19 @@ public class ValidatorTool implements AgentNodeTool {
 
                 if (result.valid) {
                     return ToolResult.success(
-                            String.format("驗證通過：\"%s\" 是有效的 %s", value, type),
+                            String.format("Validation passed: \"%s\" is a valid %s", value, type),
                             Map.of("valid", true, "type", type, "value", value)
                     );
                 } else {
                     return ToolResult.success(
-                            String.format("驗證失敗：\"%s\" 不是有效的 %s\n原因：%s", value, type, result.error),
+                            String.format("Validation failed: \"%s\" is not a valid %s\nReason: %s", value, type, result.error),
                             Map.of("valid", false, "type", type, "value", value, "error", result.error)
                     );
                 }
 
             } catch (Exception e) {
                 log.error("Validation failed", e);
-                return ToolResult.failure("驗證失敗");
+                return ToolResult.failure("Validation failed");
             }
         });
     }
@@ -151,7 +151,7 @@ public class ValidatorTool implements AgentNodeTool {
             case "number" -> validateNumber(value);
             case "integer" -> validateInteger(value);
             case "date" -> validateDate(value);
-            default -> new ValidationResult(false, "不支援的驗證類型: " + type);
+            default -> new ValidationResult(false, "Unsupported validation type: " + type);
         };
     }
 
@@ -159,18 +159,18 @@ public class ValidatorTool implements AgentNodeTool {
         if (EMAIL_PATTERN.matcher(value).matches()) {
             return new ValidationResult(true, null);
         }
-        return new ValidationResult(false, "不符合電子郵件格式");
+        return new ValidationResult(false, "Does not match email format");
     }
 
     private ValidationResult validateUrl(String value) {
         try {
             URI uri = new URI(value);
             if (uri.getScheme() == null || uri.getHost() == null) {
-                return new ValidationResult(false, "缺少協定或主機");
+                return new ValidationResult(false, "Missing scheme or host");
             }
             return new ValidationResult(true, null);
         } catch (Exception e) {
-            return new ValidationResult(false, "無效的 URL: " + e.getMessage());
+            return new ValidationResult(false, "Invalid URL: " + e.getMessage());
         }
     }
 
@@ -179,34 +179,34 @@ public class ValidatorTool implements AgentNodeTool {
         if (PHONE_PATTERN.matcher(cleaned).matches()) {
             return new ValidationResult(true, null);
         }
-        return new ValidationResult(false, "不符合電話號碼格式");
+        return new ValidationResult(false, "Does not match phone number format");
     }
 
     private ValidationResult validateIPv4(String value) {
         if (IPV4_PATTERN.matcher(value).matches()) {
             return new ValidationResult(true, null);
         }
-        return new ValidationResult(false, "不符合 IPv4 格式");
+        return new ValidationResult(false, "Does not match IPv4 format");
     }
 
     private ValidationResult validateUUID(String value) {
         if (UUID_PATTERN.matcher(value).matches()) {
             return new ValidationResult(true, null);
         }
-        return new ValidationResult(false, "不符合 UUID 格式");
+        return new ValidationResult(false, "Does not match UUID format");
     }
 
     private ValidationResult validateCreditCard(String value) {
         String cleaned = value.replaceAll("[\\s\\-]", "");
         if (!CREDIT_CARD_PATTERN.matcher(cleaned).matches()) {
-            return new ValidationResult(false, "卡號長度或格式不正確");
+            return new ValidationResult(false, "Card number length or format is incorrect");
         }
 
-        // Luhn 演算法驗證
+        // Luhn algorithm validation
         if (luhnCheck(cleaned)) {
             return new ValidationResult(true, null);
         }
-        return new ValidationResult(false, "信用卡號校驗失敗（Luhn 演算法）");
+        return new ValidationResult(false, "Credit card number check failed (Luhn algorithm)");
     }
 
     private boolean luhnCheck(String number) {
@@ -230,7 +230,7 @@ public class ValidatorTool implements AgentNodeTool {
             mapper.readTree(value);
             return new ValidationResult(true, null);
         } catch (Exception e) {
-            return new ValidationResult(false, "無效的 JSON: " + e.getMessage());
+            return new ValidationResult(false, "Invalid JSON: " + e.getMessage());
         }
     }
 
@@ -239,7 +239,7 @@ public class ValidatorTool implements AgentNodeTool {
             Double.parseDouble(value);
             return new ValidationResult(true, null);
         } catch (NumberFormatException e) {
-            return new ValidationResult(false, "不是有效的數字");
+            return new ValidationResult(false, "Not a valid number");
         }
     }
 
@@ -248,7 +248,7 @@ public class ValidatorTool implements AgentNodeTool {
             Long.parseLong(value);
             return new ValidationResult(true, null);
         } catch (NumberFormatException e) {
-            return new ValidationResult(false, "不是有效的整數");
+            return new ValidationResult(false, "Not a valid integer");
         }
     }
 
@@ -261,7 +261,7 @@ public class ValidatorTool implements AgentNodeTool {
                 java.time.format.DateTimeFormatter.ISO_DATE.parse(value);
                 return new ValidationResult(true, null);
             } catch (Exception e2) {
-                return new ValidationResult(false, "不符合 ISO 8601 日期格式");
+                return new ValidationResult(false, "Does not match ISO 8601 date format");
             }
         }
     }

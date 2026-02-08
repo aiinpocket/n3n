@@ -19,20 +19,20 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * AI Agent 節點處理器
+ * AI Agent Node Handler
  *
- * 功能：
- * - ReAct 模式的工具調用迭代
- * - 支援多輪對話和工具調用
- * - 自動工具選擇和執行
- * - 思考過程可視化
+ * Features:
+ * - ReAct pattern tool-calling iteration
+ * - Multi-turn conversation and tool invocation support
+ * - Automatic tool selection and execution
+ * - Thinking process visualization
  *
- * ReAct 模式流程：
- * 1. AI 分析任務，決定是否需要工具
- * 2. 如需工具，AI 選擇工具並提供參數
- * 3. 系統執行工具，返回結果
- * 4. AI 分析結果，決定下一步
- * 5. 重複直到完成或達到迭代上限
+ * ReAct Pattern Flow:
+ * 1. AI analyzes the task and decides whether tools are needed
+ * 2. If tools are needed, AI selects a tool and provides parameters
+ * 3. System executes the tool and returns the result
+ * 4. AI analyzes the result and decides the next step
+ * 5. Repeats until completion or max iteration limit is reached
  */
 @Component
 @Slf4j
@@ -162,7 +162,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
             AiProvider provider = resolveProvider(providerId);
             AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-            // 執行 Agent 迴圈
+            // Execute the Agent loop
             AgentExecutionResult result = executeAgentLoop(
                 provider, settings, model, systemPrompt, task,
                 enabledTools, maxIterations, temperature, context
@@ -208,14 +208,14 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
         int totalInputTokens = 0;
         int totalOutputTokens = 0;
 
-        // 取得工具定義
+        // Get tool definitions
         List<Map<String, Object>> tools = toolRegistry.toOpenAITools(enabledTools);
 
         for (int iteration = 0; iteration < maxIterations; iteration++) {
             log.debug("Agent iteration {}/{}", iteration + 1, maxIterations);
             thinkingTrace.add("=== Iteration " + (iteration + 1) + " ===");
 
-            // 建立請求
+            // Build request
             AiChatRequest request = AiChatRequest.builder()
                 .model(model)
                 .messages(messages)
@@ -224,20 +224,20 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 .tools(tools)
                 .build();
 
-            // 呼叫 AI
+            // Call AI
             AiResponse response = provider.chat(request, settings).get();
 
-            // 更新 token 計數
+            // Update token counts
             if (response.getUsage() != null) {
                 totalInputTokens += response.getUsage().getInputTokens();
                 totalOutputTokens += response.getUsage().getOutputTokens();
             }
 
-            // 檢查是否有工具調用
+            // Check for tool calls
             List<AiToolCall> toolCalls = response.getToolCalls();
 
             if (toolCalls == null || toolCalls.isEmpty()) {
-                // 沒有工具調用，Agent 完成任務
+                // No tool calls, agent completed the task
                 thinkingTrace.add("Agent completed task");
                 thinkingTrace.add("Final response: " + truncate(response.getContent(), 200));
 
@@ -253,17 +253,17 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 );
             }
 
-            // 處理工具調用
+            // Process tool calls
             messages.add(AiMessage.assistant(response.getContent(), toolCalls));
             thinkingTrace.add("AI thinking: " + (response.getContent() != null ? response.getContent() : "(tool call)"));
 
             for (AiToolCall toolCall : toolCalls) {
                 thinkingTrace.add("Tool call: " + toolCall.getName() + "(" + truncate(toolCall.getArguments(), 100) + ")");
 
-                // 執行工具
+                // Execute tool
                 AgentNodeTool.ToolResult toolResult = executeToolCall(toolCall, context);
 
-                // 記錄工具調用
+                // Record tool call
                 Map<String, Object> callRecord = new LinkedHashMap<>();
                 callRecord.put("iteration", iteration + 1);
                 callRecord.put("toolId", toolCall.getId());
@@ -276,7 +276,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 }
                 toolCallHistory.add(callRecord);
 
-                // 加入工具結果到訊息
+                // Add tool result to messages
                 String resultContent = toolResult.success()
                     ? toolResult.output()
                     : "Error: " + toolResult.error();
@@ -286,7 +286,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
             }
         }
 
-        // 達到最大迭代次數
+        // Reached maximum iteration count
         log.warn("Agent reached max iterations: {}", maxIterations);
         thinkingTrace.add("Reached maximum iterations (" + maxIterations + ")");
 
@@ -311,7 +311,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
 
             AgentNodeTool tool = toolOpt.get();
 
-            // 解析參數
+            // Parse arguments
             Map<String, Object> arguments;
             try {
                 arguments = objectMapper.readValue(
@@ -322,7 +322,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 return AgentNodeTool.ToolResult.failure("Invalid tool arguments");
             }
 
-            // 執行工具
+            // Execute tool
             AgentNodeTool.ToolExecutionContext toolContext = new AgentNodeTool.ToolExecutionContext(
                 context.getUserId() != null ? context.getUserId().toString() : null,
                 context.getFlowId() != null ? context.getFlowId().toString() : null,
@@ -367,7 +367,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
     public Flux<StreamChunk> executeStream(NodeExecutionContext context) {
         Sinks.Many<StreamChunk> sink = Sinks.many().multicast().onBackpressureBuffer();
 
-        // 在背景執行 Agent 迴圈
+        // Execute Agent loop in background
         CompletableFuture.runAsync(() -> {
             try {
                 String providerId = getStringConfig(context, "provider", "openai");
@@ -383,7 +383,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 Map<String, Object> credential = resolveCredential(context);
                 AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-                // 執行串流版本的 Agent 迴圈
+                // Execute streaming version of the Agent loop
                 executeAgentLoopStreaming(
                     sink, provider, settings, model, systemPrompt, task,
                     enabledTools, maxIterations, temperature, context
@@ -429,7 +429,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 .tools(tools)
                 .build();
 
-            // 使用串流呼叫 AI
+            // Call AI using streaming
             StringBuilder responseContent = new StringBuilder();
             List<AiToolCall> toolCalls = new ArrayList<>();
 
@@ -446,7 +446,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 .blockLast();
 
             if (toolCalls.isEmpty()) {
-                // 完成
+                // Completed
                 sink.tryEmitNext(StreamChunk.done(Map.of(
                     "iterations", iteration + 1,
                     "completed", true
@@ -454,7 +454,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 return;
             }
 
-            // 處理工具調用
+            // Process tool calls
             messages.add(AiMessage.assistant(responseContent.toString(), toolCalls));
 
             for (AiToolCall toolCall : toolCalls) {
@@ -492,7 +492,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
     }
 
     /**
-     * Agent 執行結果
+     * Agent execution result
      */
     private record AgentExecutionResult(
         String response,

@@ -75,6 +75,7 @@ export default function SkillsPage() {
     fetchBuiltinSkills,
     fetchCategories,
     executeSkill,
+    deleteSkill,
     clearError,
   } = useSkillStore()
 
@@ -220,14 +221,20 @@ export default function SkillsPage() {
               </Tooltip>
               <Popconfirm
                 title={t('skill.deleteConfirm')}
-                onConfirm={() => {/* deleteSkill(record.id) */}}
+                onConfirm={async () => {
+                  try {
+                    await deleteSkill(record.id);
+                    message.success(t('common.deleteSuccess'));
+                  } catch {
+                    message.error(t('common.deleteFailed'));
+                  }
+                }}
               >
                 <Button
                   type="link"
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  disabled
                 />
               </Popconfirm>
             </>

@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * XML 處理工具
- * 支援 XML 解析、XPath 查詢、XML 與 JSON 轉換
+ * XML processing tool
+ * Supports XML parsing, XPath queries, and XML-JSON conversion
  */
 @Component
 @RequiredArgsConstructor
@@ -52,16 +52,16 @@ public class XmlTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                XML 處理工具，支援多種操作：
-                - parse: 解析 XML 文字
-                - xpath: 使用 XPath 查詢 XML
-                - toJson: XML 轉換為 JSON
-                - validate: 驗證 XML 格式
+                XML processing tool, supports multiple operations:
+                - parse: Parse XML text
+                - xpath: Query XML using XPath
+                - toJson: Convert XML to JSON
+                - validate: Validate XML format
 
-                參數：
-                - data: XML 文字
-                - operation: 操作類型
-                - xpath: XPath 表達式（用於 xpath 操作）
+                Parameters:
+                - data: XML text
+                - operation: Operation type
+                - xpath: XPath expression (for xpath operation)
                 """;
     }
 
@@ -72,17 +72,17 @@ public class XmlTool implements AgentNodeTool {
                 "properties", Map.of(
                         "data", Map.of(
                                 "type", "string",
-                                "description", "XML 文字"
+                                "description", "XML text"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("parse", "xpath", "toJson", "validate"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "parse"
                         ),
                         "xpath", Map.of(
                                 "type", "string",
-                                "description", "XPath 表達式"
+                                "description", "XPath expression"
                         )
                 ),
                 "required", List.of("data")
@@ -95,12 +95,12 @@ public class XmlTool implements AgentNodeTool {
             try {
                 String data = (String) parameters.get("data");
                 if (data == null || data.isBlank()) {
-                    return ToolResult.failure("資料不能為空");
+                    return ToolResult.failure("Data cannot be empty");
                 }
 
                 // Security: limit input size
                 if (data.length() > 1_000_000) {
-                    return ToolResult.failure("資料過大，最大限制 1MB");
+                    return ToolResult.failure("Data too large, maximum limit is 1MB");
                 }
 
                 String operation = (String) parameters.getOrDefault("operation", "parse");
@@ -110,12 +110,12 @@ public class XmlTool implements AgentNodeTool {
                     case "xpath" -> xpathQuery(data, (String) parameters.get("xpath"));
                     case "toJson" -> xmlToJson(data);
                     case "validate" -> validateXml(data);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("XML operation failed", e);
-                return ToolResult.failure("XML 操作失敗");
+                return ToolResult.failure("XML operation failed");
             }
         });
     }
@@ -134,8 +134,8 @@ public class XmlTool implements AgentNodeTool {
             String formatted = formatXml(doc);
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("XML 解析成功\n根元素: %s\n元素數量: %d\n\n", rootElement, elementCount));
-            sb.append("格式化 XML：\n");
+            sb.append(String.format("XML parsing successful\nRoot element: %s\nElement count: %d\n\n", rootElement, elementCount));
+            sb.append("Formatted XML:\n");
             sb.append(formatted.length() > 2000 ? formatted.substring(0, 2000) + "..." : formatted);
 
             return ToolResult.success(sb.toString(), Map.of(
@@ -144,7 +144,7 @@ public class XmlTool implements AgentNodeTool {
                     "valid", true
             ));
         } catch (Exception e) {
-            return ToolResult.failure("XML 解析失敗");
+            return ToolResult.failure("XML parsing failed");
         }
     }
 
@@ -162,7 +162,7 @@ public class XmlTool implements AgentNodeTool {
 
     private ToolResult xpathQuery(String xml, String xpathExpr) {
         if (xpathExpr == null || xpathExpr.isBlank()) {
-            return ToolResult.failure("xpath 操作需要提供 xpath 參數");
+            return ToolResult.failure("The xpath operation requires an xpath parameter");
         }
 
         try {
@@ -179,8 +179,8 @@ public class XmlTool implements AgentNodeTool {
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("XPath 查詢結果：找到 %d 個匹配\n", nodes.getLength()));
-            sb.append(String.format("表達式：%s\n\n", xpathExpr));
+            sb.append(String.format("XPath query results: found %d matches\n", nodes.getLength()));
+            sb.append(String.format("Expression: %s\n\n", xpathExpr));
             for (int i = 0; i < Math.min(results.size(), 10); i++) {
                 sb.append(String.format("%d. %s\n", i + 1, results.get(i)));
             }
@@ -190,7 +190,7 @@ public class XmlTool implements AgentNodeTool {
                     "results", results
             ));
         } catch (Exception e) {
-            return ToolResult.failure("XPath 查詢失敗");
+            return ToolResult.failure("XPath query failed");
         }
     }
 
@@ -204,11 +204,11 @@ public class XmlTool implements AgentNodeTool {
             String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
 
             return ToolResult.success(
-                    "XML 轉 JSON 成功：\n" + (json.length() > 1000 ? json.substring(0, 1000) + "..." : json),
+                    "XML to JSON conversion successful:\n" + (json.length() > 1000 ? json.substring(0, 1000) + "..." : json),
                     Map.of("json", json)
             );
         } catch (Exception e) {
-            return ToolResult.failure("XML 轉 JSON 失敗");
+            return ToolResult.failure("XML to JSON conversion failed");
         }
     }
 
@@ -272,10 +272,10 @@ public class XmlTool implements AgentNodeTool {
             DocumentBuilder builder = factory.newDocumentBuilder();
             builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 
-            return ToolResult.success("XML 格式有效", Map.of("valid", true));
+            return ToolResult.success("XML format is valid", Map.of("valid", true));
         } catch (Exception e) {
             return ToolResult.success(
-                    "XML 格式無效: " + e.getMessage(),
+                    "XML format is invalid: " + e.getMessage(),
                     Map.of("valid", false, "error", e.getMessage())
             );
         }

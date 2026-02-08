@@ -13,9 +13,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * 向量語義搜尋工具
+ * Vector semantic search tool
  *
- * 允許 AI Agent 在知識庫中進行語義搜尋。
+ * Allows AI Agent to perform semantic search in the knowledge base.
  */
 @Component
 @RequiredArgsConstructor
@@ -36,9 +36,9 @@ public class VectorSearchTool implements AgentNodeTool {
 
     @Override
     public String getDescription() {
-        return "搜尋知識庫中與查詢語義相關的文檔。" +
-               "可以用於查找相關資料、回答基於文檔的問題。" +
-               "參數：query (查詢文字)、top_k (返回數量，預設 5)、store_name (知識庫名稱，可選)";
+        return "Search for documents semantically related to the query in the knowledge base. " +
+               "Can be used to find relevant information or answer document-based questions. " +
+               "Parameters: query (query text), top_k (number of results, default 5), store_name (knowledge base name, optional)";
     }
 
     @Override
@@ -48,16 +48,16 @@ public class VectorSearchTool implements AgentNodeTool {
             "properties", Map.of(
                 "query", Map.of(
                     "type", "string",
-                    "description", "要搜尋的查詢文字"
+                    "description", "Query text to search for"
                 ),
                 "top_k", Map.of(
                     "type", "integer",
-                    "description", "返回的結果數量",
+                    "description", "Number of results to return",
                     "default", 5
                 ),
                 "store_name", Map.of(
                     "type", "string",
-                    "description", "知識庫名稱（可選，不指定則使用預設知識庫）"
+                    "description", "Knowledge base name (optional, uses default if not specified)"
                 )
             ),
             "required", List.of("query")
@@ -70,14 +70,14 @@ public class VectorSearchTool implements AgentNodeTool {
             try {
                 String query = (String) parameters.get("query");
                 if (query == null || query.isBlank()) {
-                    return ToolResult.failure("查詢文字不能為空");
+                    return ToolResult.failure("Query text cannot be empty");
                 }
 
                 int topK = parameters.containsKey("top_k")
                         ? ((Number) parameters.get("top_k")).intValue()
                         : 5;
 
-                // 安全限制：防止資源耗盡攻擊
+                // Security limit: prevent resource exhaustion attacks
                 final int MAX_TOP_K = 100;
                 if (topK < 1) {
                     topK = 5;
@@ -94,20 +94,20 @@ public class VectorSearchTool implements AgentNodeTool {
                 List<Document> results = ragService.search(query, topK, storeName);
 
                 if (results.isEmpty()) {
-                    return ToolResult.success("未找到與查詢相關的文檔。");
+                    return ToolResult.success("No documents found matching the query.");
                 }
 
-                // 格式化結果
+                // Format results
                 StringBuilder sb = new StringBuilder();
-                sb.append(String.format("找到 %d 個相關文檔：\n\n", results.size()));
+                sb.append(String.format("Found %d relevant documents:\n\n", results.size()));
 
                 for (int i = 0; i < results.size(); i++) {
                     Document doc = results.get(i);
-                    sb.append(String.format("--- 文檔 %d (相似度: %.2f) ---\n",
+                    sb.append(String.format("--- Document %d (similarity: %.2f) ---\n",
                             i + 1, doc.getScore() != null ? doc.getScore() : 0));
 
                     if (doc.getSource() != null) {
-                        sb.append("來源: ").append(doc.getSource()).append("\n");
+                        sb.append("Source: ").append(doc.getSource()).append("\n");
                     }
 
                     String content = doc.getContent();
@@ -117,7 +117,7 @@ public class VectorSearchTool implements AgentNodeTool {
                     sb.append(content).append("\n\n");
                 }
 
-                // 返回結果和結構化資料
+                // Return results and structured data
                 List<Map<String, Object>> resultData = results.stream()
                         .map(doc -> Map.<String, Object>of(
                                 "content", doc.getContent(),
@@ -134,7 +134,7 @@ public class VectorSearchTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Vector search failed", e);
-                return ToolResult.failure("向量搜尋失敗");
+                return ToolResult.failure("Vector search failed");
             }
         });
     }

@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 /**
- * 串流輸出片段
- * 用於 AI 節點的串流回應
+ * Stream output chunk.
+ * Used for AI node streaming responses.
  */
 @Data
 @Builder
@@ -18,59 +18,59 @@ import java.util.Map;
 public class StreamChunk {
 
     /**
-     * 片段類型
-     * - "text": 文字內容
-     * - "thinking": AI 思考過程
-     * - "tool_call": 工具調用
-     * - "tool_result": 工具執行結果
-     * - "progress": 進度更新
-     * - "done": 完成
-     * - "error": 錯誤
+     * Chunk type
+     * - "text": text content
+     * - "thinking": AI thinking process
+     * - "tool_call": tool invocation
+     * - "tool_result": tool execution result
+     * - "progress": progress update
+     * - "done": completed
+     * - "error": error
      */
     private String type;
 
     /**
-     * 文字內容（增量）
+     * Text content (incremental delta)
      */
     private String content;
 
     /**
-     * 工具名稱（tool_call 時使用）
+     * Tool name (used for tool_call type)
      */
     private String toolName;
 
     /**
-     * 工具輸入 JSON（tool_call 時使用）
+     * Tool input JSON (used for tool_call type)
      */
     private String toolInput;
 
     /**
-     * 工具調用 ID（tool_call/tool_result 時使用）
+     * Tool call ID (used for tool_call/tool_result types)
      */
     private String toolCallId;
 
     /**
-     * 進度百分比（0-100）
+     * Progress percentage (0-100)
      */
     private Integer progress;
 
     /**
-     * 進度階段描述
+     * Progress stage description
      */
     private String stage;
 
     /**
-     * 是否完成
+     * Whether the stream is complete
      */
     @Builder.Default
     private boolean done = false;
 
     /**
-     * 元數據
+     * Metadata
      */
     private Map<String, Object> metadata;
 
-    // ===== 靜態工廠方法 =====
+    // ===== Static factory methods =====
 
     public static StreamChunk text(String content) {
         return StreamChunk.builder()

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Modal, Form, Input, Select, message, Alert, Button, Space } from 'antd'
-import { CheckCircleOutlined, CloseCircleOutlined, ApiOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, CloseCircleOutlined, ApiOutlined, LinkOutlined } from '@ant-design/icons'
 import { useCredentialStore } from '../../stores/credentialStore'
 import { CredentialType, CreateCredentialRequest, ConnectionTestResult } from '../../api/credential'
 import { useTranslation } from 'react-i18next'
@@ -101,6 +101,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
   }
 
   const isTestable = selectedType && TESTABLE_TYPES.includes(selectedType.name.toLowerCase())
+  const isOAuth2Type = selectedType && selectedType.name.toLowerCase() === 'oauth2'
 
   const handleSubmit = async () => {
     try {
@@ -262,6 +263,18 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
               {selectedType.displayName} {t('credential.settings')}
             </div>
             {renderDataFields()}
+
+            {/* OAuth2 Info Section */}
+            {isOAuth2Type && (
+              <Alert
+                type="info"
+                icon={<LinkOutlined />}
+                message={t('oauth2.setupHint')}
+                description={t('oauth2.setupHintDesc')}
+                showIcon
+                style={{ marginTop: 16 }}
+              />
+            )}
 
             {/* Test Connection Section */}
             {isTestable && (

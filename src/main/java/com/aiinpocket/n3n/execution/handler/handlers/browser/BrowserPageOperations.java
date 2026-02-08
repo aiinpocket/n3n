@@ -81,13 +81,22 @@ final class BrowserPageOperations {
             BrowserNodeHandler.CdpCommandSender cdpSender) throws IOException {
 
         Map<String, Object> history = cdpSender.sendCommand(session, "Page.getNavigationHistory", Map.of());
-        int currentIndex = ((Number) history.get("currentIndex")).intValue();
+        Object currentIndexObj = history.get("currentIndex");
+        int currentIndex = currentIndexObj instanceof Number n ? n.intValue() : -1;
 
         if (currentIndex > 0) {
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> entries = (List<Map<String, Object>>) history.get("entries");
-            int entryId = ((Number) entries.get(currentIndex - 1).get("id")).intValue();
-            cdpSender.sendCommand(session, "Page.navigateToHistoryEntry", Map.of("entryId", entryId));
+            Object entriesObj = history.get("entries");
+            if (entriesObj instanceof List<?> entriesList && !entriesList.isEmpty()) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> entries = (List<Map<String, Object>>) entriesList;
+                if (currentIndex - 1 < entries.size()) {
+                    Object entryIdObj = entries.get(currentIndex - 1).get("id");
+                    if (entryIdObj instanceof Number entryIdNum) {
+                        cdpSender.sendCommand(session, "Page.navigateToHistoryEntry",
+                                Map.of("entryId", entryIdNum.intValue()));
+                    }
+                }
+            }
         }
 
         return NodeExecutionResult.success(Map.of("success", true, "action", "back"));
@@ -98,14 +107,21 @@ final class BrowserPageOperations {
             BrowserNodeHandler.CdpCommandSender cdpSender) throws IOException {
 
         Map<String, Object> history = cdpSender.sendCommand(session, "Page.getNavigationHistory", Map.of());
-        int currentIndex = ((Number) history.get("currentIndex")).intValue();
+        Object currentIndexObj = history.get("currentIndex");
+        int currentIndex = currentIndexObj instanceof Number n ? n.intValue() : -1;
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> entries = (List<Map<String, Object>>) history.get("entries");
+        Object entriesObj = history.get("entries");
+        if (entriesObj instanceof List<?> entriesList && !entriesList.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> entries = (List<Map<String, Object>>) entriesList;
 
-        if (currentIndex < entries.size() - 1) {
-            int entryId = ((Number) entries.get(currentIndex + 1).get("id")).intValue();
-            cdpSender.sendCommand(session, "Page.navigateToHistoryEntry", Map.of("entryId", entryId));
+            if (currentIndex >= 0 && currentIndex < entries.size() - 1) {
+                Object entryIdObj = entries.get(currentIndex + 1).get("id");
+                if (entryIdObj instanceof Number entryIdNum) {
+                    cdpSender.sendCommand(session, "Page.navigateToHistoryEntry",
+                            Map.of("entryId", entryIdNum.intValue()));
+                }
+            }
         }
 
         return NodeExecutionResult.success(Map.of("success", true, "action", "forward"));
@@ -159,17 +175,20 @@ final class BrowserPageOperations {
 
         if (fullPage) {
             Map<String, Object> metrics = cdpSender.sendCommand(session, "Page.getLayoutMetrics", Map.of());
-            @SuppressWarnings("unchecked")
-            Map<String, Object> contentSize = (Map<String, Object>) metrics.get("contentSize");
+            Object contentSizeObj = metrics.get("contentSize");
+            if (contentSizeObj instanceof Map<?, ?> contentSizeMap) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> contentSize = (Map<String, Object>) contentSizeMap;
 
-            params.put("clip", Map.of(
-                "x", 0,
-                "y", 0,
-                "width", contentSize.get("width"),
-                "height", contentSize.get("height"),
-                "scale", 1
-            ));
-            params.put("captureBeyondViewport", true);
+                params.put("clip", Map.of(
+                    "x", 0,
+                    "y", 0,
+                    "width", contentSize.getOrDefault("width", 1280),
+                    "height", contentSize.getOrDefault("height", 720),
+                    "scale", 1
+                ));
+                params.put("captureBeyondViewport", true);
+            }
         }
 
         Map<String, Object> result = cdpSender.sendCommand(session, "Page.captureScreenshot", params);
@@ -358,9 +377,13 @@ final class BrowserPageOperations {
 
         Map<String, Object> response = cdpSender.sendCommand(session, "Runtime.evaluate", params);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = (Map<String, Object>) response.get("result");
-        return result != null ? result : Map.of();
+        Object resultObj = response.get("result");
+        if (resultObj instanceof Map<?, ?> resultMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> result = (Map<String, Object>) resultMap;
+            return result;
+        }
+        return Map.of();
     }
 
     // ===== Config helpers (duplicated from AbstractNodeHandler) =====

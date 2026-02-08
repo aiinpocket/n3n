@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * HTTP 請求工具
- * 讓 AI Agent 能夠發送 HTTP 請求
+ * HTTP request tool
+ * Allows AI Agent to send HTTP requests
  */
 @Component
 @Slf4j
@@ -109,15 +109,15 @@ public class HttpRequestTool implements AgentNodeTool {
                 String body = (String) parameters.get("body");
                 int timeout = Math.min(((Number) parameters.getOrDefault("timeout", 30)).intValue(), 120);
 
-                // 建立請求
+                // Build request
                 HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(timeout));
 
-                // 設定 headers
+                // Set headers
                 headers.forEach(requestBuilder::header);
 
-                // 設定方法和 body
+                // Set method and body
                 HttpRequest.BodyPublisher bodyPublisher = body != null
                     ? HttpRequest.BodyPublishers.ofString(body)
                     : HttpRequest.BodyPublishers.noBody();
@@ -133,10 +133,10 @@ public class HttpRequestTool implements AgentNodeTool {
 
                 HttpRequest request = requestBuilder.build();
 
-                // 發送請求
+                // Send request
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                // 建立結果
+                // Build result
                 Map<String, Object> data = new HashMap<>();
                 data.put("statusCode", response.statusCode());
                 data.put("headers", response.headers().map());

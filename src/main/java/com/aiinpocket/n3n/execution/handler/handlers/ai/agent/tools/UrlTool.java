@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * URL 處理工具
- * 支援 URL 解析、編碼、解碼、建構
+ * URL processing tool
+ * Supports URL parsing, encoding, decoding, and building
  */
 @Component
 @Slf4j
@@ -32,21 +32,21 @@ public class UrlTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                URL 處理工具，支援多種操作：
-                - parse: 解析 URL 成組件
-                - encode: URL 編碼
-                - decode: URL 解碼
-                - build: 從組件建構 URL
-                - extractParams: 提取查詢參數
+                URL processing tool with multiple operations:
+                - parse: Parse URL into components
+                - encode: URL encode
+                - decode: URL decode
+                - build: Build URL from components
+                - extractParams: Extract query parameters
 
-                參數：
-                - url: URL 字串（用於 parse, encode, decode, extractParams）
-                - operation: 操作類型
-                - scheme: 協定（用於 build）
-                - host: 主機（用於 build）
-                - port: 連接埠（用於 build）
-                - path: 路徑（用於 build）
-                - params: 查詢參數（用於 build，JSON 格式）
+                Parameters:
+                - url: URL string (for parse, encode, decode, extractParams)
+                - operation: Operation type
+                - scheme: Protocol (for build)
+                - host: Host (for build)
+                - port: Port (for build)
+                - path: Path (for build)
+                - params: Query parameters (for build, JSON format)
                 """;
     }
 
@@ -57,33 +57,33 @@ public class UrlTool implements AgentNodeTool {
                 "properties", Map.of(
                         "url", Map.of(
                                 "type", "string",
-                                "description", "URL 字串"
+                                "description", "URL string"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("parse", "encode", "decode", "build", "extractParams"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "parse"
                         ),
                         "scheme", Map.of(
                                 "type", "string",
-                                "description", "協定（如 https）"
+                                "description", "Protocol (e.g. https)"
                         ),
                         "host", Map.of(
                                 "type", "string",
-                                "description", "主機"
+                                "description", "Host"
                         ),
                         "port", Map.of(
                                 "type", "integer",
-                                "description", "連接埠"
+                                "description", "Port"
                         ),
                         "path", Map.of(
                                 "type", "string",
-                                "description", "路徑"
+                                "description", "Path"
                         ),
                         "params", Map.of(
                                 "type", "string",
-                                "description", "查詢參數（JSON 格式）"
+                                "description", "Query parameters (JSON format)"
                         )
                 ),
                 "required", List.of()
@@ -102,19 +102,19 @@ public class UrlTool implements AgentNodeTool {
                     case "decode" -> decodeUrl((String) parameters.get("url"));
                     case "build" -> buildUrl(parameters);
                     case "extractParams" -> extractParams((String) parameters.get("url"));
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("URL operation failed", e);
-                return ToolResult.failure("URL 操作失敗");
+                return ToolResult.failure("URL operation failed");
             }
         });
     }
 
     private ToolResult parseUrl(String url) {
         if (url == null || url.isBlank()) {
-            return ToolResult.failure("URL 不能為空");
+            return ToolResult.failure("URL cannot be empty");
         }
 
         try {
@@ -130,51 +130,51 @@ public class UrlTool implements AgentNodeTool {
             components.put("userInfo", uri.getUserInfo());
 
             StringBuilder sb = new StringBuilder();
-            sb.append("URL 解析結果：\n");
-            sb.append(String.format("- 協定: %s\n", uri.getScheme()));
-            sb.append(String.format("- 主機: %s\n", uri.getHost()));
+            sb.append("URL parse result:\n");
+            sb.append(String.format("- Scheme: %s\n", uri.getScheme()));
+            sb.append(String.format("- Host: %s\n", uri.getHost()));
             if (uri.getPort() != -1) {
-                sb.append(String.format("- 連接埠: %d\n", uri.getPort()));
+                sb.append(String.format("- Port: %d\n", uri.getPort()));
             }
-            sb.append(String.format("- 路徑: %s\n", uri.getPath()));
+            sb.append(String.format("- Path: %s\n", uri.getPath()));
             if (uri.getQuery() != null) {
-                sb.append(String.format("- 查詢字串: %s\n", uri.getQuery()));
+                sb.append(String.format("- Query: %s\n", uri.getQuery()));
             }
             if (uri.getFragment() != null) {
-                sb.append(String.format("- 片段: %s\n", uri.getFragment()));
+                sb.append(String.format("- Fragment: %s\n", uri.getFragment()));
             }
 
             return ToolResult.success(sb.toString(), components);
         } catch (Exception e) {
-            return ToolResult.failure("無效的 URL");
+            return ToolResult.failure("Invalid URL");
         }
     }
 
     private ToolResult encodeUrl(String text) {
         if (text == null || text.isEmpty()) {
-            return ToolResult.failure("文字不能為空");
+            return ToolResult.failure("Text cannot be empty");
         }
 
         String encoded = URLEncoder.encode(text, StandardCharsets.UTF_8);
         return ToolResult.success(
-                "URL 編碼結果：\n" + encoded,
+                "URL encode result:\n" + encoded,
                 Map.of("encoded", encoded, "original", text)
         );
     }
 
     private ToolResult decodeUrl(String encoded) {
         if (encoded == null || encoded.isEmpty()) {
-            return ToolResult.failure("編碼字串不能為空");
+            return ToolResult.failure("Encoded string cannot be empty");
         }
 
         try {
             String decoded = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
             return ToolResult.success(
-                    "URL 解碼結果：\n" + decoded,
+                    "URL decode result:\n" + decoded,
                     Map.of("decoded", decoded, "original", encoded)
             );
         } catch (Exception e) {
-            return ToolResult.failure("解碼失敗");
+            return ToolResult.failure("Decoding failed");
         }
     }
 
@@ -187,7 +187,7 @@ public class UrlTool implements AgentNodeTool {
             String paramsJson = (String) parameters.get("params");
 
             if (host == null || host.isBlank()) {
-                return ToolResult.failure("主機不能為空");
+                return ToolResult.failure("Host cannot be empty");
             }
 
             StringBuilder sb = new StringBuilder();
@@ -223,17 +223,17 @@ public class UrlTool implements AgentNodeTool {
 
             String url = sb.toString();
             return ToolResult.success(
-                    "URL 建構結果：\n" + url,
+                    "URL build result:\n" + url,
                     Map.of("url", url)
             );
         } catch (Exception e) {
-            return ToolResult.failure("URL 建構失敗");
+            return ToolResult.failure("URL build failed");
         }
     }
 
     private ToolResult extractParams(String url) {
         if (url == null || url.isBlank()) {
-            return ToolResult.failure("URL 不能為空");
+            return ToolResult.failure("URL cannot be empty");
         }
 
         try {
@@ -241,7 +241,7 @@ public class UrlTool implements AgentNodeTool {
             String query = uri.getQuery();
 
             if (query == null || query.isEmpty()) {
-                return ToolResult.success("URL 沒有查詢參數", Map.of("params", Map.of()));
+                return ToolResult.success("URL has no query parameters", Map.of("params", Map.of()));
             }
 
             Map<String, String> params = new LinkedHashMap<>();
@@ -260,14 +260,14 @@ public class UrlTool implements AgentNodeTool {
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("提取到 %d 個查詢參數：\n", params.size()));
+            sb.append(String.format("Extracted %d query parameters:\n", params.size()));
             for (Map.Entry<String, String> entry : params.entrySet()) {
                 sb.append(String.format("- %s = %s\n", entry.getKey(), entry.getValue()));
             }
 
             return ToolResult.success(sb.toString(), Map.of("params", params, "count", params.size()));
         } catch (Exception e) {
-            return ToolResult.failure("參數提取失敗");
+            return ToolResult.failure("Parameter extraction failed");
         }
     }
 

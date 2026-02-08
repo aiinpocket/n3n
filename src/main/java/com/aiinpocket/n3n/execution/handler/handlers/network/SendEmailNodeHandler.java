@@ -74,11 +74,12 @@ public class SendEmailNodeHandler extends AbstractNodeHandler {
             JavaMailSender mailSender;
             String fromAddress = "";
 
-            // 如果提供了 credentialId，從 CredentialService 取得 SMTP 設定
+            // If credentialId is provided, get SMTP settings from CredentialService
             if (!credentialId.isEmpty()) {
                 Map<String, Object> smtpConfig = context.resolveCredential(UUID.fromString(credentialId));
                 mailSender = createMailSender(smtpConfig);
-                fromAddress = (String) smtpConfig.getOrDefault("username", "");
+                Object usernameObj = smtpConfig.getOrDefault("username", "");
+                fromAddress = usernameObj != null ? usernameObj.toString() : "";
             } else {
                 mailSender = defaultMailSender;
             }
@@ -114,10 +115,25 @@ public class SendEmailNodeHandler extends AbstractNodeHandler {
 
     private JavaMailSender createMailSender(Map<String, Object> smtpConfig) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost((String) smtpConfig.getOrDefault("host", "smtp.gmail.com"));
-        sender.setPort(((Number) smtpConfig.getOrDefault("port", 587)).intValue());
-        sender.setUsername((String) smtpConfig.getOrDefault("username", ""));
-        sender.setPassword((String) smtpConfig.getOrDefault("password", ""));
+
+        Object hostObj = smtpConfig.getOrDefault("host", "smtp.gmail.com");
+        sender.setHost(hostObj != null ? hostObj.toString() : "smtp.gmail.com");
+
+        Object portObj = smtpConfig.getOrDefault("port", 587);
+        if (portObj instanceof Number n) {
+            sender.setPort(n.intValue());
+        } else if (portObj != null) {
+            try { sender.setPort(Integer.parseInt(portObj.toString())); }
+            catch (NumberFormatException e) { sender.setPort(587); }
+        } else {
+            sender.setPort(587);
+        }
+
+        Object usernameObj = smtpConfig.getOrDefault("username", "");
+        sender.setUsername(usernameObj != null ? usernameObj.toString() : "");
+
+        Object passwordObj = smtpConfig.getOrDefault("password", "");
+        sender.setPassword(passwordObj != null ? passwordObj.toString() : "");
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");

@@ -5,82 +5,82 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * AI Agent 工具介面
- * 定義可被 AI Agent 節點調用的工具
+ * AI Agent Tool Interface.
+ * Defines tools that can be invoked by AI Agent nodes.
  *
- * 工具用於擴展 AI Agent 的能力，讓 AI 能夠：
- * - 發送 HTTP 請求
- * - 執行程式碼
- * - 搜索資料
- * - 操作資料庫
- * - 等等...
+ * Tools extend the AI Agent's capabilities, enabling:
+ * - Sending HTTP requests
+ * - Executing code
+ * - Searching data
+ * - Database operations
+ * - And more...
  */
 public interface AgentNodeTool {
 
     /**
-     * 工具唯一識別碼
+     * Unique tool identifier
      */
     String getId();
 
     /**
-     * 工具顯示名稱
+     * Tool display name
      */
     String getName();
 
     /**
-     * 工具描述（供 AI 理解用途）
+     * Tool description (for AI to understand its purpose)
      */
     String getDescription();
 
     /**
-     * 取得工具的 JSON Schema 參數定義
-     * 用於 AI 模型的 function calling
+     * Get the tool's JSON Schema parameter definition.
+     * Used for AI model function calling.
      *
-     * @return JSON Schema 格式的參數定義
+     * @return parameter definition in JSON Schema format
      */
     Map<String, Object> getParametersSchema();
 
     /**
-     * 執行工具
+     * Execute the tool
      *
-     * @param parameters 工具參數（從 AI 的 function call 解析而來）
-     * @param context 執行上下文
-     * @return 執行結果
+     * @param parameters tool parameters (parsed from AI's function call)
+     * @param context execution context
+     * @return execution result
      */
     CompletableFuture<ToolResult> execute(Map<String, Object> parameters, ToolExecutionContext context);
 
     /**
-     * 是否需要用戶確認才能執行
-     * 對於危險操作（如刪除、修改）應返回 true
+     * Whether user confirmation is required before execution.
+     * Should return true for dangerous operations (e.g., delete, modify).
      */
     default boolean requiresConfirmation() {
         return false;
     }
 
     /**
-     * 工具執行超時（秒）
+     * Tool execution timeout (in seconds)
      */
     default int getTimeoutSeconds() {
         return 30;
     }
 
     /**
-     * 取得工具所需的憑證類型
-     * 用於驗證是否有足夠的權限執行
+     * Get the credential types required by this tool.
+     * Used to verify whether sufficient permissions exist for execution.
      */
     default List<String> getRequiredCredentials() {
         return List.of();
     }
 
     /**
-     * 工具分類
+     * Tool category
      */
     default String getCategory() {
         return "general";
     }
 
     /**
-     * 工具結果
+     * Tool result
      */
     record ToolResult(
         boolean success,
@@ -102,7 +102,7 @@ public interface AgentNodeTool {
     }
 
     /**
-     * 工具執行上下文
+     * Tool execution context
      */
     record ToolExecutionContext(
         String userId,

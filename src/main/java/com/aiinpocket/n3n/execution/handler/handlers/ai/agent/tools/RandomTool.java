@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 隨機數生成工具
+ * Random number/string generation tool
  */
 @Component
 @Slf4j
@@ -32,22 +32,22 @@ public class RandomTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                生成隨機數或隨機字串。
+                Generate random numbers or strings.
 
-                操作類型：
-                - number: 生成隨機整數
-                - float: 生成隨機浮點數
-                - string: 生成隨機字串
-                - password: 生成安全密碼
-                - pick: 從列表中隨機選取
+                Operation types:
+                - number: Generate random integer
+                - float: Generate random floating-point number
+                - string: Generate random string
+                - password: Generate secure password
+                - pick: Randomly pick from a list
 
-                參數：
-                - type: 操作類型
-                - min: 最小值（用於 number/float）
-                - max: 最大值（用於 number/float）
-                - length: 字串長度（用於 string/password）
-                - count: 生成數量（預設 1）
-                - items: 選項列表（用於 pick，逗號分隔）
+                Parameters:
+                - type: Operation type
+                - min: Minimum value (for number/float)
+                - max: Maximum value (for number/float)
+                - length: String length (for string/password)
+                - count: Number to generate (default 1)
+                - items: Option list (for pick, comma-separated)
                 """;
     }
 
@@ -59,32 +59,32 @@ public class RandomTool implements AgentNodeTool {
                         "type", Map.of(
                                 "type", "string",
                                 "enum", List.of("number", "float", "string", "password", "pick"),
-                                "description", "隨機類型",
+                                "description", "Random type",
                                 "default", "number"
                         ),
                         "min", Map.of(
                                 "type", "number",
-                                "description", "最小值",
+                                "description", "Minimum value",
                                 "default", 0
                         ),
                         "max", Map.of(
                                 "type", "number",
-                                "description", "最大值",
+                                "description", "Maximum value",
                                 "default", 100
                         ),
                         "length", Map.of(
                                 "type", "integer",
-                                "description", "字串長度",
+                                "description", "String length",
                                 "default", 16
                         ),
                         "count", Map.of(
                                 "type", "integer",
-                                "description", "生成數量",
+                                "description", "Number to generate",
                                 "default", 1
                         ),
                         "items", Map.of(
                                 "type", "string",
-                                "description", "選項列表（逗號分隔）"
+                                "description", "Option list (comma-separated)"
                         )
                 ),
                 "required", List.of()
@@ -106,9 +106,9 @@ public class RandomTool implements AgentNodeTool {
 
                 StringBuilder sb = new StringBuilder();
                 if (count == 1) {
-                    sb.append("生成的隨機值：").append(results.get(0));
+                    sb.append("Generated random value: ").append(results.get(0));
                 } else {
-                    sb.append(String.format("生成了 %d 個隨機值：\n", count));
+                    sb.append(String.format("Generated %d random values:\n", count));
                     for (int i = 0; i < results.size(); i++) {
                         sb.append(String.format("%d. %s\n", i + 1, results.get(i)));
                     }
@@ -122,7 +122,7 @@ public class RandomTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Random generation failed", e);
-                return ToolResult.failure("隨機生成失敗");
+                return ToolResult.failure("Random generation failed");
             }
         });
     }
@@ -162,7 +162,7 @@ public class RandomTool implements AgentNodeTool {
             case "pick" -> {
                 String itemsStr = (String) parameters.get("items");
                 if (itemsStr == null || itemsStr.isBlank()) {
-                    yield "錯誤：需要提供 items 參數";
+                    yield "Error: items parameter is required";
                 }
                 String[] items = itemsStr.split(",");
                 yield items[random.nextInt(items.length)].trim();

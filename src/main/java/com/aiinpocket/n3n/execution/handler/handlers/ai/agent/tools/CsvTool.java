@@ -11,8 +11,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * CSV 處理工具
- * 支援解析、生成、查詢 CSV 資料
+ * CSV processing tool
+ * Supports parsing, generating, and querying CSV data
  */
 @Component
 @Slf4j
@@ -34,19 +34,19 @@ public class CsvTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                CSV 資料處理工具，支援多種操作：
-                - parse: 解析 CSV 文字為結構化資料
-                - generate: 從結構化資料生成 CSV
-                - query: 查詢/過濾 CSV 資料
-                - stats: 計算欄位統計資訊
+                CSV data processing tool, supports multiple operations:
+                - parse: Parse CSV text into structured data
+                - generate: Generate CSV from structured data
+                - query: Query/filter CSV data
+                - stats: Calculate column statistics
 
-                參數：
-                - data: CSV 文字或結構化資料
-                - operation: 操作類型
-                - delimiter: 分隔符（預設逗號）
-                - hasHeader: 是否有標題行（預設 true）
-                - filter: 過濾條件（用於 query 操作）
-                - column: 欄位名稱（用於 stats 操作）
+                Parameters:
+                - data: CSV text or structured data
+                - operation: Operation type
+                - delimiter: Delimiter (default comma)
+                - hasHeader: Whether there is a header row (default true)
+                - filter: Filter condition (for query operation)
+                - column: Column name (for stats operation)
                 """;
     }
 
@@ -57,31 +57,31 @@ public class CsvTool implements AgentNodeTool {
                 "properties", Map.of(
                         "data", Map.of(
                                 "type", "string",
-                                "description", "CSV 文字資料"
+                                "description", "CSV text data"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("parse", "generate", "query", "stats"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "parse"
                         ),
                         "delimiter", Map.of(
                                 "type", "string",
-                                "description", "分隔符",
+                                "description", "Delimiter",
                                 "default", ","
                         ),
                         "hasHeader", Map.of(
                                 "type", "boolean",
-                                "description", "是否有標題行",
+                                "description", "Whether there is a header row",
                                 "default", true
                         ),
                         "filter", Map.of(
                                 "type", "string",
-                                "description", "過濾條件（格式：column=value）"
+                                "description", "Filter condition (format: column=value)"
                         ),
                         "column", Map.of(
                                 "type", "string",
-                                "description", "欄位名稱（用於 stats）"
+                                "description", "Column name (for stats)"
                         )
                 ),
                 "required", List.of("data")
@@ -94,7 +94,7 @@ public class CsvTool implements AgentNodeTool {
             try {
                 String data = (String) parameters.get("data");
                 if (data == null || data.isBlank()) {
-                    return ToolResult.failure("資料不能為空");
+                    return ToolResult.failure("Data cannot be empty");
                 }
 
                 String operation = (String) parameters.getOrDefault("operation", "parse");
@@ -105,12 +105,12 @@ public class CsvTool implements AgentNodeTool {
                     case "parse" -> parseCsv(data, delimiter, hasHeader);
                     case "query" -> queryCsv(data, delimiter, hasHeader, (String) parameters.get("filter"));
                     case "stats" -> statsCsv(data, delimiter, hasHeader, (String) parameters.get("column"));
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("CSV operation failed", e);
-                return ToolResult.failure("CSV 操作失敗");
+                return ToolResult.failure("CSV operation failed");
             }
         });
     }
@@ -118,7 +118,7 @@ public class CsvTool implements AgentNodeTool {
     private ToolResult parseCsv(String data, String delimiter, boolean hasHeader) {
         List<List<String>> rows = parseRows(data, delimiter);
         if (rows.isEmpty()) {
-            return ToolResult.failure("CSV 資料為空");
+            return ToolResult.failure("CSV data is empty");
         }
 
         List<String> headers;
@@ -149,9 +149,9 @@ public class CsvTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("解析完成：%d 筆記錄，%d 個欄位\n", records.size(), headers.size()));
-        sb.append("欄位：").append(String.join(", ", headers)).append("\n\n");
-        sb.append("前 5 筆資料：\n");
+        sb.append(String.format("Parsing complete: %d records, %d columns\n", records.size(), headers.size()));
+        sb.append("Columns: ").append(String.join(", ", headers)).append("\n\n");
+        sb.append("First 5 records:\n");
         for (int i = 0; i < Math.min(5, records.size()); i++) {
             sb.append(String.format("%d. %s\n", i + 1, records.get(i)));
         }
@@ -166,28 +166,28 @@ public class CsvTool implements AgentNodeTool {
 
     private ToolResult queryCsv(String data, String delimiter, boolean hasHeader, String filter) {
         if (filter == null || filter.isBlank()) {
-            return ToolResult.failure("query 操作需要提供 filter 參數");
+            return ToolResult.failure("The query operation requires a filter parameter");
         }
 
         List<List<String>> rows = parseRows(data, delimiter);
         if (rows.isEmpty()) {
-            return ToolResult.failure("CSV 資料為空");
+            return ToolResult.failure("CSV data is empty");
         }
 
         List<String> headers = hasHeader ? rows.get(0) : generateHeaders(rows.get(0).size());
         int startIdx = hasHeader ? 1 : 0;
 
-        // 解析過濾條件
+        // Parse filter condition
         String[] filterParts = filter.split("=", 2);
         if (filterParts.length != 2) {
-            return ToolResult.failure("無效的過濾條件格式，應為 column=value");
+            return ToolResult.failure("Invalid filter format, should be column=value");
         }
 
         String filterColumn = filterParts[0].trim();
         String filterValue = filterParts[1].trim();
         int columnIdx = headers.indexOf(filterColumn);
         if (columnIdx == -1) {
-            return ToolResult.failure("找不到欄位: " + filterColumn);
+            return ToolResult.failure("Column not found: " + filterColumn);
         }
 
         List<Map<String, String>> filtered = new ArrayList<>();
@@ -203,8 +203,8 @@ public class CsvTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("查詢結果：找到 %d 筆符合條件的記錄\n", filtered.size()));
-        sb.append(String.format("條件：%s 包含 \"%s\"\n\n", filterColumn, filterValue));
+        sb.append(String.format("Query result: found %d matching records\n", filtered.size()));
+        sb.append(String.format("Condition: %s contains \"%s\"\n\n", filterColumn, filterValue));
         for (int i = 0; i < Math.min(10, filtered.size()); i++) {
             sb.append(String.format("%d. %s\n", i + 1, filtered.get(i)));
         }
@@ -217,18 +217,18 @@ public class CsvTool implements AgentNodeTool {
 
     private ToolResult statsCsv(String data, String delimiter, boolean hasHeader, String column) {
         if (column == null || column.isBlank()) {
-            return ToolResult.failure("stats 操作需要提供 column 參數");
+            return ToolResult.failure("The stats operation requires a column parameter");
         }
 
         List<List<String>> rows = parseRows(data, delimiter);
         if (rows.isEmpty()) {
-            return ToolResult.failure("CSV 資料為空");
+            return ToolResult.failure("CSV data is empty");
         }
 
         List<String> headers = hasHeader ? rows.get(0) : generateHeaders(rows.get(0).size());
         int columnIdx = headers.indexOf(column);
         if (columnIdx == -1) {
-            return ToolResult.failure("找不到欄位: " + column);
+            return ToolResult.failure("Column not found: " + column);
         }
 
         int startIdx = hasHeader ? 1 : 0;
@@ -263,28 +263,28 @@ public class CsvTool implements AgentNodeTool {
             stats.put("max", max);
         }
 
-        // 最常見的值
+        // Most common values
         List<Map.Entry<String, Integer>> topValues = valueCounts.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(5)
                 .collect(Collectors.toList());
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("欄位 \"%s\" 統計資訊：\n", column));
-        sb.append(String.format("- 總行數: %d\n", stats.get("totalRows")));
-        sb.append(String.format("- 唯一值數量: %d\n", stats.get("uniqueValues")));
+        sb.append(String.format("Column \"%s\" statistics:\n", column));
+        sb.append(String.format("- Total rows: %d\n", stats.get("totalRows")));
+        sb.append(String.format("- Unique values: %d\n", stats.get("uniqueValues")));
 
         if (stats.containsKey("numericCount")) {
-            sb.append(String.format("- 數值數量: %d\n", stats.get("numericCount")));
-            sb.append(String.format("- 總和: %.2f\n", stats.get("sum")));
-            sb.append(String.format("- 平均: %.2f\n", stats.get("average")));
-            sb.append(String.format("- 最小: %.2f\n", stats.get("min")));
-            sb.append(String.format("- 最大: %.2f\n", stats.get("max")));
+            sb.append(String.format("- Numeric count: %d\n", stats.get("numericCount")));
+            sb.append(String.format("- Sum: %.2f\n", stats.get("sum")));
+            sb.append(String.format("- Average: %.2f\n", stats.get("average")));
+            sb.append(String.format("- Min: %.2f\n", stats.get("min")));
+            sb.append(String.format("- Max: %.2f\n", stats.get("max")));
         }
 
-        sb.append("\n最常見的值：\n");
+        sb.append("\nMost common values:\n");
         for (var entry : topValues) {
-            sb.append(String.format("  - \"%s\": %d 次\n", entry.getKey(), entry.getValue()));
+            sb.append(String.format("  - \"%s\": %d times\n", entry.getKey(), entry.getValue()));
         }
 
         return ToolResult.success(sb.toString(), stats);

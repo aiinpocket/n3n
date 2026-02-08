@@ -52,7 +52,7 @@ const WebhooksPage: React.FC = () => {
 
   useEffect(() => {
     fetchWebhooks()
-    fetchFlows()
+    fetchFlows(0, 200)
   }, [fetchWebhooks, fetchFlows])
 
   const handleCreate = async (values: CreateWebhookRequest) => {
@@ -344,6 +344,44 @@ const WebhooksPage: React.FC = () => {
               <Select.Option value="signature">{t('webhook.authSignature')}</Select.Option>
               <Select.Option value="apiKey">{t('webhook.authApiKey')}</Select.Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item noStyle shouldUpdate={(prev, cur) => prev.authType !== cur.authType}>
+            {({ getFieldValue }) => {
+              const authType = getFieldValue('authType');
+              if (authType === 'signature') {
+                return (
+                  <Form.Item
+                    name={['authConfig', 'secret']}
+                    label={t('webhook.secret')}
+                    rules={[{ required: true, message: t('webhook.secretRequired') }]}
+                  >
+                    <Input.Password placeholder={t('webhook.secretPlaceholder')} />
+                  </Form.Item>
+                );
+              }
+              if (authType === 'apiKey') {
+                return (
+                  <>
+                    <Form.Item
+                      name={['authConfig', 'headerName']}
+                      label={t('webhook.headerName')}
+                      rules={[{ required: true, message: t('webhook.headerNameRequired') }]}
+                    >
+                      <Input placeholder="X-API-Key" />
+                    </Form.Item>
+                    <Form.Item
+                      name={['authConfig', 'apiKey']}
+                      label={t('webhook.apiKey')}
+                      rules={[{ required: true, message: t('webhook.apiKeyRequired') }]}
+                    >
+                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} />
+                    </Form.Item>
+                  </>
+                );
+              }
+              return null;
+            }}
           </Form.Item>
 
           <Form.Item>

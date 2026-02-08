@@ -8,8 +8,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 文字差異比較工具
- * 比較兩段文字的差異
+ * Text diff comparison tool
+ * Compares differences between two texts
  */
 @Component
 @Slf4j
@@ -28,23 +28,23 @@ public class DiffTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                文字差異比較工具，比較兩段文字的差異。
+                Text diff comparison tool, compares differences between two texts.
 
-                操作類型：
-                - line: 逐行比較（預設）
-                - word: 逐字比較
-                - char: 逐字元比較
+                Comparison modes:
+                - line: Line-by-line comparison (default)
+                - word: Word-by-word comparison
+                - char: Character-by-character comparison
 
-                參數：
-                - text1: 原始文字
-                - text2: 比較文字
-                - mode: 比較模式（line/word/char）
-                - contextLines: 上下文行數（預設 3）
+                Parameters:
+                - text1: Original text
+                - text2: Comparison text
+                - mode: Comparison mode (line/word/char)
+                - contextLines: Context lines (default 3)
 
-                輸出格式：
-                - 開頭的 - 表示刪除
-                - 開頭的 + 表示新增
-                - 無符號表示不變
+                Output format:
+                - Lines starting with - indicate deletions
+                - Lines starting with + indicate additions
+                - Lines without prefix are unchanged
                 """;
     }
 
@@ -55,21 +55,21 @@ public class DiffTool implements AgentNodeTool {
                 "properties", Map.of(
                         "text1", Map.of(
                                 "type", "string",
-                                "description", "原始文字"
+                                "description", "Original text"
                         ),
                         "text2", Map.of(
                                 "type", "string",
-                                "description", "比較文字"
+                                "description", "Comparison text"
                         ),
                         "mode", Map.of(
                                 "type", "string",
                                 "enum", List.of("line", "word", "char"),
-                                "description", "比較模式",
+                                "description", "Comparison mode",
                                 "default", "line"
                         ),
                         "contextLines", Map.of(
                                 "type", "integer",
-                                "description", "上下文行數",
+                                "description", "Context lines",
                                 "default", 3
                         )
                 ),
@@ -93,7 +93,7 @@ public class DiffTool implements AgentNodeTool {
 
                 // Security: limit input size
                 if (text1.length() > 500_000 || text2.length() > 500_000) {
-                    return ToolResult.failure("文字過長，最大限制 500KB");
+                    return ToolResult.failure("Text too long, maximum 500KB");
                 }
 
                 List<DiffEntry> diff = switch (mode) {
@@ -116,19 +116,19 @@ public class DiffTool implements AgentNodeTool {
 
                 // Format output
                 StringBuilder sb = new StringBuilder();
-                sb.append(String.format("差異比較結果（%s 模式）：\n", mode));
-                sb.append(String.format("- 新增: %d\n", additions));
-                sb.append(String.format("- 刪除: %d\n", deletions));
-                sb.append(String.format("- 不變: %d\n\n", unchanged));
+                sb.append(String.format("Diff result (%s mode):\n", mode));
+                sb.append(String.format("- Additions: %d\n", additions));
+                sb.append(String.format("- Deletions: %d\n", deletions));
+                sb.append(String.format("- Unchanged: %d\n\n", unchanged));
 
                 if (additions == 0 && deletions == 0) {
-                    sb.append("兩段文字完全相同");
+                    sb.append("The two texts are identical");
                 } else {
-                    sb.append("差異內容：\n");
+                    sb.append("Differences:\n");
                     int outputCount = 0;
                     for (DiffEntry entry : diff) {
                         if (outputCount >= 200) {
-                            sb.append("...(省略剩餘差異)\n");
+                            sb.append("...(remaining differences omitted)\n");
                             break;
                         }
                         switch (entry.type) {
@@ -154,7 +154,7 @@ public class DiffTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Diff failed", e);
-                return ToolResult.failure("差異比較失敗");
+                return ToolResult.failure("Diff comparison failed");
             }
         });
     }

@@ -19,15 +19,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * AI Chain 節點處理器
+ * AI Chain Node Handler
  *
- * 功能：
- * - RAG（檢索增強生成）處理鏈
- * - Map-Reduce 文檔處理
- * - 摘要生成鏈
- * - 自定義處理流程
+ * Features:
+ * - RAG (Retrieval-Augmented Generation) processing chain
+ * - Map-Reduce document processing
+ * - Summarization chain
+ * - Custom processing pipelines
  *
- * 類似 LangChain 的鏈式處理概念
+ * Similar to the LangChain chaining concept
  */
 @Component
 @Slf4j
@@ -228,7 +228,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
         AiProvider provider = resolveProvider(providerId);
         AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-        // Step 1: 生成查詢嵌入
+        // Step 1: Generate query embedding
         AiEmbeddingRequest embeddingRequest = AiEmbeddingRequest.builder()
             .model(embeddingModel)
             .input(query)
@@ -240,11 +240,11 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
         }
         List<Float> queryVector = embeddingResponse.getEmbeddings().get(0);
 
-        // Step 2: 檢索相關文檔
+        // Step 2: Retrieve relevant documents
         List<VectorStore.SearchResult> searchResults =
             vectorStore.search(namespace, queryVector, topK, Map.of()).get();
 
-        // Step 3: 建構 RAG prompt
+        // Step 3: Build RAG prompt
         StringBuilder contextBuilder = new StringBuilder();
         List<Map<String, Object>> sources = new ArrayList<>();
 
@@ -270,7 +270,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             Question: %s
             """, contextBuilder.toString(), query);
 
-        // Step 4: 生成回應
+        // Step 4: Generate response
         String finalSystemPrompt = systemPrompt.isEmpty()
             ? "You are a helpful assistant that answers questions based on provided context."
             : systemPrompt;
@@ -321,7 +321,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
         AiProvider provider = resolveProvider(providerId);
         AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-        // Map phase: 並行處理每個文檔
+        // Map phase: process each document in parallel
         List<CompletableFuture<String>> mapFutures = new ArrayList<>();
 
         for (String document : documents) {
@@ -346,13 +346,13 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             mapFutures.add(future);
         }
 
-        // 等待所有 map 任務完成
+        // Wait for all map tasks to complete
         List<String> mapResults = new ArrayList<>();
         for (CompletableFuture<String> future : mapFutures) {
             mapResults.add(future.get());
         }
 
-        // Reduce phase: 合併結果
+        // Reduce phase: combine results
         String summaries = mapResults.stream()
             .map(s -> "- " + s)
             .collect(Collectors.joining("\n\n"));
@@ -391,11 +391,11 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
         AiProvider provider = resolveProvider(providerId);
         AiProviderSettings settings = buildProviderSettings(credential, providerId);
 
-        // 分割文本為 chunks
+        // Split text into chunks
         List<String> chunks = splitIntoChunks(text, chunkSize);
 
         if (chunks.size() == 1) {
-            // 單一 chunk，直接摘要
+            // Single chunk, summarize directly
             String summary = summarizeText(provider, settings, model, text, style, temperature);
             return NodeExecutionResult.success(Map.of(
                 "summary", summary,
@@ -404,7 +404,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             ));
         }
 
-        // 多個 chunks，使用 map-reduce 策略
+        // Multiple chunks, use map-reduce strategy
         List<String> chunkSummaries = new ArrayList<>();
 
         for (int i = 0; i < chunks.size(); i++) {
@@ -413,7 +413,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
             chunkSummaries.add(chunkSummary);
         }
 
-        // 合併摘要
+        // Combine summaries
         String combinedSummaries = String.join("\n\n", chunkSummaries);
         String finalSummary = summarizeText(provider, settings, model, combinedSummaries, style, temperature);
 
@@ -467,7 +467,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
         while (start < text.length()) {
             int end = Math.min(start + chunkSize, text.length());
 
-            // 嘗試在句子邊界切割
+            // Try to split at sentence boundaries
             if (end < text.length()) {
                 int lastPeriod = text.lastIndexOf(". ", end);
                 int lastNewline = text.lastIndexOf("\n", end);
@@ -501,7 +501,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
 
                 sink.tryEmitNext(StreamChunk.progress(0, "Starting " + operation + " chain..."));
 
-                // 簡化版串流實作：執行後返回結果
+                // Simplified streaming implementation: execute and return result
                 Map<String, Object> credential = resolveCredential(context);
                 Map<String, Object> params = context.getNodeConfig();
 

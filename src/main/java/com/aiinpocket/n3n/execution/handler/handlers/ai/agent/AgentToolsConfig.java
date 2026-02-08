@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Agent 工具自動註冊配置
- * 在應用啟動時自動註冊所有內建工具
+ * Agent tool auto-registration configuration.
+ * Automatically registers all built-in tools at application startup.
  */
 @Component
 @Slf4j

@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons'
+import React, { useEffect, useState, useCallback } from 'react'
+import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge } from 'antd'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential } from '../api/credential'
+import { oauth2Api, OAuth2Status } from '../api/oauth2'
 import CredentialFormModal from '../components/credentials/CredentialFormModal'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
+import logger from '../utils/logger'
 
 const { Title } = Typography
 
@@ -26,10 +28,88 @@ const CredentialListPage: React.FC = () => {
 
   const [formVisible, setFormVisible] = useState(false)
   const [testingId, setTestingId] = useState<string | null>(null)
+  const [oauth2Statuses, setOauth2Statuses] = useState<Record<string, OAuth2Status>>({})
+  const [oauth2Loading, setOauth2Loading] = useState<Record<string, boolean>>({})
+  const [disconnectingId, setDisconnectingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchCredentials()
   }, [fetchCredentials])
+
+  // Fetch OAuth2 status for all oauth2-type credentials
+  const fetchOAuth2Statuses = useCallback(async (creds: Credential[]) => {
+    const oauth2Creds = creds.filter(c => c.type === 'oauth2')
+    if (oauth2Creds.length === 0) return
+
+    const statuses: Record<string, OAuth2Status> = {}
+    await Promise.all(
+      oauth2Creds.map(async (cred) => {
+        try {
+          const status = await oauth2Api.getStatus(cred.id)
+          statuses[cred.id] = status
+        } catch (err) {
+          logger.warn('Failed to fetch OAuth2 status for credential', cred.id, err)
+          statuses[cred.id] = { connected: false }
+        }
+      })
+    )
+    setOauth2Statuses(statuses)
+  }, [])
+
+  useEffect(() => {
+    if (credentials.length > 0) {
+      fetchOAuth2Statuses(credentials)
+    }
+  }, [credentials, fetchOAuth2Statuses])
+
+  const handleOAuth2Connect = async (credentialId: string, provider: string) => {
+    setOauth2Loading(prev => ({ ...prev, [credentialId]: true }))
+    try {
+      const { authorizationUrl } = await oauth2Api.getAuthUrl(provider, credentialId)
+      // Redirect user to the provider's consent page
+      window.location.href = authorizationUrl
+    } catch (err) {
+      message.error(extractApiError(err, t('oauth2.connectFailed')))
+      setOauth2Loading(prev => ({ ...prev, [credentialId]: false }))
+    }
+  }
+
+  const handleOAuth2Disconnect = async (credentialId: string) => {
+    setDisconnectingId(credentialId)
+    try {
+      await oauth2Api.disconnect(credentialId)
+      setOauth2Statuses(prev => ({
+        ...prev,
+        [credentialId]: { connected: false }
+      }))
+      message.success(t('oauth2.disconnected'))
+    } catch (err) {
+      message.error(extractApiError(err, t('oauth2.disconnectFailed')))
+    } finally {
+      setDisconnectingId(null)
+    }
+  }
+
+  const getOAuth2StatusBadge = (record: Credential) => {
+    if (record.type !== 'oauth2') return null
+    const status = oauth2Statuses[record.id]
+    if (!status) return <Tag>{t('oauth2.checking')}</Tag>
+    if (!status.connected) return <Badge status="default" text={t('oauth2.disconnectedStatus')} />
+    if (status.expired) return <Badge status="error" text={t('oauth2.expired')} />
+    if (status.expiringSoon) return <Badge status="warning" text={t('oauth2.expiringSoon')} />
+    return <Badge status="success" text={t('oauth2.connected')} />
+  }
+
+  // Detect provider from credential name or data (heuristic)
+  const detectProvider = (record: Credential): string => {
+    const name = record.name.toLowerCase()
+    if (name.includes('google')) return 'google'
+    if (name.includes('github')) return 'github'
+    if (name.includes('slack')) return 'slack'
+    if (name.includes('microsoft') || name.includes('azure')) return 'microsoft'
+    // Default: use the first word in name as a guess, fallback to 'google'
+    return 'google'
+  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -136,10 +216,50 @@ const CredentialListPage: React.FC = () => {
       render: (date: string | null) => date ? new Date(date).toLocaleString(getLocale()) : '-'
     },
     {
+      title: t('oauth2.status'),
+      key: 'oauth2Status',
+      render: (_: unknown, record: Credential) => getOAuth2StatusBadge(record)
+    },
+    {
       title: t('common.actions'),
       key: 'actions',
       render: (_: unknown, record: Credential) => (
         <Space>
+          {/* OAuth2 connect/disconnect buttons */}
+          {record.type === 'oauth2' && (() => {
+            const status = oauth2Statuses[record.id]
+            if (status?.connected) {
+              return (
+                <Popconfirm
+                  title={t('oauth2.disconnectConfirm')}
+                  onConfirm={() => handleOAuth2Disconnect(record.id)}
+                  okText={t('common.confirm')}
+                  cancelText={t('common.cancel')}
+                  okButtonProps={{ danger: true }}
+                >
+                  <Tooltip title={t('oauth2.disconnect')}>
+                    <Button
+                      type="link"
+                      danger
+                      icon={<DisconnectOutlined />}
+                      loading={disconnectingId === record.id}
+                    />
+                  </Tooltip>
+                </Popconfirm>
+              )
+            }
+            return (
+              <Tooltip title={t('oauth2.connectWith', { provider: detectProvider(record) })}>
+                <Button
+                  type="link"
+                  icon={oauth2Loading[record.id] ? <LoadingOutlined /> : <LinkOutlined />}
+                  onClick={() => handleOAuth2Connect(record.id, detectProvider(record))}
+                  disabled={oauth2Loading[record.id]}
+                  style={{ color: 'var(--color-primary)' }}
+                />
+              </Tooltip>
+            )
+          })()}
           <Tooltip title={t('credential.testConnection')}>
             <Button
               type="link"

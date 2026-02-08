@@ -130,8 +130,10 @@ public class ApprovalNodeHandler extends AbstractNodeHandler {
      */
     private NodeExecutionResult handleResume(NodeExecutionContext context, Map<String, Object> resumeData,
                                               String approvedBranch, String rejectedBranch) {
-        String approvalStatus = (String) resumeData.get("approvalStatus");
-        String approvalId = (String) resumeData.get("approvalId");
+        Object approvalStatusObj = resumeData.get("approvalStatus");
+        String approvalStatus = approvalStatusObj != null ? approvalStatusObj.toString() : null;
+        Object approvalIdObj = resumeData.get("approvalId");
+        String approvalId = approvalIdObj != null ? approvalIdObj.toString() : null;
 
         log.info("Resuming approval node: executionId={}, nodeId={}, status={}",
             context.getExecutionId(), context.getNodeId(), approvalStatus);
@@ -210,7 +212,10 @@ public class ApprovalNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> getResumeData(NodeExecutionContext context) {
         Map<String, Object> globalContext = context.getGlobalContext();
         if (globalContext != null && globalContext.containsKey("_resumeData")) {
-            return (Map<String, Object>) globalContext.get("_resumeData");
+            Object resumeObj = globalContext.get("_resumeData");
+            if (resumeObj instanceof Map<?, ?>) {
+                return (Map<String, Object>) resumeObj;
+            }
         }
         return null;
     }

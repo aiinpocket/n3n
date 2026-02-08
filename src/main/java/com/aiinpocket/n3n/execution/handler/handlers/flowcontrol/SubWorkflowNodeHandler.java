@@ -94,7 +94,7 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("Invalid workflow ID format: " + workflowId);
         }
 
-        // 驗證子工作流程存在
+        // Verify sub-workflow exists
         Optional<Flow> subFlowOpt = flowRepository.findByIdAndIsDeletedFalse(subFlowId);
         if (subFlowOpt.isEmpty()) {
             return NodeExecutionResult.failure("Sub-workflow not found: " + workflowId);
@@ -106,10 +106,10 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("ExecutionService not available");
         }
 
-        // 準備子工作流程的輸入
+        // Prepare sub-workflow input
         Map<String, Object> subInput = new HashMap<>(context.getInputData() != null ? context.getInputData() : Map.of());
 
-        // 如果有 inputMapping，使用映射取代直接傳遞
+        // If inputMapping is provided, use mapping instead of direct pass-through
         Map<String, Object> inputMapping = getMapConfig(context, "inputMapping");
         if (!inputMapping.isEmpty()) {
             subInput = applyInputMapping(inputMapping, context);
@@ -119,7 +119,7 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
             log.info("Triggering sub-workflow: {} (flowId: {}, wait: {})",
                     subFlow.getName(), subFlowId, waitForCompletion);
 
-            // 觸發子工作流程
+            // Trigger sub-workflow
             ExecutionResponse subExecution = executionService.startExecution(
                     subFlowId, context.getUserId(), subInput);
 
@@ -136,7 +136,7 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
                 ));
             }
 
-            // 等待子工作流程完成
+            // Wait for sub-workflow to complete
             return pollForCompletion(executionService, subExecutionId, subFlow.getName(), timeoutSeconds);
 
         } catch (Exception e) {

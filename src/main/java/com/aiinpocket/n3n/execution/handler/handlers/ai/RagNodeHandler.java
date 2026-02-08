@@ -14,9 +14,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * RAG 節點處理器
+ * RAG Node Handler
  *
- * 處理 RAG 相關節點類型的問答、搜尋、索引等操作
+ * Handles RAG-related node operations including Q&A, search, and indexing.
  */
 @Component
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getDescription() {
-        return "基於檢索增強生成的文檔問答系統";
+        return "Retrieval-Augmented Generation (RAG) document Q&A system";
     }
 
     @Override
@@ -71,14 +71,16 @@ public class RagNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行 RAG 問答
+     * Execute RAG Q&A
      */
     private NodeExecutionResult executeRagQA(NodeExecutionContext context) {
         Map<String, Object> input = context.getInputData();
 
-        String question = (String) input.get("question");
+        Object questionObj = input.get("question");
+        String question = questionObj != null ? questionObj.toString() : null;
         if (question == null) {
-            question = (String) input.get("input");
+            Object inputObj = input.get("input");
+            question = inputObj != null ? inputObj.toString() : null;
         }
         if (question == null || question.isBlank()) {
             return NodeExecutionResult.builder()
@@ -102,14 +104,16 @@ public class RagNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行向量搜尋
+     * Execute vector search
      */
     private NodeExecutionResult executeVectorSearch(NodeExecutionContext context) {
         Map<String, Object> input = context.getInputData();
 
-        String query = (String) input.get("query");
+        Object queryObj = input.get("query");
+        String query = queryObj != null ? queryObj.toString() : null;
         if (query == null) {
-            query = (String) input.get("input");
+            Object inputObj = input.get("input");
+            query = inputObj != null ? inputObj.toString() : null;
         }
         if (query == null || query.isBlank()) {
             return NodeExecutionResult.builder()
@@ -153,22 +157,26 @@ public class RagNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行文檔索引
+     * Execute document indexing
      */
     @SuppressWarnings("unchecked")
     private NodeExecutionResult executeIndex(NodeExecutionContext context) {
         Map<String, Object> input = context.getInputData();
         String storeName = getStringConfig(context, "storeName", null);
 
-        // 嘗試取得文檔列表
-        List<Map<String, Object>> docsInput = (List<Map<String, Object>>) input.get("documents");
+        // Try to get document list
+        Object docsObj = input.get("documents");
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> docsInput = docsObj instanceof List<?> ? (List<Map<String, Object>>) docsObj : null;
 
         if (docsInput == null || docsInput.isEmpty()) {
-            // 如果沒有文檔列表，嘗試單一內容
-            String content = (String) input.get("content");
+            // If no document list, try single content
+            Object contentObj = input.get("content");
+            String content = contentObj != null ? contentObj.toString() : null;
             if (content != null && !content.isBlank()) {
                 Map<String, Object> metadata = new HashMap<>();
-                String source = (String) input.get("source");
+                Object sourceObj = input.get("source");
+                String source = sourceObj != null ? sourceObj.toString() : null;
                 if (source != null) {
                     metadata.put("source", source);
                 }
@@ -190,13 +198,15 @@ public class RagNodeHandler extends AbstractNodeHandler {
                     .build();
         }
 
-        // 批次索引多個文檔
+        // Batch index multiple documents
         List<String> allIds = new ArrayList<>();
         for (Map<String, Object> docMap : docsInput) {
-            String content = (String) docMap.get("content");
+            Object contentObj2 = docMap.get("content");
+            String content = contentObj2 != null ? contentObj2.toString() : null;
             if (content != null && !content.isBlank()) {
                 Map<String, Object> metadata = new HashMap<>();
-                String source = (String) docMap.get("source");
+                Object sourceObj2 = docMap.get("source");
+                String source = sourceObj2 != null ? sourceObj2.toString() : null;
                 if (source != null) {
                     metadata.put("source", source);
                 }
@@ -217,7 +227,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 清除向量存儲
+     * Clear vector store
      */
     private NodeExecutionResult executeClear(NodeExecutionContext context) {
         String storeName = getStringConfig(context, "storeName", null);
@@ -244,21 +254,21 @@ public class RagNodeHandler extends AbstractNodeHandler {
                                 "type", "string",
                                 "enum", List.of("qa", "search", "index", "clear"),
                                 "default", "qa",
-                                "description", "RAG 操作類型"
+                                "description", "RAG operation type"
                         ),
                         "storeName", Map.of(
                                 "type", "string",
-                                "description", "向量存儲名稱（可選）"
+                                "description", "Vector store name (optional)"
                         ),
                         "topK", Map.of(
                                 "type", "integer",
                                 "default", 5,
-                                "description", "返回的最大結果數量"
+                                "description", "Maximum number of results to return"
                         ),
                         "minScore", Map.of(
                                 "type", "number",
                                 "default", 0.0,
-                                "description", "最低相似度分數"
+                                "description", "Minimum similarity score"
                         )
                 )
         );
@@ -269,23 +279,23 @@ public class RagNodeHandler extends AbstractNodeHandler {
         return Map.of(
                 "inputs", List.of(
                         Map.of("name", "question", "type", "string",
-                                "description", "問題（用於 QA 操作）"),
+                                "description", "Question (for QA operation)"),
                         Map.of("name", "query", "type", "string",
-                                "description", "搜尋查詢（用於 search 操作）"),
+                                "description", "Search query (for search operation)"),
                         Map.of("name", "content", "type", "string",
-                                "description", "文檔內容（用於 index 操作）"),
+                                "description", "Document content (for index operation)"),
                         Map.of("name", "documents", "type", "array",
-                                "description", "要索引的文檔列表")
+                                "description", "List of documents to index")
                 ),
                 "outputs", List.of(
                         Map.of("name", "answer", "type", "string",
-                                "description", "AI 生成的答案"),
+                                "description", "AI generated answer"),
                         Map.of("name", "documents", "type", "array",
-                                "description", "搜尋結果文檔"),
+                                "description", "Search result documents"),
                         Map.of("name", "count", "type", "integer",
-                                "description", "結果數量"),
+                                "description", "Number of results"),
                         Map.of("name", "indexed", "type", "integer",
-                                "description", "已索引的文檔片段數")
+                                "description", "Number of indexed document chunks")
                 )
         );
     }

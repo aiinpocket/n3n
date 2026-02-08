@@ -14,8 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 字串模板渲染工具
- * 支援變數替換
+ * String template rendering tool
+ * Supports variable substitution
  */
 @Component
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class TemplateTool implements AgentNodeTool {
 
     private final ObjectMapper objectMapper;
 
-    // 支援 {{variable}} 和 ${variable} 格式
+    // Supports {{variable}} and ${variable} formats
     private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{\\s*([\\w.]+)\\s*}}|\\$\\{([\\w.]+)}");
 
     @Override
@@ -40,23 +40,23 @@ public class TemplateTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                字串模板渲染工具，支援變數替換。
+                String template rendering tool with variable substitution.
 
-                支援的變數格式：
-                - {{variable}} - Mustache 風格
-                - ${variable} - Shell 風格
+                Supported variable formats:
+                - {{variable}} - Mustache style
+                - ${variable} - Shell style
 
-                支援巢狀變數存取：{{user.name}}
+                Supports nested variable access: {{user.name}}
 
-                參數：
-                - template: 模板字串
-                - variables: 變數物件（JSON 格式的字串或 Map）
-                - strict: 是否嚴格模式（未定義變數時報錯，預設 false）
+                Parameters:
+                - template: Template string
+                - variables: Variables object (JSON string or Map)
+                - strict: Strict mode (throws error for undefined variables, default: false)
 
-                範例：
+                Example:
                 template: "Hello, {{name}}! You have {{count}} messages."
                 variables: {"name": "Alice", "count": 5}
-                結果: "Hello, Alice! You have 5 messages."
+                Result: "Hello, Alice! You have 5 messages."
                 """;
     }
 
@@ -67,15 +67,15 @@ public class TemplateTool implements AgentNodeTool {
                 "properties", Map.of(
                         "template", Map.of(
                                 "type", "string",
-                                "description", "模板字串"
+                                "description", "Template string"
                         ),
                         "variables", Map.of(
                                 "type", "string",
-                                "description", "變數（JSON 格式）"
+                                "description", "Variables (JSON format)"
                         ),
                         "strict", Map.of(
                                 "type", "boolean",
-                                "description", "嚴格模式",
+                                "description", "Strict mode",
                                 "default", false
                         )
                 ),
@@ -92,10 +92,10 @@ public class TemplateTool implements AgentNodeTool {
                 boolean strict = Boolean.TRUE.equals(parameters.get("strict"));
 
                 if (template == null || template.isEmpty()) {
-                    return ToolResult.failure("模板不能為空");
+                    return ToolResult.failure("Template cannot be empty");
                 }
 
-                // 解析變數
+                // Parse variables
                 Map<String, Object> variables;
                 if (variablesObj instanceof String) {
                     variables = objectMapper.readValue((String) variablesObj, new TypeReference<>() {});
@@ -104,14 +104,14 @@ public class TemplateTool implements AgentNodeTool {
                     Map<String, Object> map = (Map<String, Object>) variablesObj;
                     variables = map;
                 } else {
-                    return ToolResult.failure("變數必須是 JSON 字串或 Map");
+                    return ToolResult.failure("Variables must be a JSON string or Map");
                 }
 
-                // 渲染模板
+                // Render template
                 String result = renderTemplate(template, variables, strict);
 
                 return ToolResult.success(
-                        "渲染結果：\n" + result,
+                        "Render result:\n" + result,
                         Map.of(
                                 "result", result,
                                 "template", template,
@@ -121,7 +121,7 @@ public class TemplateTool implements AgentNodeTool {
 
             } catch (Exception e) {
                 log.error("Template rendering failed", e);
-                return ToolResult.failure("模板渲染失敗");
+                return ToolResult.failure("Template rendering failed");
             }
         });
     }
@@ -138,7 +138,7 @@ public class TemplateTool implements AgentNodeTool {
                 if (strict) {
                     throw new IllegalArgumentException("Undefined variable: " + varName);
                 }
-                value = matcher.group(); // 保留原始變數標記
+                value = matcher.group(); // Keep original variable marker
             }
 
             matcher.appendReplacement(result, Matcher.quoteReplacement(String.valueOf(value)));

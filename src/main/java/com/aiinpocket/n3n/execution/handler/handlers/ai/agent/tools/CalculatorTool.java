@@ -13,25 +13,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 /**
- * 數學計算工具
+ * Math calculation tool
  *
- * 允許 AI Agent 執行數學計算，支援：
- * - 基本算術運算
- * - 數學函數 (sqrt, pow, sin, cos, tan, log, etc.)
- * - 百分比計算
- * - 單位轉換
+ * Allows AI Agent to perform math calculations, supporting:
+ * - Basic arithmetic operations
+ * - Math functions (sqrt, pow, sin, cos, tan, log, etc.)
+ * - Percentage calculations
+ * - Unit conversions
  */
 @Component
 @Slf4j
 public class CalculatorTool implements AgentNodeTool {
 
-    // 安全的數學表達式模式 - 只允許數字、運算符和數學函數
+    // Safe math expression pattern - only allows digits, operators, and math functions
     private static final Pattern SAFE_EXPRESSION_PATTERN = Pattern.compile(
             "^([0-9+\\-*/().,%\\s]+|sqrt|pow|sin|cos|tan|asin|acos|atan|log|log10|exp|abs|ceil|floor|round|min|max|PI|E)*$",
             Pattern.CASE_INSENSITIVE
     );
 
-    // 禁止的關鍵字，防止代碼注入
+    // Forbidden keywords to prevent code injection
     private static final List<String> FORBIDDEN_KEYWORDS = List.of(
             "java", "class", "import", "new", "void", "return", "if", "for", "while",
             "try", "catch", "throw", "System", "Runtime", "Process", "exec", "eval"
@@ -50,19 +50,19 @@ public class CalculatorTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                執行數學計算。支援：
-                - 基本運算：加(+)、減(-)、乘(*)、除(/)、餘數(%)、次方(^或**)
-                - 數學函數：sqrt(開根號)、pow(次方)、abs(絕對值)、round(四捨五入)
-                - 三角函數：sin、cos、tan、asin、acos、atan（使用弧度）
-                - 對數函數：log(自然對數)、log10(常用對數)
-                - 常數：PI、E
+                Perform math calculations. Supports:
+                - Basic operations: add(+), subtract(-), multiply(*), divide(/), modulo(%), power(^ or **)
+                - Math functions: sqrt, pow, abs, round
+                - Trigonometric functions: sin, cos, tan, asin, acos, atan (in radians)
+                - Logarithmic functions: log (natural), log10 (common)
+                - Constants: PI, E
 
-                範例：
+                Examples:
                 - "2 + 3 * 4" = 14
                 - "sqrt(16)" = 4
                 - "pow(2, 10)" = 1024
                 - "sin(PI/2)" = 1
-                - "100 * 0.15" (計算 15%) = 15
+                - "100 * 0.15" (calculate 15%) = 15
                 """;
     }
 
@@ -73,11 +73,11 @@ public class CalculatorTool implements AgentNodeTool {
                 "properties", Map.of(
                         "expression", Map.of(
                                 "type", "string",
-                                "description", "要計算的數學表達式"
+                                "description", "Math expression to evaluate"
                         ),
                         "precision", Map.of(
                                 "type", "integer",
-                                "description", "小數位數精度（預設 10）",
+                                "description", "Decimal precision (default 10)",
                                 "default", 10
                         )
                 ),
@@ -91,29 +91,29 @@ public class CalculatorTool implements AgentNodeTool {
             try {
                 String expression = (String) parameters.get("expression");
                 if (expression == null || expression.isBlank()) {
-                    return ToolResult.failure("表達式不能為空");
+                    return ToolResult.failure("Expression cannot be empty");
                 }
 
                 int precision = parameters.containsKey("precision")
                         ? ((Number) parameters.get("precision")).intValue()
                         : 10;
 
-                // 安全檢查
+                // Security check
                 String sanitized = sanitizeExpression(expression);
                 if (sanitized == null) {
-                    return ToolResult.failure("表達式包含不允許的字符或關鍵字");
+                    return ToolResult.failure("Expression contains disallowed characters or keywords");
                 }
 
                 log.debug("Calculating expression: {}", sanitized);
 
-                // 計算結果
+                // Calculate result
                 Object result = evaluateExpression(sanitized);
 
-                // 格式化結果
+                // Format result
                 String formattedResult;
                 if (result instanceof Double doubleVal) {
                     if (Double.isNaN(doubleVal) || Double.isInfinite(doubleVal)) {
-                        return ToolResult.failure("計算結果無效（NaN 或無限大）");
+                        return ToolResult.failure("Invalid calculation result (NaN or Infinity)");
                     }
                     BigDecimal bd = BigDecimal.valueOf(doubleVal)
                             .setScale(precision, RoundingMode.HALF_UP)
@@ -133,23 +133,23 @@ public class CalculatorTool implements AgentNodeTool {
 
             } catch (IllegalArgumentException e) {
                 log.error("Calculation syntax error", e);
-                return ToolResult.failure("計算語法錯誤");
+                return ToolResult.failure("Calculation syntax error");
             } catch (Exception e) {
                 log.error("Calculation failed", e);
-                return ToolResult.failure("計算失敗");
+                return ToolResult.failure("Calculation failed");
             }
         });
     }
 
     /**
-     * 清理和驗證表達式
+     * Sanitize and validate expression
      */
     private String sanitizeExpression(String expression) {
         String normalized = expression.trim()
-                .replace("^", "**")    // 支援 ^ 作為次方
-                .replace("**", "pow"); // 轉換為 pow 函數
+                .replace("^", "**")    // Support ^ as power operator
+                .replace("**", "pow"); // Convert to pow function
 
-        // 檢查禁止的關鍵字
+        // Check forbidden keywords
         String lowerExpr = normalized.toLowerCase();
         for (String keyword : FORBIDDEN_KEYWORDS) {
             if (lowerExpr.contains(keyword.toLowerCase())) {
@@ -158,7 +158,7 @@ public class CalculatorTool implements AgentNodeTool {
             }
         }
 
-        // 轉換數學函數為 JavaScript Math 對象
+        // Convert math functions to JavaScript Math object
         normalized = normalized
                 .replaceAll("(?i)\\bsqrt\\(", "Math.sqrt(")
                 .replaceAll("(?i)\\bpow\\(", "Math.pow(")
@@ -184,24 +184,24 @@ public class CalculatorTool implements AgentNodeTool {
     }
 
     /**
-     * 使用安全的純 Java 解析器計算表達式
-     * 安全考量：禁用 JavaScript ScriptEngine 以防止代碼注入攻擊
+     * Evaluate expression using a safe pure-Java parser.
+     * Security: JavaScript ScriptEngine is disabled to prevent code injection attacks.
      */
     private Object evaluateExpression(String expression) {
-        // 使用純 Java 實現的安全解析器，不使用 JavaScript 引擎
+        // Use pure-Java safe parser, no JavaScript engine
         return evaluateSimple(expression);
     }
 
     /**
-     * 簡單計算（當沒有 JavaScript 引擎時）
+     * Simple calculation (fallback when no JavaScript engine is available)
      */
     private double evaluateSimple(String expression) {
-        // 使用遞迴下降解析器處理簡單表達式
+        // Use recursive descent parser for simple expressions
         return new ExpressionParser(expression).parse();
     }
 
     /**
-     * 簡單的表達式解析器
+     * Simple expression parser
      */
     private static class ExpressionParser {
         private final String expression;
@@ -278,7 +278,7 @@ public class CalculatorTool implements AgentNodeTool {
                 return result;
             }
 
-            // 解析函數
+            // Parse function
             if (pos < expression.length() && Character.isLetter(expression.charAt(pos))) {
                 return parseFunction();
             }
@@ -294,7 +294,7 @@ public class CalculatorTool implements AgentNodeTool {
 
             String name = funcName.toString();
 
-            // 常數
+            // Constants
             if (name.equals("Math") && pos < expression.length() && expression.charAt(pos) == '.') {
                 pos++;
                 return parseMathConstantOrFunction();
@@ -311,11 +311,11 @@ public class CalculatorTool implements AgentNodeTool {
 
             String funcName = name.toString();
 
-            // 常數
+            // Constants
             if (funcName.equals("PI")) return Math.PI;
             if (funcName.equals("E")) return Math.E;
 
-            // 函數需要括號
+            // Functions require parentheses
             if (pos >= expression.length() || expression.charAt(pos) != '(') {
                 throw new IllegalArgumentException("Expected '(' after " + funcName);
             }
@@ -323,7 +323,7 @@ public class CalculatorTool implements AgentNodeTool {
 
             double arg = parseAddSubtract();
 
-            // 處理雙參數函數
+            // Handle two-argument functions
             double arg2 = 0;
             if (funcName.equals("pow") || funcName.equals("min") || funcName.equals("max")) {
                 if (pos < expression.length() && expression.charAt(pos) == ',') {

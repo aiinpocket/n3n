@@ -4,22 +4,22 @@ import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import reactor.core.publisher.Flux;
 
 /**
- * 支援串流輸出的節點介面
- * AI 節點可以實現此介面以支援串流回應
+ * Interface for nodes that support streaming output.
+ * AI nodes can implement this interface to support streaming responses.
  */
 public interface StreamingNodeHandler {
 
     /**
-     * 是否支援串流輸出
+     * Whether streaming output is supported
      */
     boolean supportsStreaming();
 
     /**
-     * 串流執行
-     * 返回 Flux 串流，每個元素為一個 StreamChunk
+     * Execute with streaming.
+     * Returns a Flux stream where each element is a StreamChunk.
      *
-     * @param context 執行上下文
-     * @return 串流回應
+     * @param context execution context
+     * @return streaming response
      */
     Flux<StreamChunk> executeStream(NodeExecutionContext context);
 }

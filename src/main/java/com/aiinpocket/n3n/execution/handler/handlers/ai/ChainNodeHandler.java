@@ -20,13 +20,13 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * AI Chain 節點處理器
+ * AI Chain Node Handler
  *
- * 處理各種 AI Chain 節點類型：
- * - aiChain: 基礎 LLM Chain
- * - aiConversation: 對話 Chain（帶記憶）
- * - aiSequence: 順序執行多個 Chain
- * - aiRouter: 條件路由 Chain
+ * Handles various AI Chain node types:
+ * - aiChain: Basic LLM Chain
+ * - aiConversation: Conversation Chain (with memory)
+ * - aiSequence: Sequential execution of multiple Chains
+ * - aiRouter: Conditional routing Chain
  */
 @Component
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
 
     @Override
     public String getDescription() {
-        return "AI 處理鏈節點，支援 LLM Chain、對話 Chain、順序 Chain 和路由 Chain";
+        return "AI processing chain node supporting LLM Chain, Conversation Chain, Sequential Chain, and Router Chain";
     }
 
     @Override
@@ -83,7 +83,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行基礎 LLM Chain
+     * Execute basic LLM Chain
      */
     private NodeExecutionResult executeLLMChain(NodeExecutionContext context) {
         String promptTemplate = getStringConfig(context, "promptTemplate", "{input}");
@@ -119,7 +119,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行對話 Chain（帶記憶）
+     * Execute Conversation Chain (with memory)
      */
     private NodeExecutionResult executeConversationChain(NodeExecutionContext context) {
         String conversationId = getStringConfig(context, "conversationId", null);
@@ -160,7 +160,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行順序 Chain
+     * Execute Sequential Chain
      */
     @SuppressWarnings("unchecked")
     private NodeExecutionResult executeSequentialChain(NodeExecutionContext context) {
@@ -216,7 +216,7 @@ public class ChainNodeHandler extends AbstractNodeHandler {
     }
 
     /**
-     * 執行路由 Chain
+     * Execute Router Chain
      */
     @SuppressWarnings("unchecked")
     private NodeExecutionResult executeRouterChain(NodeExecutionContext context) {
@@ -290,24 +290,24 @@ public class ChainNodeHandler extends AbstractNodeHandler {
                                 "type", "string",
                                 "enum", List.of("llm", "conversation", "sequential", "router"),
                                 "default", "llm",
-                                "description", "Chain 類型"
+                                "description", "Chain type"
                         ),
                         "promptTemplate", Map.of(
                                 "type", "string",
-                                "description", "Prompt 模板，使用 {variable} 語法"
+                                "description", "Prompt template using {variable} syntax"
                         ),
                         "systemPrompt", Map.of(
                                 "type", "string",
-                                "description", "系統提示詞"
+                                "description", "System prompt"
                         ),
                         "model", Map.of(
                                 "type", "string",
-                                "description", "使用的 AI 模型"
+                                "description", "AI model to use"
                         ),
                         "timeout", Map.of(
                                 "type", "integer",
                                 "default", 120,
-                                "description", "執行超時（秒）"
+                                "description", "Execution timeout (seconds)"
                         )
                 )
         );
@@ -318,12 +318,12 @@ public class ChainNodeHandler extends AbstractNodeHandler {
         return Map.of(
                 "inputs", List.of(
                         Map.of("name", "input", "type", "string", "required", true,
-                                "description", "輸入文字")
+                                "description", "Input text")
                 ),
                 "outputs", List.of(
-                        Map.of("name", "output", "type", "string", "description", "AI 回應"),
+                        Map.of("name", "output", "type", "string", "description", "AI response"),
                         Map.of("name", "conversation_id", "type", "string",
-                                "description", "對話 ID（僅對話 Chain）")
+                                "description", "Conversation ID (conversation chain only)")
                 )
         );
     }

@@ -60,7 +60,10 @@ public class RetryNodeHandler extends AbstractNodeHandler {
             // Simulate retry behavior
             int currentAttempt = 1;
             if (inputData.containsKey("_retryAttempt")) {
-                currentAttempt = ((Number) inputData.get("_retryAttempt")).intValue() + 1;
+                Object retryAttemptObj = inputData.get("_retryAttempt");
+                if (retryAttemptObj instanceof Number n) {
+                    currentAttempt = n.intValue() + 1;
+                }
             }
 
             if (currentAttempt > maxRetries) {

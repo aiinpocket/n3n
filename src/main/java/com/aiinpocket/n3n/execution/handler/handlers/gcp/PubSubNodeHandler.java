@@ -361,14 +361,18 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
         }
 
         Map<String, Object> sa = objectMapper.readValue(serviceAccountJson, new TypeReference<>() {});
-        return (String) sa.get("project_id");
+        Object projectObj = sa.get("project_id");
+        return projectObj != null ? projectObj.toString() : null;
     }
 
     private String getServiceAccountToken(String serviceAccountJson) throws Exception {
         Map<String, Object> sa = objectMapper.readValue(serviceAccountJson, new TypeReference<>() {});
-        String clientEmail = (String) sa.get("client_email");
-        String privateKey = (String) sa.get("private_key");
-        String tokenUri = (String) sa.getOrDefault("token_uri", "https://oauth2.googleapis.com/token");
+        Object clientEmailObj = sa.get("client_email");
+        String clientEmail = clientEmailObj != null ? clientEmailObj.toString() : null;
+        Object privateKeyObj = sa.get("private_key");
+        String privateKey = privateKeyObj != null ? privateKeyObj.toString() : null;
+        Object tokenUriObj = sa.getOrDefault("token_uri", "https://oauth2.googleapis.com/token");
+        String tokenUri = tokenUriObj != null ? tokenUriObj.toString() : "https://oauth2.googleapis.com/token";
 
         long now = System.currentTimeMillis() / 1000;
         Map<String, Object> header = Map.of("alg", "RS256", "typ", "JWT");
@@ -394,7 +398,8 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
 
         try (Response response = httpClient.newCall(request).execute()) {
             Map<String, Object> tokenResponse = objectMapper.readValue(response.body().string(), new TypeReference<>() {});
-            return (String) tokenResponse.get("access_token");
+            Object tokenObj = tokenResponse.get("access_token");
+            return tokenObj != null ? tokenObj.toString() : null;
         }
     }
 
@@ -587,10 +592,11 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
                 NodeExecutionResult result = executePost(url, accessToken, body);
 
                 if (result.isSuccess()) {
+                    Object messageIdsObj = result.getOutput().get("messageIds");
                     @SuppressWarnings("unchecked")
-                    List<String> messageIds = (List<String>) result.getOutput().get("messageIds");
+                    List<String> messageIds = messageIdsObj instanceof List<?> ? (List<String>) messageIdsObj : List.of();
                     yield NodeExecutionResult.success(Map.of(
-                        "messageId", messageIds != null && !messageIds.isEmpty() ? messageIds.get(0) : null,
+                        "messageId", !messageIds.isEmpty() ? messageIds.get(0) : "",
                         "messageIds", messageIds
                     ));
                 }
@@ -604,7 +610,8 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
                 List<Map<String, Object>> pubsubMessages = new ArrayList<>();
 
                 for (Map<String, Object> msg : inputMessages) {
-                    String msgData = (String) msg.get("data");
+                    Object msgDataObj = msg.get("data");
+                    String msgData = msgDataObj != null ? msgDataObj.toString() : "";
                     String encodedData = Base64.getEncoder().encodeToString(msgData.getBytes(StandardCharsets.UTF_8));
 
                     Map<String, Object> pubsubMsg = new LinkedHashMap<>();
@@ -642,16 +649,21 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
 
                 // Decode message data
                 if (result.isSuccess()) {
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> receivedMessages = (List<Map<String, Object>>) result.getOutput().get("receivedMessages");
-                    if (receivedMessages != null) {
+                    Object receivedObj = result.getOutput().get("receivedMessages");
+                    if (receivedObj instanceof List<?>) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> receivedMessages = (List<Map<String, Object>>) receivedObj;
                         for (Map<String, Object> rm : receivedMessages) {
-                            @SuppressWarnings("unchecked")
-                            Map<String, Object> message = (Map<String, Object>) rm.get("message");
-                            if (message != null && message.containsKey("data")) {
-                                String encodedData = (String) message.get("data");
-                                String decodedData = new String(Base64.getDecoder().decode(encodedData), StandardCharsets.UTF_8);
-                                message.put("decodedData", decodedData);
+                            Object msgObj = rm.get("message");
+                            if (msgObj instanceof Map<?, ?>) {
+                                @SuppressWarnings("unchecked")
+                                Map<String, Object> message = (Map<String, Object>) msgObj;
+                                if (message.containsKey("data")) {
+                                    Object dataObj = message.get("data");
+                                    String encodedData = dataObj != null ? dataObj.toString() : "";
+                                    String decodedData = new String(Base64.getDecoder().decode(encodedData), StandardCharsets.UTF_8);
+                                    message.put("decodedData", decodedData);
+                                }
                             }
                         }
                     }
@@ -756,10 +768,14 @@ public class PubSubNodeHandler extends MultiOperationNodeHandler {
                 try {
                     Map<String, Object> result = objectMapper.readValue(body, new TypeReference<>() {});
                     if (result.containsKey("error")) {
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> error = (Map<String, Object>) result.get("error");
-                        String message = (String) error.getOrDefault("message", "Unknown error");
-                        return NodeExecutionResult.failure("Pub/Sub API error: " + message);
+                        Object errorObj = result.get("error");
+                        if (errorObj instanceof Map<?, ?>) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> error = (Map<String, Object>) errorObj;
+                            Object msgObj = error.getOrDefault("message", "Unknown error");
+                            String message = msgObj != null ? msgObj.toString() : "Unknown error";
+                            return NodeExecutionResult.failure("Pub/Sub API error: " + message);
+                        }
                     }
                 } catch (Exception e) {
                     // Ignore parse error

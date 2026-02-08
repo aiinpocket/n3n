@@ -12,10 +12,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * AI 節點抽象基類
- * 提供 AI Provider 選擇、串流支援、Token 計量等共用功能
+ * Abstract base class for AI nodes.
+ * Provides common functionality for AI provider selection, streaming support, and token metering.
  *
- * 所有 AI 相關節點（Chat, Agent, Chain, Memory 等）應繼承此類
+ * All AI-related nodes (Chat, Agent, Chain, Memory, etc.) should extend this class.
  */
 @Slf4j
 public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
@@ -41,7 +41,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 根據配置取得 AI Provider
+     * Resolve AI Provider based on configuration
      */
     protected AiProvider resolveProvider(NodeExecutionContext context) {
         String providerId = getStringConfig(context, "provider", "openai");
@@ -49,18 +49,18 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 根據提供者 ID 取得 AI Provider
+     * Resolve AI Provider by provider ID
      */
     protected AiProvider resolveProvider(String providerId) {
         return providerFactory.getProvider(providerId);
     }
 
     /**
-     * 從憑證或環境變數取得 API Key
+     * Resolve API key from credential or environment variable
      *
-     * @param credential 憑證資料
-     * @param envVarName 環境變數名稱（如 OPENAI_API_KEY）
-     * @return API Key
+     * @param credential credential data
+     * @param envVarName environment variable name (e.g., OPENAI_API_KEY)
+     * @return API key
      */
     protected String resolveApiKey(Map<String, Object> credential, String envVarName) {
         String apiKey = getCredentialValue(credential, "apiKey");
@@ -71,7 +71,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 根據提供者 ID 取得對應的環境變數名稱
+     * Get the corresponding environment variable name for a provider ID
      */
     protected String getEnvVarName(String providerId) {
         return switch (providerId.toLowerCase()) {
@@ -83,7 +83,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 建立 AI Provider 設定
+     * Build AI Provider settings
      */
     protected AiProviderSettings buildProviderSettings(
         Map<String, Object> credential,
@@ -105,7 +105,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 記錄 Token 使用量（供計費/配額管理）
+     * Record token usage (for billing/quota management)
      */
     protected void recordTokenUsage(
         UUID userId,
@@ -118,7 +118,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 記錄 Token 使用量（含執行上下文資訊）
+     * Record token usage (with execution context information)
      */
     protected void recordTokenUsage(
         UUID userId,
@@ -137,7 +137,7 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
     }
 
     /**
-     * 建立 AiChatRequest
+     * Build an AiChatRequest
      */
     protected AiChatRequest buildChatRequest(
         String model,
@@ -167,16 +167,16 @@ public abstract class AbstractAiNodeHandler extends MultiOperationNodeHandler
         return builder.build();
     }
 
-    // ===== 抽象方法 =====
+    // ===== Abstract methods =====
 
     /**
-     * 是否支援串流輸出
+     * Whether streaming output is supported
      */
     @Override
     public abstract boolean supportsStreaming();
 
     /**
-     * 串流執行（子類需實作）
+     * Streaming execution (subclasses must implement)
      */
     @Override
     public abstract Flux<StreamChunk> executeStream(NodeExecutionContext context);

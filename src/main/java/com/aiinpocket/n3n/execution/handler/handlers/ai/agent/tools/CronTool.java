@@ -10,8 +10,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Cron 表達式工具
- * 解析和說明 Cron 表達式
+ * Cron expression tool
+ * Parse and explain cron expressions
  */
 @Component
 @Slf4j
@@ -30,23 +30,23 @@ public class CronTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                Cron 表達式工具，支援以下操作：
-                - explain: 解釋 Cron 表達式的含義
-                - next: 計算下 N 次執行時間
-                - validate: 驗證 Cron 表達式格式
+                Cron expression tool, supports the following operations:
+                - explain: Explain the meaning of a cron expression
+                - next: Calculate the next N execution times
+                - validate: Validate cron expression format
 
-                支援標準 5 欄位格式（分 時 日 月 週）和 6 欄位格式（秒 分 時 日 月 週）。
+                Supports standard 5-field format (minute hour day month weekday) and 6-field format (second minute hour day month weekday).
 
-                參數：
-                - expression: Cron 表達式
-                - operation: 操作類型（預設 explain）
-                - count: 計算下幾次執行（用於 next，預設 5）
-                - timezone: 時區（預設系統時區）
+                Parameters:
+                - expression: Cron expression
+                - operation: Operation type (default explain)
+                - count: Number of next executions to calculate (for next, default 5)
+                - timezone: Timezone (default system timezone)
 
-                範例表達式：
-                - "0 0 * * *" - 每天午夜
-                - "*/15 * * * *" - 每 15 分鐘
-                - "0 9 * * 1-5" - 週一至週五早上 9 點
+                Example expressions:
+                - "0 0 * * *" - Every day at midnight
+                - "*/15 * * * *" - Every 15 minutes
+                - "0 9 * * 1-5" - Monday to Friday at 9 AM
                 """;
     }
 
@@ -57,22 +57,22 @@ public class CronTool implements AgentNodeTool {
                 "properties", Map.of(
                         "expression", Map.of(
                                 "type", "string",
-                                "description", "Cron 表達式"
+                                "description", "Cron expression"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("explain", "next", "validate"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "explain"
                         ),
                         "count", Map.of(
                                 "type", "integer",
-                                "description", "計算下幾次執行",
+                                "description", "Number of next executions to calculate",
                                 "default", 5
                         ),
                         "timezone", Map.of(
                                 "type", "string",
-                                "description", "時區",
+                                "description", "Timezone",
                                 "default", "Asia/Taipei"
                         )
                 ),
@@ -91,24 +91,24 @@ public class CronTool implements AgentNodeTool {
                 String timezone = (String) parameters.getOrDefault("timezone", "Asia/Taipei");
 
                 if (expression == null || expression.isBlank()) {
-                    return ToolResult.failure("Cron 表達式不能為空");
+                    return ToolResult.failure("Cron expression cannot be empty");
                 }
 
                 // Security: limit expression length
                 if (expression.length() > 100) {
-                    return ToolResult.failure("表達式過長");
+                    return ToolResult.failure("Expression too long");
                 }
 
                 return switch (operation) {
                     case "explain" -> explain(expression);
                     case "next" -> nextExecutions(expression, count, timezone);
                     case "validate" -> validate(expression);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("Cron operation failed", e);
-                return ToolResult.failure("Cron 操作失敗");
+                return ToolResult.failure("Cron operation failed");
             }
         });
     }
@@ -117,27 +117,27 @@ public class CronTool implements AgentNodeTool {
         String[] parts = expression.trim().split("\\s+");
 
         if (parts.length < 5 || parts.length > 6) {
-            return ToolResult.failure("無效的 Cron 表達式，應為 5 或 6 個欄位");
+            return ToolResult.failure("Invalid cron expression, should be 5 or 6 fields");
         }
 
         boolean hasSeconds = parts.length == 6;
         int offset = hasSeconds ? 1 : 0;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Cron 表達式解析：\n");
-        sb.append(String.format("表達式：%s\n\n", expression));
+        sb.append("Cron expression analysis:\n");
+        sb.append(String.format("Expression: %s\n\n", expression));
 
         if (hasSeconds) {
-            sb.append(String.format("秒：%s - %s\n", parts[0], explainField(parts[0], "second")));
+            sb.append(String.format("Second: %s - %s\n", parts[0], explainField(parts[0], "second")));
         }
-        sb.append(String.format("分：%s - %s\n", parts[offset], explainField(parts[offset], "minute")));
-        sb.append(String.format("時：%s - %s\n", parts[offset + 1], explainField(parts[offset + 1], "hour")));
-        sb.append(String.format("日：%s - %s\n", parts[offset + 2], explainField(parts[offset + 2], "day")));
-        sb.append(String.format("月：%s - %s\n", parts[offset + 3], explainField(parts[offset + 3], "month")));
-        sb.append(String.format("週：%s - %s\n", parts[offset + 4], explainField(parts[offset + 4], "weekday")));
+        sb.append(String.format("Minute: %s - %s\n", parts[offset], explainField(parts[offset], "minute")));
+        sb.append(String.format("Hour: %s - %s\n", parts[offset + 1], explainField(parts[offset + 1], "hour")));
+        sb.append(String.format("Day: %s - %s\n", parts[offset + 2], explainField(parts[offset + 2], "day")));
+        sb.append(String.format("Month: %s - %s\n", parts[offset + 3], explainField(parts[offset + 3], "month")));
+        sb.append(String.format("Weekday: %s - %s\n", parts[offset + 4], explainField(parts[offset + 4], "weekday")));
 
         sb.append("\n");
-        sb.append("總結：").append(generateSummary(parts, hasSeconds));
+        sb.append("Summary: ").append(generateSummary(parts, hasSeconds));
 
         return ToolResult.success(sb.toString(), Map.of(
                 "expression", expression,
@@ -148,13 +148,13 @@ public class CronTool implements AgentNodeTool {
 
     private String explainField(String field, String type) {
         if (field.equals("*")) {
-            return "每" + getTypeName(type);
+            return "every " + getTypeName(type);
         }
 
         if (field.contains("/")) {
             String[] parts = field.split("/");
             if (parts.length >= 2) {
-                return String.format("從 %s 開始，每隔 %s %s",
+                return String.format("starting from %s, every %s %s",
                         parts[0].equals("*") ? "0" : parts[0], parts[1], getTypeName(type));
             }
         }
@@ -162,25 +162,25 @@ public class CronTool implements AgentNodeTool {
         if (field.contains("-")) {
             String[] parts = field.split("-");
             if (parts.length >= 2) {
-                return String.format("%s 到 %s", parts[0], parts[1]);
+                return String.format("%s to %s", parts[0], parts[1]);
             }
         }
 
         if (field.contains(",")) {
-            return "在 " + field.replace(",", "、");
+            return "at " + field.replace(",", ", ");
         }
 
-        return "在 " + field;
+        return "at " + field;
     }
 
     private String getTypeName(String type) {
         return switch (type) {
-            case "second" -> "秒";
-            case "minute" -> "分鐘";
-            case "hour" -> "小時";
-            case "day" -> "天";
-            case "month" -> "月";
-            case "weekday" -> "週";
+            case "second" -> "second";
+            case "minute" -> "minute";
+            case "hour" -> "hour";
+            case "day" -> "day";
+            case "month" -> "month";
+            case "weekday" -> "weekday";
             default -> type;
         };
     }
@@ -199,11 +199,11 @@ public class CronTool implements AgentNodeTool {
         // Weekday patterns
         if (!weekday.equals("*")) {
             if (weekday.equals("1-5") || weekday.equals("MON-FRI")) {
-                summary.append("週一至週五");
+                summary.append("Monday to Friday");
             } else if (weekday.equals("0,6") || weekday.equals("SAT,SUN")) {
-                summary.append("週末");
+                summary.append("Weekends");
             } else {
-                summary.append("每週 ").append(weekday);
+                summary.append("Weekly on ").append(weekday);
             }
         }
 
@@ -211,22 +211,22 @@ public class CronTool implements AgentNodeTool {
         String[] minuteParts = minute.contains("/") ? minute.split("/") : null;
         String minuteInterval = minuteParts != null && minuteParts.length >= 2 ? minuteParts[1] : minute;
         if (hour.equals("*") && minute.contains("/")) {
-            summary.append("每 ").append(minuteInterval).append(" 分鐘執行");
+            summary.append(" every ").append(minuteInterval).append(" minutes");
         } else if (minute.contains("/") && hour.equals("*")) {
-            summary.append("每 ").append(minuteInterval).append(" 分鐘執行");
+            summary.append(" every ").append(minuteInterval).append(" minutes");
         } else if (!hour.equals("*") && !minute.equals("*")) {
-            summary.append("在 ").append(hour).append(":").append(minute.length() == 1 ? "0" + minute : minute).append(" 執行");
+            summary.append(" at ").append(hour).append(":").append(minute.length() == 1 ? "0" + minute : minute);
         } else if (hour.equals("*") && minute.equals("0")) {
-            summary.append("每小時整點執行");
+            summary.append(" every hour on the hour");
         }
 
         // Day patterns
         if (!day.equals("*") && month.equals("*") && weekday.equals("*")) {
-            summary.append("每月 ").append(day).append(" 日");
+            summary.append(" on day ").append(day).append(" of every month");
         }
 
         if (summary.isEmpty()) {
-            summary.append("定期執行");
+            summary.append("Runs periodically");
         }
 
         return summary.toString();
@@ -235,7 +235,7 @@ public class CronTool implements AgentNodeTool {
     private ToolResult nextExecutions(String expression, int count, String timezone) {
         String[] parts = expression.trim().split("\\s+");
         if (parts.length < 5 || parts.length > 6) {
-            return ToolResult.failure("無效的 Cron 表達式");
+            return ToolResult.failure("Invalid cron expression");
         }
 
         ZoneId zoneId;
@@ -270,9 +270,9 @@ public class CronTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Cron 表達式：%s\n", expression));
-        sb.append(String.format("時區：%s\n\n", zoneId));
-        sb.append(String.format("接下來 %d 次執行時間：\n", executions.size()));
+        sb.append(String.format("Cron expression: %s\n", expression));
+        sb.append(String.format("Timezone: %s\n\n", zoneId));
+        sb.append(String.format("Next %d execution times:\n", executions.size()));
 
         for (int i = 0; i < executions.size(); i++) {
             sb.append(String.format("%d. %s\n", i + 1, executions.get(i)));
@@ -328,8 +328,8 @@ public class CronTool implements AgentNodeTool {
 
         if (parts.length < 5 || parts.length > 6) {
             return ToolResult.success(
-                    "驗證失敗：Cron 表達式應為 5 或 6 個欄位",
-                    Map.of("valid", false, "error", "欄位數量錯誤")
+                    "Validation failed: Cron expression should have 5 or 6 fields",
+                    Map.of("valid", false, "error", "Incorrect number of fields")
             );
         }
 
@@ -337,20 +337,20 @@ public class CronTool implements AgentNodeTool {
         int offset = hasSeconds ? 1 : 0;
 
         try {
-            if (hasSeconds) validateField(parts[0], 0, 59, "秒");
-            validateField(parts[offset], 0, 59, "分");
-            validateField(parts[offset + 1], 0, 23, "時");
-            validateField(parts[offset + 2], 1, 31, "日");
-            validateField(parts[offset + 3], 1, 12, "月");
-            validateField(parts[offset + 4], 0, 6, "週");
+            if (hasSeconds) validateField(parts[0], 0, 59, "second");
+            validateField(parts[offset], 0, 59, "minute");
+            validateField(parts[offset + 1], 0, 23, "hour");
+            validateField(parts[offset + 2], 1, 31, "day");
+            validateField(parts[offset + 3], 1, 12, "month");
+            validateField(parts[offset + 4], 0, 6, "weekday");
 
             return ToolResult.success(
-                    "驗證通過：Cron 表達式格式正確",
+                    "Validation passed: Cron expression format is correct",
                     Map.of("valid", true, "fields", parts.length, "hasSeconds", hasSeconds)
             );
         } catch (IllegalArgumentException e) {
             return ToolResult.success(
-                    "驗證失敗：" + e.getMessage(),
+                    "Validation failed: " + e.getMessage(),
                     Map.of("valid", false, "error", e.getMessage())
             );
         }
@@ -365,7 +365,7 @@ public class CronTool implements AgentNodeTool {
                 if (!stepParts[0].equals("*")) {
                     validateNumber(stepParts[0], min, max, name);
                 }
-                validateNumber(stepParts[1], 1, max, name + " 步長");
+                validateNumber(stepParts[1], 1, max, name + " step");
             } else if (part.contains("-")) {
                 String[] rangeParts = part.split("-");
                 validateNumber(rangeParts[0], min, max, name);

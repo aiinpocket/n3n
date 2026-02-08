@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 網頁擷取工具
+ * Web scraping tool
  *
- * 允許 AI Agent 從網頁擷取內容，支援：
- * - 擷取整個頁面文字
- * - 使用 CSS 選擇器擷取特定元素
- * - 擷取連結和圖片
- * - 擷取表格資料
+ * Allows AI Agent to scrape content from web pages, supports:
+ * - Extracting full page text
+ * - Extracting specific elements using CSS selectors
+ * - Extracting links and images
+ * - Extracting table data
  */
 @Component
 @Slf4j
@@ -42,7 +42,7 @@ public class WebScrapeTool implements AgentNodeTool {
     @Value("${n3n.tools.webscrape.user-agent:N3N-Bot/1.0 (AI Agent)}")
     private String userAgent;
 
-    // 禁止的域名（安全考量）
+    // Blocked domains (security consideration)
     private static final List<String> BLOCKED_DOMAINS = List.of(
             "localhost", "127.0.0.1", "0.0.0.0", "::1",
             "169.254.", "10.", "172.16.", "172.17.", "172.18.", "172.19.",
@@ -64,20 +64,20 @@ public class WebScrapeTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                從網頁擷取內容。支援的操作：
-                - text: 擷取頁面純文字內容
-                - html: 擷取頁面 HTML
-                - select: 使用 CSS 選擇器擷取特定元素
-                - links: 擷取所有連結
-                - images: 擷取所有圖片 URL
-                - table: 擷取表格資料
-                - metadata: 擷取頁面標題、描述等元資料
+                Web page content scraping. Supported operations:
+                - text: Extract page plain text content
+                - html: Extract page HTML
+                - select: Extract specific elements using CSS selectors
+                - links: Extract all links
+                - images: Extract all image URLs
+                - table: Extract table data
+                - metadata: Extract page title, description, and other metadata
 
-                參數：
-                - url: 要擷取的網頁 URL
-                - operation: 操作類型（預設 text）
-                - selector: CSS 選擇器（僅用於 select 操作）
-                - limit: 最大擷取數量（用於 links、images）
+                Parameters:
+                - url: Web page URL to scrape
+                - operation: Operation type (default text)
+                - selector: CSS selector (only for select operation)
+                - limit: Maximum number of items to extract (for links, images)
                 """;
     }
 
@@ -88,21 +88,21 @@ public class WebScrapeTool implements AgentNodeTool {
                 "properties", Map.of(
                         "url", Map.of(
                                 "type", "string",
-                                "description", "要擷取的網頁 URL"
+                                "description", "Web page URL to scrape"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("text", "html", "select", "links", "images", "table", "metadata"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "text"
                         ),
                         "selector", Map.of(
                                 "type", "string",
-                                "description", "CSS 選擇器（用於 select 操作）"
+                                "description", "CSS selector (for select operation)"
                         ),
                         "limit", Map.of(
                                 "type", "integer",
-                                "description", "最大擷取數量",
+                                "description", "Maximum number of items to extract",
                                 "default", 50
                         )
                 ),
@@ -116,12 +116,12 @@ public class WebScrapeTool implements AgentNodeTool {
             try {
                 String url = (String) parameters.get("url");
                 if (url == null || url.isBlank()) {
-                    return ToolResult.failure("URL 不能為空");
+                    return ToolResult.failure("URL cannot be empty");
                 }
 
-                // 驗證 URL
+                // Validate URL
                 if (!isValidUrl(url)) {
-                    return ToolResult.failure("URL 無效或被禁止存取");
+                    return ToolResult.failure("Invalid URL or access denied");
                 }
 
                 String operation = (String) parameters.getOrDefault("operation", "text");
@@ -132,16 +132,16 @@ public class WebScrapeTool implements AgentNodeTool {
 
                 log.debug("Web scrape: url={}, operation={}", url, operation);
 
-                // 擷取網頁
-                // 安全考量：禁用自動重定向以防止 SSRF 繞過
+                // Fetch web page
+                // Security: disable auto-redirect to prevent SSRF bypass
                 Document doc = Jsoup.connect(url)
                         .userAgent(userAgent)
                         .timeout(timeout)
                         .maxBodySize(maxBodySize)
-                        .followRedirects(false)  // 禁用重定向防止 SSRF 繞過
+                        .followRedirects(false)  // Disable redirects to prevent SSRF bypass
                         .get();
 
-                // 執行操作
+                // Execute operation
                 return switch (operation.toLowerCase()) {
                     case "text" -> extractText(doc, url);
                     case "html" -> extractHtml(doc, url);
@@ -150,22 +150,22 @@ public class WebScrapeTool implements AgentNodeTool {
                     case "images" -> extractImages(doc, url, limit);
                     case "table" -> extractTables(doc, url, limit);
                     case "metadata" -> extractMetadata(doc, url);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (IOException e) {
                 log.error("Web scrape failed", e);
-                return ToolResult.failure("網頁擷取失敗");
+                return ToolResult.failure("Web scraping failed");
             } catch (Exception e) {
                 log.error("Web scrape error", e);
-                return ToolResult.failure("擷取錯誤");
+                return ToolResult.failure("Scraping error");
             }
         });
     }
 
     /**
-     * 驗證 URL 是否安全
-     * 安全考量：使用 IP 位址解析防止 DNS 重綁定攻擊
+     * Validate whether URL is safe
+     * Security: use IP address resolution to prevent DNS rebinding attacks
      */
     private boolean isValidUrl(String url) {
         try {
@@ -173,7 +173,7 @@ public class WebScrapeTool implements AgentNodeTool {
             String host = uri.getHost();
             String scheme = uri.getScheme();
 
-            // 只允許 HTTP/HTTPS
+            // Only allow HTTP/HTTPS
             if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
                 log.warn("Blocked non-HTTP(S) scheme: {}", scheme);
                 return false;
@@ -183,7 +183,7 @@ public class WebScrapeTool implements AgentNodeTool {
                 return false;
             }
 
-            // 檢查禁止的域名（字串匹配）
+            // Check blocked domains (string matching)
             String lowerHost = host.toLowerCase();
             for (String blocked : BLOCKED_DOMAINS) {
                 if (lowerHost.equals(blocked) || lowerHost.startsWith(blocked) ||
@@ -193,7 +193,7 @@ public class WebScrapeTool implements AgentNodeTool {
                 }
             }
 
-            // 解析 IP 位址進行更嚴格的檢查（防止 DNS 重綁定）
+            // Resolve IP address for stricter checks (prevent DNS rebinding)
             try {
                 InetAddress[] addresses = InetAddress.getAllByName(host);
                 for (InetAddress addr : addresses) {
@@ -214,13 +214,13 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 檢查 IP 位址是否為私有或保留位址
-     * 包含所有 RFC 1918 私有範圍和其他保留範圍
+     * Check if IP address is private or reserved
+     * Includes all RFC 1918 private ranges and other reserved ranges
      */
     private boolean isPrivateOrReservedIP(InetAddress addr) {
         byte[] ip = addr.getAddress();
 
-        // IPv4 檢查
+        // IPv4 check
         if (ip.length == 4) {
             int b0 = ip[0] & 0xFF;
             int b1 = ip[1] & 0xFF;
@@ -265,7 +265,7 @@ public class WebScrapeTool implements AgentNodeTool {
             if (b0 >= 240) return true;
         }
 
-        // IPv6 檢查
+        // IPv6 check
         if (ip.length == 16) {
             // ::1 (loopback)
             if (addr.isLoopbackAddress()) return true;
@@ -283,17 +283,17 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取純文字
+     * Extract plain text
      */
     private ToolResult extractText(Document doc, String url) {
         String text = doc.body().text();
-        // 限制長度
+        // Limit length
         if (text.length() > 10000) {
-            text = text.substring(0, 10000) + "...(已截斷)";
+            text = text.substring(0, 10000) + "...(truncated)";
         }
 
         return ToolResult.success(
-                String.format("從 %s 擷取的文字內容：\n\n%s", url, text),
+                String.format("Text content extracted from %s:\n\n%s", url, text),
                 Map.of(
                         "url", url,
                         "title", doc.title(),
@@ -303,16 +303,16 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取 HTML
+     * Extract HTML
      */
     private ToolResult extractHtml(Document doc, String url) {
         String html = doc.html();
         if (html.length() > 50000) {
-            html = html.substring(0, 50000) + "...(已截斷)";
+            html = html.substring(0, 50000) + "...(truncated)";
         }
 
         return ToolResult.success(
-                String.format("從 %s 擷取的 HTML（前 50000 字元）", url),
+                String.format("HTML extracted from %s (first 50000 characters)", url),
                 Map.of(
                         "url", url,
                         "html", html,
@@ -322,11 +322,11 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 使用 CSS 選擇器擷取
+     * Extract using CSS selector
      */
     private ToolResult extractBySelector(Document doc, String url, String selector, int limit) {
         if (selector == null || selector.isBlank()) {
-            return ToolResult.failure("select 操作需要提供 selector 參數");
+            return ToolResult.failure("The select operation requires a selector parameter");
         }
 
         Elements elements = doc.select(selector);
@@ -342,7 +342,7 @@ public class WebScrapeTool implements AgentNodeTool {
             item.put("html", el.outerHtml().length() > 500 ?
                     el.outerHtml().substring(0, 500) + "..." : el.outerHtml());
 
-            // 常用屬性
+            // Common attributes
             if (el.hasAttr("href")) item.put("href", el.attr("abs:href"));
             if (el.hasAttr("src")) item.put("src", el.attr("abs:src"));
             if (el.hasAttr("class")) item.put("class", el.attr("class"));
@@ -353,8 +353,8 @@ public class WebScrapeTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("使用選擇器 '%s' 從 %s 找到 %d 個元素（顯示前 %d 個）：\n\n",
-                selector, url, elements.size(), results.size()));
+        sb.append(String.format("Found %d elements using selector '%s' from %s (showing first %d):\n\n",
+                elements.size(), selector, url, results.size()));
 
         for (int i = 0; i < results.size(); i++) {
             Map<String, String> item = results.get(i);
@@ -370,7 +370,7 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取連結
+     * Extract links
      */
     private ToolResult extractLinks(Document doc, String url, int limit) {
         Elements links = doc.select("a[href]");
@@ -385,7 +385,7 @@ public class WebScrapeTool implements AgentNodeTool {
 
             if (!href.isBlank()) {
                 results.add(Map.of(
-                        "text", text.isBlank() ? "(無文字)" : text,
+                        "text", text.isBlank() ? "(no text)" : text,
                         "href", href
                 ));
                 count++;
@@ -393,8 +393,8 @@ public class WebScrapeTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("從 %s 擷取 %d 個連結（共 %d 個）：\n\n",
-                url, results.size(), links.size()));
+        sb.append(String.format("Extracted %d links from %s (total %d):\n\n",
+                results.size(), url, links.size()));
 
         for (int i = 0; i < results.size(); i++) {
             Map<String, String> item = results.get(i);
@@ -409,7 +409,7 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取圖片
+     * Extract images
      */
     private ToolResult extractImages(Document doc, String url, int limit) {
         Elements images = doc.select("img[src]");
@@ -425,15 +425,15 @@ public class WebScrapeTool implements AgentNodeTool {
             if (!src.isBlank()) {
                 results.add(Map.of(
                         "src", src,
-                        "alt", alt.isBlank() ? "(無替代文字)" : alt
+                        "alt", alt.isBlank() ? "(no alt text)" : alt
                 ));
                 count++;
             }
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("從 %s 擷取 %d 張圖片（共 %d 張）：\n\n",
-                url, results.size(), images.size()));
+        sb.append(String.format("Extracted %d images from %s (total %d):\n\n",
+                results.size(), url, images.size()));
 
         for (int i = 0; i < results.size(); i++) {
             Map<String, String> item = results.get(i);
@@ -448,7 +448,7 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取表格
+     * Extract tables
      */
     private ToolResult extractTables(Document doc, String url, int limit) {
         Elements tables = doc.select("table");
@@ -484,11 +484,11 @@ public class WebScrapeTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("從 %s 擷取 %d 個表格（共 %d 個）：\n\n",
-                url, results.size(), tables.size()));
+        sb.append(String.format("Extracted %d tables from %s (total %d):\n\n",
+                results.size(), url, tables.size()));
 
         for (Map<String, Object> table : results) {
-            sb.append(String.format("表格 %d (%d 列 x %d 欄):\n",
+            sb.append(String.format("Table %d (%d rows x %d columns):\n",
                     table.get("table_index"), table.get("rows"), table.get("columns")));
 
             @SuppressWarnings("unchecked")
@@ -497,7 +497,7 @@ public class WebScrapeTool implements AgentNodeTool {
                 sb.append("  ").append(String.join(" | ", data.get(i))).append("\n");
             }
             if (data.size() > 5) {
-                sb.append("  ...(更多 ").append(data.size() - 5).append(" 列)\n");
+                sb.append("  ...(" + (data.size() - 5) + " more rows)\n");
             }
             sb.append("\n");
         }
@@ -510,7 +510,7 @@ public class WebScrapeTool implements AgentNodeTool {
     }
 
     /**
-     * 擷取元資料
+     * Extract metadata
      */
     private ToolResult extractMetadata(Document doc, String url) {
         Map<String, String> metadata = new HashMap<>();
@@ -546,7 +546,7 @@ public class WebScrapeTool implements AgentNodeTool {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("從 %s 擷取的元資料：\n\n", url));
+        sb.append(String.format("Metadata extracted from %s:\n\n", url));
 
         for (Map.Entry<String, String> entry : metadata.entrySet()) {
             sb.append(String.format("- %s: %s\n", entry.getKey(), entry.getValue()));

@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 加密/解密工具
- * 使用 AES-256-GCM 加密
+ * Encryption/decryption tool
+ * Uses AES-256-GCM encryption
  */
 @Component
 @Slf4j
@@ -44,18 +44,18 @@ public class EncryptTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                AES-256-GCM 加密/解密工具。
+                AES-256-GCM encryption/decryption tool.
 
-                操作類型：
-                - encrypt: 加密文字
-                - decrypt: 解密文字
+                Operations:
+                - encrypt: Encrypt text
+                - decrypt: Decrypt text
 
-                參數：
-                - data: 要加密或解密的文字
-                - password: 密碼
-                - operation: encrypt 或 decrypt
+                Parameters:
+                - data: Text to encrypt or decrypt
+                - password: Password
+                - operation: encrypt or decrypt
 
-                加密結果格式：Base64(salt + iv + ciphertext)
+                Encrypted result format: Base64(salt + iv + ciphertext)
                 """;
     }
 
@@ -66,16 +66,16 @@ public class EncryptTool implements AgentNodeTool {
                 "properties", Map.of(
                         "data", Map.of(
                                 "type", "string",
-                                "description", "要加密或解密的文字"
+                                "description", "Text to encrypt or decrypt"
                         ),
                         "password", Map.of(
                                 "type", "string",
-                                "description", "密碼"
+                                "description", "Password"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("encrypt", "decrypt"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "encrypt"
                         )
                 ),
@@ -92,26 +92,26 @@ public class EncryptTool implements AgentNodeTool {
                 String operation = (String) parameters.getOrDefault("operation", "encrypt");
 
                 if (data == null || data.isEmpty()) {
-                    return ToolResult.failure("資料不能為空");
+                    return ToolResult.failure("Data cannot be empty");
                 }
                 if (password == null || password.isEmpty()) {
-                    return ToolResult.failure("密碼不能為空");
+                    return ToolResult.failure("Password cannot be empty");
                 }
 
                 // Security: limit input size
                 if (data.length() > 10_000_000) {
-                    return ToolResult.failure("資料過大，最大限制 10MB");
+                    return ToolResult.failure("Data too large, maximum 10MB");
                 }
 
                 return switch (operation) {
                     case "encrypt" -> encrypt(data, password);
                     case "decrypt" -> decrypt(data, password);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("Encryption operation failed", e);
-                return ToolResult.failure("加密操作失敗");
+                return ToolResult.failure("Encryption operation failed");
             }
         });
     }
@@ -146,7 +146,7 @@ public class EncryptTool implements AgentNodeTool {
             String result = Base64.getEncoder().encodeToString(combined);
 
             return ToolResult.success(
-                    "加密成功\n結果：" + result,
+                    "Encryption successful\nResult: " + result,
                     Map.of(
                             "encrypted", result,
                             "algorithm", "AES-256-GCM",
@@ -155,7 +155,7 @@ public class EncryptTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("加密失敗");
+            return ToolResult.failure("Encryption failed");
         }
     }
 
@@ -164,7 +164,7 @@ public class EncryptTool implements AgentNodeTool {
             byte[] combined = Base64.getDecoder().decode(encryptedBase64);
 
             if (combined.length < SALT_LENGTH + GCM_IV_LENGTH + 1) {
-                return ToolResult.failure("無效的加密資料格式");
+                return ToolResult.failure("Invalid encrypted data format");
             }
 
             // Extract salt, iv, ciphertext
@@ -188,7 +188,7 @@ public class EncryptTool implements AgentNodeTool {
             String result = new String(plaintext, "UTF-8");
 
             return ToolResult.success(
-                    "解密成功\n結果：" + (result.length() > 500 ? result.substring(0, 500) + "..." : result),
+                    "Decryption successful\nResult: " + (result.length() > 500 ? result.substring(0, 500) + "..." : result),
                     Map.of(
                             "decrypted", result,
                             "algorithm", "AES-256-GCM",
@@ -196,7 +196,7 @@ public class EncryptTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("解密失敗");
+            return ToolResult.failure("Decryption failed");
         }
     }
 

@@ -8,13 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * AI Agent 工具註冊表
- * 管理所有可用的 Agent 工具
+ * AI Agent Tool Registry.
+ * Manages all available Agent tools.
  *
- * 功能：
- * - 工具註冊/註銷
- * - 按分類查詢工具
- * - 生成 OpenAI/Claude 格式的工具定義
+ * Features:
+ * - Tool registration/unregistration
+ * - Query tools by category
+ * - Generate tool definitions in OpenAI/Claude format
  */
 @Component
 @Slf4j
@@ -23,7 +23,7 @@ public class AgentNodeToolRegistry {
     private final Map<String, AgentNodeTool> tools = new ConcurrentHashMap<>();
 
     /**
-     * 註冊工具
+     * Register a tool
      */
     public void register(AgentNodeTool tool) {
         tools.put(tool.getId(), tool);
@@ -31,7 +31,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 註銷工具
+     * Unregister a tool
      */
     public void unregister(String toolId) {
         AgentNodeTool removed = tools.remove(toolId);
@@ -41,21 +41,21 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 取得工具
+     * Get a tool
      */
     public Optional<AgentNodeTool> getTool(String toolId) {
         return Optional.ofNullable(tools.get(toolId));
     }
 
     /**
-     * 取得所有工具
+     * Get all tools
      */
     public Collection<AgentNodeTool> getAllTools() {
         return Collections.unmodifiableCollection(tools.values());
     }
 
     /**
-     * 按分類取得工具
+     * Get tools by category
      */
     public List<AgentNodeTool> getToolsByCategory(String category) {
         return tools.values().stream()
@@ -64,7 +64,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 取得所有分類
+     * Get all categories
      */
     public Set<String> getCategories() {
         return tools.values().stream()
@@ -73,8 +73,8 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 生成 OpenAI 格式的工具定義
-     * 用於 function calling
+     * Generate tool definitions in OpenAI format.
+     * Used for function calling.
      */
     public List<Map<String, Object>> toOpenAITools(Collection<String> toolIds) {
         return toolIds.stream()
@@ -86,7 +86,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 生成所有工具的 OpenAI 格式定義
+     * Generate OpenAI format definitions for all tools
      */
     public List<Map<String, Object>> toOpenAITools() {
         return tools.values().stream()
@@ -106,7 +106,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 生成 Claude 格式的工具定義
+     * Generate tool definitions in Claude format
      */
     public List<Map<String, Object>> toClaudeTools(Collection<String> toolIds) {
         return toolIds.stream()
@@ -118,7 +118,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 生成所有工具的 Claude 格式定義
+     * Generate Claude format definitions for all tools
      */
     public List<Map<String, Object>> toClaudeTools() {
         return tools.values().stream()
@@ -135,7 +135,7 @@ public class AgentNodeToolRegistry {
     }
 
     /**
-     * 取得工具簡介列表（供 UI 顯示）
+     * Get tool summary list (for UI display)
      */
     public List<Map<String, Object>> getToolSummaries() {
         return tools.values().stream()

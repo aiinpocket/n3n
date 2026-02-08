@@ -11,13 +11,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * Redis 向量儲存實作
+ * Redis vector store implementation.
  *
- * 使用 Redis Hash 儲存向量和元數據
- * 搜尋使用暴力計算餘弦相似度（適用於小規模數據）
+ * Uses Redis Hash to store vectors and metadata.
+ * Search uses brute-force cosine similarity calculation (suitable for small-scale data).
  *
- * 生產環境建議使用 Redis Stack 的向量搜尋功能
- * 或專門的向量數據庫（Pinecone, Weaviate, Milvus）
+ * For production environments, consider using Redis Stack's vector search
+ * or dedicated vector databases (Pinecone, Weaviate, Milvus).
  */
 @Component
 @Slf4j
@@ -44,7 +44,7 @@ public class RedisVectorStore implements VectorStore {
 
                 redisTemplate.opsForHash().putAll(key, data);
 
-                // 加入索引
+                // Add to index
                 String indexKey = INDEX_PREFIX + namespace;
                 redisTemplate.opsForSet().add(indexKey, document.id());
 
@@ -83,7 +83,7 @@ public class RedisVectorStore implements VectorStore {
                     return List.of();
                 }
 
-                // 計算所有向量的相似度
+                // Calculate similarity for all vectors
                 List<ScoredDocument> scored = new ArrayList<>();
 
                 for (String id : ids) {
@@ -92,21 +92,21 @@ public class RedisVectorStore implements VectorStore {
 
                     if (data.isEmpty()) continue;
 
-                    // 解析向量
+                    // Parse vector
                     String vectorJson = (String) data.get("vector");
                     List<Float> vector = objectMapper.readValue(vectorJson,
                         objectMapper.getTypeFactory().constructCollectionType(List.class, Float.class));
 
-                    // 解析元數據
+                    // Parse metadata
                     String metadataJson = (String) data.get("metadata");
                     Map<String, Object> metadata = objectMapper.readValue(metadataJson, Map.class);
 
-                    // 應用過濾條件
+                    // Apply filter conditions
                     if (filter != null && !matchesFilter(metadata, filter)) {
                         continue;
                     }
 
-                    // 計算餘弦相似度
+                    // Calculate cosine similarity
                     float score = cosineSimilarity(queryVector, vector);
 
                     scored.add(new ScoredDocument(
@@ -117,7 +117,7 @@ public class RedisVectorStore implements VectorStore {
                     ));
                 }
 
-                // 排序並取 topK
+                // Sort and take topK
                 return scored.stream()
                     .sorted((a, b) -> Float.compare(b.score, a.score))
                     .limit(topK)

@@ -5,31 +5,31 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 向量儲存介面
- * 支援向量的儲存、搜尋、刪除操作
+ * Vector store interface.
+ * Supports vector storage, search, and deletion operations.
  */
 public interface VectorStore {
 
     /**
-     * 插入向量
+     * Upsert a vector
      *
-     * @param namespace 命名空間（如集合名稱）
-     * @param document 向量文檔
+     * @param namespace namespace (e.g., collection name)
+     * @param document vector document
      */
     CompletableFuture<Void> upsert(String namespace, VectorDocument document);
 
     /**
-     * 批量插入向量
+     * Batch upsert vectors
      */
     CompletableFuture<Void> upsertBatch(String namespace, List<VectorDocument> documents);
 
     /**
-     * 相似度搜尋
+     * Similarity search
      *
-     * @param namespace 命名空間
-     * @param queryVector 查詢向量
-     * @param topK 返回數量
-     * @param filter 過濾條件（可選）
+     * @param namespace namespace
+     * @param queryVector query vector
+     * @param topK number of results to return
+     * @param filter filter conditions (optional)
      */
     CompletableFuture<List<SearchResult>> search(
         String namespace,
@@ -39,25 +39,25 @@ public interface VectorStore {
     );
 
     /**
-     * 刪除向量
+     * Delete a vector
      *
-     * @param namespace 命名空間
-     * @param id 文檔 ID
+     * @param namespace namespace
+     * @param id document ID
      */
     CompletableFuture<Void> delete(String namespace, String id);
 
     /**
-     * 刪除命名空間中所有向量
+     * Delete all vectors in a namespace
      */
     CompletableFuture<Void> deleteAll(String namespace);
 
     /**
-     * 取得向量數量
+     * Get vector count
      */
     CompletableFuture<Long> count(String namespace);
 
     /**
-     * 向量文檔
+     * Vector document
      */
     record VectorDocument(
         String id,
@@ -75,7 +75,7 @@ public interface VectorStore {
     }
 
     /**
-     * 搜尋結果
+     * Search result
      */
     record SearchResult(
         String id,

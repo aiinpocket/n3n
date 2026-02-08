@@ -14,8 +14,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.*;
 
 /**
- * 壓縮/解壓縮工具
- * 支援 GZIP 和 DEFLATE 格式
+ * Compression/decompression tool
+ * Supports GZIP and DEFLATE formats
  */
 @Component
 @Slf4j
@@ -36,20 +36,20 @@ public class CompressTool implements AgentNodeTool {
     @Override
     public String getDescription() {
         return """
-                壓縮/解壓縮工具，支援 GZIP 和 DEFLATE 格式。
+                Compression/decompression tool, supports GZIP and DEFLATE formats.
 
-                操作類型：
-                - compress: 壓縮文字
-                - decompress: 解壓縮文字
+                Operations:
+                - compress: Compress text
+                - decompress: Decompress text
 
-                格式：
-                - gzip: GZIP 格式（預設）
-                - deflate: DEFLATE 格式
+                Formats:
+                - gzip: GZIP format (default)
+                - deflate: DEFLATE format
 
-                參數：
-                - data: 文字資料（壓縮時為原文，解壓縮時為 Base64 編碼的壓縮資料）
-                - operation: compress 或 decompress
-                - format: gzip 或 deflate
+                Parameters:
+                - data: Text data (plain text for compress, Base64-encoded compressed data for decompress)
+                - operation: compress or decompress
+                - format: gzip or deflate
                 """;
     }
 
@@ -60,18 +60,18 @@ public class CompressTool implements AgentNodeTool {
                 "properties", Map.of(
                         "data", Map.of(
                                 "type", "string",
-                                "description", "資料"
+                                "description", "Data"
                         ),
                         "operation", Map.of(
                                 "type", "string",
                                 "enum", List.of("compress", "decompress"),
-                                "description", "操作類型",
+                                "description", "Operation type",
                                 "default", "compress"
                         ),
                         "format", Map.of(
                                 "type", "string",
                                 "enum", List.of("gzip", "deflate"),
-                                "description", "壓縮格式",
+                                "description", "Compression format",
                                 "default", "gzip"
                         )
                 ),
@@ -88,18 +88,18 @@ public class CompressTool implements AgentNodeTool {
                 String format = (String) parameters.getOrDefault("format", "gzip");
 
                 if (data == null || data.isEmpty()) {
-                    return ToolResult.failure("資料不能為空");
+                    return ToolResult.failure("Data cannot be empty");
                 }
 
                 return switch (operation) {
                     case "compress" -> compress(data, format);
                     case "decompress" -> decompress(data, format);
-                    default -> ToolResult.failure("不支援的操作: " + operation);
+                    default -> ToolResult.failure("Unsupported operation: " + operation);
                 };
 
             } catch (Exception e) {
                 log.error("Compression operation failed", e);
-                return ToolResult.failure("壓縮操作失敗");
+                return ToolResult.failure("Compression operation failed");
             }
         });
     }
@@ -109,7 +109,7 @@ public class CompressTool implements AgentNodeTool {
             byte[] input = text.getBytes(StandardCharsets.UTF_8);
 
             if (input.length > MAX_SIZE) {
-                return ToolResult.failure("資料過大，最大限制 10MB");
+                return ToolResult.failure("Data too large, maximum 10MB");
             }
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -130,7 +130,7 @@ public class CompressTool implements AgentNodeTool {
             double ratio = (double) compressed.length / input.length * 100;
 
             return ToolResult.success(
-                    String.format("壓縮成功\n原始大小: %d bytes\n壓縮後: %d bytes\n壓縮率: %.1f%%\n\n結果（Base64）：\n%s",
+                    String.format("Compression successful\nOriginal size: %d bytes\nCompressed: %d bytes\nCompression ratio: %.1f%%\n\nResult (Base64):\n%s",
                             input.length, compressed.length, ratio,
                             result.length() > 500 ? result.substring(0, 500) + "..." : result),
                     Map.of(
@@ -142,7 +142,7 @@ public class CompressTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("壓縮失敗");
+            return ToolResult.failure("Compression failed");
         }
     }
 
@@ -151,7 +151,7 @@ public class CompressTool implements AgentNodeTool {
             byte[] compressed = Base64.getDecoder().decode(base64Data);
 
             if (compressed.length > MAX_SIZE) {
-                return ToolResult.failure("壓縮資料過大，最大限制 10MB");
+                return ToolResult.failure("Compressed data too large, maximum 10MB");
             }
 
             ByteArrayInputStream bais = new ByteArrayInputStream(compressed);
@@ -167,7 +167,7 @@ public class CompressTool implements AgentNodeTool {
                         total += len;
                         // Security: limit decompressed size (zip bomb protection)
                         if (total > MAX_SIZE) {
-                            return ToolResult.failure("解壓縮後資料過大，可能是 zip bomb");
+                            return ToolResult.failure("Decompressed data too large, possible zip bomb");
                         }
                     }
                 }
@@ -181,7 +181,7 @@ public class CompressTool implements AgentNodeTool {
                         total += len;
                         // Security: limit decompressed size (zip bomb protection)
                         if (total > MAX_SIZE) {
-                            return ToolResult.failure("解壓縮後資料過大，可能是 zip bomb");
+                            return ToolResult.failure("Decompressed data too large, possible zip bomb");
                         }
                     }
                 }
@@ -190,7 +190,7 @@ public class CompressTool implements AgentNodeTool {
             String result = baos.toString(StandardCharsets.UTF_8);
 
             return ToolResult.success(
-                    String.format("解壓縮成功\n壓縮大小: %d bytes\n解壓縮後: %d bytes\n\n結果：\n%s",
+                    String.format("Decompression successful\nCompressed size: %d bytes\nDecompressed: %d bytes\n\nResult:\n%s",
                             compressed.length, result.length(),
                             result.length() > 500 ? result.substring(0, 500) + "..." : result),
                     Map.of(
@@ -201,7 +201,7 @@ public class CompressTool implements AgentNodeTool {
                     )
             );
         } catch (Exception e) {
-            return ToolResult.failure("解壓縮失敗");
+            return ToolResult.failure("Decompression failed");
         }
     }
 
