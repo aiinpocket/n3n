@@ -142,7 +142,7 @@ public class IntentAnalyzer {
                 .build();
 
         } catch (Exception e) {
-            log.warn("Failed to parse intent response: {}", e.getMessage());
+            log.warn("Failed to parse intent response: {}", e.getClass().getSimpleName());
             return Intent.builder()
                 .type(Intent.IntentType.UNKNOWN)
                 .confidence(0.5)

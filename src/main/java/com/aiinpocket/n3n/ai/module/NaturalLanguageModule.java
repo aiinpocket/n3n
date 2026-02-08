@@ -200,13 +200,18 @@ public class NaturalLanguageModule {
                 double nodeY = 100;
 
                 for (Map<String, Object> node : nodes) {
-                    int progressPercent = 85 + (int) ((nodeIndex / (double) totalNodes) * 10);
+                    int progressPercent = totalNodes > 0
+                            ? 85 + (int) ((nodeIndex / (double) totalNodes) * 10)
+                            : 85;
 
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> nodeConfig = node.get("config") instanceof Map
+                            ? (Map<String, Object>) node.get("config") : Map.of();
                     FlowGenerationChunk.NodeData nodeData = FlowGenerationChunk.NodeData.builder()
-                            .id((String) node.get("id"))
-                            .type((String) node.get("type"))
-                            .label((String) node.get("label"))
-                            .config(node.get("config") != null ? (Map<String, Object>) node.get("config") : Map.of())
+                            .id(String.valueOf(node.get("id")))
+                            .type(String.valueOf(node.get("type")))
+                            .label(String.valueOf(node.getOrDefault("label", node.get("type"))))
+                            .config(nodeConfig)
                             .position(FlowGenerationChunk.Position.builder()
                                     .x(nodeX)
                                     .y(nodeY + nodeIndex * 150)
@@ -435,10 +440,11 @@ public class NaturalLanguageModule {
             JsonNode nodesNode = root.get("nodes");
             if (nodesNode != null && nodesNode.isArray()) {
                 for (JsonNode n : nodesNode) {
+                    if (!n.has("id") || !n.has("type")) continue;
                     Map<String, Object> node = new HashMap<>();
-                    node.put("id", n.get("id").asText());
-                    node.put("type", n.get("type").asText());
-                    node.put("label", n.has("label") ? n.get("label").asText() : n.get("type").asText());
+                    node.put("id", n.get("id").asText(""));
+                    node.put("type", n.get("type").asText(""));
+                    node.put("label", n.has("label") ? n.get("label").asText("") : n.get("type").asText(""));
                     if (n.has("config")) {
                         node.put("config", objectMapper.convertValue(n.get("config"), Map.class));
                     }
@@ -451,9 +457,10 @@ public class NaturalLanguageModule {
             JsonNode edgesNode = root.get("edges");
             if (edgesNode != null && edgesNode.isArray()) {
                 for (JsonNode e : edgesNode) {
+                    if (!e.has("source") || !e.has("target")) continue;
                     edges.add(Map.of(
-                        "source", e.get("source").asText(),
-                        "target", e.get("target").asText()
+                        "source", e.get("source").asText(""),
+                        "target", e.get("target").asText("")
                     ));
                 }
             }
@@ -477,7 +484,8 @@ public class NaturalLanguageModule {
                 missingTypes
             );
         } catch (JsonProcessingException e) {
-            log.warn("Failed to parse flow generation response: {}", content);
+            log.warn("Failed to parse flow generation response (length={}): {}",
+                    content.length(), content.length() > 200 ? content.substring(0, 200) + "..." : content);
             return FlowGenerationResult.error("Failed to parse AI response");
         }
     }
