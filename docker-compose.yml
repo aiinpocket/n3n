@@ -81,7 +81,7 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-n3n_admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-n3n_secret_123}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-n3n_dev_only}
       MONGO_INITDB_DATABASE: ${MONGO_DB:-n3n_test}
     volumes:
       - mongodb_data:/data/db
@@ -99,6 +99,7 @@ services:
       context: ./flow-optimizer
       dockerfile: Dockerfile
     container_name: n3n-flow-optimizer
+    # Port exposed for development debugging only; not needed in production
     ports:
       - "8081:8081"
     environment:
