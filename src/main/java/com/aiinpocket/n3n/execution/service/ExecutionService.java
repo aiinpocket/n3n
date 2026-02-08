@@ -561,7 +561,8 @@ public class ExecutionService {
         }
 
         // Mark execution as completed
-        execution = executionRepository.findById(executionId).orElseThrow();
+        execution = executionRepository.findById(executionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));
         execution.setStatus("completed");
         execution.setCompletedAt(Instant.now());
         if (execution.getStartedAt() != null) {
