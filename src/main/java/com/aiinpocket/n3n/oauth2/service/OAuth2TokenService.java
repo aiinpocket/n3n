@@ -46,6 +46,10 @@ public class OAuth2TokenService {
             token = refreshToken(token);
         }
 
+        if (token.isExpired()) {
+            log.warn("Returning expired OAuth2 token for credential {} (refresh may have failed)", credentialId);
+        }
+
         return token.getAccessToken();
     }
 

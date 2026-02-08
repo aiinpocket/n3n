@@ -110,6 +110,12 @@ public class OAuth2Controller {
         try {
             // Exchange code for token
             String tokenUrl = getTokenUrlForProvider(provider);
+            if (tokenUrl == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Unsupported OAuth2 provider: " + provider
+                ));
+            }
+
             // In production, client credentials should come from configuration
             String clientId = System.getenv(provider.toUpperCase() + "_CLIENT_ID");
             String clientSecret = System.getenv(provider.toUpperCase() + "_CLIENT_SECRET");

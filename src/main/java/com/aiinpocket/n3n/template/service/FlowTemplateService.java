@@ -149,10 +149,10 @@ public class FlowTemplateService {
     // Helper methods for official templates
     private OfficialTemplateDto parseOfficialTemplate(JsonNode node) {
         OfficialTemplateDto template = new OfficialTemplateDto();
-        template.setId(node.get("id").asText());
-        template.setName(node.get("name").asText());
-        template.setDescription(node.get("description").asText());
-        template.setCategory(node.get("category").asText());
+        template.setId(node.path("id").asText(""));
+        template.setName(node.path("name").asText(""));
+        template.setDescription(node.path("description").asText(""));
+        template.setCategory(node.path("category").asText(""));
 
         List<String> tags = new ArrayList<>();
         JsonNode tagsNode = node.get("tags");
@@ -185,10 +185,10 @@ public class FlowTemplateService {
 
     private OfficialTemplateDto.CategoryDto parseOfficialCategory(JsonNode node) {
         OfficialTemplateDto.CategoryDto category = new OfficialTemplateDto.CategoryDto();
-        category.setId(node.get("id").asText());
-        category.setName(node.get("name").asText());
-        category.setDescription(node.has("description") ? node.get("description").asText() : "");
-        category.setIcon(node.has("icon") ? node.get("icon").asText() : "folder");
+        category.setId(node.path("id").asText(""));
+        category.setName(node.path("name").asText(""));
+        category.setDescription(node.path("description").asText(""));
+        category.setIcon(node.path("icon").asText("folder"));
         return category;
     }
 

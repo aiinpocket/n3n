@@ -25,12 +25,9 @@ const levelTagColors: Record<string, string> = {
 }
 
 function formatTimestamp(ts: string): string {
-  try {
-    const d = new Date(ts)
-    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions)
-  } catch {
-    return ts
-  }
+  const d = new Date(ts)
+  if (isNaN(d.getTime())) return ts
+  return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions)
 }
 
 export default function LogViewerPage() {
