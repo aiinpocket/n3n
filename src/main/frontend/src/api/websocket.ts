@@ -39,6 +39,8 @@ class WebSocketService {
       }
 
       const token = useAuthStore.getState().accessToken;
+      // SockJS handshake doesn't support custom headers, so token must be in STOMP connect headers.
+      // The WebSocket interceptor handles auth via Sec-WebSocket-Protocol or query param as SockJS fallback.
       const socket = new SockJS(token ? `/ws?token=${encodeURIComponent(token)}` : '/ws');
       this.client = new Client({
         webSocketFactory: () => socket as unknown as WebSocket,

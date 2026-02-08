@@ -22,8 +22,8 @@ import java.util.UUID;
  * Security:
  * - 預設要求認證 (require-authentication=true)
  * - 可透過配置允許未認證連線（僅供開發環境使用）
- * - Token 只能透過 Sec-WebSocket-Protocol header 或 Authorization header 提供
- * - 不再支援 URL query parameter 以避免 token 洩露到日誌和瀏覽器歷史
+ * - Token 可透過 Authorization header、Sec-WebSocket-Protocol header 或 query parameter 提供
+ * - SockJS 不支援自訂 HTTP headers，因此 query parameter 是 SockJS fallback 的必要方式
  */
 @Component
 @RequiredArgsConstructor
@@ -55,10 +55,9 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                 }
             }
 
-            // Log warning if token is in query param (deprecated, no longer used)
-            String queryToken = servletRequest.getServletRequest().getParameter("token");
-            if (queryToken != null && !queryToken.isEmpty()) {
-                log.warn("WebSocket token in URL query parameter is deprecated and ignored for security. Use Authorization header instead.");
+            // Fallback: query parameter (required for SockJS which cannot set custom headers during handshake)
+            if (token == null || token.isEmpty()) {
+                token = servletRequest.getServletRequest().getParameter("token");
             }
 
             if (token != null && !token.isEmpty()) {

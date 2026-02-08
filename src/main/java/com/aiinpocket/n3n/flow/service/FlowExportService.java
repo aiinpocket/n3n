@@ -67,6 +67,9 @@ public class FlowExportService {
                 .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
 
         Map<String, Object> definition = flowVersion.getDefinition();
+        if (definition == null) {
+            definition = Map.of();
+        }
 
         // 提取元件依賴
         List<ComponentDependency> components = extractComponentDependencies(definition);
@@ -222,10 +225,13 @@ public class FlowExportService {
     private String calculateChecksum(FlowExportPackage pkg) {
         try {
             // 只對 flow 和 dependencies 計算 checksum
-            Map<String, Object> content = Map.of(
-                    "flow", pkg.getFlow(),
-                    "dependencies", pkg.getDependencies()
-            );
+            Map<String, Object> content = new HashMap<>();
+            if (pkg.getFlow() != null) {
+                content.put("flow", pkg.getFlow());
+            }
+            if (pkg.getDependencies() != null) {
+                content.put("dependencies", pkg.getDependencies());
+            }
 
             String json = objectMapper.writeValueAsString(content);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

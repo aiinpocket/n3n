@@ -52,15 +52,22 @@ public class FlowImportService {
         validateChecksum(pkg);
 
         FlowExportPackage.FlowData flowData = pkg.getFlow();
+        if (flowData == null) {
+            throw new IllegalArgumentException("Export package is missing flow data");
+        }
         Map<String, Object> definition = flowData.getDefinition();
+        if (definition == null) {
+            throw new IllegalArgumentException("Export package flow is missing definition");
+        }
 
         // 分析元件狀態
+        FlowExportPackage.FlowDependencies deps = pkg.getDependencies();
         List<FlowImportPreviewResponse.ComponentStatus> componentStatuses =
-                analyzeComponents(pkg.getDependencies().getComponents());
+                analyzeComponents(deps != null ? deps.getComponents() : null);
 
         // 分析憑證需求
         List<FlowImportPreviewResponse.CredentialRequirement> credentialRequirements =
-                analyzeCredentials(pkg.getDependencies().getCredentialPlaceholders(), userId);
+                analyzeCredentials(deps != null ? deps.getCredentialPlaceholders() : null, userId);
 
         // 檢查阻擋因素
         List<String> blockers = new ArrayList<>();
@@ -171,9 +178,14 @@ public class FlowImportService {
         }
 
         try {
+            Object flowObj = pkg.getFlow();
+            Object depsObj = pkg.getDependencies();
+            if (flowObj == null || depsObj == null) {
+                throw new IllegalArgumentException("Export package is missing flow data or dependencies");
+            }
             Map<String, Object> content = Map.of(
-                    "flow", pkg.getFlow(),
-                    "dependencies", pkg.getDependencies()
+                    "flow", flowObj,
+                    "dependencies", depsObj
             );
 
             String json = objectMapper.writeValueAsString(content);

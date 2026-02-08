@@ -626,7 +626,7 @@ public class ExecutionService {
             .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));
 
         // Verify ownership - only the execution owner can resume
-        if (userId != null && !userId.equals(execution.getTriggeredBy())) {
+        if (userId == null || !userId.equals(execution.getTriggeredBy())) {
             throw new ResourceNotFoundException("Execution not found: " + executionId);
         }
 
