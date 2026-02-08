@@ -58,12 +58,12 @@ export default function MonitoringPage() {
     }
   }, [autoRefresh, loadData])
 
-  const heapPercent = systemMetrics
+  const heapPercent = systemMetrics && systemMetrics.heapMax > 0
     ? Math.round((systemMetrics.heapUsed / systemMetrics.heapMax) * 100)
     : 0
 
   const cpuPercent = systemMetrics
-    ? Math.round(systemMetrics.cpuUsage * 100)
+    ? Math.min(100, Math.max(0, Math.round(systemMetrics.cpuUsage * 100)))
     : 0
 
   return (

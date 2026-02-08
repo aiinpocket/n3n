@@ -166,18 +166,20 @@ export default function AdminUsersPage() {
         const isSelf = currentUser?.id === record.id
         return (
           <Space size="small">
-            <Tooltip title={t('admin.editRoles')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  setSelectedUser(record)
-                  rolesForm.setFieldsValue({ roles: record.roles })
-                  setRolesModalOpen(true)
-                }}
-              />
-            </Tooltip>
+            {!isSelf && (
+              <Tooltip title={t('admin.editRoles')}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    setSelectedUser(record)
+                    rolesForm.setFieldsValue({ roles: record.roles })
+                    setRolesModalOpen(true)
+                  }}
+                />
+              </Tooltip>
+            )}
             {!isSelf && (
               record.status === 'active' ? (
                 <Tooltip title={t('admin.suspend')}>

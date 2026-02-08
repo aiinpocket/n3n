@@ -130,11 +130,11 @@ public class FormNodeHandler extends AbstractNodeHandler {
             output.putAll(submission.getData());
         }
 
-        output.put("_formInfo", Map.of(
-            "submissionId", submission.getId().toString(),
-            "submittedAt", submission.getSubmittedAt() != null ? submission.getSubmittedAt().toString() : null,
-            "submittedBy", submission.getSubmittedBy() != null ? submission.getSubmittedBy().toString() : null
-        ));
+        Map<String, Object> formInfo = new HashMap<>();
+        formInfo.put("submissionId", submission.getId().toString());
+        formInfo.put("submittedAt", submission.getSubmittedAt() != null ? submission.getSubmittedAt().toString() : "");
+        formInfo.put("submittedBy", submission.getSubmittedBy() != null ? submission.getSubmittedBy().toString() : "");
+        output.put("_formInfo", formInfo);
 
         return NodeExecutionResult.success(output);
     }
