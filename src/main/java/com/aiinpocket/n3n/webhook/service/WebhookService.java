@@ -47,7 +47,7 @@ public class WebhookService {
     public List<WebhookResponse> listWebhooksForFlow(UUID flowId, UUID userId) {
         return webhookRepository.findByFlowIdOrderByCreatedAtDesc(flowId)
             .stream()
-            .filter(w -> w.getCreatedBy().equals(userId))
+            .filter(w -> userId.equals(w.getCreatedBy()))
             .map(w -> WebhookResponse.from(w, baseUrl))
             .toList();
     }

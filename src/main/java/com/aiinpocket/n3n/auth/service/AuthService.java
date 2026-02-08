@@ -75,8 +75,10 @@ public class AuthService {
             throw new EmailAlreadyExistsException("Email already registered");
         }
 
-        // Check if this is the first user (will become admin)
-        boolean isFirstUser = userRepository.count() == 0;
+        // Check if any admin already exists. Using admin role check (not user count)
+        // to be resilient against deleted users. Race window is minimal since this
+        // only matters during initial setup (first user registration).
+        boolean isFirstUser = userRoleRepository.findByRole("ADMIN").isEmpty();
 
         User user = User.builder()
             .email(request.getEmail())

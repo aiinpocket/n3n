@@ -68,7 +68,7 @@ class AuthServiceTest extends BaseServiceTest {
     void register_firstUser_shouldBeAdmin() {
         // Given
         RegisterRequest request = TestDataFactory.createRegisterRequest();
-        when(userRepository.count()).thenReturn(0L);
+        when(userRoleRepository.findByRole("ADMIN")).thenReturn(List.of()); // No admin exists
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -92,7 +92,9 @@ class AuthServiceTest extends BaseServiceTest {
     void register_subsequentUser_shouldBeRegularUser() {
         // Given
         RegisterRequest request = TestDataFactory.createRegisterRequest();
-        when(userRepository.count()).thenReturn(5L);
+        when(userRoleRepository.findByRole("ADMIN")).thenReturn(List.of(
+            UserRole.builder().userId(UUID.randomUUID()).role("ADMIN").build()
+        )); // Admin already exists
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {

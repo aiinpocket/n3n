@@ -58,8 +58,7 @@ export default function HousekeepingPage() {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadData()

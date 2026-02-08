@@ -123,7 +123,11 @@ public class MetricsAggregationService {
         long redisResponseMs;
         long redisStart = System.nanoTime();
         try {
-            String pong = redisTemplate.getConnectionFactory().getConnection().ping();
+            var connFactory = redisTemplate.getConnectionFactory();
+            if (connFactory == null) throw new IllegalStateException("Redis connection factory not available");
+            var conn = connFactory.getConnection();
+            if (conn == null) throw new IllegalStateException("Redis connection not available");
+            String pong = conn.ping();
             redisStatus = "PONG".equals(pong) ? "UP" : "DOWN";
         } catch (Exception e) {
             log.warn("Redis health check failed: {}", e.getMessage());

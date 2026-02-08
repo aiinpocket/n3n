@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, Steps } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, RocketOutlined, CheckCircleOutlined } from '@ant-design/icons'
@@ -15,6 +15,14 @@ export default function SetupPage() {
   const [step, setStep] = useState(0)
   const [registeredEmail, setRegisteredEmail] = useState('')
   const { t } = useTranslation()
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup redirect timer on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current)
+    }
+  }, [])
 
   const handleSubmit = async (values: { email: string; password: string; name: string }) => {
     try {
@@ -23,7 +31,7 @@ export default function SetupPage() {
         setRegisteredEmail(values.email)
         setStep(1)
         // Register already handles auto-login via authStore
-        setTimeout(() => navigate('/'), 2000)
+        redirectTimerRef.current = setTimeout(() => navigate('/'), 2000)
       } else {
         navigate('/')
       }
