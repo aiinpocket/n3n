@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/marketplace")
-@Tag(name = "Marketplace", description = "Plugin marketplace")
+@Tag(name = "Custom Tools", description = "Custom Docker tools - pull additional container tools from Docker Hub")
 public class MarketplaceController {
 
     private final PluginService pluginService;

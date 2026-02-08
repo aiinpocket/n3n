@@ -228,7 +228,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
                 )}
                 {rec.source && rec.source !== 'builtin' && (
                   <Tag style={{ margin: 0 }}>
-                    {rec.source === 'marketplace' ? t('nodeRecommendation.marketplace') : 'Docker'}
+                    {rec.source === 'marketplace' ? t('nodeRecommendation.dockerHub') : 'Docker'}
                   </Tag>
                 )}
               </Space>

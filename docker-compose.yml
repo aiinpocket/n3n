@@ -28,6 +28,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      flow-optimizer:
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -92,8 +94,8 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Flow Optimizer Service (Local AI for flow optimization)
-  # This service is optional - can be enabled with: docker compose up -d flow-optimizer
+  # Flow Optimizer Service (Local AI - Phi-3-Mini for flow optimization)
+  # Enabled by default - provides AI flow optimization without external API keys
   flow-optimizer:
     build:
       context: ./flow-optimizer
@@ -119,8 +121,6 @@ services:
       start_period: 120s
       retries: 3
     restart: unless-stopped
-    profiles:
-      - optimizer
 
 volumes:
   postgres_data:

@@ -196,7 +196,7 @@ export default function DashboardPage() {
               <Button
                 size="large"
                 icon={<FileTextOutlined />}
-                onClick={() => navigate('/marketplace')}
+                onClick={() => navigate('/custom-tools')}
                 style={{
                   height: 48,
                   paddingInline: 24,

@@ -209,7 +209,7 @@ function App() {
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />
-            <Route path="marketplace" element={<MarketplacePage />} />
+            <Route path="custom-tools" element={<MarketplacePage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="logs" element={<LogViewerPage />} />
             <Route path="activities" element={<ActivityHistoryPage />} />

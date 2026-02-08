@@ -176,7 +176,7 @@ com.aiinpocket.n3n/
 ├── flow/            # Flow CRUD & versioning
 ├── gateway/         # Agent Gateway (WebSocket, ECDH encryption)
 ├── oauth2/          # OAuth2 integration
-├── plugin/          # Plugin Marketplace system
+├── plugin/          # Custom Docker Tools system
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
 ├── template/        # Flow templates
@@ -223,9 +223,9 @@ Secure credential storage with AES-256-GCM encryption.
 - `RecoveryKeyService` - BIP39-based recovery key generation
 
 #### plugin/
-Plugin marketplace with dynamic node registration and container orchestration.
-- `MarketplaceController` - Plugin browsing, install, uninstall APIs
-- `PluginService` - Plugin lifecycle management
+Custom Docker tools with dynamic node registration and container orchestration.
+- `MarketplaceController` - Custom tool browsing, pull, remove APIs
+- `PluginService` - Tool lifecycle management
 - `PluginNodeRegistrar` - Dynamic registration of plugin nodes
 - `DynamicPluginNodeHandler` - Runtime execution of plugin-defined nodes
 - `ContainerOrchestrator` - Abstraction layer for Docker/Kubernetes container management
@@ -414,24 +414,21 @@ WebSocket gateway for local agent communication.
 }
 ```
 
-### Plugin Marketplace
+### Custom Docker Tools
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/marketplace/categories` | List plugin categories |
-| GET | `/api/marketplace/plugins` | Search plugins (with filters) |
-| GET | `/api/marketplace/plugins/featured` | Get featured plugins |
-| GET | `/api/marketplace/plugins/installed` | Get installed plugins |
-| GET | `/api/marketplace/plugins/{id}` | Get plugin details |
-| POST | `/api/marketplace/plugins/{id}/install` | Install plugin |
-| DELETE | `/api/marketplace/plugins/{id}/uninstall` | Uninstall plugin |
+| GET | `/api/marketplace/categories` | List tool categories |
+| GET | `/api/marketplace/plugins` | Search custom tools (with filters) |
+| GET | `/api/marketplace/plugins/installed` | Get installed tools |
+| GET | `/api/marketplace/plugins/{id}` | Get tool details |
+| POST | `/api/marketplace/plugins/{id}/install` | Pull a Docker tool |
+| DELETE | `/api/marketplace/plugins/{id}/uninstall` | Remove a tool |
 | POST | `/api/marketplace/plugins/{id}/update` | Update to latest version |
-| POST | `/api/marketplace/plugins/{id}/rate` | Rate a plugin |
 
 **Search Query Parameters:**
 - `category` - Filter by category
-- `pricing` - `free`, `paid`, `freemium`
-- `sortBy` - `popular`, `recent`, `rating`, `name`
+- `sortBy` - `popular`, `recent`, `name`
 - `q` - Search query
 - `page`, `pageSize` - Pagination
 
@@ -786,10 +783,10 @@ The plugin system allows dynamic registration of node types at runtime, with plu
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Plugin Marketplace UI                                   │
-│  Browse → Install → Use in Flow Editor                  │
+│  Custom Docker Tools UI                                  │
+│  Browse → Pull → Use in Flow Editor                     │
 └────────────────────────┬────────────────────────────────┘
-                         │ Install/Uninstall
+                         │ Pull/Remove
 ┌────────────────────────▼────────────────────────────────┐
 │  PluginInstallService                                    │
 │  - Validates image from trusted registry                │

@@ -8,7 +8,6 @@ import {
   Select,
   Tag,
   Button,
-  Rate,
   Avatar,
   Space,
   Tabs,
@@ -22,23 +21,23 @@ import {
 } from 'antd'
 import {
   SearchOutlined,
-  DownloadOutlined,
-  StarFilled,
-  AppstoreOutlined,
   CloudDownloadOutlined,
+  AppstoreOutlined,
   CheckCircleOutlined,
   SyncOutlined,
   DeleteOutlined,
   EyeOutlined,
+  ToolOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import {
+import type {
   MarketplacePlugin,
   MarketplaceCategory,
   PluginDetail,
+} from '../api/marketplace'
+import {
   searchPlugins,
   getCategories,
-  getFeaturedPlugins,
   getInstalledPlugins,
   getPluginDetail,
   installPlugin,
@@ -50,8 +49,8 @@ import logger from '../utils/logger'
 const { Search } = Input
 const { Text, Paragraph, Title } = Typography
 
-// Plugin Card Component
-function PluginCard({
+// Tool Card Component
+function ToolCard({
   plugin,
   onInstall,
   onUninstall,
@@ -69,19 +68,6 @@ function PluginCard({
   const { t } = useTranslation()
   const isLoading = loading === plugin.id
 
-  const getPricingTag = () => {
-    switch (plugin.pricing) {
-      case 'free':
-        return <Tag color="green">{t('marketplace.free')}</Tag>
-      case 'paid':
-        return <Tag color="gold">${plugin.price}</Tag>
-      case 'freemium':
-        return <Tag color="blue">{t('marketplace.freemium')}</Tag>
-      default:
-        return null
-    }
-  }
-
   const hasUpdate = plugin.isInstalled && plugin.installedVersion !== plugin.version
 
   return (
@@ -91,8 +77,8 @@ function PluginCard({
       cover={
         <div
           style={{
-            height: 120,
-            background: 'linear-gradient(135deg, var(--color-ai) 0%, #5B21B6 100%)',
+            height: 100,
+            background: 'linear-gradient(135deg, var(--color-primary) 0%, #0D9488 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -100,10 +86,10 @@ function PluginCard({
           }}
         >
           {plugin.icon ? (
-            <Avatar src={plugin.icon} size={64} shape="square" />
+            <Avatar src={plugin.icon} size={56} shape="square" />
           ) : (
-            <Avatar size={64} shape="square" style={{ background: 'rgba(255,255,255,0.2)' }}>
-              <AppstoreOutlined style={{ fontSize: 32 }} />
+            <Avatar size={56} shape="square" style={{ background: 'rgba(255,255,255,0.2)' }}>
+              <ToolOutlined style={{ fontSize: 28 }} />
             </Avatar>
           )}
           {plugin.isInstalled && (
@@ -132,7 +118,7 @@ function PluginCard({
               loading={isLoading}
               onClick={() => onUpdate(plugin.id)}
             >
-              {t('marketplace.update')}
+              {t('customTools.update')}
             </Button>
           ) : (
             <Button
@@ -143,7 +129,7 @@ function PluginCard({
               loading={isLoading}
               onClick={() => onUninstall(plugin.id)}
             >
-              {t('marketplace.uninstall')}
+              {t('customTools.remove')}
             </Button>
           )
         ) : (
@@ -154,7 +140,7 @@ function PluginCard({
             loading={isLoading}
             onClick={() => onInstall(plugin.id)}
           >
-            {t('marketplace.install')}
+            {t('customTools.pull')}
           </Button>
         ),
       ]}
@@ -178,17 +164,7 @@ function PluginCard({
               <Text type="secondary" style={{ fontSize: 12 }}>
                 v{plugin.version}
               </Text>
-              {getPricingTag()}
-            </Space>
-            <Space size={8}>
-              <Space size={4}>
-                <StarFilled style={{ color: 'var(--color-warning)', fontSize: 12 }} />
-                <Text style={{ fontSize: 12 }}>{plugin.rating.toFixed(1)}</Text>
-              </Space>
-              <Space size={4}>
-                <DownloadOutlined style={{ fontSize: 12 }} />
-                <Text style={{ fontSize: 12 }}>{plugin.downloads.toLocaleString()}</Text>
-              </Space>
+              <Tag color="green">{t('customTools.free')}</Tag>
             </Space>
           </Space>
         }
@@ -197,8 +173,8 @@ function PluginCard({
   )
 }
 
-// Plugin Detail Modal
-function PluginDetailModal({
+// Tool Detail Modal
+function ToolDetailModal({
   visible,
   plugin,
   onClose,
@@ -233,37 +209,18 @@ function PluginDetailModal({
             <Avatar src={plugin.icon} size={40} shape="square" />
           ) : (
             <Avatar size={40} shape="square">
-              <AppstoreOutlined />
+              <ToolOutlined />
             </Avatar>
           )}
           <div>
             <div>{plugin.displayName}</div>
             <Text type="secondary" style={{ fontSize: 12, fontWeight: 'normal' }}>
-              by {plugin.author} • v{plugin.version}
+              {plugin.author} • v{plugin.version}
             </Text>
           </div>
         </Space>
       }
     >
-      <div style={{ marginBottom: 16 }}>
-        <Space size={16}>
-          <Space>
-            <Rate disabled defaultValue={plugin.rating} allowHalf />
-            <Text>({plugin.ratingCount})</Text>
-          </Space>
-          <Text type="secondary">
-            <DownloadOutlined /> {plugin.downloads.toLocaleString()} {t('marketplace.downloads')}
-          </Text>
-          {plugin.pricing === 'free' ? (
-            <Tag color="green">{t('marketplace.free')}</Tag>
-          ) : plugin.pricing === 'paid' ? (
-            <Tag color="gold">${plugin.price}</Tag>
-          ) : (
-            <Tag color="blue">{t('marketplace.freemium')}</Tag>
-          )}
-        </Space>
-      </div>
-
       <Space wrap style={{ marginBottom: 16 }}>
         {plugin.tags.map(tag => (
           <Tag key={tag}>{tag}</Tag>
@@ -279,12 +236,12 @@ function PluginDetailModal({
               loading={loading}
               onClick={() => onUpdate(plugin.id)}
             >
-              {t('marketplace.updateTo')} v{plugin.version}
+              {t('customTools.updateTo')} v{plugin.version}
             </Button>
           ) : (
             <Space>
               <Button type="primary" disabled icon={<CheckCircleOutlined />}>
-                {t('marketplace.installed')} (v{plugin.installedVersion})
+                {t('customTools.installed')} (v{plugin.installedVersion})
               </Button>
               <Button
                 danger
@@ -292,7 +249,7 @@ function PluginDetailModal({
                 loading={loading}
                 onClick={() => onUninstall(plugin.id)}
               >
-                {t('marketplace.uninstall')}
+                {t('customTools.remove')}
               </Button>
             </Space>
           )
@@ -303,7 +260,7 @@ function PluginDetailModal({
             loading={loading}
             onClick={() => onInstall(plugin.id)}
           >
-            {t('marketplace.install')}
+            {t('customTools.pull')}
           </Button>
         )}
       </div>
@@ -313,7 +270,7 @@ function PluginDetailModal({
         items={[
           {
             key: 'overview',
-            label: t('marketplace.overview'),
+            label: t('customTools.overview'),
             children: (
               <>
                 <Paragraph>{plugin.description}</Paragraph>
@@ -335,7 +292,7 @@ function PluginDetailModal({
           },
           {
             key: 'changelog',
-            label: t('marketplace.changelog'),
+            label: t('customTools.changelog'),
             children: plugin.changelog ? (
               <div
                 style={{
@@ -349,12 +306,12 @@ function PluginDetailModal({
                 <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{plugin.changelog}</pre>
               </div>
             ) : (
-              <Empty description={t('marketplace.noChangelog')} />
+              <Empty description={t('customTools.noChangelog')} />
             ),
           },
           {
             key: 'capabilities',
-            label: t('marketplace.capabilities'),
+            label: t('customTools.capabilities'),
             children: (
               <Space wrap>
                 {plugin.capabilities.map(cap => (
@@ -371,19 +328,17 @@ function PluginDetailModal({
   )
 }
 
-// Main Marketplace Page
+// Main Custom Tools Page
 export default function MarketplacePage() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [plugins, setPlugins] = useState<MarketplacePlugin[]>([])
-  const [featuredPlugins, setFeaturedPlugins] = useState<MarketplacePlugin[]>([])
   const [installedPlugins, setInstalledPlugins] = useState<MarketplacePlugin[]>([])
   const [categories, setCategories] = useState<MarketplaceCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [pricingFilter, setPricingFilter] = useState<'all' | 'free' | 'paid' | 'freemium'>('all')
-  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'rating' | 'name'>('popular')
+  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'rating' | 'name'>('recent')
   const [activeTab, setActiveTab] = useState('browse')
   const [isOffline, setIsOffline] = useState(false)
   const [detailModal, setDetailModal] = useState<{ visible: boolean; plugin: PluginDetail | null }>({
@@ -394,20 +349,18 @@ export default function MarketplacePage() {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const [categoriesData, featuredData, installedData] = await Promise.all([
+      const [categoriesData, installedData] = await Promise.all([
         getCategories(),
-        getFeaturedPlugins(),
         getInstalledPlugins(),
       ])
       setCategories(categoriesData)
-      setFeaturedPlugins(featuredData)
       setInstalledPlugins(installedData)
 
       // Load initial browse results
-      const searchResult = await searchPlugins({ sortBy: 'popular', pageSize: 20 })
+      const searchResult = await searchPlugins({ sortBy: 'recent', pageSize: 20 })
       setPlugins(searchResult.plugins)
     } catch (error) {
-      logger.error('Failed to load marketplace data:', error)
+      logger.error('Failed to load custom tools data:', error)
       setIsOffline(true)
     } finally {
       setLoading(false)
@@ -424,7 +377,6 @@ export default function MarketplacePage() {
       const result = await searchPlugins({
         query: value,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        pricing: pricingFilter !== 'all' ? pricingFilter : undefined,
         sortBy,
       })
       setPlugins(result.plugins)
@@ -437,10 +389,10 @@ export default function MarketplacePage() {
     setActionLoading(id)
     try {
       await installPlugin(id)
-      message.success(t('marketplace.installSuccess'))
+      message.success(t('customTools.pullSuccess'))
       loadData()
     } catch {
-      message.error(t('marketplace.installFailed'))
+      message.error(t('customTools.pullFailed'))
     } finally {
       setActionLoading(null)
     }
@@ -448,8 +400,8 @@ export default function MarketplacePage() {
 
   const handleUninstall = async (id: string) => {
     Modal.confirm({
-      title: t('marketplace.confirmUninstall'),
-      content: t('marketplace.uninstallWarning'),
+      title: t('customTools.confirmRemove'),
+      content: t('customTools.removeWarning'),
       okText: t('common.confirm'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
@@ -457,10 +409,10 @@ export default function MarketplacePage() {
         setActionLoading(id)
         try {
           await uninstallPlugin(id)
-          message.success(t('marketplace.uninstallSuccess'))
+          message.success(t('customTools.removeSuccess'))
           loadData()
         } catch {
-          message.error(t('marketplace.uninstallFailed'))
+          message.error(t('customTools.removeFailed'))
         } finally {
           setActionLoading(null)
         }
@@ -472,10 +424,10 @@ export default function MarketplacePage() {
     setActionLoading(id)
     try {
       await updatePlugin(id)
-      message.success(t('marketplace.updateSuccess'))
+      message.success(t('customTools.updateSuccess'))
       loadData()
     } catch {
-      message.error(t('marketplace.updateFailed'))
+      message.error(t('customTools.updateFailed'))
     } finally {
       setActionLoading(null)
     }
@@ -486,13 +438,12 @@ export default function MarketplacePage() {
       const detail = await getPluginDetail(id)
       setDetailModal({ visible: true, plugin: detail })
     } catch {
-      message.error(t('marketplace.loadDetailFailed'))
+      message.error(t('customTools.loadDetailFailed'))
     }
   }
 
   const filteredPlugins = plugins.filter(plugin => {
     if (selectedCategory !== 'all' && plugin.category !== selectedCategory) return false
-    if (pricingFilter !== 'all' && plugin.pricing !== pricingFilter) return false
     if (searchQuery && !plugin.displayName.toLowerCase().includes(searchQuery.toLowerCase())) return false
     return true
   })
@@ -507,12 +458,15 @@ export default function MarketplacePage() {
 
   return (
     <div>
-      <Title level={3}>{t('marketplace.title')}</Title>
+      <div style={{ marginBottom: 16 }}>
+        <Title level={3}>{t('customTools.title')}</Title>
+        <Text type="secondary">{t('customTools.subtitle')}</Text>
+      </div>
 
       {isOffline && (
         <Alert
-          message={t('marketplace.offlineMode')}
-          description={t('marketplace.offlineDesc')}
+          message={t('customTools.offlineMode')}
+          description={t('customTools.offlineDesc')}
           type="warning"
           showIcon
           closable
@@ -534,38 +488,17 @@ export default function MarketplacePage() {
             label: (
               <span>
                 <AppstoreOutlined />
-                {t('marketplace.browse')}
+                {t('customTools.browse')}
               </span>
             ),
             children: (
               <>
-                {/* Featured Section */}
-                {featuredPlugins.length > 0 && (
-                  <div style={{ marginBottom: 24 }}>
-                    <Title level={5}>{t('marketplace.featured')}</Title>
-                    <Row gutter={[16, 16]}>
-                      {featuredPlugins.map(plugin => (
-                        <Col xs={24} sm={12} md={8} lg={8} key={plugin.id}>
-                          <PluginCard
-                            plugin={plugin}
-                            onInstall={handleInstall}
-                            onUninstall={handleUninstall}
-                            onUpdate={handleUpdate}
-                            onViewDetails={handleViewDetails}
-                            loading={actionLoading}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
-                  </div>
-                )}
-
                 {/* Filters */}
                 <Card style={{ marginBottom: 16 }}>
                   <Row gutter={16} align="middle">
                     <Col flex="300px">
                       <Search
-                        placeholder={t('marketplace.searchPlaceholder')}
+                        placeholder={t('customTools.searchPlaceholder')}
                         allowClear
                         enterButton={<SearchOutlined />}
                         onSearch={handleSearch}
@@ -576,7 +509,7 @@ export default function MarketplacePage() {
                       <Space wrap>
                         <Segmented
                           options={[
-                            { label: t('marketplace.all'), value: 'all' },
+                            { label: t('customTools.all'), value: 'all' },
                             ...categories.map(c => ({ label: `${c.icon} ${c.displayName}`, value: c.id })),
                           ]}
                           value={selectedCategory}
@@ -585,40 +518,26 @@ export default function MarketplacePage() {
                       </Space>
                     </Col>
                     <Col>
-                      <Space>
-                        <Select
-                          value={pricingFilter}
-                          onChange={setPricingFilter}
-                          style={{ width: 120 }}
-                          options={[
-                            { label: t('marketplace.allPricing'), value: 'all' },
-                            { label: t('marketplace.free'), value: 'free' },
-                            { label: t('marketplace.paid'), value: 'paid' },
-                            { label: t('marketplace.freemium'), value: 'freemium' },
-                          ]}
-                        />
-                        <Select
-                          value={sortBy}
-                          onChange={setSortBy}
-                          style={{ width: 120 }}
-                          options={[
-                            { label: t('marketplace.sortPopular'), value: 'popular' },
-                            { label: t('marketplace.sortRecent'), value: 'recent' },
-                            { label: t('marketplace.sortRating'), value: 'rating' },
-                            { label: t('marketplace.sortName'), value: 'name' },
-                          ]}
-                        />
-                      </Space>
+                      <Select
+                        value={sortBy}
+                        onChange={setSortBy}
+                        style={{ width: 140 }}
+                        options={[
+                          { label: t('customTools.sortRecent'), value: 'recent' },
+                          { label: t('customTools.sortPopular'), value: 'popular' },
+                          { label: t('customTools.sortName'), value: 'name' },
+                        ]}
+                      />
                     </Col>
                   </Row>
                 </Card>
 
-                {/* Plugin Grid */}
+                {/* Tool Grid */}
                 {filteredPlugins.length > 0 ? (
                   <Row gutter={[16, 16]}>
                     {filteredPlugins.map(plugin => (
                       <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
-                        <PluginCard
+                        <ToolCard
                           plugin={plugin}
                           onInstall={handleInstall}
                           onUninstall={handleUninstall}
@@ -630,7 +549,7 @@ export default function MarketplacePage() {
                     ))}
                   </Row>
                 ) : (
-                  <Empty description={t('marketplace.noPlugins')} />
+                  <Empty description={t('customTools.noTools')} />
                 )}
               </>
             ),
@@ -640,14 +559,14 @@ export default function MarketplacePage() {
             label: (
               <span>
                 <CheckCircleOutlined />
-                {t('marketplace.installed')} ({installedPlugins.length})
+                {t('customTools.installed')} ({installedPlugins.length})
               </span>
             ),
             children: installedPlugins.length > 0 ? (
               <Row gutter={[16, 16]}>
                 {installedPlugins.map(plugin => (
                   <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
-                    <PluginCard
+                    <ToolCard
                       plugin={plugin}
                       onInstall={handleInstall}
                       onUninstall={handleUninstall}
@@ -659,13 +578,13 @@ export default function MarketplacePage() {
                 ))}
               </Row>
             ) : (
-              <Empty description={t('marketplace.noInstalledPlugins')} />
+              <Empty description={t('customTools.noInstalledTools')} />
             ),
           },
         ]}
       />
 
-      <PluginDetailModal
+      <ToolDetailModal
         visible={detailModal.visible}
         plugin={detailModal.plugin}
         onClose={() => setDetailModal({ visible: false, plugin: null })}
