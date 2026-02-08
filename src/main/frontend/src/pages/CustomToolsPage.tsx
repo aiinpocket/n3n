@@ -329,7 +329,7 @@ function ToolDetailModal({
 }
 
 // Main Custom Tools Page
-export default function MarketplacePage() {
+export default function CustomToolsPage() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)

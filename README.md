@@ -50,6 +50,7 @@ N3N 平台內建多項服務，請根據使用場景選擇適當的硬體配置�
 | **N3N App** | ~512 MB | Spring Boot 主應用程式 |
 | **PostgreSQL** | ~256 MB | 關聯式資料庫 |
 | **Redis** | ~128 MB | 快取與執行狀態 |
+| **MongoDB** | ~256 MB | NoSQL 資料庫（工作流程節點使用） |
 | **Flow Optimizer** | ~2-4 GB | 本地 LLM（選配） |
 
 ---

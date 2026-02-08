@@ -50,6 +50,7 @@ N3N includes multiple built-in services. Choose the appropriate hardware based o
 | **N3N App** | ~512 MB | Spring Boot application |
 | **PostgreSQL** | ~256 MB | Relational database |
 | **Redis** | ~128 MB | Cache and execution state |
+| **MongoDB** | ~256 MB | NoSQL database (used by workflow nodes) |
 | **Flow Optimizer** | ~2-4 GB | Local LLM (optional) |
 
 ---

@@ -163,25 +163,30 @@ The backend is organized into the following modules:
 
 ```
 com.aiinpocket.n3n/
+├── activity/        # User activity logging and audit trail
 ├── admin/           # Admin user management
 ├── agent/           # Device/Agent management for local automation
 ├── ai/              # AI provider integration (OpenAI, Claude, Gemini, Ollama)
-├── api/             # Common API controllers
+├── api/             # Common API controllers (health check)
 ├── auth/            # Authentication & authorization
-├── activity/        # User activity logging
 ├── common/          # Shared utilities, configs, exceptions
 ├── component/       # Custom component registry
 ├── credential/      # Credential management (AES-256-GCM encryption)
-├── execution/       # Flow execution engine
+├── dashboard/       # User dashboard statistics and metrics
+├── execution/       # Flow execution engine and 90+ node handlers
 ├── flow/            # Flow CRUD & versioning
 ├── gateway/         # Agent Gateway (WebSocket, ECDH encryption)
+├── housekeeping/    # Execution history archival and cleanup
+├── logging/         # Real-time log streaming (SSE) and log query
+├── monitoring/      # System metrics, flow stats, health monitoring
 ├── oauth2/          # OAuth2 integration
+├── optimizer/       # Flow optimization via local LLM (Phi-3-Mini)
 ├── plugin/          # Custom Docker Tools system
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
+├── skill/           # Skill management and execution
 ├── template/        # Flow templates
-├── webhook/         # Webhook triggers
-└── workspace/       # Workspace management
+└── webhook/         # Webhook triggers
 ```
 
 ### Module Details
@@ -213,7 +218,18 @@ Flow execution engine with node handlers.
 - `ExecutionService` - Trigger, cancel, retry executions
 - `StateManager` - Redis-backed execution state
 - `NodeHandler` - Interface for node type handlers
-- Built-in handlers: HTTP, Code (JS), Condition, Loop, Wait, Send Email, Sub-workflow
+- 90+ built-in handlers organized in `execution/handler/handlers/` across categories:
+  - **Core** (42 root-level): Condition, Loop, Switch, Filter, Merge, Sort, Aggregate, HttpRequest, Code, SubWorkflow, Approval, etc.
+  - **AI** (`ai/`): OpenAI, Claude, Gemini, Chat, Embedding, RAG, Agent (with 25+ built-in tools), etc.
+  - **Data** (`data/`): JSON, XML, Regex, DateTime, Base64, Spreadsheet, Text, URL Parser, JWT, Markdown
+  - **Database** (`database/`): Generic database handler with connection management and SQL utilities
+  - **NoSQL** (`nosql/`): MongoDB, Redis, Elasticsearch
+  - **Integrations** (`integrations/`): Slack, Email, Facebook, Instagram, Threads, PostgreSQL, MySQL
+  - **Messaging** (`messaging/`): Telegram, Discord, LINE, WhatsApp
+  - **Google** (`google/`): Gmail, Calendar, Drive, Sheets
+  - **GCP** (`gcp/`): BigQuery, Cloud Storage, Pub/Sub
+  - **File** (`file/`): Read/Write, Compression, Convert
+  - **Browser** (`browser/`): Browser automation with page/element/network/cookie operations
 
 #### credential/
 Secure credential storage with AES-256-GCM encryption.
@@ -239,6 +255,39 @@ WebSocket gateway for local agent communication.
 - `AgentGatewayHandler` - WebSocket connection management
 - `AgentConnectionManager` - Track connected agents
 - Security: X25519 ECDH key exchange + AES-256-GCM encryption
+
+#### dashboard/
+User dashboard with aggregate statistics.
+- `DashboardController` - Dashboard statistics endpoint
+- Aggregates total flows, executions, success/failure/running counts per user
+
+#### housekeeping/
+Execution history archival and cleanup (admin-only).
+- `HousekeepingController` - Admin API for manual and scheduled cleanup
+- `HousekeepingService` - Core cleanup logic with configurable retention
+- Scheduled via cron (default: 2 AM daily)
+
+#### logging/
+Real-time log streaming and historical log query.
+- `LogViewerController` - Log query and SSE streaming endpoints
+- `InMemoryLogBuffer` - In-memory log storage with query capability
+- `LogBufferAppender` - Logback appender that writes to buffer
+
+#### monitoring/
+System metrics and health monitoring (admin-only).
+- `MonitoringController` - Metrics endpoints (JVM, flow stats, health)
+- `MetricsAggregationService` - Aggregates system and flow execution metrics
+
+#### optimizer/
+Flow optimization suggestions via local LLM.
+- `FlowOptimizerController` - Analysis and status endpoints
+- `FlowOptimizerService` - Integration with Phi-3-Mini LLM service
+
+#### skill/
+Skill management and execution.
+- `SkillController` - Full CRUD, built-in skill listing, and direct execution
+- `SkillService` - Core skill logic
+- Built-in skill categories: `http`, `web`, `data`, `file`, `notify`, `system`
 
 ---
 
@@ -368,7 +417,12 @@ WebSocket gateway for local agent communication.
 | GET | `/api/skills/categories` | List skill categories |
 | GET | `/api/skills/category/{category}` | List skills by category |
 | GET | `/api/skills/{id}` | Get skill details |
+| GET | `/api/skills/name/{name}` | Get skill by name |
+| POST | `/api/skills` | Create custom skill |
+| PUT | `/api/skills/{id}` | Update custom skill |
+| DELETE | `/api/skills/{id}` | Delete custom skill |
 | POST | `/api/skills/{id}/execute` | Execute skill (test) |
+| POST | `/api/skills/name/{name}/execute` | Execute skill by name |
 
 **Built-in Skill Categories:** `http`, `web`, `data`, `file`, `notify`, `system`
 
@@ -479,7 +533,7 @@ WebSocket gateway for local agent communication.
 | POST | `/api/credentials/recovery-key/verify` | Verify recovery phrase |
 | POST | `/api/credentials/recovery-key/recover` | Recover credentials |
 
-**Recovery Key Format:** 24-word BIP39 mnemonic phrase
+**Recovery Key Format:** 12-word BIP39 mnemonic phrase (legacy 8-word keys are also accepted)
 
 ### Admin (Admin role required)
 
@@ -489,6 +543,50 @@ WebSocket gateway for local agent communication.
 | POST | `/api/admin/users` | Create user |
 | PUT | `/api/admin/users/{id}/status` | Update user status |
 | PUT | `/api/admin/users/{id}/roles` | Update user roles |
+
+### Dashboard
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/dashboard/stats` | Get user dashboard statistics (flows, executions, success/failure counts) |
+
+### Monitoring (Admin role required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/monitoring/system` | Get JVM and system metrics |
+| GET | `/api/monitoring/flows` | Get flow execution statistics |
+| GET | `/api/monitoring/health` | Get health status of database and Redis |
+
+### Log Viewer
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/logs` | Query historical logs with filters (level, source, keyword) |
+| GET | `/api/logs/stream` | Stream real-time logs via SSE (Server-Sent Events) |
+
+### Activity History
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/activities` | List user activity history (paginated) |
+
+### Flow Optimizer
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/flow-optimizer/analyze` | Analyze flow and get optimization suggestions |
+| GET | `/api/flow-optimizer/status` | Check optimizer service availability |
+| GET | `/api/flow-optimizer/config` | Get optimizer configuration |
+
+### Housekeeping (Admin role required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/housekeeping/stats` | Get housekeeping statistics |
+| POST | `/api/admin/housekeeping/run` | Manually trigger cleanup job |
+| GET | `/api/admin/housekeeping/jobs` | Get housekeeping job history |
+| GET | `/api/admin/housekeeping/jobs/{id}` | Get specific job details |
 
 ### WebSocket
 
@@ -589,7 +687,9 @@ CREATE TABLE credentials (
 );
 ```
 
-### Plugin Tables
+### Custom Docker Tools Tables
+
+> **Note:** These tables were originally designed for a plugin marketplace. The `pricing`, `price` fields in `plugins` and the `plugin_ratings` table are legacy schema retained for backward compatibility. The current UI ("Custom Docker Tools") only uses free Docker Hub-based tools without ratings.
 
 #### plugins
 ```sql
@@ -604,8 +704,8 @@ CREATE TABLE plugins (
     repository_url VARCHAR(500),
     documentation_url VARCHAR(500),
     icon_url VARCHAR(500),
-    pricing VARCHAR(20) NOT NULL DEFAULT 'free',
-    price DECIMAL(10, 2),
+    pricing VARCHAR(20) NOT NULL DEFAULT 'free',  -- legacy field, always 'free'
+    price DECIMAL(10, 2),                          -- legacy field, unused
     tags TEXT[],
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -647,8 +747,9 @@ CREATE TABLE plugin_installations (
 );
 ```
 
-#### plugin_ratings
+#### plugin_ratings (legacy)
 ```sql
+-- Legacy table: retained for backward compatibility, not actively used in the Custom Docker Tools UI
 CREATE TABLE plugin_ratings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plugin_id UUID NOT NULL REFERENCES plugins(id) ON DELETE CASCADE,
@@ -951,7 +1052,7 @@ src/test/java/com/aiinpocket/n3n/
     └── FailoverConfigTest
 ```
 
-**Total backend tests: 2,363+** (as of 2026-02-08)
+**Total backend tests: 2,363** (as of 2026-02-08)
 
 ### Writing Tests
 
@@ -1054,10 +1155,7 @@ docker compose up -d
 
 ### Kubernetes
 
-Kubernetes manifests are in `k8s/` directory (when available):
-- `k8s/base/` - Base configurations
-- `k8s/overlays/dev/` - Development overlay
-- `k8s/overlays/prod/` - Production overlay
+Kubernetes manifests are not yet included in the repository. For K8s deployment, use standard Kubernetes resource definitions (Deployment, Service, ConfigMap) and configure the environment variables listed in [Configuration Reference](#configuration-reference).
 
 **Plugin Container Orchestration on K8s:**
 

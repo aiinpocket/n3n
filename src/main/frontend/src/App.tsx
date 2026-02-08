@@ -29,7 +29,7 @@ const SkillsPage = lazy(() => import('./pages/SkillsPage'))
 const WebhooksPage = lazy(() => import('./pages/WebhooksPage'))
 const DeviceManagementPage = lazy(() => import('./pages/DeviceManagementPage'))
 const GatewaySettingsPage = lazy(() => import('./pages/GatewaySettingsPage'))
-const MarketplacePage = lazy(() => import('./pages/MarketplacePage'))
+const CustomToolsPage = lazy(() => import('./pages/CustomToolsPage'))
 const MonitoringPage = lazy(() => import('./pages/MonitoringPage'))
 const LogViewerPage = lazy(() => import('./pages/LogViewerPage'))
 const ActivityHistoryPage = lazy(() => import('./pages/ActivityHistoryPage'))
@@ -209,7 +209,7 @@ function App() {
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />
-            <Route path="custom-tools" element={<MarketplacePage />} />
+            <Route path="custom-tools" element={<CustomToolsPage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="logs" element={<LogViewerPage />} />
             <Route path="activities" element={<ActivityHistoryPage />} />
