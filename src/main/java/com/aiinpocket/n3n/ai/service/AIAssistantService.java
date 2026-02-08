@@ -623,7 +623,8 @@ public class AIAssistantService {
                 installedTypes,
                 request.getRequirementContext(),
                 request.getExistingFlow(),
-                request.getFeedback()
+                request.getFeedback(),
+                request.getLanguage()
             )
             .onErrorResume(e -> {
                 log.error("Flow generation stream error", e);

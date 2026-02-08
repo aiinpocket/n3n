@@ -98,15 +98,14 @@ public class PromptBuilder {
      * Build user prompt for flow generation with optional structured requirements.
      */
     public String buildFlowGenerationPrompt(String userInput, RequirementContext context, Set<String> installedNodeTypes) {
-        return buildFlowGenerationPrompt(userInput, context, installedNodeTypes, null, null);
+        return buildFlowGenerationPrompt(userInput, context, installedNodeTypes, null, null, null);
     }
 
     /**
-     * Build user prompt for flow generation with optional structured requirements
-     * and existing flow for iterative improvement.
+     * Build user prompt for flow generation with full context.
      */
     public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
-            Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback) {
+            Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback, String language) {
         StringBuilder sb = new StringBuilder();
 
         // If iterating on existing flow, adjust the instruction
@@ -186,6 +185,18 @@ public class PromptBuilder {
                 sb.append(": ").append(node.getDescription()).append("\n");
             }
             sb.append("\n");
+        }
+
+        // Language instruction for user-facing text
+        if (language != null && !language.isBlank()) {
+            sb.append("# 語言要求\n\n");
+            if (language.startsWith("zh")) {
+                sb.append("所有 understanding、label、description 欄位請使用繁體中文。\n\n");
+            } else if (language.startsWith("ja")) {
+                sb.append("All understanding, label, and description fields must be in Japanese (日本語).\n\n");
+            } else {
+                sb.append("All understanding, label, and description fields must be in English.\n\n");
+            }
         }
 
         sb.append("# 輸出格式\n\n");
