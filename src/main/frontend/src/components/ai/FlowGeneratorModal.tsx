@@ -954,6 +954,27 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   placeholder={t('flowGenerator.editUnderstandingPlaceholder')}
                   style={{ marginBottom: 8 }}
                 />
+                <div style={{ marginBottom: 8 }}>
+                  <Text type="secondary" style={{ fontSize: 12, marginBottom: 4, display: 'block' }}>
+                    {t('flowGenerator.quickFeedback')}
+                  </Text>
+                  <Space wrap size={4}>
+                    {[
+                      t('flowGenerator.feedback.tooComplex'),
+                      t('flowGenerator.feedback.missingErrorHandling'),
+                      t('flowGenerator.feedback.needMoreSteps'),
+                      t('flowGenerator.feedback.wrongTrigger'),
+                    ].map((label) => (
+                      <Tag
+                        key={label}
+                        style={{ cursor: 'pointer', borderStyle: 'dashed' }}
+                        onClick={() => setFeedbackText((prev) => prev ? `${prev}, ${label}` : label)}
+                      >
+                        {label}
+                      </Tag>
+                    ))}
+                  </Space>
+                </div>
                 <TextArea
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}

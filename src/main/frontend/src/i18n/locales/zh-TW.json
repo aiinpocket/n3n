@@ -1455,6 +1455,13 @@
     "editRequirements": "繼續修改",
     "generateNow": "直接生成",
     "needMoreChanges": "我還有需要修改的地方",
+    "quickFeedback": "快速回饋：",
+    "feedback": {
+      "tooComplex": "太複雜了，簡化一下",
+      "missingErrorHandling": "加上錯誤處理",
+      "needMoreSteps": "需要更多處理步驟",
+      "wrongTrigger": "觸發方式不對"
+    },
     "stage": {
       "analyzing": "分析中",
       "preparing": "準備中",

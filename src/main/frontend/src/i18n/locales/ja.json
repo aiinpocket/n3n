@@ -1455,6 +1455,13 @@
     "editRequirements": "編集を続ける",
     "generateNow": "今すぐ生成",
     "needMoreChanges": "まだ変更したい箇所があります",
+    "quickFeedback": "クイックフィードバック：",
+    "feedback": {
+      "tooComplex": "複雑すぎる、簡略化して",
+      "missingErrorHandling": "エラー処理を追加して",
+      "needMoreSteps": "もっと処理ステップが必要",
+      "wrongTrigger": "トリガータイプが違う"
+    },
     "stage": {
       "analyzing": "分析中",
       "preparing": "準備中",

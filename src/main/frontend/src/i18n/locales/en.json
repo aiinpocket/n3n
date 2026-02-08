@@ -1455,6 +1455,13 @@
     "editRequirements": "Continue Editing",
     "generateNow": "Generate Now",
     "needMoreChanges": "I have more changes to make",
+    "quickFeedback": "Quick feedback:",
+    "feedback": {
+      "tooComplex": "Too complex, simplify",
+      "missingErrorHandling": "Add error handling",
+      "needMoreSteps": "Need more processing steps",
+      "wrongTrigger": "Wrong trigger type"
+    },
     "stage": {
       "analyzing": "Analyzing",
       "preparing": "Preparing",
