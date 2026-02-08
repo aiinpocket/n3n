@@ -153,10 +153,18 @@ export interface RequirementContext {
   fullDescription?: string
 }
 
+export interface ExistingFlowDefinition {
+  nodes: unknown[]
+  edges: unknown[]
+  understanding?: string
+}
+
 export interface GenerateFlowStreamRequest {
   userInput: string
   language?: string // 'zh-TW' | 'en'
   requirementContext?: RequirementContext
+  existingFlow?: ExistingFlowDefinition
+  feedback?: string
 }
 
 export interface FlowGenerationChunk {

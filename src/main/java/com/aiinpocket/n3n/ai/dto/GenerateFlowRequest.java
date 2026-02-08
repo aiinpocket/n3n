@@ -22,6 +22,26 @@ public class GenerateFlowRequest {
      */
     private RequirementContext requirementContext;
 
+    /**
+     * Existing flow definition for iterative improvement.
+     * When present, AI improves the existing flow instead of generating from scratch.
+     */
+    private ExistingFlowDefinition existingFlow;
+
+    /**
+     * User feedback on the previously generated flow.
+     * Used together with existingFlow for iterative improvement.
+     */
+    @Size(max = 5000)
+    private String feedback;
+
+    @Data
+    public static class ExistingFlowDefinition {
+        private Object nodes;   // List of node definitions
+        private Object edges;   // List of edge definitions
+        private String understanding; // AI's previous understanding
+    }
+
     @Data
     public static class RequirementContext {
         private String triggerType;         // e.g. "schedule", "webhook", "manual"

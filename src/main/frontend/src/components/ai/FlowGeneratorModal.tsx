@@ -44,6 +44,7 @@ import {
   type EdgeData,
   type MissingNodeInfo,
   type RequirementContext,
+  type ExistingFlowDefinition,
 } from '../../api/aiAssistantStream'
 import MiniFlowPreview from './MiniFlowPreview'
 import AIThinkingIndicator from './AIThinkingIndicator'
@@ -387,7 +388,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     return parts.join('. ') || userInput
   }
 
-  const handleGenerateFromDescription = async (description: string, context?: RequirementContext) => {
+  const handleGenerateFromDescription = async (
+    description: string,
+    context?: RequirementContext,
+    existingFlow?: ExistingFlowDefinition,
+    feedback?: string,
+  ) => {
     // Abort any previous generation
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -410,7 +416,13 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
     try {
       await generateFlowStream(
-        { userInput: description, language: i18n.language || getLocale(), requirementContext: context },
+        {
+          userInput: description,
+          language: i18n.language || getLocale(),
+          requirementContext: context,
+          existingFlow,
+          feedback,
+        },
         {
           onThinking: (msg) => {
             if (!mountedRef.current || controller.signal.aborted) return
@@ -502,19 +514,30 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     if (isRegenerating) return
 
     setIsRegenerating(true)
-    const originalLabel = t('aiAssistant.originalRequirement')
-    const feedbackLabel = t('aiAssistant.userFeedback')
-    const correctedLabel = t('aiAssistant.correctedUnderstanding')
-    const feedbackInput = feedbackText.trim()
-      ? `${originalLabel}：${userInput}\n\n${feedbackLabel}：${feedbackText}\n\n${correctedLabel}：${editedUnderstanding || result?.understanding}`
-      : `${originalLabel}：${userInput}\n\n${correctedLabel}：${editedUnderstanding}`
+
+    // Build existing flow definition for iterative improvement
+    const existingFlow: ExistingFlowDefinition | undefined = result?.flowDefinition
+      ? {
+          nodes: result.flowDefinition.nodes,
+          edges: result.flowDefinition.edges,
+          understanding: result.understanding,
+        }
+      : undefined
+
+    const correctedUnderstanding = editedUnderstanding.trim() || result?.understanding || ''
+    const userFeedback = feedbackText.trim() || undefined
 
     setIsEditingUnderstanding(false)
     setEditedUnderstanding('')
     setFeedbackText('')
 
     try {
-      await handleGenerateFromDescription(feedbackInput)
+      await handleGenerateFromDescription(
+        correctedUnderstanding,
+        undefined, // no requirement context for regeneration
+        existingFlow,
+        userFeedback,
+      )
     } finally {
       if (mountedRef.current) setIsRegenerating(false)
     }

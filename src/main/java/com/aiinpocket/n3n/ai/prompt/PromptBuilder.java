@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.ai.prompt;
 
 import com.aiinpocket.n3n.ai.codex.NodeCodex;
 import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
+import com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.ExistingFlowDefinition;
 import com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.RequirementContext;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,14 +96,51 @@ public class PromptBuilder {
 
     /**
      * Build user prompt for flow generation with optional structured requirements.
-     * When requirementContext is provided, the prompt includes structured analysis
-     * from the clarification conversation for more accurate flow generation.
      */
     public String buildFlowGenerationPrompt(String userInput, RequirementContext context, Set<String> installedNodeTypes) {
+        return buildFlowGenerationPrompt(userInput, context, installedNodeTypes, null, null);
+    }
+
+    /**
+     * Build user prompt for flow generation with optional structured requirements
+     * and existing flow for iterative improvement.
+     */
+    public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
+            Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("# 使用者需求\n\n");
-        sb.append(userInput).append("\n\n");
+        // If iterating on existing flow, adjust the instruction
+        if (existingFlow != null) {
+            sb.append("# 改進已有流程\n\n");
+            sb.append("使用者希望改進以下已有流程，而不是從頭建立新流程。\n\n");
+
+            if (existingFlow.getUnderstanding() != null) {
+                sb.append("## AI 先前的理解\n");
+                sb.append(existingFlow.getUnderstanding()).append("\n\n");
+            }
+
+            sb.append("## 已有流程定義\n");
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                sb.append("```json\n");
+                sb.append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
+                    Map.of("nodes", existingFlow.getNodes(), "edges", existingFlow.getEdges())));
+                sb.append("\n```\n\n");
+            } catch (Exception e) {
+                sb.append("(Failed to serialize existing flow)\n\n");
+            }
+
+            if (feedback != null && !feedback.isBlank()) {
+                sb.append("## 使用者反饋\n");
+                sb.append(feedback).append("\n\n");
+            }
+
+            sb.append("## 修改指示\n");
+            sb.append(userInput).append("\n\n");
+        } else {
+            sb.append("# 使用者需求\n\n");
+            sb.append(userInput).append("\n\n");
+        }
 
         // Inject structured requirements from clarification conversation
         if (context != null) {
