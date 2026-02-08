@@ -35,6 +35,7 @@ const { Text, Paragraph } = Typography
 const WebhooksPage: React.FC = () => {
   const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [form] = Form.useForm()
 
   const {
@@ -55,6 +56,7 @@ const WebhooksPage: React.FC = () => {
   }, [fetchWebhooks, fetchFlows])
 
   const handleCreate = async (values: CreateWebhookRequest) => {
+    setCreating(true)
     try {
       await createWebhook(values)
       message.success(t('webhook.createSuccess'))
@@ -62,6 +64,8 @@ const WebhooksPage: React.FC = () => {
       form.resetFields()
     } catch (error) {
       message.error(extractApiError(error, t('common.createFailed')))
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -347,7 +351,7 @@ const WebhooksPage: React.FC = () => {
               <Button onClick={() => setIsModalOpen(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={creating}>
                 {t('common.create')}
               </Button>
             </Space>

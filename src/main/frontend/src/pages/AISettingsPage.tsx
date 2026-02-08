@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next'
 import { useAiStore } from '../stores/aiStore'
 import type { AiProviderConfig } from '../api/ai'
 import AIConfigFormModal from '../components/ai/AIConfigFormModal'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Title, Text } = Typography
 
@@ -87,8 +88,8 @@ const AISettingsPage: React.FC = () => {
     try {
       await deleteConfig(id)
       message.success(t('ai.deleteSuccess'))
-    } catch {
-      message.error(t('common.error'))
+    } catch (error) {
+      message.error(extractApiError(error))
     }
   }
 
@@ -96,8 +97,8 @@ const AISettingsPage: React.FC = () => {
     try {
       await setAsDefault(id)
       message.success(t('ai.setAsDefaultSuccess'))
-    } catch {
-      message.error(t('common.error'))
+    } catch (error) {
+      message.error(extractApiError(error))
     }
   }
 
