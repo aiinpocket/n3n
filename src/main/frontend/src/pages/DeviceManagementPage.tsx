@@ -82,10 +82,14 @@ const DeviceManagementPage: React.FC = () => {
     }
   }
 
-  const handleCopyCommand = () => {
+  const handleCopyCommand = async () => {
     if (installCommand) {
-      navigator.clipboard.writeText(installCommand)
-      message.success(t('device.copiedToClipboard'))
+      try {
+        await navigator.clipboard.writeText(installCommand)
+        message.success(t('device.copiedToClipboard'))
+      } catch {
+        message.error(t('common.copyFailed'))
+      }
     }
   }
 

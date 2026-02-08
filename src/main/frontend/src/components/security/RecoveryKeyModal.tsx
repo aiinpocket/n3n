@@ -17,11 +17,15 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(recoveryKey.join(' '));
-    setCopied(true);
-    message.success(t('recovery.copiedToClipboard'));
-    setTimeout(() => setCopied(false), 3000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(recoveryKey.join(' '));
+      setCopied(true);
+      message.success(t('recovery.copiedToClipboard'));
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      message.error(t('common.copyFailed'));
+    }
   };
 
   const isValidInput = () => {

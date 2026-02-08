@@ -74,9 +74,13 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
 
   const handleCopy = async () => {
     if (result?.code) {
-      await navigator.clipboard.writeText(result.code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      try {
+        await navigator.clipboard.writeText(result.code)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch {
+        // Clipboard API not available
+      }
     }
   }
 

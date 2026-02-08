@@ -60,6 +60,7 @@ import { CommandPalette } from '../components/command'
 import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Text } = Typography
 
@@ -486,8 +487,7 @@ export default function FlowEditorPage() {
       saveForm.resetFields()
       if (id) loadVersions(id)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string }
-      message.error(err.response?.data?.message || err.message || t('editor.saveFailed'))
+      message.error(extractApiError(error, t('editor.saveFailed')))
     }
   }
 
@@ -501,8 +501,7 @@ export default function FlowEditorPage() {
       message.success(t('editor.versionPublished'))
       if (id) loadVersions(id)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } }
-      message.error(err.response?.data?.message || t('editor.publishFailed'))
+      message.error(extractApiError(error, t('editor.publishFailed')))
     }
   }
 

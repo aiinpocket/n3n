@@ -35,6 +35,8 @@ export default function ServiceListPage() {
       } else {
         message.warning(result.message)
       }
+    } catch {
+      message.error(t('service.testConnectionFailed'))
     } finally {
       setTestingId(null)
     }

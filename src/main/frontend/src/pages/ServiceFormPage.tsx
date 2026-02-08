@@ -125,6 +125,8 @@ export default function ServiceFormPage() {
       } else {
         setTestResult({ success: false, message: t('service.saveBeforeTest') })
       }
+    } catch {
+      setTestResult({ success: false, message: t('service.testConnectionFailed') })
     } finally {
       setTesting(false)
     }

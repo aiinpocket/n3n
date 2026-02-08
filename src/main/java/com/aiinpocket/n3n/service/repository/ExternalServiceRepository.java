@@ -22,5 +22,7 @@ public interface ExternalServiceRepository extends JpaRepository<ExternalService
 
     boolean existsByNameAndIsDeletedFalse(String name);
 
+    boolean existsByNameAndCreatedByAndIsDeletedFalse(String name, UUID createdBy);
+
     Page<ExternalService> findByStatusAndIsDeletedFalse(String status, Pageable pageable);
 }

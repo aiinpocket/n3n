@@ -97,9 +97,13 @@ const WebhooksPage: React.FC = () => {
     })
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    message.success(t('common.copied'))
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      message.success(t('common.copied'))
+    } catch {
+      message.error(t('common.copyFailed'))
+    }
   }
 
   const columns: ColumnsType<Webhook> = [

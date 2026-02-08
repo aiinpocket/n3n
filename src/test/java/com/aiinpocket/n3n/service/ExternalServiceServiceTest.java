@@ -102,7 +102,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         UUID userId = UUID.randomUUID();
         CreateServiceRequest request = createServiceRequest("my-api");
 
-        when(serviceRepository.existsByNameAndIsDeletedFalse("my-api")).thenReturn(false);
+        when(serviceRepository.existsByNameAndCreatedByAndIsDeletedFalse("my-api", userId)).thenReturn(false);
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> {
             ExternalService s = invocation.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -124,7 +124,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         UUID userId = UUID.randomUUID();
         CreateServiceRequest request = createServiceRequest("existing-api");
 
-        when(serviceRepository.existsByNameAndIsDeletedFalse("existing-api")).thenReturn(true);
+        when(serviceRepository.existsByNameAndCreatedByAndIsDeletedFalse("existing-api", userId)).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> externalServiceService.createService(request, userId))
@@ -141,7 +141,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
 
         ServiceEndpoint parsedEndpoint = createTestEndpoint(null);
 
-        when(serviceRepository.existsByNameAndIsDeletedFalse("api-with-schema")).thenReturn(false);
+        when(serviceRepository.existsByNameAndCreatedByAndIsDeletedFalse("api-with-schema", userId)).thenReturn(false);
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> {
             ExternalService s = invocation.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -165,7 +165,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         CreateServiceRequest request = createServiceRequest("api-slash");
         request.setBaseUrl("https://api.example.com/v1/");
 
-        when(serviceRepository.existsByNameAndIsDeletedFalse("api-slash")).thenReturn(false);
+        when(serviceRepository.existsByNameAndCreatedByAndIsDeletedFalse("api-slash", userId)).thenReturn(false);
         when(serviceRepository.save(any(ExternalService.class))).thenAnswer(invocation -> {
             ExternalService s = invocation.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -185,6 +185,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
     void updateService_existingService_updatesFields() {
         // Given
         ExternalService service = createTestService();
+        UUID userId = service.getCreatedBy();
         UpdateServiceRequest request = new UpdateServiceRequest();
         request.setDisplayName("Updated Name");
         request.setDescription("Updated description");
@@ -194,7 +195,7 @@ class ExternalServiceServiceTest extends BaseServiceTest {
         when(endpointRepository.countByServiceId(service.getId())).thenReturn(2);
 
         // When
-        ServiceResponse result = externalServiceService.updateService(service.getId(), request, UUID.randomUUID());
+        ServiceResponse result = externalServiceService.updateService(service.getId(), request, userId);
 
         // Then
         assertThat(result.getDisplayName()).isEqualTo("Updated Name");
