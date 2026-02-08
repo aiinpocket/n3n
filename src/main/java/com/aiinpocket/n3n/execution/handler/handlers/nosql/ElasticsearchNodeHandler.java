@@ -400,6 +400,8 @@ public class ElasticsearchNodeHandler extends MultiOperationNodeHandler {
             if (existing != null && System.currentTimeMillis() - existing.createdAt < CLIENT_TTL_MS) {
                 return existing;
             }
+            // Create new client first, only close old one after success
+            ClientEntry newEntry = createClient(credential);
             if (existing != null) {
                 try {
                     existing.transport.close();
@@ -407,7 +409,7 @@ public class ElasticsearchNodeHandler extends MultiOperationNodeHandler {
                     log.warn("Error closing Elasticsearch client: {}", e.getMessage());
                 }
             }
-            return createClient(credential);
+            return newEntry;
         });
 
         return entry.client;

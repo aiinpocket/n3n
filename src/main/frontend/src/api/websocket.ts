@@ -91,6 +91,11 @@ class WebSocketService {
           logger.info(`WebSocket reconnecting... attempt ${this.reconnectAttempts}`);
         } else {
           logger.error('WebSocket reconnection failed after max attempts');
+          // Stop STOMP auto-reconnect to prevent infinite retries
+          if (this.client) {
+            this.client.deactivate();
+          }
+          this.connectPromise = null;
           this.onReconnectFailed?.();
         }
       };

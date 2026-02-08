@@ -629,6 +629,8 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
             if (existing != null && System.currentTimeMillis() - existing.createdAt < CLIENT_TTL_MS) {
                 return existing;
             }
+            // Create new client first, only close old one after success
+            ClientEntry newEntry = createClient(credential);
             if (existing != null) {
                 try {
                     existing.connection.close();
@@ -637,7 +639,7 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
                     log.warn("Error closing Redis client: {}", e.getMessage());
                 }
             }
-            return createClient(credential);
+            return newEntry;
         });
 
         return entry.connection.sync();
