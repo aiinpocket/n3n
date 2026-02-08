@@ -38,15 +38,15 @@ public class AIAssistantService {
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
-        "trigger", new CategoryDefinition("觸發器", "thunderbolt"),
+        "trigger", new CategoryDefinition("Triggers", "thunderbolt"),
         "ai", new CategoryDefinition("AI & ML", "robot"),
-        "data", new CategoryDefinition("資料處理", "database"),
-        "messaging", new CategoryDefinition("訊息通知", "message"),
-        "database", new CategoryDefinition("資料庫", "table"),
-        "cloud", new CategoryDefinition("雲端服務", "cloud"),
-        "integration", new CategoryDefinition("外部整合", "api"),
-        "utility", new CategoryDefinition("工具類", "tool"),
-        "other", new CategoryDefinition("其他", "appstore")
+        "data", new CategoryDefinition("Data Processing", "database"),
+        "messaging", new CategoryDefinition("Messaging", "message"),
+        "database", new CategoryDefinition("Database", "table"),
+        "cloud", new CategoryDefinition("Cloud Services", "cloud"),
+        "integration", new CategoryDefinition("Integration", "api"),
+        "utility", new CategoryDefinition("Utilities", "tool"),
+        "other", new CategoryDefinition("Other", "appstore")
     );
 
     private record CategoryDefinition(String displayName, String icon) {}
@@ -439,7 +439,7 @@ public class AIAssistantService {
                     errorNode.put("id", errorHandlerId);
                     errorNode.put("type", "errorHandler");
                     errorNode.put("data", Map.of(
-                        "label", "錯誤處理",
+                        "label", "Error Handler",
                         "nodeType", "errorHandler",
                         "targetNodeId", nodeId
                     ));
@@ -702,11 +702,11 @@ public class AIAssistantService {
 
     private String generateBenefitText(String type, int affectedCount) {
         return switch (type) {
-            case "parallel" -> String.format("可減少約 %d%% 執行時間", Math.min(40, affectedCount * 15));
-            case "merge" -> "減少 API 呼叫次數，提升效率";
-            case "remove" -> "移除冗餘節點，簡化流程";
-            case "reorder" -> "優化執行順序，提升效率";
-            default -> "改善流程效能";
+            case "parallel" -> String.format("Can reduce execution time by ~%d%%", Math.min(40, affectedCount * 15));
+            case "merge" -> "Reduces API calls and improves efficiency";
+            case "remove" -> "Removes redundant nodes and simplifies the flow";
+            case "reorder" -> "Optimizes execution order for better efficiency";
+            default -> "Improves flow performance";
         };
     }
 
@@ -731,18 +731,19 @@ public class AIAssistantService {
     // ==================== Code Generation ====================
 
     private static final String CODE_GENERATION_SYSTEM_PROMPT = """
-        你是一個專業的程式碼生成助手。你的任務是根據使用者的自然語言描述生成正確的程式碼。
+        You are a professional code generation assistant. Your task is to generate correct code from natural language descriptions.
+        Respond in the same language the user used.
 
-        規則：
-        1. 只輸出程式碼，不要有任何解釋或說明
-        2. 使用 $input 來存取輸入資料
-        3. 直接 return 結果，不需要包裝函數
-        4. 處理可能的 null 或 undefined
-        5. 程式碼需要簡潔且效能良好
+        Rules:
+        1. Output only code, no explanations
+        2. Use $input to access input data
+        3. Return the result directly, no wrapper functions needed
+        4. Handle possible null or undefined values
+        5. Code should be concise and performant
 
-        語言特定規則：
-        - JavaScript: 使用 ES6+ 語法
-        - 可以使用 lodash 風格的操作（_. 函數）
+        Language-specific rules:
+        - JavaScript: Use ES6+ syntax
+        - Lodash-style operations (_. functions) are available
         """;
 
     /**
@@ -755,7 +756,7 @@ public class AIAssistantService {
             // 目前僅支援 JavaScript
             if (!"javascript".equalsIgnoreCase(request.getLanguage()) &&
                 !"js".equalsIgnoreCase(request.getLanguage())) {
-                return GenerateCodeResponse.failure("目前僅支援 JavaScript");
+                return GenerateCodeResponse.failure("Only JavaScript is currently supported");
             }
 
             // 建構提示詞
@@ -780,7 +781,7 @@ public class AIAssistantService {
             CodeGenerationResult result = parseCodeGenerationResponse(aiResponse);
 
             if (result.code == null || result.code.isBlank()) {
-                return GenerateCodeResponse.failure("AI 未能生成有效的程式碼");
+                return GenerateCodeResponse.failure("AI failed to generate valid code");
             }
 
             return GenerateCodeResponse.success(
@@ -797,25 +798,25 @@ public class AIAssistantService {
 
     private String buildCodeGenerationPrompt(GenerateCodeRequest request) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("請根據以下描述生成 JavaScript 程式碼：\n\n");
-        prompt.append("描述：").append(request.getDescription()).append("\n");
+        prompt.append("Generate JavaScript code based on the following description:\n\n");
+        prompt.append("Description: ").append(request.getDescription()).append("\n");
 
         if (request.getInputSchema() != null && !request.getInputSchema().isEmpty()) {
-            prompt.append("\n輸入資料結構：\n");
+            prompt.append("\nInput data structure:\n");
             prompt.append(formatSchema(request.getInputSchema())).append("\n");
         }
 
         if (request.getSampleInput() != null && !request.getSampleInput().isBlank()) {
-            prompt.append("\n輸入範例：\n");
+            prompt.append("\nSample input:\n");
             prompt.append(request.getSampleInput()).append("\n");
         }
 
         if (request.getOutputSchema() != null && !request.getOutputSchema().isEmpty()) {
-            prompt.append("\n預期輸出結構：\n");
+            prompt.append("\nExpected output structure:\n");
             prompt.append(formatSchema(request.getOutputSchema())).append("\n");
         }
 
-        prompt.append("\n請直接輸出可執行的 JavaScript 程式碼（使用 $input 存取輸入資料）：");
+        prompt.append("\nOutput executable JavaScript code directly (use $input to access input data):");
 
         return prompt.toString();
     }

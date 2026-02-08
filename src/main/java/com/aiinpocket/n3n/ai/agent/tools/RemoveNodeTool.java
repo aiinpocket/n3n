@@ -21,7 +21,7 @@ public class RemoveNodeTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "從流程中移除指定的節點。會同時移除相關的連線。";
+        return "Remove a node from the flow. Related connections are also removed.";
     }
 
     @Override
@@ -31,11 +31,11 @@ public class RemoveNodeTool implements AgentTool {
             "properties", Map.of(
                 "nodeId", Map.of(
                     "type", "string",
-                    "description", "要移除的節點 ID"
+                    "description", "ID of the node to remove"
                 ),
                 "nodeLabel", Map.of(
                     "type", "string",
-                    "description", "要移除的節點名稱（如果不知道 ID）"
+                    "description", "Name of the node to remove (if ID is unknown)"
                 )
             ),
             "required", List.of()
@@ -53,21 +53,20 @@ public class RemoveNodeTool implements AgentTool {
         try {
             WorkingFlowDraft draft = context.getFlowDraft();
             if (draft == null || !draft.hasContent()) {
-                return ToolResult.failure(getName(), "沒有可操作的流程草稿");
+                return ToolResult.failure(getName(), "No flow draft available");
             }
 
-            // 如果提供的是標籤，找到對應的 ID
             String targetId = nodeId;
             if (targetId == null && nodeLabel != null) {
                 targetId = findNodeIdByLabel(draft, nodeLabel);
                 if (targetId == null) {
                     return ToolResult.failure(getName(),
-                        "找不到名稱為 '" + nodeLabel + "' 的節點");
+                        "Node with label '" + nodeLabel + "' not found");
                 }
             }
 
             if (targetId == null) {
-                return ToolResult.failure(getName(), "必須提供 nodeId 或 nodeLabel");
+                return ToolResult.failure(getName(), "Either nodeId or nodeLabel is required");
             }
 
             // 記錄移除前的狀態
@@ -84,7 +83,7 @@ public class RemoveNodeTool implements AgentTool {
             boolean removed = draft.removeNode(targetId);
             if (!removed) {
                 return ToolResult.failure(getName(),
-                    "找不到 ID 為 '" + targetId + "' 的節點");
+                    "Node with ID '" + targetId + "' not found");
             }
 
             long duration = System.currentTimeMillis() - startTime;
@@ -101,7 +100,7 @@ public class RemoveNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to remove node", e);
-            return ToolResult.failure(getName(), "移除節點失敗");
+            return ToolResult.failure(getName(), "Failed to remove node");
         }
     }
 

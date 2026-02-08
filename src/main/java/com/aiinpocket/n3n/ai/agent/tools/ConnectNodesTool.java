@@ -21,7 +21,7 @@ public class ConnectNodesTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "連接兩個節點。建立從來源節點到目標節點的資料流。";
+        return "Connect two nodes. Creates a data flow from source node to target node.";
     }
 
     @Override
@@ -31,19 +31,19 @@ public class ConnectNodesTool implements AgentTool {
             "properties", Map.of(
                 "sourceId", Map.of(
                     "type", "string",
-                    "description", "來源節點 ID"
+                    "description", "Source node ID"
                 ),
                 "targetId", Map.of(
                     "type", "string",
-                    "description", "目標節點 ID"
+                    "description", "Target node ID"
                 ),
                 "sourceLabel", Map.of(
                     "type", "string",
-                    "description", "來源節點名稱（如果不知道 ID）"
+                    "description", "Source node name (if ID is unknown)"
                 ),
                 "targetLabel", Map.of(
                     "type", "string",
-                    "description", "目標節點名稱（如果不知道 ID）"
+                    "description", "Target node name (if ID is unknown)"
                 )
             ),
             "required", List.of()
@@ -64,47 +64,43 @@ public class ConnectNodesTool implements AgentTool {
         try {
             WorkingFlowDraft draft = context.getFlowDraft();
             if (draft == null || !draft.hasContent()) {
-                return ToolResult.failure(getName(), "沒有可操作的流程草稿");
+                return ToolResult.failure(getName(), "No flow draft available");
             }
 
-            // 解析來源 ID
             String resolvedSourceId = sourceId;
             if (resolvedSourceId == null && sourceLabel != null) {
                 resolvedSourceId = findNodeIdByLabel(draft, sourceLabel);
                 if (resolvedSourceId == null) {
                     return ToolResult.failure(getName(),
-                        "找不到名稱為 '" + sourceLabel + "' 的來源節點");
+                        "Source node with label '" + sourceLabel + "' not found");
                 }
             }
 
-            // 解析目標 ID
             String resolvedTargetId = targetId;
             if (resolvedTargetId == null && targetLabel != null) {
                 resolvedTargetId = findNodeIdByLabel(draft, targetLabel);
                 if (resolvedTargetId == null) {
                     return ToolResult.failure(getName(),
-                        "找不到名稱為 '" + targetLabel + "' 的目標節點");
+                        "Target node with label '" + targetLabel + "' not found");
                 }
             }
 
             if (resolvedSourceId == null || resolvedTargetId == null) {
                 return ToolResult.failure(getName(),
-                    "必須提供來源和目標節點的 ID 或名稱");
+                    "Both source and target node ID or label are required");
             }
 
-            // 驗證節點存在
             if (draft.getNode(resolvedSourceId).isEmpty()) {
                 return ToolResult.failure(getName(),
-                    "來源節點 '" + resolvedSourceId + "' 不存在");
+                    "Source node '" + resolvedSourceId + "' does not exist");
             }
             if (draft.getNode(resolvedTargetId).isEmpty()) {
                 return ToolResult.failure(getName(),
-                    "目標節點 '" + resolvedTargetId + "' 不存在");
+                    "Target node '" + resolvedTargetId + "' does not exist");
             }
 
-            // 防止自連接
             if (resolvedSourceId.equals(resolvedTargetId)) {
-                return ToolResult.failure(getName(), "不能將節點連接到自己");
+                return ToolResult.failure(getName(), "Cannot connect a node to itself");
             }
 
             // 執行連接
@@ -125,7 +121,7 @@ public class ConnectNodesTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to connect nodes", e);
-            return ToolResult.failure(getName(), "連接節點失敗");
+            return ToolResult.failure(getName(), "Failed to connect nodes");
         }
     }
 

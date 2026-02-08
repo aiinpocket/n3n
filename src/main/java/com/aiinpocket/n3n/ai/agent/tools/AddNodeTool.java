@@ -26,7 +26,7 @@ public class AddNodeTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "在流程中新增一個節點。需指定節點類型和標籤。";
+        return "Add a node to the flow. Requires node type and label.";
     }
 
     @Override
@@ -36,19 +36,19 @@ public class AddNodeTool implements AgentTool {
             "properties", Map.of(
                 "nodeType", Map.of(
                     "type", "string",
-                    "description", "節點類型（例如：httpRequest、sendEmail、code）"
+                    "description", "Node type (e.g., httpRequest, sendEmail, code)"
                 ),
                 "label", Map.of(
                     "type", "string",
-                    "description", "節點顯示名稱"
+                    "description", "Node display name"
                 ),
                 "config", Map.of(
                     "type", "object",
-                    "description", "節點配置參數"
+                    "description", "Node configuration parameters"
                 ),
                 "connectAfter", Map.of(
                     "type", "string",
-                    "description", "連接到此節點後方的節點 ID（可選）"
+                    "description", "ID of the node to connect after (optional)"
                 )
             ),
             "required", List.of("nodeType", "label")
@@ -71,9 +71,9 @@ public class AddNodeTool implements AgentTool {
             if (!nodeHandlerRegistry.hasHandler(nodeType)) {
                 // 嘗試模糊匹配
                 String suggestion = findSimilarType(nodeType);
-                String errorMsg = "未知的節點類型: " + nodeType;
+                String errorMsg = "Unknown node type: " + nodeType;
                 if (suggestion != null) {
-                    errorMsg += "，您是否指的是 " + suggestion + "？";
+                    errorMsg += ". Did you mean " + suggestion + "?";
                 }
                 return ToolResult.failure(getName(), errorMsg);
             }
@@ -117,7 +117,7 @@ public class AddNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to add node", e);
-            return ToolResult.failure(getName(), "新增節點失敗");
+            return ToolResult.failure(getName(), "Failed to add node");
         }
     }
 

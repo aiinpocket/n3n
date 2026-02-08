@@ -21,7 +21,7 @@ public class ConfigureNodeTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "配置節點的參數。可設定 URL、認證、SQL 語句等節點特定設定。";
+        return "Configure node parameters such as URL, authentication, SQL queries, and other settings.";
     }
 
     @Override
@@ -31,15 +31,15 @@ public class ConfigureNodeTool implements AgentTool {
             "properties", Map.of(
                 "nodeId", Map.of(
                     "type", "string",
-                    "description", "要配置的節點 ID"
+                    "description", "ID of the node to configure"
                 ),
                 "nodeLabel", Map.of(
                     "type", "string",
-                    "description", "要配置的節點名稱（如果不知道 ID）"
+                    "description", "Name of the node to configure (if ID is unknown)"
                 ),
                 "config", Map.of(
                     "type", "object",
-                    "description", "要設定的配置參數"
+                    "description", "Configuration parameters to set"
                 )
             ),
             "required", List.of("config")
@@ -59,12 +59,12 @@ public class ConfigureNodeTool implements AgentTool {
 
         try {
             if (config == null || config.isEmpty()) {
-                return ToolResult.failure(getName(), "必須提供配置參數");
+                return ToolResult.failure(getName(), "Configuration parameters are required");
             }
 
             WorkingFlowDraft draft = context.getFlowDraft();
             if (draft == null || !draft.hasContent()) {
-                return ToolResult.failure(getName(), "沒有可操作的流程草稿");
+                return ToolResult.failure(getName(), "No flow draft available");
             }
 
             // 解析節點 ID
@@ -73,19 +73,19 @@ public class ConfigureNodeTool implements AgentTool {
                 targetId = findNodeIdByLabel(draft, nodeLabel);
                 if (targetId == null) {
                     return ToolResult.failure(getName(),
-                        "找不到名稱為 '" + nodeLabel + "' 的節點");
+                        "Node with label '" + nodeLabel + "' not found");
                 }
             }
 
             if (targetId == null) {
-                return ToolResult.failure(getName(), "必須提供 nodeId 或 nodeLabel");
+                return ToolResult.failure(getName(), "Either nodeId or nodeLabel is required");
             }
 
             // 驗證節點存在
             Optional<WorkingFlowDraft.Node> nodeOpt = draft.getNode(targetId);
             if (nodeOpt.isEmpty()) {
                 return ToolResult.failure(getName(),
-                    "找不到 ID 為 '" + targetId + "' 的節點");
+                    "Node with ID '" + targetId + "' not found");
             }
 
             WorkingFlowDraft.Node node = nodeOpt.get();
@@ -118,7 +118,7 @@ public class ConfigureNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to configure node", e);
-            return ToolResult.failure(getName(), "配置節點失敗");
+            return ToolResult.failure(getName(), "Failed to configure node");
         }
     }
 

@@ -28,7 +28,7 @@ public class ValidateFlowTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "驗證流程是否有效。檢查節點類型、連線、必要配置等。";
+        return "Validate whether a flow is valid. Checks node types, connections, and required configuration.";
     }
 
     @Override
@@ -38,15 +38,15 @@ public class ValidateFlowTool implements AgentTool {
             "properties", Map.of(
                 "checkMissingNodes", Map.of(
                     "type", "boolean",
-                    "description", "是否檢查缺失的節點類型，預設 true"
+                    "description", "Whether to check for missing node types, default true"
                 ),
                 "checkConnectivity", Map.of(
                     "type", "boolean",
-                    "description", "是否檢查節點連接性，預設 true"
+                    "description", "Whether to check node connectivity, default true"
                 ),
                 "checkConfig", Map.of(
                     "type", "boolean",
-                    "description", "是否檢查必要配置，預設 true"
+                    "description", "Whether to check required configuration, default true"
                 )
             ),
             "required", List.of()
@@ -71,7 +71,7 @@ public class ValidateFlowTool implements AgentTool {
                     .success(true)
                     .data(Map.of(
                         "valid", false,
-                        "errors", List.of("流程為空或不存在"),
+                        "errors", List.of("Flow is empty or does not exist"),
                         "warnings", List.of(),
                         "missingNodes", List.of()
                     ))
@@ -87,7 +87,7 @@ public class ValidateFlowTool implements AgentTool {
                 for (WorkingFlowDraft.Node node : draft.getNodes()) {
                     if (!nodeHandlerRegistry.hasHandler(node.type())) {
                         missingNodeTypes.add(node.type());
-                        errors.add("節點 '" + node.label() + "' 使用了未安裝的類型: " + node.type());
+                        errors.add("Node '" + node.label() + "' uses uninstalled type: " + node.type());
                     }
                 }
             }
@@ -100,7 +100,7 @@ public class ValidateFlowTool implements AgentTool {
                 });
 
             if (!hasTrigger) {
-                warnings.add("流程沒有觸發器節點，需要手動觸發執行");
+                warnings.add("Flow has no trigger node and requires manual execution");
             }
 
             // 3. 檢查連接性
@@ -118,12 +118,12 @@ public class ValidateFlowTool implements AgentTool {
                     .collect(Collectors.toList());
 
                 if (!isolatedNodes.isEmpty() && draft.getNodeCount() > 1) {
-                    warnings.add("以下節點未連接: " + String.join(", ", isolatedNodes));
+                    warnings.add("The following nodes are not connected: " + String.join(", ", isolatedNodes));
                 }
 
                 // 檢查是否有循環（簡單檢測）
                 if (hasCycle(draft)) {
-                    errors.add("流程中存在循環依賴");
+                    errors.add("Flow contains circular dependencies");
                 }
             }
 
@@ -132,7 +132,7 @@ public class ValidateFlowTool implements AgentTool {
                 for (WorkingFlowDraft.Node node : draft.getNodes()) {
                     List<String> missingConfigs = checkRequiredConfig(node);
                     if (!missingConfigs.isEmpty()) {
-                        warnings.add("節點 '" + node.label() + "' 缺少配置: " +
+                        warnings.add("Node '" + node.label() + "' missing configuration: " +
                             String.join(", ", missingConfigs));
                     }
                 }
@@ -165,7 +165,7 @@ public class ValidateFlowTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to validate flow", e);
-            return ToolResult.failure(getName(), "驗證流程失敗");
+            return ToolResult.failure(getName(), "Failed to validate flow");
         }
     }
 

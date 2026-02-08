@@ -28,7 +28,7 @@ public class SearchNodeTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "搜尋可用的節點類型。可依關鍵字、類別、功能進行搜尋。";
+        return "Search available node types by keyword, category, or capability.";
     }
 
     @Override
@@ -38,15 +38,15 @@ public class SearchNodeTool implements AgentTool {
             "properties", Map.of(
                 "query", Map.of(
                     "type", "string",
-                    "description", "搜尋關鍵字（例如：發送郵件、HTTP 請求、資料庫）"
+                    "description", "Search keyword (e.g., send email, HTTP request, database)"
                 ),
                 "category", Map.of(
                     "type", "string",
-                    "description", "節點類別（例如：trigger、action、integration、data）"
+                    "description", "Node category (e.g., trigger, action, integration, data)"
                 ),
                 "limit", Map.of(
                     "type", "integer",
-                    "description", "回傳結果數量上限，預設 10"
+                    "description", "Maximum number of results, default 10"
                 )
             ),
             "required", List.of("query")
@@ -93,7 +93,7 @@ public class SearchNodeTool implements AgentTool {
 
         } catch (Exception e) {
             log.error("Failed to search nodes", e);
-            return ToolResult.failure(getName(), "搜尋節點失敗");
+            return ToolResult.failure(getName(), "Failed to search nodes");
         }
     }
 

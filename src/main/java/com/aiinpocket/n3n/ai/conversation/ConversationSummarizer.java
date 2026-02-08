@@ -20,13 +20,13 @@ public class ConversationSummarizer {
     private final SimpleAIProviderRegistry aiProviderRegistry;
 
     private static final String SUMMARY_SYSTEM_PROMPT = """
-        你是一個對話摘要專家。請將以下對話內容濃縮成一段簡潔的摘要，保留：
-        1. 主要討論的主題和問題
-        2. 重要的決定或結論
-        3. 任何待辦事項或後續步驟
-        4. 提到的關鍵技術細節或流程
+        You are a conversation summarization expert. Condense the conversation into a concise summary, preserving:
+        1. Main topics and questions discussed
+        2. Important decisions or conclusions
+        3. Any action items or next steps
+        4. Key technical details or flow information mentioned
 
-        摘要應該在 200 字以內，使用繁體中文。
+        Keep the summary under 200 words. Respond in the same language the conversation used.
         """;
 
     /**
@@ -47,12 +47,12 @@ public class ConversationSummarizer {
                 String role = (String) msg.get("role");
                 String content = (String) msg.get("content");
                 if (role != null && content != null) {
-                    String roleLabel = "user".equals(role) ? "使用者" : "助手";
+                    String roleLabel = "user".equals(role) ? "User" : "Assistant";
                     conversationText.append(roleLabel).append(": ").append(content).append("\n\n");
                 }
             }
 
-            String prompt = "請摘要以下對話：\n\n" + conversationText;
+            String prompt = "Please summarize the following conversation:\n\n" + conversationText;
 
             return aiProviderRegistry.chatWithFailover(
                     prompt,
