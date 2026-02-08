@@ -207,7 +207,7 @@ public class AgentService {
 
         } catch (Exception e) {
             log.error("Error initializing stream chat: {}", e.getMessage(), e);
-            return Flux.error(new AiProviderException("AI stream processing failed: " + e.getMessage(), e));
+            return Flux.error(new AiProviderException("AI stream processing failed"));
         }
     }
 

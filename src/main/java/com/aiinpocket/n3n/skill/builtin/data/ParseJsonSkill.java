@@ -109,7 +109,7 @@ public class ParseJsonSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("Failed to parse JSON: {}", e.getMessage());
-            return SkillResult.failure("PARSE_ERROR", "Failed to parse JSON: " + e.getMessage());
+            return SkillResult.failure("PARSE_ERROR", "Failed to parse JSON");
         }
     }
 }

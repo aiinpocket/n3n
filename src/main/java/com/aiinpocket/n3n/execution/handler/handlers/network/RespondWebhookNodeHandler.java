@@ -123,7 +123,7 @@ public class RespondWebhookNodeHandler extends AbstractNodeHandler {
                         return context.evaluateExpression(expression);
                     } catch (Exception e) {
                         log.warn("Failed to evaluate body expression: {}", e.getMessage());
-                        return Map.of("error", "Expression evaluation failed: " + e.getMessage());
+                        return Map.of("error", "Expression evaluation failed");
                     }
                 }
                 return Map.of();

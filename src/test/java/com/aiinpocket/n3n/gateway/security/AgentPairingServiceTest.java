@@ -172,7 +172,7 @@ class AgentPairingServiceTest extends BaseServiceTest {
         // When/Then
         assertThatThrownBy(() -> agentPairingService.completePairing(request))
                 .isInstanceOf(AgentPairingService.PairingException.class)
-                .hasMessageContaining("Cryptographic error");
+                .hasMessageContaining("Cryptographic operation failed");
     }
 
     // ========== Validate Device Token Tests ==========

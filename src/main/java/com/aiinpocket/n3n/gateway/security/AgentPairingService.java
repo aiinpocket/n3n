@@ -123,8 +123,8 @@ public class AgentPairingService {
             );
 
         } catch (GeneralSecurityException e) {
-            log.error("Cryptographic error during pairing", e);
-            throw new PairingException("Cryptographic error: " + e.getMessage());
+            log.error("Cryptographic error during pairing: {}", e.getMessage(), e);
+            throw new PairingException("Cryptographic operation failed");
         }
     }
 
@@ -194,8 +194,8 @@ public class AgentPairingService {
             );
 
         } catch (GeneralSecurityException e) {
-            log.error("Cryptographic error during token registration", e);
-            throw new PairingException("Cryptographic error: " + e.getMessage());
+            log.error("Cryptographic error during token registration: {}", e.getMessage(), e);
+            throw new PairingException("Cryptographic operation failed");
         }
     }
 

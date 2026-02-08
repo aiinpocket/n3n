@@ -111,7 +111,7 @@ public class TransformDataSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("Failed to transform data: {}", e.getMessage());
-            return SkillResult.failure("TRANSFORM_ERROR", "Failed to transform data: " + e.getMessage());
+            return SkillResult.failure("TRANSFORM_ERROR", "Failed to transform data");
         }
     }
 }

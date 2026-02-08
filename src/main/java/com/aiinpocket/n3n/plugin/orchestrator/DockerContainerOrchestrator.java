@@ -130,7 +130,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
             throw e;
         } catch (Exception e) {
             log.error("Failed to pull Docker image: {}", fullImage, e);
-            throw new RuntimeException("Failed to pull image: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to pull image", e);
         }
     }
 
@@ -190,7 +190,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
 
         } catch (Exception e) {
             log.error("Failed to create container: {}", name, e);
-            throw new RuntimeException("Failed to create container: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to create container", e);
         }
     }
 
@@ -284,7 +284,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
             return logs.toString();
         } catch (Exception e) {
             log.error("Failed to get container logs: {}", containerId, e);
-            return "Failed to get logs: " + e.getMessage();
+            return "Failed to get logs";
         }
     }
 

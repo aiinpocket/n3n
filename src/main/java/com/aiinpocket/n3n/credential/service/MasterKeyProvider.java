@@ -416,9 +416,10 @@ public class MasterKeyProvider {
             log.info("Credential migrated successfully: {}", credentialId);
 
         } catch (Exception e) {
+            log.error("Credential migration failed: {}", e.getMessage(), e);
             migrationLog.markFailed(e.getMessage());
             migrationLogRepository.save(migrationLog);
-            throw new RuntimeException("Migration failed: " + e.getMessage(), e);
+            throw new RuntimeException("Key migration failed", e);
         }
     }
 
@@ -531,7 +532,8 @@ public class MasterKeyProvider {
             cipher.init(Cipher.DECRYPT_MODE, key, spec);
             return cipher.doFinal(ciphertext);
         } catch (Exception e) {
-            throw new RuntimeException("Decryption failed: " + e.getMessage(), e);
+            log.error("Decryption failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Decryption failed", e);
         }
     }
 
@@ -545,7 +547,8 @@ public class MasterKeyProvider {
             cipher.init(Cipher.ENCRYPT_MODE, key, spec);
             return cipher.doFinal(plaintext);
         } catch (Exception e) {
-            throw new RuntimeException("Encryption failed: " + e.getMessage(), e);
+            log.error("Encryption failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Encryption failed", e);
         }
     }
 

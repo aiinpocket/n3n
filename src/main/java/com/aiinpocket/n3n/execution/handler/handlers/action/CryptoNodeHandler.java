@@ -162,7 +162,7 @@ public class CryptoNodeHandler extends AbstractNodeHandler {
             log.error("Crypto operation failed: {}", e.getMessage(), e);
             return NodeExecutionResult.builder()
                 .success(false)
-                .errorMessage("Crypto operation failed: " + e.getMessage())
+                .errorMessage("Crypto operation failed")
                 .build();
         }
     }

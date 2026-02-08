@@ -124,7 +124,7 @@ public class JavaScriptEngine implements ScriptEngine {
                 return ScriptResult.builder()
                     .success(false)
                     .errorType(errorType)
-                    .errorMessage(e.getMessage())
+                    .errorMessage("Script execution failed")
                     .logs(logs)
                     .executionTimeMs(executionTime)
                     .build();
@@ -148,7 +148,8 @@ public class JavaScriptEngine implements ScriptEngine {
             throw new ScriptExecutionException("INTERRUPTED", "Script execution was interrupted");
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            throw new ScriptExecutionException("EXECUTION_ERROR", cause.getMessage(), cause);
+            log.error("Script execution error: {}", cause.getMessage(), cause);
+            throw new ScriptExecutionException("EXECUTION_ERROR", "Script execution failed", cause);
         }
     }
 

@@ -299,7 +299,7 @@ public class ExternalServiceService {
             return Map.of(
                     "success", false,
                     "latencyMs", latency,
-                    "message", "Connection failed: " + e.getMessage()
+                    "message", "Connection test failed"
             );
         }
     }

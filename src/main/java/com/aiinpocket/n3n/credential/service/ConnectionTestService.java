@@ -64,7 +64,7 @@ public class ConnectionTestService {
         } catch (Exception e) {
             log.error("Connection test failed for type {}: {}", type, e.getMessage(), e);
             return ConnectionTestResult.failure(
-                    "Connection failed: " + e.getMessage(),
+                    "Connection test failed",
                     System.currentTimeMillis() - startTime
             );
         }
@@ -344,7 +344,7 @@ public class ConnectionTestService {
 
         } catch (Exception e) {
             return ConnectionTestResult.failure(
-                    "Connection failed: " + e.getMessage(),
+                    "Connection test failed",
                     System.currentTimeMillis() - startTime
             );
         } finally {
@@ -440,7 +440,7 @@ public class ConnectionTestService {
 
         } catch (Exception e) {
             return ConnectionTestResult.failure(
-                    "Connection failed: " + e.getMessage(),
+                    "Connection test failed",
                     System.currentTimeMillis() - startTime
             );
         } finally {

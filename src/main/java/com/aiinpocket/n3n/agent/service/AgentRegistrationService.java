@@ -167,8 +167,8 @@ public class AgentRegistrationService {
             );
 
         } catch (GeneralSecurityException e) {
-            log.error("Cryptographic error during registration", e);
-            throw new RegistrationException("Cryptographic error: " + e.getMessage());
+            log.error("Cryptographic error during registration: {}", e.getMessage(), e);
+            throw new RegistrationException("Cryptographic operation failed");
         }
     }
 

@@ -429,7 +429,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
                 } catch (Exception e) {
                     pendingRequests.remove(request.getId());
                     return CompletableFuture.<GatewayResponse>completedFuture(
-                        GatewayResponse.error(request.getId(), "SEND_ERROR", e.getMessage())
+                        GatewayResponse.error(request.getId(), "SEND_ERROR", "Message delivery failed")
                     );
                 }
 

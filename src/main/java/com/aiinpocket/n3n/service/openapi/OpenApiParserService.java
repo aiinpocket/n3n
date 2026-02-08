@@ -41,7 +41,7 @@ public class OpenApiParserService {
             return parseFromContent(schemaContent, serviceId);
         } catch (Exception e) {
             log.error("Failed to fetch OpenAPI schema from {}: {}", fullUrl, e.getMessage());
-            throw new RuntimeException("Failed to fetch OpenAPI schema: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch OpenAPI schema", e);
         }
     }
 

@@ -148,7 +148,7 @@ public class SendSlackSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("Failed to send Slack message: {}", e.getMessage());
-            return SkillResult.failure("SLACK_ERROR", "Failed to send Slack message: " + e.getMessage());
+            return SkillResult.failure("SLACK_ERROR", "Failed to send Slack message");
         }
     }
 }

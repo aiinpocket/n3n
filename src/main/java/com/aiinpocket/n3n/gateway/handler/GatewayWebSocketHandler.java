@@ -355,7 +355,7 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
                 } catch (IOException e) {
                     pendingRequests.remove(request.getId());
                     return CompletableFuture.<GatewayResponse>completedFuture(
-                        GatewayResponse.error(request.getId(), "SEND_ERROR", e.getMessage())
+                        GatewayResponse.error(request.getId(), "SEND_ERROR", "Message delivery failed")
                     );
                 }
 

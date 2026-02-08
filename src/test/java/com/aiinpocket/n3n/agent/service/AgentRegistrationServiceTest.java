@@ -230,7 +230,7 @@ class AgentRegistrationServiceTest extends BaseServiceTest {
         // When/Then
         assertThatThrownBy(() -> agentRegistrationService.registerAgent(request))
                 .isInstanceOf(AgentRegistrationService.RegistrationException.class)
-                .hasMessageContaining("Cryptographic error");
+                .hasMessageContaining("Cryptographic operation failed");
     }
 
     // ========== Block Agent Tests ==========

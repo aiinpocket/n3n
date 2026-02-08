@@ -350,7 +350,7 @@ public class ExecutionService {
             runExecution(executionId);
         } catch (Exception e) {
             log.error("EXECUTION_FAILED error={}", e.getMessage(), e);
-            updateExecutionFailed(executionId, e.getMessage());
+            updateExecutionFailed(executionId, "Execution failed");
         } finally {
             LogContext.clearExecutionContext();
         }
@@ -554,7 +554,7 @@ public class ExecutionService {
                     continue;
                 } else {
                     // No error handling path, fail the execution
-                    updateExecutionFailed(executionId, "Node " + nodeId + " failed: " + e.getMessage());
+                    updateExecutionFailed(executionId, "Node execution failed");
                     return;
                 }
             }
@@ -656,7 +656,7 @@ public class ExecutionService {
             runExecution(executionId, resumeData);
         } catch (Exception e) {
             log.error("Execution failed: {}", executionId, e);
-            updateExecutionFailed(executionId, e.getMessage());
+            updateExecutionFailed(executionId, "Execution failed");
         }
     }
 

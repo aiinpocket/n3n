@@ -206,7 +206,7 @@ public class KubernetesContainerOrchestrator implements ContainerOrchestrator {
 
         } catch (Exception e) {
             log.error("Failed to create K8s resources for: {}", sanitizedName, e);
-            throw new RuntimeException("Failed to create K8s resources: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to create K8s resources", e);
         }
     }
 
@@ -278,7 +278,7 @@ public class KubernetesContainerOrchestrator implements ContainerOrchestrator {
                     .getLog();
         } catch (Exception e) {
             log.error("Failed to get K8s logs for: {}", containerId, e);
-            return "Failed to get logs: " + e.getMessage();
+            return "Failed to get logs";
         }
     }
 

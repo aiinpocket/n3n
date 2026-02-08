@@ -114,7 +114,7 @@ public class FetchUrlSkill implements BuiltinSkill {
 
         } catch (Exception e) {
             log.error("Failed to fetch URL {}: {}", url, e.getMessage());
-            return SkillResult.failure("FETCH_ERROR", "Failed to fetch URL: " + e.getMessage());
+            return SkillResult.failure("FETCH_ERROR", "Failed to fetch URL");
         }
     }
 }
