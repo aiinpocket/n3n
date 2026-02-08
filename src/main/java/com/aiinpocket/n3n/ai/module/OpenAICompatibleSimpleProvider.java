@@ -84,18 +84,24 @@ public class OpenAICompatibleSimpleProvider implements SimpleAIProvider {
                 .block();
 
             if (response != null && response.containsKey("choices")) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-                if (!choices.isEmpty()) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                Object choicesObj = response.get("choices");
+                if (choicesObj instanceof List<?> choicesList && !choicesList.isEmpty()) {
+                    Object firstChoice = choicesList.get(0);
+                    if (firstChoice instanceof Map<?, ?> choiceMap) {
+                        Object messageObj = choiceMap.get("message");
+                        if (messageObj instanceof Map<?, ?> messageMap) {
+                            Object content = messageMap.get("content");
+                            if (content instanceof String s) {
+                                return s;
+                            }
+                        }
+                    }
                 }
             }
             throw new RuntimeException("Invalid response from " + name);
         } catch (WebClientResponseException e) {
             log.error("{} API error: {}", name, e.getMessage());
-            throw new RuntimeException(name + " service error: " + e.getMessage());
+            throw new RuntimeException(name + " service error");
         }
     }
 }

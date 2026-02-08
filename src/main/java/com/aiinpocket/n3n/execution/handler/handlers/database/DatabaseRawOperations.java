@@ -94,6 +94,16 @@ final class DatabaseRawOperations {
             String sql = statements.get(i);
             Map<String, Object> statementResult = new LinkedHashMap<>();
             statementResult.put("index", i);
+
+            if (sql == null || sql.isBlank()) {
+                statementResult.put("success", false);
+                statementResult.put("error", "Empty or null SQL statement");
+                errorCount++;
+                results.add(statementResult);
+                if (stopOnError) break;
+                continue;
+            }
+
             statementResult.put("sql", sql.length() > 100 ? sql.substring(0, 100) + "..." : sql);
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {

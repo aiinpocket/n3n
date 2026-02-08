@@ -225,7 +225,7 @@ public class AiProviderService {
             }
         } catch (Exception e) {
             log.error("Connection test failed for config {}", configId, e);
-            return TestConnectionResponse.failed("連線失敗: " + e.getMessage());
+            return TestConnectionResponse.failed("連線失敗");
         }
     }
 
@@ -249,7 +249,7 @@ public class AiProviderService {
             throw new RuntimeException("Failed to fetch models: request timed out", e);
         } catch (Exception e) {
             log.error("Failed to fetch models for config {}", configId, e);
-            throw new RuntimeException("Failed to fetch models: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch models", e);
         }
     }
 
@@ -266,7 +266,7 @@ public class AiProviderService {
                     .toList();
         } catch (Exception e) {
             log.error("Failed to fetch models for provider {}", providerId, e);
-            throw new RuntimeException("Failed to fetch models: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch models", e);
         }
     }
 
@@ -308,7 +308,7 @@ public class AiProviderService {
             return cred.getId();
         } catch (Exception e) {
             log.error("Failed to create credential for AI provider", e);
-            throw new RuntimeException("Failed to save API key: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to save API key", e);
         }
     }
 
