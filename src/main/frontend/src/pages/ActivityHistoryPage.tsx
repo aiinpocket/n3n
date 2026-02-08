@@ -238,9 +238,11 @@ export default function ActivityHistoryPage() {
     }
   }, [activeTab, isAdmin, t])
 
+  // Initial load only
   useEffect(() => {
     fetchActivities(0, pageSize, typeFilter)
-  }, [fetchActivities, pageSize, typeFilter])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)

@@ -61,10 +61,10 @@ export default function ExecutionListPage() {
   // Real-time updates from WebSocket
   const { executions: realtimeExecutions, isConnected } = useAllExecutions()
 
-  const loadExecutions = useCallback(async (page = 1, pageSize = 20, status?: string, search?: string) => {
+  const loadExecutions = useCallback(async (page = 1, size = 20, status?: string, search?: string) => {
     setLoading(true)
     try {
-      const data = await executionApi.list(page - 1, pageSize, status ?? statusFilter, search ?? searchValue)
+      const data = await executionApi.list(page - 1, size, status, search)
       setExecutions(data.content)
       setPagination({
         current: data.number + 1,
@@ -77,11 +77,13 @@ export default function ExecutionListPage() {
     } finally {
       setLoading(false)
     }
-  }, [t, statusFilter, searchValue])
+  }, [t])
 
+  // Initial load only
   useEffect(() => {
     loadExecutions()
-  }, [loadExecutions])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value)
@@ -118,7 +120,7 @@ export default function ExecutionListPage() {
           const resp = await apiClient.delete('/executions/batch', { data: { ids: selectedRowKeys } })
           message.success(t('execution.batchDeleteSuccess', { count: resp.data.deleted }))
           setSelectedRowKeys([])
-          loadExecutions()
+          loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
         } catch {
           message.error(t('common.deleteFailed'))
         } finally {
@@ -213,7 +215,7 @@ export default function ExecutionListPage() {
                   try {
                     await apiClient.delete(`/executions/batch`, { data: { ids: [record.id] } })
                     message.success(t('common.success'))
-                    loadExecutions()
+                    loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
                   } catch {
                     message.error(t('common.deleteFailed'))
                   }
@@ -256,7 +258,7 @@ export default function ExecutionListPage() {
               </Select.Option>
             ))}
           </Select>
-          <Button icon={<ReloadOutlined />} onClick={() => loadExecutions(pagination.current, pagination.pageSize)}>
+          <Button icon={<ReloadOutlined />} onClick={() => loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)}>
             {t('common.refresh')}
           </Button>
         </Space>
