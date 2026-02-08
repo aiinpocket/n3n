@@ -127,8 +127,12 @@ public class MetricsAggregationService {
             if (connFactory == null) throw new IllegalStateException("Redis connection factory not available");
             var conn = connFactory.getConnection();
             if (conn == null) throw new IllegalStateException("Redis connection not available");
-            String pong = conn.ping();
-            redisStatus = "PONG".equals(pong) ? "UP" : "DOWN";
+            try {
+                String pong = conn.ping();
+                redisStatus = "PONG".equals(pong) ? "UP" : "DOWN";
+            } finally {
+                conn.close();
+            }
         } catch (Exception e) {
             log.warn("Redis health check failed: {}", e.getMessage());
             redisStatus = "DOWN";

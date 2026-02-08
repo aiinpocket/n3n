@@ -186,9 +186,13 @@ public class NaturalLanguageModule {
 
                 // Phase 6: Emit nodes one by one (85-95%)
                 @SuppressWarnings("unchecked")
-                List<Map<String, Object>> nodes = (List<Map<String, Object>>) result.flowDefinition().get("nodes");
+                List<Map<String, Object>> nodes = result.flowDefinition().get("nodes") != null
+                        ? (List<Map<String, Object>>) result.flowDefinition().get("nodes")
+                        : List.of();
                 @SuppressWarnings("unchecked")
-                List<Map<String, String>> edges = (List<Map<String, String>>) result.flowDefinition().get("edges");
+                List<Map<String, String>> edges = result.flowDefinition().get("edges") != null
+                        ? (List<Map<String, String>>) result.flowDefinition().get("edges")
+                        : List.of();
 
                 int totalNodes = nodes.size();
                 int nodeIndex = 0;

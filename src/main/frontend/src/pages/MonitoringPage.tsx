@@ -12,7 +12,7 @@ import { useMonitoringStore } from '../stores/monitoringStore'
 const { Text } = Typography
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
+  if (!bytes || bytes <= 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -62,7 +62,7 @@ export default function MonitoringPage() {
     ? Math.round((systemMetrics.heapUsed / systemMetrics.heapMax) * 100)
     : 0
 
-  const cpuPercent = systemMetrics
+  const cpuPercent = systemMetrics && systemMetrics.cpuUsage != null
     ? Math.min(100, Math.max(0, Math.round(systemMetrics.cpuUsage * 100)))
     : 0
 
