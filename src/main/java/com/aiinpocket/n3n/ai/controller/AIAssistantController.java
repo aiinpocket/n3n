@@ -199,8 +199,8 @@ public class AIAssistantController {
      */
     @GetMapping("/similar-flows")
     public ResponseEntity<List<SimilarFlow>> getSimilarFlows(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "5") int limit,
+            @RequestParam @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 500) String query,
+            @RequestParam(defaultValue = "5") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(20) int limit,
             Principal principal) {
         log.info("Finding similar flows for query: {}",
             query != null ? query.substring(0, Math.min(50, query.length())) + "..." : "null");

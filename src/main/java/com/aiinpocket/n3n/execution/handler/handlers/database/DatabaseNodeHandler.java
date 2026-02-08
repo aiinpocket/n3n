@@ -300,10 +300,10 @@ public class DatabaseNodeHandler extends MultiOperationNodeHandler {
             };
         } catch (SQLException e) {
             log.error("Database error: {} - {}", e.getSQLState(), e.getMessage());
-            return NodeExecutionResult.failure("Database error: " + e.getMessage());
+            return NodeExecutionResult.failure("Database error [" + e.getSQLState() + "]: " + sanitizeSqlError(e.getMessage()));
         } catch (Exception e) {
             log.error("Database operation failed: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("Database operation failed: " + e.getMessage());
+            return NodeExecutionResult.failure("Database operation failed: " + sanitizeError(e.getMessage()));
         }
     }
 
@@ -437,6 +437,31 @@ public class DatabaseNodeHandler extends MultiOperationNodeHandler {
             case "oracle" -> 1521;
             default -> 0;
         };
+    }
+
+    /**
+     * Sanitize SQL error messages to prevent leaking connection details (host, port, credentials).
+     * Keeps the core error message but strips JDBC URL patterns and stack trace fragments.
+     */
+    private String sanitizeSqlError(String message) {
+        if (message == null) return "Unknown database error";
+        // Strip JDBC URLs: jdbc:postgresql://host:port/db
+        String sanitized = message.replaceAll("jdbc:[a-z]+://[^\\s,;)]+", "jdbc:***");
+        // Strip IP addresses
+        sanitized = sanitized.replaceAll("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?", "***");
+        // Truncate overly long messages
+        if (sanitized.length() > 500) {
+            sanitized = sanitized.substring(0, 500) + "...";
+        }
+        return sanitized;
+    }
+
+    private String sanitizeError(String message) {
+        if (message == null) return "Unknown error";
+        if (message.length() > 300) {
+            return message.substring(0, 300) + "...";
+        }
+        return message;
     }
 
     @Override

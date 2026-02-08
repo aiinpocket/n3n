@@ -202,10 +202,10 @@ export default function ApprovalsPage() {
       <Card
         title={
           <Space>
-            <ExclamationCircleOutlined style={{ color: '#F59E0B' }} />
+            <ExclamationCircleOutlined style={{ color: 'var(--color-warning)' }} />
             <span>{t('approvals.title')}</span>
             {approvals.length > 0 && (
-              <Badge count={approvals.length} style={{ backgroundColor: '#F59E0B' }} />
+              <Badge count={approvals.length} style={{ backgroundColor: 'var(--color-warning)' }} />
             )}
           </Space>
         }
@@ -217,7 +217,7 @@ export default function ApprovalsPage() {
       >
         {approvals.length === 0 ? (
           <Empty
-            image={<CheckCircleOutlined style={{ fontSize: 48, color: '#22C55E' }} />}
+            image={<CheckCircleOutlined style={{ fontSize: 48, color: 'var(--color-success)' }} />}
             description={t('approvals.noPending')}
           />
         ) : (
@@ -309,9 +309,9 @@ export default function ApprovalsPage() {
                   <div key={action.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
                     <Space>
                       {action.action === 'approve' ? (
-                        <CheckCircleOutlined style={{ color: '#22C55E' }} />
+                        <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
                       ) : (
-                        <CloseCircleOutlined style={{ color: '#EF4444' }} />
+                        <CloseCircleOutlined style={{ color: 'var(--color-error)' }} />
                       )}
                       <Text strong>{action.action}</Text>
                       {action.comment && <Text type="secondary">- {action.comment}</Text>}

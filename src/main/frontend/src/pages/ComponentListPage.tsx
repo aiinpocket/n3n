@@ -67,7 +67,7 @@ const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]
 export default function ComponentListPage() {
   const { t } = useTranslation()
   const [components, setComponents] = useState<ComponentResponse[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [pagination, setPagination] = useState<TablePaginationConfig>({
     current: 1,
     pageSize: 20,

@@ -94,7 +94,7 @@ function TemplateCard({
                   top: 8,
                   right: 8,
                   fontSize: 16,
-                  color: '#F59E0B',
+                  color: 'var(--color-warning)',
                 }}
               />
             </Tooltip>

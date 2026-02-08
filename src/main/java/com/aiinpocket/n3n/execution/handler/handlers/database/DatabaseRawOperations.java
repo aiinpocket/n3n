@@ -19,6 +19,11 @@ final class DatabaseRawOperations {
 
     private DatabaseRawOperations() {}
 
+    private static String truncate(String s, int maxLen) {
+        if (s == null) return "Unknown error";
+        return s.length() > maxLen ? s.substring(0, maxLen) + "..." : s;
+    }
+
     static NodeExecutionResult execute(
             Connection conn,
             String operation,
@@ -106,7 +111,9 @@ final class DatabaseRawOperations {
                 successCount++;
             } catch (SQLException e) {
                 statementResult.put("success", false);
-                statementResult.put("error", e.getMessage());
+                statementResult.put("error", e.getSQLState() != null
+                    ? "SQL error [" + e.getSQLState() + "]: " + truncate(e.getMessage(), 300)
+                    : truncate(e.getMessage(), 300));
                 errorCount++;
 
                 if (stopOnError) {

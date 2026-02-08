@@ -123,10 +123,10 @@ export default function HousekeepingPage() {
 
   const statusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return <CheckCircleOutlined style={{ color: '#22C55E' }} />
-      case 'FAILED': return <CloseCircleOutlined style={{ color: '#EF4444' }} />
-      case 'RUNNING': return <LoadingOutlined style={{ color: '#3B82F6' }} />
-      default: return <ClockCircleOutlined style={{ color: '#F59E0B' }} />
+      case 'COMPLETED': return <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
+      case 'FAILED': return <CloseCircleOutlined style={{ color: 'var(--color-error)' }} />
+      case 'RUNNING': return <LoadingOutlined style={{ color: 'var(--color-info)' }} />
+      default: return <ClockCircleOutlined style={{ color: 'var(--color-warning)' }} />
     }
   }
 
@@ -249,7 +249,7 @@ export default function HousekeepingPage() {
               <Statistic
                 title={t('housekeeping.oldExecutions')}
                 value={stats.oldExecutions}
-                valueStyle={stats.oldExecutions > 0 ? { color: '#F59E0B' } : undefined}
+                valueStyle={stats.oldExecutions > 0 ? { color: 'var(--color-warning)' } : undefined}
               />
             </Col>
             <Col xs={12} sm={8} md={6}>

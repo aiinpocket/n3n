@@ -324,7 +324,7 @@ const AISettingsPage: React.FC = () => {
               emptyText: (
                 <div style={{ padding: 40 }}>
                   <ApiOutlined
-                    style={{ fontSize: 48, color: '#ccc', marginBottom: 16 }}
+                    style={{ fontSize: 48, color: 'var(--color-text-tertiary)', marginBottom: 16 }}
                   />
                   <div>{t('ai.noConfigs')}</div>
                   <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>

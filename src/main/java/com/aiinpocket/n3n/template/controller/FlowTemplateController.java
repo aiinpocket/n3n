@@ -81,7 +81,7 @@ public class FlowTemplateController {
     @PostMapping("/{id}/use")
     public ResponseEntity<FlowResponse> createFlowFromTemplate(
             @PathVariable UUID id,
-            @RequestParam String flowName,
+            @RequestParam @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 255) String flowName,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)

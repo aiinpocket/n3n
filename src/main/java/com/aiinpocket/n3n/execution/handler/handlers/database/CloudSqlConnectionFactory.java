@@ -85,7 +85,7 @@ public class CloudSqlConnectionFactory {
                 return createDataSource(dbType, instanceConnection, database, username, password,
                     serviceAccountJson, enableIamAuth);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to create Cloud SQL data source: " + e.getMessage(), e);
+                throw new RuntimeException("Failed to create Cloud SQL data source", e);
             }
         });
 

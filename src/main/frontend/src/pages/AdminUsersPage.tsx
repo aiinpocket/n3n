@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
   const { t } = useTranslation()
   const { user: currentUser } = useAuthStore()
   const [users, setUsers] = useState<AdminUser[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [createModalOpen, setCreateModalOpen] = useState(false)

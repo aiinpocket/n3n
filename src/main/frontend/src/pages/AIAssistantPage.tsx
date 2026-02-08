@@ -221,7 +221,7 @@ const AIAssistantPage: React.FC = () => {
             </div>
           ) : !currentConversation ? (
             <Empty
-              image={<RobotOutlined style={{ fontSize: 64, color: '#ccc' }} />}
+              image={<RobotOutlined style={{ fontSize: 64, color: 'var(--color-text-tertiary)' }} />}
               description={
                 <div>
                   <Paragraph>{t('chat.welcome')}</Paragraph>

@@ -138,7 +138,10 @@ public class ExecutionApprovalController {
     // DTO classes
 
     public record ApprovalRequest(
+        @jakarta.validation.constraints.NotBlank
+        @jakarta.validation.constraints.Pattern(regexp = "^(approve|reject)$", message = "Action must be 'approve' or 'reject'")
         String action,
+        @jakarta.validation.constraints.Size(max = 1000)
         String comment
     ) {
         public String getAction() { return action; }

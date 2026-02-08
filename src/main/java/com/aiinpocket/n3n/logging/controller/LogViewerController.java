@@ -41,7 +41,7 @@ public class LogViewerController {
     public List<LogEntry> getLogs(
             @RequestParam(required = false) String level,
             @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "100") int limit) {
+            @RequestParam(defaultValue = "100") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(1000) int limit) {
         return logBuffer.query(level, search, limit);
     }
 

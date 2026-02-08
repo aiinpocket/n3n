@@ -400,11 +400,11 @@ export default function ExecutionPage() {
             <Card
               title={
                 <Space>
-                  <ExclamationCircleOutlined style={{ color: '#F59E0B' }} />
+                  <ExclamationCircleOutlined style={{ color: 'var(--color-warning)' }} />
                   <span>{t('approval.title')}</span>
                 </Space>
               }
-              style={{ borderColor: '#F59E0B', borderWidth: 2 }}
+              style={{ borderColor: 'var(--color-warning)', borderWidth: 2 }}
               size="small"
             >
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
