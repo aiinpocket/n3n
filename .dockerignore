@@ -1,29 +1,40 @@
-# Build outputs
-target/
-src/main/frontend/node_modules/
-src/main/frontend/dist/
-
-# IDE
-.idea/
-*.iml
-.vscode/
-
-# Git
-.git/
+# Version control
+.git
 .gitignore
 
-# Docker
-Dockerfile*
-docker-compose*.yml
-.dockerignore
+# IDE
+.idea
+.vscode
+*.iml
+
+# Build artifacts
+target/
+!target/classes/
+!target/generated-sources/
+
+# Frontend dev files
+src/main/frontend/node_modules/
+src/main/frontend/.cache/
+src/main/frontend/dist/
 
 # Documentation
 *.md
+!README.md
 LICENSE
+
+# Local config
+.env
+.env.local
+CLAUDE.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+src/test/
+e2e/
 
 # Logs
 *.log
-
-# OS
-.DS_Store
-Thumbs.db
+logs/

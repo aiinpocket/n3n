@@ -34,6 +34,12 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     restart: unless-stopped
 
   # PostgreSQL Database
@@ -54,6 +60,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
     restart: unless-stopped
 
   # Redis Cache
@@ -71,6 +83,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
     restart: unless-stopped
 
   # MongoDB for testing workflows
@@ -90,6 +108,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
     restart: unless-stopped
 
   # Flow Optimizer Service (Local AI - Phi-3-Mini for flow optimization)

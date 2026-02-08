@@ -221,7 +221,8 @@ export default function FlowEditorPage() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [isDirty, saving, autoSaveDraft, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty, saving, autoSaveDraft])
 
   // Warn before closing with unsaved changes
   useEffect(() => {
