@@ -67,8 +67,19 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
   const mountedRef = useRef(true)
 
   useEffect(() => {
+    mountedRef.current = true
     return () => { mountedRef.current = false }
   }, [])
+
+  // Reset state when panel closes
+  useEffect(() => {
+    if (visible) {
+      setResult(null)
+      setError(null)
+      setAppliedIds(new Set())
+      setApplying(false)
+    }
+  }, [visible])
 
   const handleAnalyze = async () => {
     if (!flowDefinition) return
@@ -82,8 +93,8 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
       if (!mountedRef.current) return
       setResult(response)
 
-      if (!response.success && response.error) {
-        setError(response.error)
+      if (!response.success) {
+        setError(response.error || t('optimizer.analyzeFailed'))
       }
     } catch {
       if (!mountedRef.current) return
@@ -233,13 +244,13 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
   const renderSuggestionsByType = () => {
     if (!result?.suggestions?.length) return null
 
-    const grouped = result.suggestions.reduce((acc, suggestion) => {
+    const grouped = result.suggestions.reduce((acc, suggestion, index) => {
       if (!acc[suggestion.type]) {
         acc[suggestion.type] = []
       }
-      acc[suggestion.type].push(suggestion)
+      acc[suggestion.type].push({ suggestion, originalIndex: index })
       return acc
-    }, {} as Record<string, OptimizationSuggestion[]>)
+    }, {} as Record<string, { suggestion: OptimizationSuggestion; originalIndex: number }[]>)
 
     return (
       <Collapse
@@ -256,7 +267,7 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
               <Badge count={suggestions.length} style={{ backgroundColor: 'var(--color-text-muted)' }} />
             </Space>
           ),
-          children: suggestions.map((s, i) => renderSuggestion(s, i)),
+          children: suggestions.map(({ suggestion: s, originalIndex }) => renderSuggestion(s, originalIndex)),
         }))}
       />
     )

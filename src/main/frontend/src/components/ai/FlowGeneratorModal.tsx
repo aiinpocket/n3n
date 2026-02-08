@@ -653,11 +653,19 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   {msg.suggestions.map((suggestion, sIdx) => (
                     <Tag
                       key={sIdx}
+                      role="button"
+                      tabIndex={0}
                       style={{
                         cursor: 'pointer',
                         borderStyle: 'dashed',
                       }}
                       onClick={() => handleSendMessage(suggestion)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSendMessage(suggestion)
+                        }
+                      }}
                     >
                       {suggestion}
                     </Tag>
@@ -780,6 +788,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   type="text"
                   size="small"
                   danger={isListening}
+                  aria-label={isListening ? t('flowGenerator.stopVoice') : t('flowGenerator.startVoice')}
                   icon={isListening ? <AudioMutedOutlined /> : <AudioOutlined />}
                   onClick={isListening ? stopListening : startListening}
                 />
