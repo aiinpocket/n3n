@@ -4,6 +4,40 @@ import apiClient from '../api/client'
 import { extractApiError } from '../utils/errorMessages'
 import i18n from '../i18n'
 
+/**
+ * Reset all Zustand stores on logout.
+ * Lazy-imported to avoid circular dependencies.
+ */
+function resetAllStores() {
+  // Use dynamic imports to avoid circular dependency issues
+  // Each store's setState resets to initial values
+  import('./credentialStore').then(m => m.useCredentialStore.setState({
+    credentials: [], credentialTypes: [], loading: false, error: null,
+    totalElements: 0, totalPages: 0, currentPage: 0,
+  })).catch(() => {})
+  import('./webhookStore').then(m => m.useWebhookStore.setState({
+    webhooks: [], flowWebhooks: [], selectedWebhook: null, isLoading: false, error: null,
+  })).catch(() => {})
+  import('./serviceStore').then(m => m.useServiceStore.setState({
+    services: [], currentService: null, isLoading: false, error: null,
+    totalElements: 0, currentPage: 0, pageSize: 20,
+  })).catch(() => {})
+  import('./skillStore').then(m => m.useSkillStore.setState({
+    skills: [], builtinSkills: [], categories: [], selectedSkill: null, isLoading: false, error: null,
+  })).catch(() => {})
+  import('./aiStore').then(m => m.useAiStore.setState({
+    providerTypes: [], providerTypesLoading: false, configs: [], configsLoading: false,
+    selectedConfigId: null, models: [], modelsLoading: false,
+    testResult: null, testLoading: false, error: null,
+  })).catch(() => {})
+  import('./aiAssistantStore').then(m => m.useAIAssistantStore.setState({
+    isPanelOpen: false, currentSession: null, sessions: [],
+    isStreaming: false, streamingContent: '', streamingStage: '',
+    pendingChanges: [], currentFlowId: null, currentFlowDefinition: null,
+    flowHistory: [], historyIndex: -1, error: null,
+  })).catch(() => {})
+}
+
 interface User {
   id: string
   email: string
@@ -131,6 +165,8 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
         })
+        // Clear all other stores to prevent data leakage between sessions
+        resetAllStores()
       },
 
       refreshAccessToken: async () => {

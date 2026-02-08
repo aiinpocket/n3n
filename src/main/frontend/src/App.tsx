@@ -91,6 +91,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  if (!user?.roles?.includes('ADMIN')) {
+    return <Navigate to="/" replace />
+  }
+  return <>{children}</>
+}
+
 function App() {
   const { i18n } = useTranslation()
   const currentLocale = antdLocales[i18n.language as keyof typeof antdLocales] || enUS
@@ -202,7 +213,7 @@ function App() {
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="logs" element={<LogViewerPage />} />
             <Route path="activities" element={<ActivityHistoryPage />} />
-            <Route path="admin/users" element={<AdminUsersPage />} />
+            <Route path="admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 

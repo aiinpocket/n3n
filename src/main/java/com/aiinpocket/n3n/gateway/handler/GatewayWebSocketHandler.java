@@ -434,9 +434,14 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
         return null;
     }
 
+    private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
+
     private String generateDeviceToken(UUID userId, String deviceId) {
         long timestamp = System.currentTimeMillis();
-        String signature = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        // Use cryptographically secure random bytes instead of UUID
+        byte[] randomBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        String signature = java.util.HexFormat.of().formatHex(randomBytes);
         String tokenData = userId.toString() + ":" + deviceId + ":" + timestamp + ":" + signature;
         return Base64.getEncoder().encodeToString(tokenData.getBytes());
     }

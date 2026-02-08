@@ -271,13 +271,16 @@ public class AgentPairingService {
         }
     }
 
+    private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
+
     /**
-     * Generate a secure device token
+     * Generate a secure device token using cryptographically strong random bytes
      */
     private String generateDeviceToken(UUID userId, String deviceId) {
         long timestamp = System.currentTimeMillis();
-        String signature = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-
+        byte[] randomBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        String signature = java.util.HexFormat.of().formatHex(randomBytes);
         String tokenData = userId.toString() + ":" + deviceId + ":" + timestamp + ":" + signature;
         return Base64.getEncoder().encodeToString(tokenData.getBytes());
     }

@@ -77,6 +77,10 @@ apiClient.interceptors.response.use(
         }
         await refreshPromise
         const { accessToken } = useAuthStore.getState()
+        if (!accessToken) {
+          // Refresh succeeded but returned no token — treat as session expired
+          throw new Error('No access token after refresh')
+        }
         config.headers.Authorization = `Bearer ${accessToken}`
         return apiClient(config)
       } catch {
