@@ -361,7 +361,11 @@ public class OpenAINodeHandler extends MultiOperationNodeHandler {
             }
 
             JsonNode json = objectMapper.readTree(responseBody);
-            JsonNode embeddingNode = json.path("data").get(0).path("embedding");
+            JsonNode dataArray = json.path("data");
+            if (!dataArray.isArray() || dataArray.isEmpty()) {
+                return NodeExecutionResult.failure("OpenAI API returned no embedding data");
+            }
+            JsonNode embeddingNode = dataArray.get(0).path("embedding");
 
             List<Double> embedding = new ArrayList<>();
             for (JsonNode value : embeddingNode) {
