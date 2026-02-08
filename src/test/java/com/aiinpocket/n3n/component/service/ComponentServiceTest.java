@@ -65,7 +65,7 @@ class ComponentServiceTest extends BaseServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Component> page = new PageImpl<>(List.of(testComponent));
             when(componentRepository.findByIsDeletedFalse(pageable)).thenReturn(page);
-            when(componentVersionRepository.findByComponentIdOrderByCreatedAtDesc(componentId))
+            when(componentVersionRepository.findByComponentIdIn(List.of(componentId)))
                 .thenReturn(List.of());
 
             Page<ComponentResponse> result = componentService.listComponents(pageable);
@@ -89,7 +89,7 @@ class ComponentServiceTest extends BaseServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Component> page = new PageImpl<>(List.of(testComponent));
             when(componentRepository.findByCategoryAndIsDeletedFalse("integration", pageable)).thenReturn(page);
-            when(componentVersionRepository.findByComponentIdOrderByCreatedAtDesc(componentId))
+            when(componentVersionRepository.findByComponentIdIn(List.of(componentId)))
                 .thenReturn(List.of());
 
             Page<ComponentResponse> result = componentService.listComponentsByCategory("integration", pageable);

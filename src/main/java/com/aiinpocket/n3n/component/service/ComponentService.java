@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,13 +27,13 @@ public class ComponentService {
     private final ComponentVersionRepository componentVersionRepository;
 
     public Page<ComponentResponse> listComponents(Pageable pageable) {
-        return componentRepository.findByIsDeletedFalse(pageable)
-            .map(this::enrichComponent);
+        Page<Component> page = componentRepository.findByIsDeletedFalse(pageable);
+        return enrichComponentPage(page);
     }
 
     public Page<ComponentResponse> listComponentsByCategory(String category, Pageable pageable) {
-        return componentRepository.findByCategoryAndIsDeletedFalse(category, pageable)
-            .map(this::enrichComponent);
+        Page<Component> page = componentRepository.findByCategoryAndIsDeletedFalse(category, pageable);
+        return enrichComponentPage(page);
     }
 
     public ComponentResponse getComponent(UUID id) {
@@ -186,6 +187,38 @@ public class ComponentService {
         log.info("Component version deprecated: componentId={}, version={}", componentId, version);
 
         return ComponentVersionResponse.from(v);
+    }
+
+    /**
+     * Batch-enrich a page of components to avoid N+1 queries.
+     */
+    private Page<ComponentResponse> enrichComponentPage(Page<Component> page) {
+        List<UUID> componentIds = page.getContent().stream()
+            .map(Component::getId)
+            .toList();
+
+        if (componentIds.isEmpty()) {
+            return page.map(ComponentResponse::from);
+        }
+
+        // Single batch query for all versions
+        Map<UUID, List<ComponentVersion>> versionsByComponent =
+            componentVersionRepository.findByComponentIdIn(componentIds).stream()
+                .collect(Collectors.groupingBy(ComponentVersion::getComponentId));
+
+        return page.map(component -> {
+            List<ComponentVersion> versions = versionsByComponent.getOrDefault(component.getId(), List.of());
+            String latestVersion = versions.stream()
+                .max((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()))
+                .map(ComponentVersion::getVersion)
+                .orElse(null);
+            String activeVersion = versions.stream()
+                .filter(v -> "active".equals(v.getStatus()))
+                .findFirst()
+                .map(ComponentVersion::getVersion)
+                .orElse(null);
+            return ComponentResponse.from(component, latestVersion, activeVersion);
+        });
     }
 
     private ComponentResponse enrichComponent(Component component) {

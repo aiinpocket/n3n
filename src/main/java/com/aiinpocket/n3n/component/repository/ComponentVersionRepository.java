@@ -13,6 +13,8 @@ public interface ComponentVersionRepository extends JpaRepository<ComponentVersi
 
     List<ComponentVersion> findByComponentIdOrderByCreatedAtDesc(UUID componentId);
 
+    List<ComponentVersion> findByComponentIdIn(List<UUID> componentIds);
+
     Optional<ComponentVersion> findByComponentIdAndVersion(UUID componentId, String version);
 
     Optional<ComponentVersion> findByComponentIdAndStatus(UUID componentId, String status);

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,17 @@ public class RegexTool implements AgentNodeTool {
     // Security limits
     private static final int MAX_INPUT_LENGTH = 100000;
     private static final int MAX_MATCHES = 1000;
+    private static final int MAX_PATTERN_LENGTH = 1000;
+    private static final int PATTERN_CACHE_SIZE = 64;
+
+    // LRU pattern cache to avoid recompilation
+    @SuppressWarnings("serial")
+    private final Map<String, Pattern> patternCache = new LinkedHashMap<>(PATTERN_CACHE_SIZE, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Pattern> eldest) {
+            return size() > PATTERN_CACHE_SIZE;
+        }
+    };
 
     @Override
     public String getId() {
@@ -100,6 +112,9 @@ public class RegexTool implements AgentNodeTool {
                 if (patternStr == null || patternStr.isEmpty()) {
                     return ToolResult.failure("Regex pattern cannot be empty");
                 }
+                if (patternStr.length() > MAX_PATTERN_LENGTH) {
+                    return ToolResult.failure("Regex pattern too long (maximum " + MAX_PATTERN_LENGTH + " characters)");
+                }
                 if (text.length() > MAX_INPUT_LENGTH) {
                     return ToolResult.failure("Input text too long (maximum " + MAX_INPUT_LENGTH + " characters)");
                 }
@@ -109,14 +124,17 @@ public class RegexTool implements AgentNodeTool {
                 String flags = (String) parameters.getOrDefault("flags", "");
 
                 // Compile regex
-                int patternFlags = 0;
-                if (flags.contains("i")) patternFlags |= Pattern.CASE_INSENSITIVE;
-                if (flags.contains("m")) patternFlags |= Pattern.MULTILINE;
-                if (flags.contains("s")) patternFlags |= Pattern.DOTALL;
+                int flagsBits = 0;
+                if (flags.contains("i")) flagsBits |= Pattern.CASE_INSENSITIVE;
+                if (flags.contains("m")) flagsBits |= Pattern.MULTILINE;
+                if (flags.contains("s")) flagsBits |= Pattern.DOTALL;
+                final int patternFlags = flagsBits;
 
+                String cacheKey = patternStr + "|" + patternFlags;
                 Pattern pattern;
                 try {
-                    pattern = Pattern.compile(patternStr, patternFlags);
+                    pattern = patternCache.computeIfAbsent(cacheKey,
+                        k -> Pattern.compile(patternStr, patternFlags));
                 } catch (PatternSyntaxException e) {
                     return ToolResult.failure("Invalid regular expression");
                 }
