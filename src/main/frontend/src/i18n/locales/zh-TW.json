@@ -398,6 +398,8 @@
     "lowPriority": "低",
     "applySuggestion": "套用此建議",
     "applyAll": "全部套用",
+    "applyAllConfirmTitle": "確定要全部套用嗎？",
+    "applyAllConfirmContent": "這將套用 {{count}} 項優化建議到您的流程中。您可以使用 Ctrl+Z 復原。",
     "applied": "已套用",
     "applySuccess": "已成功套用 {{count}} 項建議",
     "applyFailed": "套用建議失敗",

@@ -398,6 +398,8 @@
     "lowPriority": "低",
     "applySuggestion": "この提案を適用",
     "applyAll": "すべて適用",
+    "applyAllConfirmTitle": "すべての提案を適用しますか？",
+    "applyAllConfirmContent": "{{count}}件の最適化提案をフローに適用します。Ctrl+Zで元に戻せます。",
     "applied": "適用済み",
     "applySuccess": "{{count}}件の提案を適用しました",
     "applyFailed": "提案の適用に失敗しました",

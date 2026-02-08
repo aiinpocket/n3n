@@ -360,6 +360,13 @@ export default function FlowEditorPage() {
       e.preventDefault()
       setNodeSearchOpen(true)
     }
+    // Ctrl+Alt+O or Cmd+Alt+O to open optimization panel
+    if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'o' || e.key === 'O')) {
+      e.preventDefault()
+      if (nodes.length > 0) {
+        setOptimizationPanelOpen(true)
+      }
+    }
   }
   useEffect(() => {
     const handler = (e: KeyboardEvent) => keyboardHandlerRef.current(e)
@@ -710,7 +717,7 @@ export default function FlowEditorPage() {
                   {
                     key: 'optimize',
                     icon: <RocketOutlined />,
-                    label: t('editor.aiOptimize'),
+                    label: <>{t('editor.aiOptimize')} <Tag style={{ margin: 0, fontSize: 10 }}>Ctrl+Alt+O</Tag></>,
                     disabled: nodes.length === 0,
                     onClick: () => setOptimizationPanelOpen(true),
                   },

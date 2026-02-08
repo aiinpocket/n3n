@@ -398,6 +398,8 @@
     "lowPriority": "Low",
     "applySuggestion": "Apply this suggestion",
     "applyAll": "Apply All",
+    "applyAllConfirmTitle": "Apply All Suggestions?",
+    "applyAllConfirmContent": "This will apply {{count}} optimization suggestions to your flow. You can undo with Ctrl+Z.",
     "applied": "Applied",
     "applySuccess": "Successfully applied {{count}} suggestions",
     "applyFailed": "Failed to apply suggestions",

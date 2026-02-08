@@ -13,6 +13,7 @@ import {
   Tooltip,
   Badge,
   Divider,
+  Modal,
   message,
 } from 'antd'
 import {
@@ -161,7 +162,15 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
     if (!result?.suggestions) return
     const allIds = result.suggestions.map((_, i) => `suggestion-${i}`)
       .filter(id => !appliedIds.has(id))
-    handleApplySuggestions(allIds)
+    if (allIds.length === 0) return
+    Modal.confirm({
+      title: t('optimizer.applyAllConfirmTitle'),
+      content: t('optimizer.applyAllConfirmContent', { count: allIds.length }),
+      okText: t('optimizer.applyAll'),
+      cancelText: t('common.cancel'),
+      onOk: () => handleApplySuggestions(allIds),
+    })
+    return // prevent immediate execution
   }
 
   const renderSuggestion = (suggestion: OptimizationSuggestion, index: number) => {
