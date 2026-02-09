@@ -110,9 +110,8 @@ export async function deleteConfig(id: string): Promise<void> {
 /**
  * 設為預設
  */
-export async function setAsDefault(id: string): Promise<AiProviderConfig> {
-  const response = await apiClient.post(`/ai/providers/configs/${id}/default`)
-  return response.data
+export async function setAsDefault(id: string): Promise<void> {
+  await apiClient.post(`/ai/providers/configs/${id}/default`)
 }
 
 /**
