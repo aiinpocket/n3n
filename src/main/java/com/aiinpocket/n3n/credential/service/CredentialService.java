@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.common.constant.Status;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
+import com.aiinpocket.n3n.credential.dto.UpdateCredentialRequest;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
@@ -93,6 +94,34 @@ public class CredentialService {
         credential = credentialRepository.save(credential);
         log.info("Credential created: id={}, type={}, owner={}", credential.getId(), credential.getType(), userId);
 
+        return CredentialResponse.from(credential);
+    }
+
+    @Transactional
+    public CredentialResponse updateCredential(UUID id, UpdateCredentialRequest request, UUID userId) {
+        Credential credential = credentialRepository.findByIdAndOwnerId(id, userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
+
+        if (request.getDescription() != null) {
+            credential.setDescription(request.getDescription());
+        }
+        if (request.getVisibility() != null) {
+            credential.setVisibility(request.getVisibility());
+        }
+        if (request.getData() != null) {
+            String dataJson;
+            try {
+                dataJson = objectMapper.writeValueAsString(request.getData());
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Invalid credential data");
+            }
+            EncryptionService.EncryptedData encrypted = encryptionService.encrypt(dataJson);
+            credential.setEncryptedData(encrypted.ciphertext());
+            credential.setEncryptionIv(encrypted.iv());
+        }
+
+        credential = credentialRepository.save(credential);
+        log.info("Credential updated: id={}, owner={}", id, userId);
         return CredentialResponse.from(credential);
     }
 

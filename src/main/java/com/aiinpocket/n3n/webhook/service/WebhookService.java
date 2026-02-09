@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.execution.dto.CreateExecutionRequest;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
+import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.entity.Webhook;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
@@ -86,6 +87,23 @@ public class WebhookService {
         webhook = webhookRepository.save(webhook);
         log.info("Webhook created: id={}, path={}, flowId={}", webhook.getId(), webhook.getPath(), webhook.getFlowId());
 
+        return WebhookResponse.from(webhook, baseUrl);
+    }
+
+    @Transactional
+    public WebhookResponse updateWebhook(UUID id, UpdateWebhookRequest request, UUID userId) {
+        Webhook webhook = findWebhookWithOwnerCheck(id, userId);
+
+        if (request.getName() != null) {
+            webhook.setName(request.getName());
+        }
+        if (request.getAuthType() != null) {
+            webhook.setAuthType(request.getAuthType());
+            webhook.setAuthConfig(request.getAuthConfig());
+        }
+
+        webhook = webhookRepository.save(webhook);
+        log.info("Webhook updated: id={}, path={}", id, webhook.getPath());
         return WebhookResponse.from(webhook, baseUrl);
     }
 

@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
+import com.aiinpocket.n3n.credential.dto.UpdateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.TestCredentialRequest;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.service.ConnectionTestService;
@@ -70,6 +71,17 @@ public class CredentialController {
         CredentialResponse response = credentialService.createCredential(request, userId);
         activityService.logCredentialCreate(userId, response.getId(), response.getName(), response.getType());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CredentialResponse> updateCredential(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateCredentialRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        CredentialResponse response = credentialService.updateCredential(id, request, userId);
+        activityService.logActivity(userId, ActivityService.CREDENTIAL_UPDATE, "credential", id, response.getName(), null);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.template.controller;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
 import com.aiinpocket.n3n.template.dto.TemplateResponse;
+import com.aiinpocket.n3n.template.dto.UpdateTemplateRequest;
 import com.aiinpocket.n3n.template.service.FlowTemplateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,15 @@ public class FlowTemplateController {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(templateService.createTemplate(request, userId));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TemplateResponse> updateTemplate(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTemplateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(templateService.updateTemplate(id, request, userId));
     }
 
     @PostMapping("/from-flow/{flowId}/version/{version}")

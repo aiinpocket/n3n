@@ -72,6 +72,11 @@ export const templateApi = {
     return response.data
   },
 
+  update: async (id: string, data: { name?: string; description?: string; category?: string; tags?: string[] }): Promise<Template> => {
+    const response = await apiClient.put<Template>(`/templates/${id}`, data)
+    return response.data
+  },
+
   createFromFlow: async (flowId: string, version: string, request: CreateTemplateRequest): Promise<Template> => {
     const response = await apiClient.post(`/templates/from-flow/${flowId}/version/${version}`, request)
     return response.data

@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.webhook.controller;
 
 import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
+import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.service.WebhookService;
 import jakarta.validation.Valid;
@@ -57,6 +58,16 @@ public class WebhookController {
         WebhookResponse response = webhookService.createWebhook(request, userId);
         activityService.logWebhookCreate(userId, response.getId(), response.getPath(), response.getFlowId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<WebhookResponse> updateWebhook(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateWebhookRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        WebhookResponse response = webhookService.updateWebhook(id, request, userId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/activate")

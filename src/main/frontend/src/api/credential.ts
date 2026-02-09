@@ -82,6 +82,12 @@ export const credentialApi = {
     return response.data
   },
 
+  // Update credential
+  update: async (id: string, data: { description?: string; visibility?: string; data?: Record<string, unknown> }): Promise<Credential> => {
+    const response = await apiClient.put<Credential>(`/credentials/${id}`, data)
+    return response.data
+  },
+
   // Delete credential
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/credentials/${id}`)

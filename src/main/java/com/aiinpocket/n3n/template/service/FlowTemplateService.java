@@ -9,6 +9,7 @@ import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
 import com.aiinpocket.n3n.template.dto.OfficialTemplateDto;
 import com.aiinpocket.n3n.template.dto.TemplateResponse;
+import com.aiinpocket.n3n.template.dto.UpdateTemplateRequest;
 import com.aiinpocket.n3n.template.entity.FlowTemplate;
 import com.aiinpocket.n3n.template.repository.FlowTemplateRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -327,6 +328,33 @@ public class FlowTemplateService {
         template = templateRepository.save(template);
         log.info("Template created: id={}, name={}", template.getId(), template.getName());
 
+        return TemplateResponse.from(template);
+    }
+
+    @Transactional
+    public TemplateResponse updateTemplate(UUID id, UpdateTemplateRequest request, UUID userId) {
+        FlowTemplate template = templateRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
+
+        if (!template.getCreatedBy().equals(userId)) {
+            throw new IllegalArgumentException("Cannot update a template you didn't create");
+        }
+
+        if (request.getName() != null) {
+            template.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            template.setDescription(request.getDescription());
+        }
+        if (request.getCategory() != null) {
+            template.setCategory(request.getCategory());
+        }
+        if (request.getTags() != null) {
+            template.setTags(request.getTags());
+        }
+
+        template = templateRepository.save(template);
+        log.info("Template updated: id={}, name={}", id, template.getName());
         return TemplateResponse.from(template);
     }
 

@@ -44,6 +44,11 @@ export const webhookApi = {
     return response.data
   },
 
+  update: async (id: string, data: { name?: string; authType?: string; authConfig?: Record<string, unknown> }): Promise<Webhook> => {
+    const response = await apiClient.put<Webhook>(`/webhooks/${id}`, data)
+    return response.data
+  },
+
   activate: async (id: string): Promise<Webhook> => {
     const response = await apiClient.post<Webhook>(`/webhooks/${id}/activate`)
     return response.data
