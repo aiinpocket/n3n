@@ -310,6 +310,8 @@
     "exitPoints": "出口節點",
     "monitorMode": "監控模式",
     "unsaved": "未儲存",
+    "unsavedChanges": "未儲存的變更",
+    "unsavedChangesWarning": "您有未儲存的變更，確定要離開嗎？",
     "saving": "儲存中",
     "undo": "復原",
     "redo": "重做",
@@ -938,7 +940,11 @@
     "createSuccess": "技能建立成功",
     "createFailed": "技能建立失敗",
     "updateSuccess": "技能更新成功",
-    "updateFailed": "技能更新失敗"
+    "updateFailed": "技能更新失敗",
+    "enable": "啟用",
+    "disable": "停用",
+    "enableSuccess": "技能已啟用",
+    "disableSuccess": "技能已停用"
   },
   "webhook": {
     "title": "Webhooks",

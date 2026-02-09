@@ -53,7 +53,7 @@ interface NodeConfigPanelProps {
   flowId?: string
   flowVersion?: string
   onClose: () => void
-  onUpdate: (nodeId: string, data: Record<string, unknown>) => void
+  onUpdate?: (nodeId: string, data: Record<string, unknown>) => void
   onDelete?: (nodeId: string) => void
   onTest?: (nodeId: string) => void
 }
@@ -177,7 +177,7 @@ export default function NodeConfigPanel({
 
   const handleValuesChange = useCallback(
     (_: unknown, allValues: Record<string, unknown>) => {
-      if (node) {
+      if (node && onUpdate) {
         onUpdate(node.id, allValues)
       }
     },
@@ -186,7 +186,7 @@ export default function NodeConfigPanel({
 
   const handleMappingsChange = useCallback(
     (mappings: Record<string, string>) => {
-      if (node) {
+      if (node && onUpdate) {
         onUpdate(node.id, { ...node.data, inputMappings: mappings })
       }
     },
@@ -218,7 +218,7 @@ export default function NodeConfigPanel({
   }
 
   const handleAiCodeGenerated = (code: string) => {
-    if (aiCodeFieldKey && node) {
+    if (aiCodeFieldKey && node && onUpdate) {
       form.setFieldValue(aiCodeFieldKey, code)
       onUpdate(node.id, { ...form.getFieldsValue(), [aiCodeFieldKey]: code })
     }
@@ -270,7 +270,7 @@ export default function NodeConfigPanel({
                 }}
                 onChange={(value) => {
                   form.setFieldValue(key, value)
-                  if (node) {
+                  if (node && onUpdate) {
                     onUpdate(node.id, { ...form.getFieldsValue(), [key]: value })
                   }
                 }}
@@ -424,7 +424,7 @@ export default function NodeConfigPanel({
             values={form.getFieldsValue() as Record<string, unknown>}
             onChange={(allValues) => {
               form.setFieldsValue(allValues)
-              if (node) {
+              if (node && onUpdate) {
                 onUpdate(node.id, allValues)
               }
             }}

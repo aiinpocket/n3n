@@ -310,6 +310,8 @@
     "exitPoints": "エグジットポイント",
     "monitorMode": "監視モード",
     "unsaved": "未保存",
+    "unsavedChanges": "未保存の変更",
+    "unsavedChangesWarning": "未保存の変更があります。このまま移動しますか？",
     "saving": "保存中",
     "undo": "元に戻す",
     "redo": "やり直す",
@@ -938,7 +940,11 @@
     "createSuccess": "スキルの作成に成功しました",
     "createFailed": "スキルの作成に失敗しました",
     "updateSuccess": "スキルの更新に成功しました",
-    "updateFailed": "スキルの更新に失敗しました"
+    "updateFailed": "スキルの更新に失敗しました",
+    "enable": "有効にする",
+    "disable": "無効にする",
+    "enableSuccess": "スキルを有効にしました",
+    "disableSuccess": "スキルを無効にしました"
   },
   "webhook": {
     "title": "Webhooks",

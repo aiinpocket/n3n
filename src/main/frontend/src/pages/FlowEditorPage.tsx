@@ -663,7 +663,19 @@ export default function FlowEditorPage() {
       <Card
         title={
           <Space>
-            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate('/flows')} aria-label={t('common.back')} />
+            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => {
+              if (isDirty) {
+                Modal.confirm({
+                  title: t('editor.unsavedChanges'),
+                  content: t('editor.unsavedChangesWarning'),
+                  okText: t('common.confirm'),
+                  cancelText: t('common.cancel'),
+                  onOk: () => navigate('/flows'),
+                })
+              } else {
+                navigate('/flows')
+              }
+            }} aria-label={t('common.back')} />
             <span>{currentFlow?.name || t('common.loading')}</span>
             {currentVersion && (
               <Tag color={currentVersion.status === 'published' ? 'green' : 'default'}>
@@ -1008,8 +1020,8 @@ export default function FlowEditorPage() {
         flowId={id}
         flowVersion={currentVersion?.version}
         onClose={() => setSelectedNodeId(null)}
-        onUpdate={handleNodeConfigUpdate}
-        onDelete={handleNodeDelete}
+        onUpdate={executionMode ? undefined : handleNodeConfigUpdate}
+        onDelete={executionMode ? undefined : handleNodeDelete}
       />
 
       <ServiceNodePanel

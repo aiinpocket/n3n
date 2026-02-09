@@ -310,6 +310,8 @@
     "exitPoints": "Exit Points",
     "monitorMode": "Monitor Mode",
     "unsaved": "Unsaved",
+    "unsavedChanges": "Unsaved Changes",
+    "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave?",
     "saving": "Saving",
     "undo": "Undo",
     "redo": "Redo",
@@ -938,7 +940,11 @@
     "createSuccess": "Skill created successfully",
     "createFailed": "Failed to create skill",
     "updateSuccess": "Skill updated successfully",
-    "updateFailed": "Failed to update skill"
+    "updateFailed": "Failed to update skill",
+    "enable": "Enable",
+    "disable": "Disable",
+    "enableSuccess": "Skill enabled successfully",
+    "disableSuccess": "Skill disabled successfully"
   },
   "webhook": {
     "title": "Webhooks",

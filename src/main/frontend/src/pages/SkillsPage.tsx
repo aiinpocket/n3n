@@ -16,6 +16,7 @@ import {
   Empty,
   Badge,
   Alert,
+  Switch,
 } from 'antd'
 import {
   PlusOutlined,
@@ -309,9 +310,25 @@ export default function SkillsPage() {
     {
       title: t('common.actions'),
       key: 'actions',
-      width: 180,
+      width: 220,
       render: (_: unknown, record: Skill) => (
         <Space>
+          {!record.isBuiltin && (
+            <Tooltip title={record.isEnabled ? t('skill.disable') : t('skill.enable')}>
+              <Switch
+                size="small"
+                checked={record.isEnabled}
+                onChange={async (checked) => {
+                  try {
+                    await updateSkill(record.id, { isEnabled: checked })
+                    message.success(checked ? t('skill.enableSuccess') : t('skill.disableSuccess'))
+                  } catch (error) {
+                    message.error(extractApiError(error, t('common.operationFailed')))
+                  }
+                }}
+              />
+            </Tooltip>
+          )}
           <Tooltip title={t('skill.test')}>
             <Button
               type="link"
@@ -334,10 +351,10 @@ export default function SkillsPage() {
                 title={t('skill.deleteConfirm')}
                 onConfirm={async () => {
                   try {
-                    await deleteSkill(record.id);
-                    message.success(t('common.deleteSuccess'));
+                    await deleteSkill(record.id)
+                    message.success(t('common.deleteSuccess'))
                   } catch {
-                    message.error(t('common.deleteFailed'));
+                    message.error(t('common.deleteFailed'))
                   }
                 }}
               >

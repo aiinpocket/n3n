@@ -49,6 +49,7 @@ import {
   ratePlugin,
 } from '../api/marketplace'
 import logger from '../utils/logger'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Search } = Input
 const { Text, Paragraph, Title } = Typography
@@ -447,8 +448,8 @@ export default function CustomToolsPage() {
       await installPlugin(id)
       message.success(t('customTools.pullSuccess'))
       loadData()
-    } catch {
-      message.error(t('customTools.pullFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('customTools.pullFailed')))
     } finally {
       setActionLoading(null)
     }
@@ -467,8 +468,8 @@ export default function CustomToolsPage() {
           await uninstallPlugin(id)
           message.success(t('customTools.removeSuccess'))
           loadData()
-        } catch {
-          message.error(t('customTools.removeFailed'))
+        } catch (error) {
+          message.error(extractApiError(error, t('customTools.removeFailed')))
         } finally {
           setActionLoading(null)
         }
@@ -482,8 +483,8 @@ export default function CustomToolsPage() {
       await updatePlugin(id)
       message.success(t('customTools.updateSuccess'))
       loadData()
-    } catch {
-      message.error(t('customTools.updateFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('customTools.updateFailed')))
     } finally {
       setActionLoading(null)
     }
@@ -493,8 +494,8 @@ export default function CustomToolsPage() {
     try {
       const detail = await getPluginDetail(id)
       setDetailModal({ visible: true, plugin: detail })
-    } catch {
-      message.error(t('customTools.loadDetailFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('customTools.loadDetailFailed')))
     }
   }
 
@@ -508,8 +509,8 @@ export default function CustomToolsPage() {
         setDetailModal(prev => ({ ...prev, plugin: detail }))
         loadData()
       }
-    } catch {
-      message.error(t('customTools.rateFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('customTools.rateFailed')))
     }
   }
 
