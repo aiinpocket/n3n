@@ -77,7 +77,7 @@ class AdminUserServiceTest extends BaseServiceTest {
             UserRole role = UserRole.builder().userId(userId).role("USER").build();
 
             when(userRepository.findAll(pageable)).thenReturn(page);
-            when(userRoleRepository.findByUserId(userId)).thenReturn(List.of(role));
+            when(userRoleRepository.findByUserIdIn(List.of(userId))).thenReturn(List.of(role));
 
             Page<UserResponse> result = adminUserService.listUsers(pageable);
 

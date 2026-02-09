@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,14 +42,16 @@ public class AdminUserService {
     private final EmailService emailService;
 
     public Page<UserResponse> listUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
-            .map(user -> {
-                Set<String> roles = userRoleRepository.findByUserId(user.getId())
-                    .stream()
-                    .map(UserRole::getRole)
-                    .collect(Collectors.toSet());
-                return UserResponse.from(user, roles);
-            });
+        Page<User> userPage = userRepository.findAll(pageable);
+
+        // Batch load roles for all users in the page (avoids N+1)
+        List<UUID> userIds = userPage.getContent().stream().map(User::getId).toList();
+        Map<UUID, Set<String>> rolesByUserId = userRoleRepository.findByUserIdIn(userIds).stream()
+            .collect(Collectors.groupingBy(UserRole::getUserId,
+                Collectors.mapping(UserRole::getRole, Collectors.toSet())));
+
+        return userPage.map(user -> UserResponse.from(user,
+            rolesByUserId.getOrDefault(user.getId(), Set.of())));
     }
 
     public UserResponse getUser(UUID id) {

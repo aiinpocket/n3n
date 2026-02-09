@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.auth.entity.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,6 +12,8 @@ import java.util.UUID;
 public interface UserRoleRepository extends JpaRepository<UserRole, UUID> {
 
     List<UserRole> findByUserId(UUID userId);
+
+    List<UserRole> findByUserIdIn(Collection<UUID> userIds);
 
     List<UserRole> findByRole(String role);
 
