@@ -47,6 +47,8 @@ export interface FlowEdge {
   target: string
   sourceHandle?: string
   targetHandle?: string
+  edgeType?: string
+  label?: string
 }
 
 export interface CreateFlowRequest {

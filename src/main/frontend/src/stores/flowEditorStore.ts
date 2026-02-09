@@ -114,7 +114,11 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
             ...n,
             data: n.data || {},
           })) as Node[],
-          edges: definition.edges as Edge[],
+          edges: definition.edges.map((e) => ({
+            ...e,
+            type: e.edgeType ? 'custom' : (e as Edge).type,
+            data: { ...(e as Edge).data, edgeType: e.edgeType || (e as Edge).data?.edgeType },
+          })) as Edge[],
           pinnedData: flowVersion.pinnedData || {},
           isDirty: false,
         })
@@ -416,6 +420,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           target: e.target,
           sourceHandle: e.sourceHandle || undefined,
           targetHandle: e.targetHandle || undefined,
+          edgeType: (e.data as Record<string, unknown>)?.edgeType as string | undefined,
+          label: typeof e.label === 'string' ? e.label : undefined,
         })),
       }
 
@@ -464,6 +470,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           target: e.target,
           sourceHandle: e.sourceHandle || undefined,
           targetHandle: e.targetHandle || undefined,
+          edgeType: (e.data as Record<string, unknown>)?.edgeType as string | undefined,
+          label: typeof e.label === 'string' ? e.label : undefined,
         })),
       }
 

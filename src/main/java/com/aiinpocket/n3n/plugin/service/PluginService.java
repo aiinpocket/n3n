@@ -62,8 +62,9 @@ public class PluginService {
 
         Sort sort = switch (sortBy != null ? sortBy : "popular") {
             case "recent" -> Sort.by(Sort.Direction.DESC, "updated_at");
-            case "rating" -> Sort.by(Sort.Direction.DESC, "display_name");
             case "name" -> Sort.by(Sort.Direction.ASC, "display_name");
+            // "popular", "rating", "trending" all fallback to newest first
+            // since rating/downloads are in separate tables and can't be sorted via JPA directly
             default -> Sort.by(Sort.Direction.DESC, "updated_at");
         };
 

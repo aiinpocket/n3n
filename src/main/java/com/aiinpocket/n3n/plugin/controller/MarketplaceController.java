@@ -197,7 +197,7 @@ public class MarketplaceController {
                 ));
             }
             String review = body.get("review") instanceof String s ? s : null;
-            if (review != null && review.length() > 5000) {
+            if (review != null && review.length() > 2000) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
                         "message", "Review text is too long"
