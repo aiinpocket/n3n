@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.monitoring.service.MetricsAggregationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,19 +24,19 @@ public class MonitoringController {
 
     @Operation(summary = "Get JVM and system metrics")
     @GetMapping("/system")
-    public SystemMetricsResponse getSystemMetrics() {
-        return metricsAggregationService.getSystemMetrics();
+    public ResponseEntity<SystemMetricsResponse> getSystemMetrics() {
+        return ResponseEntity.ok(metricsAggregationService.getSystemMetrics());
     }
 
     @Operation(summary = "Get flow execution statistics")
     @GetMapping("/flows")
-    public FlowExecutionStatsResponse getFlowStats() {
-        return metricsAggregationService.getFlowExecutionStats();
+    public ResponseEntity<FlowExecutionStatsResponse> getFlowStats() {
+        return ResponseEntity.ok(metricsAggregationService.getFlowExecutionStats());
     }
 
     @Operation(summary = "Get health status of database and Redis")
     @GetMapping("/health")
-    public HealthStatusResponse getHealthStatus() {
-        return metricsAggregationService.getHealthStatus();
+    public ResponseEntity<HealthStatusResponse> getHealthStatus() {
+        return ResponseEntity.ok(metricsAggregationService.getHealthStatus());
     }
 }

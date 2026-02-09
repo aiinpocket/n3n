@@ -26,6 +26,8 @@ export default defineConfig({
           'antd-vendor': ['antd', '@ant-design/icons'],
           'flow-vendor': ['@xyflow/react'],
           'state-vendor': ['zustand', 'axios'],
+          'monaco-vendor': ['@monaco-editor/react'],
+          'dagre-vendor': ['@dagrejs/dagre'],
         },
       },
     },
