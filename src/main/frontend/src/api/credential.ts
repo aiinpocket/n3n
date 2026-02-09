@@ -62,14 +62,6 @@ export const credentialApi = {
     return response.data
   },
 
-  // List my own credentials
-  listMine: async (page = 0, size = 20): Promise<PageResponse<Credential>> => {
-    const response = await apiClient.get('/credentials/mine', {
-      params: { page, size }
-    })
-    return response.data
-  },
-
   // Get credential by ID
   get: async (id: string): Promise<Credential> => {
     const response = await apiClient.get(`/credentials/${id}`)

@@ -169,14 +169,3 @@ export async function archiveConversation(id: string): Promise<void> {
   await apiClient.delete(`/agent/conversations/${id}`)
 }
 
-/**
- * 建立 SSE 串流連線
- */
-export function createStreamConnection(
-  conversationId: string,
-  message: string
-): EventSource {
-  const encodedMessage = encodeURIComponent(message)
-  const url = `/api/agent/conversations/${conversationId}/stream?message=${encodedMessage}`
-  return new EventSource(url)
-}

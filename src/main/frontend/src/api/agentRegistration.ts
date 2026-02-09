@@ -55,27 +55,6 @@ export async function generateAgentToken(): Promise<TokenGenerationResult> {
   return response.data
 }
 
-/**
- * Generate and download agent config file
- */
-export async function downloadAgentConfig(): Promise<Blob> {
-  const response = await apiClient.post('/agents/tokens', {}, {
-    responseType: 'blob'
-  })
-  return response.data
-}
-
-/**
- * Download agent package (App + config) as ZIP
- * This is the one-click install experience
- */
-export async function downloadAgentPackage(platform: 'macos' | 'windows'): Promise<Blob> {
-  const response = await apiClient.post(`/agents/download/${platform}`, {}, {
-    responseType: 'blob'
-  })
-  return response.data
-}
-
 export interface InstallCommandResult {
   command: string
   registrationId: string
@@ -89,20 +68,6 @@ export interface InstallCommandResult {
 export async function generateInstallCommand(): Promise<InstallCommandResult> {
   const response = await apiClient.post<InstallCommandResult>('/agents/install-command')
   return response.data
-}
-
-/**
- * Trigger browser download for a blob
- */
-export function triggerDownload(blob: Blob, filename: string): void {
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  window.URL.revokeObjectURL(url)
 }
 
 /**

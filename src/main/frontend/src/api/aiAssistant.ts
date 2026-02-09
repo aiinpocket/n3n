@@ -275,16 +275,6 @@ export function getSuggestionTypeName(type: OptimizationSuggestion['type']): str
   return names[type] || type
 }
 
-export function getSuggestionTypeIcon(type: OptimizationSuggestion['type']): string {
-  const icons: Record<string, string> = {
-    parallel: 'branches',
-    merge: 'merge-cells',
-    remove: 'delete',
-    reorder: 'ordered-list',
-  }
-  return icons[type] || 'info-circle'
-}
-
 export function getPriorityLabel(priority: number): { text: string; color: string } {
   switch (priority) {
     case 1:

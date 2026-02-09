@@ -30,16 +30,6 @@ export async function fetchNodeTypeSchema(type: string): Promise<Record<string, 
   return response.data
 }
 
-export async function fetchTriggerTypes(): Promise<NodeTypeInfo[]> {
-  const response = await apiClient.get<NodeTypeInfo[]>('/node-types/triggers')
-  return response.data
-}
-
-export async function fetchRegisteredTypes(): Promise<string[]> {
-  const response = await apiClient.get<string[]>('/node-types/types')
-  return response.data
-}
-
 export async function fetchNodeTypesByCategory(category: string): Promise<NodeTypeInfo[]> {
   const response = await apiClient.get<NodeTypeInfo[]>(`/node-types/category/${encodeURIComponent(category)}`)
   return response.data
