@@ -120,8 +120,8 @@ export async function getInstalledPlugins(): Promise<MarketplacePlugin[]> {
   return response.data
 }
 
-export async function ratePlugin(id: string, rating: number, review?: string): Promise<{ success: boolean; averageRating: number; totalRatings: number }> {
-  const response = await apiClient.post<{ success: boolean; averageRating: number; totalRatings: number }>(
+export async function ratePlugin(id: string, rating: number, review?: string): Promise<{ success: boolean; message: string }> {
+  const response = await apiClient.post<{ success: boolean; message: string }>(
     `/marketplace/plugins/${id}/rate`,
     { rating, review }
   )
