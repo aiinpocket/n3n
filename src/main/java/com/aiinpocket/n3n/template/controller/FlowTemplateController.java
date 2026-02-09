@@ -29,8 +29,8 @@ public class FlowTemplateController {
 
     @GetMapping
     public ResponseEntity<Page<TemplateResponse>> listTemplates(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String category,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 500) String search,
             @PageableDefault(size = 20) Pageable pageable) {
         if (search != null && !search.isEmpty()) {
             return ResponseEntity.ok(templateService.searchTemplates(search, pageable));

@@ -34,12 +34,4 @@ export const activityApi = {
     const response = await apiClient.get<Page<UserActivity>>('/activities/my', { params })
     return response.data
   },
-
-  listByResource: async (resourceType: string, resourceId: string, page = 0, size = 20): Promise<Page<UserActivity>> => {
-    const response = await apiClient.get<Page<UserActivity>>(
-      `/activities/resource/${resourceType}/${resourceId}`,
-      { params: { page, size, sort: 'createdAt,desc' } }
-    )
-    return response.data
-  },
 }

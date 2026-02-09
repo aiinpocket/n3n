@@ -41,7 +41,7 @@ public class ExecutionController {
     public ResponseEntity<Page<ExecutionResponse>> listExecutions(
             @PageableDefault(size = 20) Pageable pageable,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 500) String search,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         // Validate status if provided

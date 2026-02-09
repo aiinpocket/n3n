@@ -85,12 +85,6 @@ export const skillApi = {
     return response.data
   },
 
-  // Get skill by name
-  getByName: async (name: string): Promise<Skill> => {
-    const response = await apiClient.get(`/skills/name/${name}`)
-    return response.data
-  },
-
   // Create custom skill
   create: async (request: CreateSkillRequest): Promise<Skill> => {
     const response = await apiClient.post('/skills', request)
@@ -114,11 +108,6 @@ export const skillApi = {
     return response.data
   },
 
-  // Execute skill by name (for testing)
-  executeByName: async (name: string, input: Record<string, unknown>): Promise<ExecuteSkillResponse> => {
-    const response = await apiClient.post(`/skills/name/${name}/execute`, { input })
-    return response.data
-  }
 }
 
 export default skillApi

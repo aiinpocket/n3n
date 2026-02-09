@@ -142,11 +142,6 @@ export const flowApi = {
     return response.data
   },
 
-  getPublishedVersion: async (flowId: string): Promise<FlowVersion> => {
-    const response = await apiClient.get(`/flows/${flowId}/versions/published`)
-    return response.data
-  },
-
   saveVersion: async (flowId: string, data: SaveVersionRequest): Promise<FlowVersion> => {
     const response = await apiClient.post(`/flows/${flowId}/versions`, data)
     return response.data
@@ -201,14 +196,6 @@ export const flowApi = {
   },
 
   // ========== Data Pinning APIs ==========
-
-  /**
-   * Get all pinned data for a flow version
-   */
-  getPinnedData: async (flowId: string, version: string): Promise<Record<string, unknown>> => {
-    const response = await apiClient.get(`/flows/${flowId}/versions/${version}/pinned-data`)
-    return response.data
-  },
 
   /**
    * Pin data to a specific node

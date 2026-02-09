@@ -35,7 +35,7 @@ public class FlowController {
 
     @GetMapping
     public ResponseEntity<Page<FlowResponse>> listFlows(
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 500) String search,
             @PageableDefault(size = 20) Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());

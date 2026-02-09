@@ -87,7 +87,10 @@ public class ApprovalController {
 
     // DTO records
 
-    public record ApprovalActionRequest(String action, String comment) {}
+    public record ApprovalActionRequest(
+        @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "^(approve|reject)$") String action,
+        @jakarta.validation.constraints.Size(max = 1000) String comment
+    ) {}
 
     public record ApprovalSummary(
         String id,
