@@ -65,50 +65,75 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
   },
 
   createWebhook: async (request: CreateWebhookRequest) => {
-    const webhook = await webhookApi.create(request)
-    const { webhooks, flowWebhooks } = get()
-    set({
-      webhooks: [...webhooks, webhook],
-      flowWebhooks: flowWebhooks.length > 0 && request.flowId === flowWebhooks[0]?.flowId
-        ? [...flowWebhooks, webhook]
-        : request.flowId ? [webhook] : flowWebhooks
-    })
-    return webhook
+    try {
+      const webhook = await webhookApi.create(request)
+      const { webhooks, flowWebhooks } = get()
+      set({
+        webhooks: [...webhooks, webhook],
+        flowWebhooks: flowWebhooks.length > 0 && request.flowId === flowWebhooks[0]?.flowId
+          ? [...flowWebhooks, webhook]
+          : request.flowId ? [webhook] : flowWebhooks
+      })
+      return webhook
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   activateWebhook: async (id: string) => {
-    const webhook = await webhookApi.activate(id)
-    const { webhooks, flowWebhooks } = get()
-    set({
-      webhooks: webhooks.map((w) => (w.id === id ? webhook : w)),
-      flowWebhooks: flowWebhooks.map((w) => (w.id === id ? webhook : w)),
-      selectedWebhook: get().selectedWebhook?.id === id ? webhook : get().selectedWebhook
-    })
+    try {
+      const webhook = await webhookApi.activate(id)
+      const { webhooks, flowWebhooks } = get()
+      set({
+        webhooks: webhooks.map((w) => (w.id === id ? webhook : w)),
+        flowWebhooks: flowWebhooks.map((w) => (w.id === id ? webhook : w)),
+        selectedWebhook: get().selectedWebhook?.id === id ? webhook : get().selectedWebhook
+      })
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   deactivateWebhook: async (id: string) => {
-    const webhook = await webhookApi.deactivate(id)
-    const { webhooks, flowWebhooks } = get()
-    set({
-      webhooks: webhooks.map((w) => (w.id === id ? webhook : w)),
-      flowWebhooks: flowWebhooks.map((w) => (w.id === id ? webhook : w)),
-      selectedWebhook: get().selectedWebhook?.id === id ? webhook : get().selectedWebhook
-    })
+    try {
+      const webhook = await webhookApi.deactivate(id)
+      const { webhooks, flowWebhooks } = get()
+      set({
+        webhooks: webhooks.map((w) => (w.id === id ? webhook : w)),
+        flowWebhooks: flowWebhooks.map((w) => (w.id === id ? webhook : w)),
+        selectedWebhook: get().selectedWebhook?.id === id ? webhook : get().selectedWebhook
+      })
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   deleteWebhook: async (id: string) => {
-    await webhookApi.delete(id)
-    const { webhooks, flowWebhooks } = get()
-    set({
-      webhooks: webhooks.filter((w) => w.id !== id),
-      flowWebhooks: flowWebhooks.filter((w) => w.id !== id),
-      selectedWebhook: get().selectedWebhook?.id === id ? null : get().selectedWebhook
-    })
+    try {
+      await webhookApi.delete(id)
+      const { webhooks, flowWebhooks } = get()
+      set({
+        webhooks: webhooks.filter((w) => w.id !== id),
+        flowWebhooks: flowWebhooks.filter((w) => w.id !== id),
+        selectedWebhook: get().selectedWebhook?.id === id ? null : get().selectedWebhook
+      })
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   testWebhook: async (id: string) => {
-    const result = await webhookApi.test(id)
-    return result
+    try {
+      const result = await webhookApi.test(id)
+      return result
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   setSelectedWebhook: (webhook: Webhook | null) => {

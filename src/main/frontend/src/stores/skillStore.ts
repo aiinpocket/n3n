@@ -73,6 +73,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   getSkill: async (id: string) => {
+    set({ error: null })
     try {
       const skill = await skillApi.get(id)
       set({ selectedSkill: skill })
@@ -84,6 +85,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   createSkill: async (request: CreateSkillRequest) => {
+    set({ error: null })
     try {
       const skill = await skillApi.create(request)
       const { skills } = get()
@@ -96,6 +98,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   updateSkill: async (id: string, request: UpdateSkillRequest) => {
+    set({ error: null })
     try {
       const skill = await skillApi.update(id, request)
       const { skills } = get()
@@ -111,6 +114,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   deleteSkill: async (id: string) => {
+    set({ error: null })
     try {
       await skillApi.delete(id)
       const { skills } = get()
@@ -122,6 +126,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   executeSkill: async (id: string, input: Record<string, unknown>) => {
+    set({ error: null })
     try {
       return await skillApi.execute(id, input)
     } catch (error) {
