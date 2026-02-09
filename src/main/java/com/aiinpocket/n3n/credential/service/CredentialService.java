@@ -33,16 +33,19 @@ public class CredentialService {
     private final ObjectMapper objectMapper;
     private final ActivityService activityService;
 
+    @Transactional(readOnly = true)
     public Page<CredentialResponse> listCredentials(UUID userId, Pageable pageable) {
         return credentialRepository.findAccessibleByUser(userId, pageable)
             .map(CredentialResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Page<CredentialResponse> listMyCredentials(UUID userId, Pageable pageable) {
         return credentialRepository.findByOwnerId(userId, pageable)
             .map(CredentialResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public CredentialResponse getCredential(UUID id, UUID userId) {
         Credential credential = credentialRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
@@ -127,6 +130,7 @@ public class CredentialService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<CredentialType> listCredentialTypes() {
         return credentialTypeRepository.findAll();
     }

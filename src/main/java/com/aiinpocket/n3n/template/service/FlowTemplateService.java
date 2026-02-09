@@ -272,6 +272,7 @@ public class FlowTemplateService {
 
     // ==================== User Templates API ====================
 
+    @Transactional(readOnly = true)
     public Page<TemplateResponse> listTemplates(Pageable pageable) {
         return templateRepository.findAllByOrderByUsageCountDesc(pageable)
             .map(TemplateResponse::summary);
@@ -282,6 +283,7 @@ public class FlowTemplateService {
             .map(TemplateResponse::summary);
     }
 
+    @Transactional(readOnly = true)
     public Page<TemplateResponse> searchTemplates(String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
             return listTemplates(pageable);
@@ -290,10 +292,12 @@ public class FlowTemplateService {
             .map(TemplateResponse::summary);
     }
 
+    @Transactional(readOnly = true)
     public List<String> listCategories() {
         return templateRepository.findAllCategories();
     }
 
+    @Transactional(readOnly = true)
     public List<TemplateResponse> listMyTemplates(UUID userId) {
         return templateRepository.findByCreatedByOrderByCreatedAtDesc(userId)
             .stream()
@@ -301,6 +305,7 @@ public class FlowTemplateService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public TemplateResponse getTemplate(UUID id) {
         FlowTemplate template = templateRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));

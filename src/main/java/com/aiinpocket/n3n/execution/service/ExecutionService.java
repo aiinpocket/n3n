@@ -52,11 +52,13 @@ public class ExecutionService {
     private final FlowShareService flowShareService;
     private final StringRedisTemplate stringRedisTemplate;
 
+    @Transactional(readOnly = true)
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
         return executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)
             .map(e -> enrichExecution(e));
     }
 
+    @Transactional(readOnly = true)
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable, String status, String search) {
         boolean hasStatus = status != null && !status.isBlank();
         boolean hasSearch = search != null && !search.isBlank();
@@ -74,6 +76,7 @@ public class ExecutionService {
         return page.map(e -> enrichExecution(e));
     }
 
+    @Transactional(readOnly = true)
     public Page<ExecutionResponse> listExecutionsByFlow(UUID flowId, UUID userId, Pageable pageable) {
         // Verify user has access to this flow
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -104,6 +107,7 @@ public class ExecutionService {
         return execution;
     }
 
+    @Transactional(readOnly = true)
     public ExecutionResponse getExecution(UUID id, UUID userId) {
         Execution execution = findExecutionWithOwnerCheck(id, userId);
         return enrichExecution(execution);
@@ -125,6 +129,7 @@ public class ExecutionService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     public List<NodeExecutionResponse> getNodeExecutions(UUID executionId, UUID userId) {
         findExecutionWithOwnerCheck(executionId, userId);
         return nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(executionId)

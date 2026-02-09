@@ -38,11 +38,13 @@ public class FlowService {
     private final WebhookRepository webhookRepository;
     private final SchedulerService schedulerService;
 
+    @Transactional(readOnly = true)
     public Page<FlowResponse> listFlows(UUID userId, Pageable pageable) {
         Page<Flow> flowPage = flowRepository.findByCreatedByAndIsDeletedFalse(userId, pageable);
         return toFlowResponsePage(flowPage);
     }
 
+    @Transactional(readOnly = true)
     public Page<FlowResponse> searchFlows(UUID userId, String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
             return listFlows(userId, pageable);
@@ -141,6 +143,7 @@ public class FlowService {
         return FlowResponse.from(flow, latestVersion, publishedVersion);
     }
 
+    @Transactional(readOnly = true)
     public FlowResponse getFlow(UUID id) {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + id));
@@ -255,6 +258,7 @@ public class FlowService {
 
     // Version management
 
+    @Transactional(readOnly = true)
     public List<FlowVersionResponse> listVersions(UUID flowId) {
         if (flowRepository.findByIdAndIsDeletedFalse(flowId).isEmpty()) {
             throw new ResourceNotFoundException("Flow not found: " + flowId);
