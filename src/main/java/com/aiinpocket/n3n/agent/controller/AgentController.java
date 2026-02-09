@@ -106,7 +106,7 @@ public class AgentController {
     public ResponseEntity<ConversationResponse> completeConversation(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable UUID id,
-            @RequestBody(required = false) CompleteConversationRequest request) {
+            @Valid @RequestBody(required = false) CompleteConversationRequest request) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         UUID flowId = request != null ? request.flowId() : null;
         AgentConversation conversation = conversationService.completeConversation(userId, id, flowId);

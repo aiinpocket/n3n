@@ -129,6 +129,9 @@ public class ExecutionController {
             @PathVariable UUID id,
             @RequestBody(required = false) Map<String, Object> resumeData,
             @AuthenticationPrincipal UserDetails userDetails) {
+        if (resumeData != null && resumeData.size() > 500) {
+            return ResponseEntity.badRequest().build();
+        }
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(executionService.resumeExecution(id,
             resumeData != null ? resumeData : Map.of(), userId));

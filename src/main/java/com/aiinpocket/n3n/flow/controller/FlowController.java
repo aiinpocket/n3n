@@ -221,6 +221,9 @@ public class FlowController {
     @PostMapping("/validate")
     public ResponseEntity<FlowValidationResponse> validateDefinition(
             @RequestBody java.util.Map<String, Object> definition) {
+        if (definition != null && definition.size() > 1000) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(flowService.validateDefinition(definition));
     }
 

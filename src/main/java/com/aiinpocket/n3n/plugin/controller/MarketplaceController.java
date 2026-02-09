@@ -207,6 +207,12 @@ public class MarketplaceController {
                 ));
             }
             String review = body.get("review") instanceof String s ? s : null;
+            if (review != null && review.length() > 5000) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Review text is too long"
+                ));
+            }
             Map<String, Object> result = pluginService.ratePlugin(id, user.getId(), rating, review);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {

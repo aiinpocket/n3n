@@ -83,7 +83,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
-            @RequestBody(required = false) RefreshTokenRequest request,
+            @Valid @RequestBody(required = false) RefreshTokenRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         String refreshToken = request != null ? request.getRefreshToken() : null;
 
