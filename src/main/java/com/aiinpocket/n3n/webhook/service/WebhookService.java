@@ -132,11 +132,20 @@ public class WebhookService {
 
     @Transactional
     public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature) {
+        return triggerWebhook(path, method, payload, signature, false);
+    }
+
+    /**
+     * Trigger webhook with optional auth skip for internal test triggers.
+     * When skipAuth=true, HMAC validation is skipped (caller must be authenticated via JWT).
+     */
+    @Transactional
+    public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, boolean skipAuth) {
         Webhook webhook = webhookRepository.findByPathAndMethodAndIsActiveTrue(path, method.toUpperCase())
             .orElseThrow(() -> new ResourceNotFoundException("Webhook not found or inactive: " + path));
 
-        // Validate signature if auth is configured
-        if (webhook.getAuthType() != null && "hmac".equals(webhook.getAuthType())) {
+        // Validate signature if auth is configured (skip for internal test triggers)
+        if (!skipAuth && webhook.getAuthType() != null && "hmac".equals(webhook.getAuthType())) {
             validateHmacSignature(payload, signature, webhook.getAuthConfig());
         }
 

@@ -97,7 +97,7 @@ public class WebhookController {
             UUID executionId = webhookService.triggerWebhook(
                     webhook.getPath(), webhook.getMethod(),
                     Map.of("test", true, "triggeredBy", "manual-test"),
-                    null);
+                    null, true);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "executionId", executionId.toString(),
