@@ -4,6 +4,7 @@ import {
   Row,
   Col,
   Input,
+  Select,
   Tag,
   Button,
   Space,
@@ -28,11 +29,12 @@ import {
   FireOutlined,
   TagOutlined,
   CrownOutlined,
+  PlusOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { templateApi } from '../api/template'
-import type { Template } from '../api/template'
+import type { Template, CreateTemplateRequest } from '../api/template'
 import { extractApiError } from '../utils/errorMessages'
 import { formatDateTime } from '../utils/locale'
 import logger from '../utils/logger'
@@ -192,6 +194,11 @@ export default function TemplatePage() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [useForm] = Form.useForm()
 
+  // Create template modal
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createSubmitting, setCreateSubmitting] = useState(false)
+  const [createForm] = Form.useForm()
+
   // Load templates
   const loadTemplates = useCallback(
     async (page = 0, category?: string, search?: string) => {
@@ -310,6 +317,32 @@ export default function TemplatePage() {
     })
   }
 
+  // Create template handler
+  const handleCreateTemplate = async (values: { name: string; description?: string; category?: string; tags?: string[] }) => {
+    setCreateSubmitting(true)
+    try {
+      const request: CreateTemplateRequest = {
+        name: values.name,
+        description: values.description,
+        category: values.category,
+        tags: values.tags,
+        definition: { nodes: [], edges: [] },
+      }
+      await templateApi.create(request)
+      message.success(t('template.createSuccess'))
+      setCreateModalOpen(false)
+      createForm.resetFields()
+      loadTemplates(0, selectedCategory, searchQuery)
+      if (activeTab === 'mine') {
+        loadMyTemplates()
+      }
+    } catch (err) {
+      message.error(extractApiError(err, t('template.createFailed')))
+    } finally {
+      setCreateSubmitting(false)
+    }
+  }
+
   // Render template grid
   const renderTemplateGrid = (items: Template[], showDelete: boolean) => {
     if (loading && items.length === 0) {
@@ -353,16 +386,21 @@ export default function TemplatePage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <Space align="center">
-          <BookOutlined style={{ fontSize: 24, color: 'var(--color-primary)' }} />
-          <Title level={3} style={{ margin: 0 }}>
-            {t('template.title')}
-          </Title>
-        </Space>
-        <div style={{ marginTop: 4 }}>
-          <Text type="secondary">{t('template.description')}</Text>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <Space align="center">
+            <BookOutlined style={{ fontSize: 24, color: 'var(--color-primary)' }} />
+            <Title level={3} style={{ margin: 0 }}>
+              {t('template.title')}
+            </Title>
+          </Space>
+          <div style={{ marginTop: 4 }}>
+            <Text type="secondary">{t('template.description')}</Text>
+          </div>
         </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
+          {t('template.create')}
+        </Button>
       </div>
 
       {error && (
@@ -452,6 +490,40 @@ export default function TemplatePage() {
           },
         ]}
       />
+
+      {/* Create Template Modal */}
+      <Modal
+        title={t('template.create')}
+        open={createModalOpen}
+        onCancel={() => { setCreateModalOpen(false); createForm.resetFields(); }}
+        onOk={() => createForm.submit()}
+        confirmLoading={createSubmitting}
+        width={500}
+        destroyOnClose
+      >
+        <Form form={createForm} layout="vertical" onFinish={handleCreateTemplate} style={{ marginTop: 16 }}>
+          <Form.Item
+            name="name"
+            label={t('template.templateName')}
+            rules={[{ required: true, message: t('template.templateNameRequired') }]}
+          >
+            <Input placeholder={t('template.templateNamePlaceholder')} />
+          </Form.Item>
+          <Form.Item name="description" label={t('common.description')}>
+            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} />
+          </Form.Item>
+          <Form.Item name="category" label={t('template.category')}>
+            <Select placeholder={t('template.category')}>
+              {categories.map((cat) => (
+                <Select.Option key={cat} value={cat}>{cat}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="tags" label={t('template.tags')}>
+            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Use Template Modal */}
       <Modal

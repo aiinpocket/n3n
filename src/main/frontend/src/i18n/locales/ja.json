@@ -2291,6 +2291,10 @@
     "templateNameRequired": "テンプレート名を入力してください",
     "templateNamePlaceholder": "テンプレート名を入力",
     "templateDescPlaceholder": "このテンプレートの説明",
+    "tags": "タグ",
+    "tagsPlaceholder": "Enterキーでタグを追加",
+    "createSuccess": "テンプレートの作成に成功しました",
+    "createFailed": "テンプレートの作成に失敗しました",
     "categories": {
       "automation": "自動化",
       "data": "データ処理",

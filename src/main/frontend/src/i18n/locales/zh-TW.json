@@ -2110,6 +2110,10 @@
     "templateNameRequired": "請輸入範本名稱",
     "templateNamePlaceholder": "輸入範本名稱",
     "templateDescPlaceholder": "描述此範本的用途",
+    "tags": "標籤",
+    "tagsPlaceholder": "按 Enter 新增標籤",
+    "createSuccess": "範本建立成功",
+    "createFailed": "範本建立失敗",
     "categories": {
       "automation": "自動化",
       "data": "資料處理",

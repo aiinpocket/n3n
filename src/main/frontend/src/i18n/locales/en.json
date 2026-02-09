@@ -2291,6 +2291,10 @@
     "templateNameRequired": "Template name is required",
     "templateNamePlaceholder": "Enter template name",
     "templateDescPlaceholder": "Describe what this template does",
+    "tags": "Tags",
+    "tagsPlaceholder": "Press Enter to add tag",
+    "createSuccess": "Template created successfully",
+    "createFailed": "Failed to create template",
     "categories": {
       "automation": "Automation",
       "data": "Data Processing",
