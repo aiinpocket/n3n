@@ -46,7 +46,8 @@
     "fullscreen": "Fullscreen View",
     "unknown": "Unknown",
     "selectField": "Select {{field}}",
-    "invalidUrl": "Please enter a valid URL"
+    "invalidUrl": "Please enter a valid URL",
+    "operationFailed": "Operation failed"
   },
   "error": {
     "title": "Something went wrong",
@@ -2278,6 +2279,7 @@
     "checking": "Checking...",
     "connectWith": "Connect with {{provider}}",
     "connectFailed": "Failed to start OAuth2 connection",
+    "connect": "Connect OAuth2",
     "disconnect": "Disconnect OAuth2",
     "disconnectConfirm": "Are you sure you want to disconnect this OAuth2 connection?",
     "disconnectFailed": "Failed to disconnect OAuth2",
@@ -2296,5 +2298,22 @@
       "slack": "Slack",
       "microsoft": "Microsoft"
     }
+  },
+  "diff": {
+    "nodes": "nodes",
+    "nodesModified": "nodes modified",
+    "edges": "edges",
+    "noChanges": "No changes",
+    "noNodesToPreview": "No nodes to preview",
+    "add": "Add",
+    "remove": "Remove",
+    "modify": "Modify",
+    "move": "Move",
+    "changeSummary": "Change Summary",
+    "addedNodes": "{{count}} node(s) added",
+    "removedNodes": "{{count}} node(s) removed",
+    "modifiedNodes": "{{count}} node(s) modified",
+    "movedNodes": "{{count}} node(s) moved",
+    "moreChanges": "{{count}} more change(s)"
   }
 }

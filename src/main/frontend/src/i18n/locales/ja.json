@@ -46,7 +46,8 @@
     "fullscreen": "全画面表示",
     "unknown": "不明",
     "selectField": "{{field}}を選択",
-    "invalidUrl": "有効なURLを入力してください"
+    "invalidUrl": "有効なURLを入力してください",
+    "operationFailed": "操作に失敗しました"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -2278,6 +2279,7 @@
     "checking": "確認中...",
     "connectWith": "{{provider}} に接続",
     "connectFailed": "OAuth2 接続の開始に失敗しました",
+    "connect": "OAuth2 接続",
     "disconnect": "OAuth2 を切断",
     "disconnectConfirm": "この OAuth2 接続を切断してもよろしいですか？",
     "disconnectFailed": "OAuth2 の切断に失敗しました",
@@ -2296,5 +2298,22 @@
       "slack": "Slack",
       "microsoft": "Microsoft"
     }
+  },
+  "diff": {
+    "nodes": "ノード",
+    "nodesModified": "ノード変更",
+    "edges": "エッジ",
+    "noChanges": "変更なし",
+    "noNodesToPreview": "プレビューするノードがありません",
+    "add": "追加",
+    "remove": "削除",
+    "modify": "変更",
+    "move": "移動",
+    "changeSummary": "変更サマリー",
+    "addedNodes": "{{count}} ノード追加",
+    "removedNodes": "{{count}} ノード削除",
+    "modifiedNodes": "{{count}} ノード変更",
+    "movedNodes": "{{count}} ノード移動",
+    "moreChanges": "他 {{count}} 件の変更"
   }
 }

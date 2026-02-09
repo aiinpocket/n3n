@@ -46,7 +46,8 @@
     "fullscreen": "全螢幕檢視",
     "unknown": "未知",
     "selectField": "選擇{{field}}",
-    "invalidUrl": "請輸入有效的網址"
+    "invalidUrl": "請輸入有效的網址",
+    "operationFailed": "操作失敗"
   },
   "error": {
     "title": "發生錯誤",
@@ -2097,6 +2098,7 @@
     "checking": "檢查中...",
     "connectWith": "連結 {{provider}}",
     "connectFailed": "OAuth2 連線啟動失敗",
+    "connect": "連結 OAuth2",
     "disconnect": "斷開 OAuth2 連線",
     "disconnectConfirm": "確定要斷開此 OAuth2 連線嗎？",
     "disconnectFailed": "斷開 OAuth2 連線失敗",
@@ -2115,5 +2117,22 @@
       "slack": "Slack",
       "microsoft": "Microsoft"
     }
+  },
+  "diff": {
+    "nodes": "節點",
+    "nodesModified": "節點已修改",
+    "edges": "連線",
+    "noChanges": "沒有變更",
+    "noNodesToPreview": "沒有節點可預覽",
+    "add": "新增",
+    "remove": "移除",
+    "modify": "修改",
+    "move": "移動",
+    "changeSummary": "變更摘要",
+    "addedNodes": "新增 {{count}} 個節點",
+    "removedNodes": "移除 {{count}} 個節點",
+    "modifiedNodes": "修改 {{count}} 個節點",
+    "movedNodes": "移動 {{count}} 個節點",
+    "moreChanges": "還有 {{count}} 項變更"
   }
 }
