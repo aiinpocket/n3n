@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Modal, Alert, Button, Space, Input, message } from 'antd';
 import { CopyOutlined, KeyOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -16,13 +16,21 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
   const [verifyInput, setVerifyInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(recoveryKey.join(' '));
       setCopied(true);
       message.success(t('recovery.copiedToClipboard'));
-      setTimeout(() => setCopied(false), 3000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 3000);
     } catch {
       message.error(t('common.copyFailed'));
     }
