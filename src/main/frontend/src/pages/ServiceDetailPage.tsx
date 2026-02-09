@@ -362,13 +362,16 @@ export default function ServiceDetailPage() {
           <Form.Item
             name="name"
             label={t('service.endpointName')}
-            rules={[{ required: true, message: t('service.endpointNameRequired') }]}
+            rules={[
+              { required: true, message: t('service.endpointNameRequired') },
+              { max: 200, message: t('common.maxLength', { max: 200 }) },
+            ]}
           >
-            <Input placeholder={t('service.endpointNamePlaceholder')} />
+            <Input placeholder={t('service.endpointNamePlaceholder')} maxLength={200} />
           </Form.Item>
 
-          <Form.Item name="description" label={t('common.description')}>
-            <Input placeholder={t('service.endpointDescPlaceholder')} />
+          <Form.Item name="description" label={t('common.description')} rules={[{ max: 2000, message: t('common.maxLength', { max: 2000 }) }]}>
+            <Input placeholder={t('service.endpointDescPlaceholder')} maxLength={2000} />
           </Form.Item>
 
           <Space style={{ width: '100%' }} align="start">
@@ -390,10 +393,13 @@ export default function ServiceDetailPage() {
             <Form.Item
               name="path"
               label={t('service.path')}
-              rules={[{ required: true, message: t('service.pathRequired') }]}
+              rules={[
+                { required: true, message: t('service.pathRequired') },
+                { max: 500, message: t('common.maxLength', { max: 500 }) },
+              ]}
               style={{ flex: 1 }}
             >
-              <Input placeholder={t('service.pathPlaceholder')} />
+              <Input placeholder={t('service.pathPlaceholder')} maxLength={500} />
             </Form.Item>
           </Space>
 

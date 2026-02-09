@@ -1677,7 +1677,9 @@
     "quickSecurityDesc": "Recovery key and account settings",
     "loadFailed": "Failed to load dashboard data",
     "welcomeBack": "Welcome back, {{name}}",
-    "welcomeExplanation": "Automate repetitive tasks by connecting your apps and services together — no coding required."
+    "welcomeExplanation": "Automate repetitive tasks by connecting your apps and services together — no coding required.",
+    "noActivities": "No recent activities",
+    "noExecutions": "No recent executions"
   },
   "diff": {
     "nodes": "nodes",

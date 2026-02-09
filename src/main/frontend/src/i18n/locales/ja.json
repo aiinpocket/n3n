@@ -1677,7 +1677,9 @@
     "quickSecurityDesc": "Recovery Keyとアカウント設定",
     "loadFailed": "ダッシュボードデータの読み込みに失敗しました",
     "welcomeBack": "おかえりなさい、{{name}}さん",
-    "welcomeExplanation": "アプリやサービスを連携して、繰り返しの作業を自動化 — コーディング不要です。"
+    "welcomeExplanation": "アプリやサービスを連携して、繰り返しの作業を自動化 — コーディング不要です。",
+    "noActivities": "最近のアクティビティはありません",
+    "noExecutions": "最近の実行はありません"
   },
   "diff": {
     "nodes": "ノード",

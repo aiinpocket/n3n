@@ -296,6 +296,7 @@ export default function ServiceFormPage() {
                       <Option value="api_key">API Key</Option>
                       <Option value="bearer">Bearer Token</Option>
                       <Option value="basic">Basic Auth</Option>
+                      <Option value="oauth2">OAuth2</Option>
                     </Select>
                   </Form.Item>
 

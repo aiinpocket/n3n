@@ -1677,7 +1677,9 @@
     "quickSecurityDesc": "Recovery Key 與帳戶設定",
     "loadFailed": "載入儀表板資料失敗",
     "welcomeBack": "歡迎回來，{{name}}",
-    "welcomeExplanation": "將您的應用程式和服務串接在一起，自動化重複性工作 — 完全不需要寫程式。"
+    "welcomeExplanation": "將您的應用程式和服務串接在一起，自動化重複性工作 — 完全不需要寫程式。",
+    "noActivities": "暫無最近活動",
+    "noExecutions": "暫無最近執行"
   },
   "diff": {
     "nodes": "節點",

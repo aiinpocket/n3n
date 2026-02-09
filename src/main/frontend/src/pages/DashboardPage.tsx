@@ -396,7 +396,7 @@ export default function DashboardPage() {
             <List
               size="small"
               dataSource={recentActivities}
-              locale={{ emptyText: t('nav.activities') }}
+              locale={{ emptyText: t('dashboard.noActivities') }}
               renderItem={(item) => (
                 <List.Item>
                   <List.Item.Meta
