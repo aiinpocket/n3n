@@ -19,6 +19,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
@@ -37,9 +38,18 @@ public class OAuth2Controller {
     private final CredentialRepository credentialRepository;
 
     // HMAC key for signing OAuth2 state parameter to prevent CSRF/forgery
-    private static final String STATE_HMAC_KEY = System.getenv("OAUTH2_STATE_SECRET") != null
-        ? System.getenv("OAUTH2_STATE_SECRET")
-        : UUID.randomUUID().toString();
+    private static final String STATE_HMAC_KEY;
+    static {
+        String envSecret = System.getenv("OAUTH2_STATE_SECRET");
+        if (envSecret != null && !envSecret.isBlank()) {
+            STATE_HMAC_KEY = envSecret;
+        } else {
+            // Generate a 256-bit random key (stronger than UUID's 122-bit entropy)
+            byte[] keyBytes = new byte[32];
+            new SecureRandom().nextBytes(keyBytes);
+            STATE_HMAC_KEY = Base64.getEncoder().encodeToString(keyBytes);
+        }
+    }
 
     /**
      * Get authorization URL for a provider.

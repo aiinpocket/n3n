@@ -503,19 +503,14 @@ class CredentialServiceTest extends BaseServiceTest {
         }
 
         @Test
-        @DisplayName("should return decrypted data for shared credential accessed by non-owner")
-        void getDecryptedData_sharedNonOwner_success() {
+        @DisplayName("should deny decrypted data for shared credential accessed by non-owner")
+        void getDecryptedData_sharedNonOwner_throwsException() {
             when(credentialRepository.findById(sharedCredential.getId()))
                     .thenReturn(Optional.of(sharedCredential));
-            when(encryptionService.decrypt(
-                    sharedCredential.getEncryptedData(),
-                    sharedCredential.getEncryptionIv()))
-                    .thenReturn("{\"apiKey\":\"shared-key\"}");
 
-            Map<String, Object> result = credentialService.getDecryptedData(
-                    sharedCredential.getId(), otherUserId);
-
-            assertThat(result).containsEntry("apiKey", "shared-key");
+            assertThatThrownBy(() -> credentialService.getDecryptedData(
+                    sharedCredential.getId(), otherUserId))
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
 
         @Test

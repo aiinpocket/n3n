@@ -144,8 +144,8 @@ public class CredentialService {
         Credential credential = credentialRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
 
-        // Check access
-        if (!credential.getOwnerId().equals(userId) && Status.Visibility.PRIVATE.equals(credential.getVisibility())) {
+        // Only credential owner can decrypt and view raw credential data
+        if (!credential.getOwnerId().equals(userId)) {
             throw new ResourceNotFoundException("Credential not found: " + id);
         }
 

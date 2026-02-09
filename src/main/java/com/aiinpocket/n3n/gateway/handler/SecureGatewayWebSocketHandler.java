@@ -63,6 +63,11 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
      */
     private final Set<String> handshakeSessions = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Track pending request IDs per session for cleanup on disconnect
+     */
+    private final Map<String, Set<String>> sessionPendingIds = new ConcurrentHashMap<>();
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String sessionId = session.getId();
@@ -156,6 +161,17 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
 
         sessionToDevice.remove(sessionId);
         handshakeSessions.remove(sessionId);
+
+        // Cancel orphaned pending requests for this session
+        Set<String> orphanedIds = sessionPendingIds.remove(sessionId);
+        if (orphanedIds != null) {
+            for (String reqId : orphanedIds) {
+                CompletableFuture<GatewayResponse> future = pendingRequests.remove(reqId);
+                if (future != null) {
+                    future.complete(GatewayResponse.error(reqId, "SESSION_CLOSED", "Connection closed"));
+                }
+            }
+        }
 
         log.info("Secure WebSocket connection closed: {} (status: {})", sessionId, status);
     }
@@ -424,17 +440,27 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
                 CompletableFuture<GatewayResponse> future = new CompletableFuture<>();
                 pendingRequests.put(request.getId(), future);
 
+                // Track request ID per session for cleanup on disconnect
+                String sid = connection.getSession().getId();
+                sessionPendingIds.computeIfAbsent(sid, k -> ConcurrentHashMap.newKeySet()).add(request.getId());
+
                 try {
                     sendEncryptedMessage(connection.getSession(), deviceId, request);
                 } catch (Exception e) {
                     pendingRequests.remove(request.getId());
+                    Set<String> ids = sessionPendingIds.get(sid);
+                    if (ids != null) ids.remove(request.getId());
                     return CompletableFuture.<GatewayResponse>completedFuture(
                         GatewayResponse.error(request.getId(), "SEND_ERROR", "Message delivery failed")
                     );
                 }
 
                 return future.orTimeout(30, TimeUnit.SECONDS)
-                    .whenComplete((result, ex) -> pendingRequests.remove(request.getId()))
+                    .whenComplete((result, ex) -> {
+                        pendingRequests.remove(request.getId());
+                        Set<String> ids = sessionPendingIds.get(sid);
+                        if (ids != null) ids.remove(request.getId());
+                    })
                     .exceptionally(e -> GatewayResponse.error(request.getId(), "TIMEOUT", "Request timed out"));
             })
             .orElse(CompletableFuture.completedFuture(

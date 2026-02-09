@@ -52,6 +52,11 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
     private final Map<String, String> sessionToConnection = new ConcurrentHashMap<>();
 
     /**
+     * Track pending request IDs per session for cleanup on disconnect
+     */
+    private final Map<String, Set<String>> sessionPendingIds = new ConcurrentHashMap<>();
+
+    /**
      * Authentication challenges in progress
      */
     private final Map<String, AuthChallenge> authChallenges = new ConcurrentHashMap<>();
@@ -110,6 +115,18 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
         }
 
         authChallenges.remove(sessionId);
+
+        // Cancel orphaned pending requests for this session
+        Set<String> orphanedIds = sessionPendingIds.remove(sessionId);
+        if (orphanedIds != null) {
+            for (String reqId : orphanedIds) {
+                CompletableFuture<GatewayResponse> future = pendingRequests.remove(reqId);
+                if (future != null) {
+                    future.complete(GatewayResponse.error(reqId, "SESSION_CLOSED", "Connection closed"));
+                }
+            }
+        }
+
         log.info("WebSocket connection closed: {} (status: {})", sessionId, status);
     }
 
@@ -350,10 +367,16 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
                 CompletableFuture<GatewayResponse> future = new CompletableFuture<>();
                 pendingRequests.put(request.getId(), future);
 
+                // Track request ID per session for cleanup on disconnect
+                String sid = connection.getSession().getId();
+                sessionPendingIds.computeIfAbsent(sid, k -> ConcurrentHashMap.newKeySet()).add(request.getId());
+
                 try {
                     sendMessage(connection.getSession(), request);
                 } catch (IOException e) {
                     pendingRequests.remove(request.getId());
+                    Set<String> ids = sessionPendingIds.get(sid);
+                    if (ids != null) ids.remove(request.getId());
                     return CompletableFuture.<GatewayResponse>completedFuture(
                         GatewayResponse.error(request.getId(), "SEND_ERROR", "Message delivery failed")
                     );
@@ -361,7 +384,11 @@ public class GatewayWebSocketHandler extends TextWebSocketHandler {
 
                 // Set timeout and clean up pending entry on completion
                 return future.orTimeout(30, TimeUnit.SECONDS)
-                    .whenComplete((res, ex) -> pendingRequests.remove(request.getId()))
+                    .whenComplete((res, ex) -> {
+                        pendingRequests.remove(request.getId());
+                        Set<String> ids = sessionPendingIds.get(sid);
+                        if (ids != null) ids.remove(request.getId());
+                    })
                     .exceptionally(e -> GatewayResponse.error(request.getId(), "TIMEOUT", "Request timed out"));
             })
             .orElse(CompletableFuture.completedFuture(

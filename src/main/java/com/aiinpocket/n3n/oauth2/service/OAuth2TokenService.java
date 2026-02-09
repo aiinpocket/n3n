@@ -116,7 +116,7 @@ public class OAuth2TokenService {
             String responseBody = response.body() != null ? response.body().string() : "";
 
             if (!response.isSuccessful()) {
-                log.error("OAuth2 token exchange failed: {} - {}", response.code(), responseBody);
+                log.error("OAuth2 token exchange failed with status: {}", response.code());
                 throw new IOException("Token exchange failed: " + response.code());
             }
 

@@ -229,10 +229,16 @@ public class MasterKeyProvider {
             keyGen.init(KEY_SIZE, new SecureRandom());
             SecretKey key = keyGen.generateKey();
 
-            // 輸出生成的金鑰供參考（僅開發環境）
+            // Log key fingerprint only (never log the actual key)
             if (!isProductionProfile()) {
-                String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-                log.info("Generated new master key (save this for persistence): {}", encodedKey);
+                byte[] keyBytes = key.getEncoded();
+                try {
+                    byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(keyBytes);
+                    String fingerprint = Base64.getEncoder().encodeToString(hash).substring(0, 8);
+                    log.info("Generated new master key (fingerprint: {}...)", fingerprint);
+                } catch (java.security.NoSuchAlgorithmException ignored) {
+                    log.info("Generated new master key");
+                }
             }
 
             return key;
