@@ -269,6 +269,23 @@ export default function MainLayout() {
 
   return (
     <Layout style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          top: -40,
+          left: 0,
+          background: 'var(--color-primary)',
+          color: '#fff',
+          padding: '8px 16px',
+          zIndex: 1000,
+          transition: 'top 0.2s',
+        }}
+        onFocus={(e) => { e.currentTarget.style.top = '0' }}
+        onBlur={(e) => { e.currentTarget.style.top = '-40px' }}
+      >
+        {t('common.skipToContent')}
+      </a>
       <Sider
         collapsible
         collapsed={collapsed}
@@ -369,7 +386,7 @@ export default function MainLayout() {
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ margin: 16 }}>
+        <Content id="main-content" style={{ margin: 16 }}>
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
