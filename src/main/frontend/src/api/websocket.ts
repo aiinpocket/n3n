@@ -45,19 +45,25 @@ class WebSocketService {
 
     this.connectPromise = new Promise<void>((resolve, reject) => {
 
-      const token = useAuthStore.getState().accessToken;
-      // SockJS handshake doesn't support custom headers, so token must be in STOMP connect headers.
-      // The WebSocket interceptor handles auth via Sec-WebSocket-Protocol or query param as SockJS fallback.
-      const socket = new SockJS(token ? `/ws?token=${encodeURIComponent(token)}` : '/ws');
       this.client = new Client({
-        webSocketFactory: () => socket as unknown as WebSocket,
-        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+        // Create fresh SockJS + token on each connection/reconnection attempt
+        webSocketFactory: () => {
+          const freshToken = useAuthStore.getState().accessToken;
+          return new SockJS(freshToken ? `/ws?token=${encodeURIComponent(freshToken)}` : '/ws') as unknown as WebSocket;
+        },
+        beforeConnect: () => {
+          // Update connect headers with fresh token before each attempt
+          const freshToken = useAuthStore.getState().accessToken;
+          if (this.client) {
+            this.client.connectHeaders = freshToken ? { Authorization: `Bearer ${freshToken}` } : {};
+          }
+        },
         debug: (str) => {
           logger.debug('[STOMP] ' + str);
         },
         reconnectDelay: this.reconnectDelay,
-        heartbeatIncoming: 10000,
-        heartbeatOutgoing: 10000,
+        heartbeatIncoming: 25000,
+        heartbeatOutgoing: 25000,
       });
 
       this.client.onConnect = () => {

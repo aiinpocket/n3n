@@ -212,6 +212,7 @@ export default function FlowEditorPage() {
   useEffect(() => {
     const state = location.state as { generatedFlow?: { nodes: Array<{ id: string; type: string; label?: string; config?: Record<string, unknown> }>; edges: Array<{ source: string; target: string }> } } | null
     if (state?.generatedFlow) {
+      pushHistory()
       const flowDef = state.generatedFlow
       const newNodes = flowDef.nodes.map((n, i) => ({
         id: n.id,
@@ -233,7 +234,8 @@ export default function FlowEditorPage() {
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
     }
-  }, [location.state, setNodes, setEdges, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   // Auto-save with debounce
   useEffect(() => {
@@ -1203,6 +1205,7 @@ export default function FlowEditorPage() {
         initialDescription={flowGeneratorInitialDesc}
         onCreateFlow={(flowDef) => {
           if (flowDef) {
+            pushHistory()
             // Convert generated flow to react-flow nodes
             const newNodes = flowDef.nodes.map((n, i) => ({
               id: n.id,
