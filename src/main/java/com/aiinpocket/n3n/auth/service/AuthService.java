@@ -38,6 +38,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final StringRedisTemplate redisTemplate;
     private final ActivityService activityService;
+    private final com.aiinpocket.n3n.common.service.EmailService emailService;
 
     private static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
 
@@ -252,10 +253,8 @@ public class AuthService {
         // Store token -> userId in Redis with 1 hour TTL
         redisTemplate.opsForValue().set(redisKey, user.getId().toString(), Duration.ofHours(1));
 
-        // TODO: Send password reset email with link containing token
-        // Current implementation only stores token in Redis but does not send email
-        // When EmailService is configured, uncomment:
-        // emailService.sendPasswordResetEmail(user.getEmail(), token);
+        // Send password reset email with link containing token
+        emailService.sendPasswordResetLink(user.getEmail(), token);
 
         log.info("Password reset requested for email: {}", email);
     }

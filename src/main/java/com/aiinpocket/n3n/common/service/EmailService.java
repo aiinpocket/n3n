@@ -30,6 +30,19 @@ public class EmailService {
                         "Visit " + baseUrl + " to access it.");
     }
 
+    public void sendPasswordResetLink(String toEmail, String resetToken) {
+        if (!isMailConfigured()) {
+            log.info("Mail not configured. Password reset link would be sent to {}", toEmail);
+            return;
+        }
+        String resetUrl = baseUrl + "/reset-password?token=" + resetToken;
+        send(toEmail, "Password Reset Request",
+                "You requested a password reset.\n\n" +
+                        "Click the following link to reset your password:\n" + resetUrl + "\n\n" +
+                        "This link will expire in 1 hour.\n\n" +
+                        "If you did not request this, please ignore this email.");
+    }
+
     public void sendPasswordReset(String toEmail, String tempPassword) {
         if (!isMailConfigured()) {
             log.info("Mail not configured. Password reset would be sent to {}", toEmail);
