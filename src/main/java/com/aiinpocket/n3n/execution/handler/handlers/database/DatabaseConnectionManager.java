@@ -134,7 +134,15 @@ public class DatabaseConnectionManager {
     @PreDestroy
     public void shutdown() {
         log.info("Shutting down database connection manager...");
-        cleanupScheduler.shutdownNow();
+        cleanupScheduler.shutdown();
+        try {
+            if (!cleanupScheduler.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                cleanupScheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            cleanupScheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
 
         pools.forEach((key, entry) -> {
             closeDataSource(entry.dataSource);

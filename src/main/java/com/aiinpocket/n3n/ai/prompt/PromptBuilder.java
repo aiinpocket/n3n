@@ -327,7 +327,9 @@ public class PromptBuilder {
         try {
             ClassPathResource resource = new ClassPathResource("ai/prompts/flow-generation.md");
             if (resource.exists()) {
-                systemPromptTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                try (var is = resource.getInputStream()) {
+                    systemPromptTemplate = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                }
                 log.info("Loaded system prompt template from flow-generation.md");
             }
         } catch (IOException e) {
@@ -343,8 +345,10 @@ public class PromptBuilder {
         try {
             ClassPathResource resource = new ClassPathResource("ai/prompts/few-shot-examples.json");
             if (resource.exists()) {
-                List<Map<String, Object>> examples = objectMapper.readValue(
-                        resource.getInputStream(), new TypeReference<>() {});
+                List<Map<String, Object>> examples;
+                try (var is = resource.getInputStream()) {
+                    examples = objectMapper.readValue(is, new TypeReference<>() {});
+                }
 
                 for (Map<String, Object> example : examples) {
                     fewShotExamples.add(new FewShotExample(

@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.ai.chain.executor;
 import com.aiinpocket.n3n.ai.chain.Chain;
 import com.aiinpocket.n3n.ai.chain.ChainContext;
 import com.aiinpocket.n3n.ai.chain.ChainResult;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,20 @@ public class ChainExecutor {
     private static final int DEFAULT_TIMEOUT_SECONDS = 120;
 
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("Shutting down ChainExecutor...");
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 
     /**
      * 執行 Chain

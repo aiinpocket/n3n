@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.scripting;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
@@ -26,6 +27,20 @@ public class JavaScriptEngine implements ScriptEngine {
         t.setDaemon(true);
         return t;
     });
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("Shutting down JavaScriptEngine executor...");
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 
     @Override
     public String getLanguage() {

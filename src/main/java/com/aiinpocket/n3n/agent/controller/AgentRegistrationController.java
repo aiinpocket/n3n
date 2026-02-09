@@ -229,7 +229,10 @@ public class AgentRegistrationController {
                 return ResponseEntity.notFound().build();
             }
 
-            byte[] content = resource.getInputStream().readAllBytes();
+            byte[] content;
+            try (var is = resource.getInputStream()) {
+                content = is.readAllBytes();
+            }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -409,7 +412,10 @@ public class AgentRegistrationController {
             );
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            String output = new String(process.getInputStream().readAllBytes());
+            String output;
+            try (var is = process.getInputStream()) {
+                output = new String(is.readAllBytes());
+            }
             int exitCode = process.waitFor();
 
             if (exitCode != 0) {
