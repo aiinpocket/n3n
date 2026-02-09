@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
 import type { ExternalService } from '../types'
 import { getLocale } from '../utils/locale'
+import { extractApiError } from '../utils/errorMessages'
 
 export default function ServiceListPage() {
   const navigate = useNavigate()
@@ -21,8 +22,8 @@ export default function ServiceListPage() {
     try {
       await deleteService(id)
       message.success(t('service.deleteSuccess'))
-    } catch {
-      message.error(t('common.deleteFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('common.deleteFailed')))
     }
   }
 
@@ -35,8 +36,8 @@ export default function ServiceListPage() {
       } else {
         message.warning(result.message || t('service.connectionFailed'))
       }
-    } catch {
-      message.error(t('service.testConnectionFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('service.testConnectionFailed')))
     } finally {
       setTestingId(null)
     }

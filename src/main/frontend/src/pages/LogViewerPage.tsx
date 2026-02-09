@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { logsApi, createLogStream, type LogEntry } from '../api/logs'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Text } = Typography
 
@@ -47,8 +48,8 @@ export default function LogViewerPage() {
     try {
       const data = await logsApi.getLogs(level, search || undefined, 200)
       setLogs(data)
-    } catch {
-      setLoadError(t('common.loadFailed'))
+    } catch (error) {
+      setLoadError(extractApiError(error, t('common.loadFailed')))
     } finally {
       setLoading(false)
     }
