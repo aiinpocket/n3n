@@ -603,9 +603,12 @@ export default function TemplatePage() {
           <Form.Item
             name="flowName"
             label={t('template.flowName')}
-            rules={[{ required: true, message: t('template.flowNamePlaceholder') }]}
+            rules={[
+              { required: true, message: t('template.flowNamePlaceholder') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
-            <Input placeholder={t('template.flowNamePlaceholder')} />
+            <Input placeholder={t('template.flowNamePlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
