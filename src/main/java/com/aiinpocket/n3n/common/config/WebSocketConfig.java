@@ -3,8 +3,11 @@ package com.aiinpocket.n3n.common.config;
 import com.aiinpocket.n3n.auth.security.WebSocketAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -27,11 +30,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Heartbeat: server sends every 25s, expects client heartbeat every 25s
         // Prevents intermediate proxies/firewalls from closing idle connections
         config.enableSimpleBroker("/topic", "/queue")
-            .setHeartbeatValue(new long[]{25000, 25000});
+            .setHeartbeatValue(new long[]{25000, 25000})
+            .setTaskScheduler(heartbeatScheduler());
         // Set prefix for destinations bound for @MessageMapping methods
         config.setApplicationDestinationPrefixes("/app");
         // Set prefix for user-specific destinations
         config.setUserDestinationPrefix("/user");
+    }
+
+    @Bean
+    public TaskScheduler heartbeatScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+        return scheduler;
     }
 
     @Override
