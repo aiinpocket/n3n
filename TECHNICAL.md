@@ -1170,7 +1170,7 @@ src/test/java/com/aiinpocket/n3n/
     └── FailoverConfigTest
 ```
 
-**Total backend tests: 2,363** (as of 2026-02-09)
+**Total backend tests: 2,375** (as of 2026-02-09)
 
 ### Writing Tests
 
