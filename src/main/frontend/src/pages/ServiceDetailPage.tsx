@@ -159,8 +159,8 @@ export default function ServiceDetailPage() {
     try {
       await deleteEndpoint(id, endpointId)
       message.success(t('service.endpointDeleted'))
-    } catch {
-      message.error(t('common.deleteFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('common.deleteFailed')))
     }
   }
 

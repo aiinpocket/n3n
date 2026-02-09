@@ -1250,6 +1250,7 @@
     "lastActivity": "最終アクティビティ",
     "actions": "操作",
     "agentBlocked": "Agent をブロックしました",
+    "blockedByUser": "ユーザーによりブロック",
     "agentUnblocked": "Agent のブロックを解除しました",
     "agentDeleted": "Agent を削除しました",
     "unblock": "ブロック解除",

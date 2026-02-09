@@ -1250,6 +1250,7 @@
     "lastActivity": "最後活動",
     "actions": "操作",
     "agentBlocked": "Agent 已封鎖",
+    "blockedByUser": "由使用者封鎖",
     "agentUnblocked": "Agent 已解除封鎖",
     "agentDeleted": "Agent 已刪除",
     "unblock": "解除封鎖",

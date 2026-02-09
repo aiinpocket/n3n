@@ -353,8 +353,8 @@ export default function SkillsPage() {
                   try {
                     await deleteSkill(record.id)
                     message.success(t('common.deleteSuccess'))
-                  } catch {
-                    message.error(t('common.deleteFailed'))
+                  } catch (error) {
+                    message.error(extractApiError(error, t('common.deleteFailed')))
                   }
                 }}
               >

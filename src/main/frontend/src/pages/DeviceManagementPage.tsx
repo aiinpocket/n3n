@@ -96,7 +96,7 @@ const DeviceManagementPage: React.FC = () => {
 
   const handleBlock = async (id: string) => {
     try {
-      await blockAgent(id, 'Blocked by user')
+      await blockAgent(id, t('device.blockedByUser'))
       message.success(t('device.agentBlocked'))
       fetchData()
     } catch (err: unknown) {

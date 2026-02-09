@@ -95,8 +95,8 @@ export default function FlowListPage() {
         try {
           await deleteFlow(id)
           message.success(t('flow.deleteSuccess'))
-        } catch {
-          message.error(t('common.deleteFailed'))
+        } catch (error) {
+          message.error(extractApiError(error, t('common.deleteFailed')))
         }
       },
     })
@@ -143,8 +143,8 @@ export default function FlowListPage() {
           message.success(t('flow.batchDeleteSuccess', { count: resp.data.deleted }))
           setSelectedRowKeys([])
           fetchFlows()
-        } catch {
-          message.error(t('common.deleteFailed'))
+        } catch (error) {
+          message.error(extractApiError(error, t('common.deleteFailed')))
         } finally {
           setBatchDeleting(false)
         }

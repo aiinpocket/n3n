@@ -130,8 +130,8 @@ export default function ExecutionListPage() {
           message.success(t('execution.batchDeleteSuccess', { count: resp.data.deleted }))
           setSelectedRowKeys([])
           loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
-        } catch {
-          message.error(t('common.deleteFailed'))
+        } catch (error) {
+          message.error(extractApiError(error, t('common.deleteFailed')))
         } finally {
           setBatchDeleting(false)
         }
@@ -278,8 +278,8 @@ export default function ExecutionListPage() {
                       await apiClient.delete(`/executions/batch`, { data: { ids: [record.id] } })
                       message.success(t('common.success'))
                       loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
-                    } catch {
-                      message.error(t('common.deleteFailed'))
+                    } catch (error) {
+                      message.error(extractApiError(error, t('common.deleteFailed')))
                     }
                   },
                 })

@@ -1250,6 +1250,7 @@
     "lastActivity": "Last Activity",
     "actions": "Actions",
     "agentBlocked": "Agent has been blocked",
+    "blockedByUser": "Blocked by user",
     "agentUnblocked": "Agent has been unblocked",
     "agentDeleted": "Agent has been deleted",
     "unblock": "Unblock",
