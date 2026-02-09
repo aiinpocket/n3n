@@ -509,7 +509,7 @@ class FlowServiceTest extends BaseServiceTest {
         UUID userId = UUID.randomUUID();
         SaveVersionRequest request = TestDataFactory.createSaveVersionRequest("1.0.0");
 
-        when(flowRepository.existsById(flowId)).thenReturn(true);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(new Flow()));
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
                 .thenReturn(Optional.empty());
         when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(invocation -> {
@@ -538,7 +538,7 @@ class FlowServiceTest extends BaseServiceTest {
         request.setVersion("1.0.0");
         request.setDefinition(newDef);
 
-        when(flowRepository.existsById(flowId)).thenReturn(true);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(new Flow()));
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
                 .thenReturn(Optional.of(existing));
         when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -561,7 +561,7 @@ class FlowServiceTest extends BaseServiceTest {
         request.setVersion("1.0.0");
         request.setDefinition(TestDataFactory.createSimpleFlowDefinition());
 
-        when(flowRepository.existsById(flowId)).thenReturn(true);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(new Flow()));
         when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
                 .thenReturn(Optional.of(published));
 
@@ -577,7 +577,7 @@ class FlowServiceTest extends BaseServiceTest {
         UUID flowId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         SaveVersionRequest request = TestDataFactory.createSaveVersionRequest("1.0.0");
-        when(flowRepository.existsById(flowId)).thenReturn(false);
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.empty());
 
         // When/Then
         assertThatThrownBy(() -> flowService.saveVersion(flowId, request, userId))

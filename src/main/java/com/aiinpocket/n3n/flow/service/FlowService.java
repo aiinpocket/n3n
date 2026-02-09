@@ -268,7 +268,7 @@ public class FlowService {
 
     @Transactional
     public FlowVersionResponse saveVersion(UUID flowId, SaveVersionRequest request, UUID userId) {
-        if (!flowRepository.existsById(flowId)) {
+        if (flowRepository.findByIdAndIsDeletedFalse(flowId).isEmpty()) {
             throw new ResourceNotFoundException("Flow not found: " + flowId);
         }
 

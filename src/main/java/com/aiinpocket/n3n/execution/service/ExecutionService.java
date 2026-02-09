@@ -601,6 +601,7 @@ public class ExecutionService {
         stateManager.updateExecutionStatus(executionId, "waiting");
         stateManager.markNodeWaiting(executionId, nodeId, pauseReason);
         stateManager.setPartialNodeOutputs(executionId, nodeOutputs);
+        stateManager.extendTTLForWaiting(executionId);
 
         // Send notification
         notificationService.notifyExecutionWaiting(executionId, nodeId, pauseReason, resumeCondition);

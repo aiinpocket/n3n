@@ -26,6 +26,7 @@ public class StateManager {
     private static final String NODE_STATE_PREFIX = "node_state:";
     private static final String EXECUTION_OUTPUT_PREFIX = "execution_output:";
     private static final Duration STATE_TTL = Duration.ofHours(24);
+    private static final Duration WAITING_TTL = Duration.ofDays(7);
 
     // Execution state management
 
@@ -228,6 +229,29 @@ public class StateManager {
         Map<String, Object> output = new HashMap<>();
         rawOutput.forEach((k, v) -> output.put(k.toString(), v));
         return output;
+    }
+
+    /**
+     * Extend TTL for all execution-related keys when execution enters waiting state.
+     * Waiting executions (e.g., approval nodes) may stay paused for days.
+     */
+    public void extendTTLForWaiting(UUID executionId) {
+        String execKey = EXECUTION_PREFIX + executionId;
+        redisTemplate.expire(execKey, WAITING_TTL);
+        redisTemplate.expire(execKey + ":completed_nodes", WAITING_TTL);
+        redisTemplate.expire(execKey + ":waiting_nodes", WAITING_TTL);
+        redisTemplate.expire(execKey + ":partial_outputs", WAITING_TTL);
+
+        // Extend TTL for node output keys
+        ScanOptions options = ScanOptions.scanOptions()
+            .match(NODE_STATE_PREFIX + executionId + ":*").count(100).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                redisTemplate.expire(cursor.next(), WAITING_TTL);
+            }
+        }
+
+        log.debug("Extended TTL to {} days for waiting execution: {}", WAITING_TTL.toDays(), executionId);
     }
 
     // Cleanup
