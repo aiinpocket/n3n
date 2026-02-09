@@ -300,9 +300,13 @@ export function formatErrorForDisplay(error: FriendlyError): string {
  */
 export function extractApiError(error: unknown, fallback?: string): string {
   // Check for Axios-style error response
-  const axiosError = error as { response?: { data?: { message?: string } } }
+  const axiosError = error as { response?: { data?: { message?: string; error?: string } } }
   if (axiosError?.response?.data?.message) {
     return axiosError.response.data.message
+  }
+  // Some controllers return { "error": "..." } instead of { "message": "..." }
+  if (axiosError?.response?.data?.error) {
+    return axiosError.response.data.error
   }
   // Check for standard Error
   if (error instanceof Error) {
