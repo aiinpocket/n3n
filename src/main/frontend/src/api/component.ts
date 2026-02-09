@@ -6,9 +6,9 @@ export interface ComponentResponse {
   displayName: string;
   description: string;
   category: string;
-  iconUrl?: string;
+  icon?: string;
   latestVersion?: string;
-  activeVersionCount?: number;
+  activeVersion?: string;
   createdAt: string;
   createdBy: string;
 }
@@ -32,14 +32,14 @@ export interface CreateComponentRequest {
   displayName: string;
   description?: string;
   category?: string;
-  iconUrl?: string;
+  icon?: string;
 }
 
 export interface UpdateComponentRequest {
   displayName?: string;
   description?: string;
   category?: string;
-  iconUrl?: string;
+  icon?: string;
 }
 
 export interface CreateVersionRequest {

@@ -759,7 +759,7 @@
     "category": "カテゴリ",
     "selectCategory": "カテゴリを選択",
     "latestVersion": "最新バージョン",
-    "activeVersionCount": "有効バージョン数",
+    "activeVersion": "有効バージョン",
     "versions": "バージョン",
     "versionManagement": "バージョン管理",
     "addVersion": "バージョン追加",

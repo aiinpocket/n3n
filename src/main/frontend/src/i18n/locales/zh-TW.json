@@ -759,7 +759,7 @@
     "category": "分類",
     "selectCategory": "選擇分類",
     "latestVersion": "最新版本",
-    "activeVersionCount": "啟用版本數",
+    "activeVersion": "啟用版本",
     "versions": "版本",
     "versionManagement": "版本管理",
     "addVersion": "新增版本",

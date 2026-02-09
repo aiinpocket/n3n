@@ -308,10 +308,10 @@ export default function ComponentListPage() {
       render: (version: string) => version || '-',
     },
     {
-      title: t('component.activeVersionCount'),
-      dataIndex: 'activeVersionCount',
-      key: 'activeVersionCount',
-      render: (count: number) => count ?? 0,
+      title: t('component.activeVersion'),
+      dataIndex: 'activeVersion',
+      key: 'activeVersion',
+      render: (version: string) => version || '-',
     },
     {
       title: t('common.actions'),

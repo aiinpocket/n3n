@@ -759,7 +759,7 @@
     "category": "Category",
     "selectCategory": "Select category",
     "latestVersion": "Latest Version",
-    "activeVersionCount": "Active Versions",
+    "activeVersion": "Active Version",
     "versions": "Versions",
     "versionManagement": "Version Management",
     "addVersion": "Add Version",
