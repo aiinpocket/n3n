@@ -45,7 +45,7 @@ const statusIcons: Record<string, React.ReactNode> = {
   paused: <PauseCircleOutlined />,
 }
 
-const STATUS_OPTIONS = ['all', 'pending', 'running', 'completed', 'failed', 'cancelled', 'waiting'] as const
+const STATUS_OPTIONS = ['all', 'pending', 'running', 'completed', 'failed', 'cancelled', 'waiting', 'paused'] as const
 
 export default function ExecutionListPage() {
   const navigate = useNavigate()
