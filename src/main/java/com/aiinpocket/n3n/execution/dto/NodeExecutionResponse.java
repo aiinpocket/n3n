@@ -20,7 +20,6 @@ public class NodeExecutionResponse {
     private Instant completedAt;
     private Integer durationMs;
     private String errorMessage;
-    private String errorStack;
     private Integer retryCount;
 
     public static NodeExecutionResponse from(NodeExecution n) {
@@ -35,7 +34,6 @@ public class NodeExecutionResponse {
             .completedAt(n.getCompletedAt())
             .durationMs(n.getDurationMs())
             .errorMessage(n.getErrorMessage())
-            .errorStack(n.getErrorStack())
             .retryCount(n.getRetryCount())
             .build();
     }

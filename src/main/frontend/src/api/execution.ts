@@ -45,7 +45,6 @@ export interface NodeExecutionResponse {
   completedAt?: string;
   durationMs?: number;
   errorMessage?: string;
-  errorStack?: string;
 }
 
 export interface Page<T> {

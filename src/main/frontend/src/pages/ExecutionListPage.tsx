@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip } from 'antd'
 import {
@@ -62,14 +62,17 @@ export default function ExecutionListPage() {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [batchDeleting, setBatchDeleting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const fetchRequestIdRef = useRef(0)
 
   // Real-time updates from WebSocket
   const { executions: realtimeExecutions, isConnected } = useAllExecutions()
 
   const loadExecutions = useCallback(async (page = 1, size = 20, status?: string, search?: string) => {
+    const requestId = ++fetchRequestIdRef.current
     setLoading(true)
     try {
       const data = await executionApi.list(page - 1, size, status, search)
+      if (requestId !== fetchRequestIdRef.current) return // Stale response
       setExecutions(data.content)
       setPagination({
         current: data.number + 1,
@@ -77,10 +80,11 @@ export default function ExecutionListPage() {
         total: data.totalElements,
       })
     } catch (error) {
+      if (requestId !== fetchRequestIdRef.current) return
       logger.error('Failed to load executions:', error)
       message.error(t('common.loadFailed'))
     } finally {
-      setLoading(false)
+      if (requestId === fetchRequestIdRef.current) setLoading(false)
     }
   }, [t])
 

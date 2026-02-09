@@ -28,8 +28,6 @@ import {
   PauseCircleOutlined,
   RedoOutlined,
   DatabaseOutlined,
-  DownOutlined,
-  UpOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -90,7 +88,6 @@ export default function ExecutionPage() {
   } | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadingNodeData, setLoadingNodeData] = useState(false)
-  const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set())
   const [approvalData, setApprovalData] = useState<ApprovalResponse | null>(null)
   const [approvalComment, setApprovalComment] = useState('')
   const [submittingApproval, setSubmittingApproval] = useState(false)
@@ -498,45 +495,6 @@ export default function ExecutionPage() {
                       {node.errorMessage && (
                         <div style={{ marginTop: 4 }}>
                           <Text type="danger">{node.errorMessage}</Text>
-                          {node.errorStack && (
-                            <div style={{ marginTop: 4 }}>
-                              <Button
-                                type="link"
-                                size="small"
-                                icon={expandedErrors.has(node.nodeId) ? <UpOutlined /> : <DownOutlined />}
-                                onClick={() => {
-                                  setExpandedErrors((prev) => {
-                                    const next = new Set(prev)
-                                    if (next.has(node.nodeId)) {
-                                      next.delete(node.nodeId)
-                                    } else {
-                                      next.add(node.nodeId)
-                                    }
-                                    return next
-                                  })
-                                }}
-                                style={{ padding: 0, fontSize: 12 }}
-                              >
-                                {expandedErrors.has(node.nodeId) ? t('execution.hideErrorStack') : t('execution.showErrorStack')}
-                              </Button>
-                              {expandedErrors.has(node.nodeId) && (
-                                <pre style={{
-                                  marginTop: 8,
-                                  padding: 12,
-                                  background: 'rgba(239, 68, 68, 0.08)',
-                                  borderRadius: 6,
-                                  fontSize: 12,
-                                  lineHeight: 1.5,
-                                  overflow: 'auto',
-                                  maxHeight: 300,
-                                  color: 'var(--color-text-secondary)',
-                                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                                }}>
-                                  {node.errorStack}
-                                </pre>
-                              )}
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
