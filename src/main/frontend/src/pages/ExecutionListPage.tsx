@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty } from 'antd'
+import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip } from 'antd'
 import {
   ReloadOutlined,
   EyeOutlined,
@@ -12,6 +12,7 @@ import {
   SearchOutlined,
   PauseCircleOutlined,
   DeleteOutlined,
+  RetweetOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +20,7 @@ import { executionApi, ExecutionResponse } from '../api/execution'
 import { useAllExecutions } from '../hooks/useExecutionMonitor'
 import apiClient from '../api/client'
 import logger from '../utils/logger'
+import { extractApiError } from '../utils/errorMessages'
 import { getLocale, formatDuration } from '../utils/locale'
 
 const { Text } = Typography
@@ -57,6 +59,7 @@ export default function ExecutionListPage() {
   const [searchValue, setSearchValue] = useState<string>('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [batchDeleting, setBatchDeleting] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   // Real-time updates from WebSocket
   const { executions: realtimeExecutions, isConnected } = useAllExecutions()
@@ -130,6 +133,32 @@ export default function ExecutionListPage() {
     })
   }
 
+  const handleCancel = async (id: string) => {
+    setActionLoading(id)
+    try {
+      await executionApi.cancel(id)
+      message.success(t('execution.cancelSuccess'))
+      loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
+    } catch (error) {
+      message.error(extractApiError(error, t('execution.cancelFailed')))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleRetry = async (id: string) => {
+    setActionLoading(id)
+    try {
+      const result = await executionApi.retry(id)
+      message.success(t('execution.retrySuccess'))
+      navigate(`/executions/${result.id}`)
+    } catch (error) {
+      message.error(extractApiError(error, t('execution.retryFailed')))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const handleTableChange = (newPagination: TablePaginationConfig) => {
     loadExecutions(newPagination.current, newPagination.pageSize, statusFilter, searchValue)
   }
@@ -196,36 +225,64 @@ export default function ExecutionListPage() {
     {
       title: t('common.actions'),
       key: 'action',
-      width: 150,
-      render: (_, record) => (
-        <Space>
-          <Button type="link" icon={<EyeOutlined />} onClick={() => navigate(`/executions/${record.id}`)}>
-            {t('execution.view')}
-          </Button>
-          <Button
-            type="link"
-            danger
-            icon={<DeleteOutlined />}
-            size="small"
-            onClick={() => {
-              Modal.confirm({
-                title: t('execution.deleteConfirm'),
-                okType: 'danger',
-                onOk: async () => {
-                  try {
-                    await apiClient.delete(`/executions/batch`, { data: { ids: [record.id] } })
-                    message.success(t('common.success'))
-                    loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
-                  } catch {
-                    message.error(t('common.deleteFailed'))
-                  }
-                },
-              })
-            }}
-            aria-label={t('common.delete')}
-          />
-        </Space>
-      ),
+      width: 200,
+      render: (_, record) => {
+        const status = record.status?.toLowerCase()
+        return (
+          <Space size={0}>
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => navigate(`/executions/${record.id}`)}>
+              {t('execution.view')}
+            </Button>
+            {(status === 'running' || status === 'pending') && (
+              <Tooltip title={t('execution.cancel')}>
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<StopOutlined />}
+                  loading={actionLoading === record.id}
+                  onClick={() => handleCancel(record.id)}
+                  aria-label={t('execution.cancel')}
+                />
+              </Tooltip>
+            )}
+            {status === 'failed' && (
+              <Tooltip title={t('execution.retry')}>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<RetweetOutlined />}
+                  loading={actionLoading === record.id}
+                  onClick={() => handleRetry(record.id)}
+                  aria-label={t('execution.retry')}
+                />
+              </Tooltip>
+            )}
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+              onClick={() => {
+                Modal.confirm({
+                  title: t('execution.deleteConfirm'),
+                  okType: 'danger',
+                  onOk: async () => {
+                    try {
+                      await apiClient.delete(`/executions/batch`, { data: { ids: [record.id] } })
+                      message.success(t('common.success'))
+                      loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
+                    } catch {
+                      message.error(t('common.deleteFailed'))
+                    }
+                  },
+                })
+              }}
+              aria-label={t('common.delete')}
+            />
+          </Space>
+        )
+      },
     },
   ]
 

@@ -9,6 +9,7 @@ import {
   Modal,
   Form,
   Input,
+  Select,
   message,
   Popconfirm,
   Tabs,
@@ -32,7 +33,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { extractApiError } from '../utils/errorMessages'
 import { useSkillStore } from '../stores/skillStore'
-import type { Skill } from '../api/skill'
+import type { Skill, CreateSkillRequest, UpdateSkillRequest } from '../api/skill'
 
 const { TextArea } = Input
 
@@ -56,14 +57,21 @@ const categoryColors: Record<string, string> = {
   system: 'red',
 }
 
+const CATEGORY_OPTIONS = ['web', 'http', 'data', 'notify', 'file', 'system']
+const IMPL_TYPE_OPTIONS = ['code', 'http', 'template', 'plugin']
+
 export default function SkillsPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('all')
   const [testModalOpen, setTestModalOpen] = useState(false)
+  const [formModalOpen, setFormModalOpen] = useState(false)
+  const [editingSkill, setEditingSkill] = useState<Skill | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
   const [testInput, setTestInput] = useState('{}')
   const [testResult, setTestResult] = useState<string | null>(null)
   const [testing, setTesting] = useState(false)
+  const [formSubmitting, setFormSubmitting] = useState(false)
+  const [form] = Form.useForm()
 
   const {
     skills,
@@ -74,6 +82,8 @@ export default function SkillsPage() {
     fetchSkills,
     fetchBuiltinSkills,
     fetchCategories,
+    createSkill,
+    updateSkill,
     executeSkill,
     deleteSkill,
     clearError,
@@ -123,6 +133,107 @@ export default function SkillsPage() {
     setTestInput(JSON.stringify(getExampleInput(skill.inputSchema), null, 2))
     setTestResult(null)
     setTestModalOpen(true)
+  }
+
+  const openCreateModal = () => {
+    setEditingSkill(null)
+    form.resetFields()
+    form.setFieldsValue({
+      visibility: 'private',
+      implementationType: 'code',
+      inputSchema: '{\n  "type": "object",\n  "properties": {}\n}',
+      outputSchema: '',
+      implementationConfig: '',
+    })
+    setFormModalOpen(true)
+  }
+
+  const openEditModal = (skill: Skill) => {
+    setEditingSkill(skill)
+    form.setFieldsValue({
+      displayName: skill.displayName,
+      description: skill.description || '',
+      category: skill.category,
+      implementationType: skill.implementationType,
+      inputSchema: JSON.stringify(skill.inputSchema, null, 2),
+      outputSchema: skill.outputSchema ? JSON.stringify(skill.outputSchema, null, 2) : '',
+      visibility: skill.visibility || 'private',
+      implementationConfig: '',
+    })
+    setFormModalOpen(true)
+  }
+
+  const handleFormSubmit = async () => {
+    try {
+      const values = await form.validateFields()
+      setFormSubmitting(true)
+
+      let inputSchema: Record<string, unknown>
+      try {
+        inputSchema = JSON.parse(values.inputSchema)
+      } catch {
+        message.error(t('component.jsonFormatError'))
+        setFormSubmitting(false)
+        return
+      }
+
+      let outputSchema: Record<string, unknown> | undefined
+      if (values.outputSchema?.trim()) {
+        try {
+          outputSchema = JSON.parse(values.outputSchema)
+        } catch {
+          message.error(t('component.jsonFormatError'))
+          setFormSubmitting(false)
+          return
+        }
+      }
+
+      let implementationConfig: Record<string, unknown> | undefined
+      if (values.implementationConfig?.trim()) {
+        try {
+          implementationConfig = JSON.parse(values.implementationConfig)
+        } catch {
+          message.error(t('component.jsonFormatError'))
+          setFormSubmitting(false)
+          return
+        }
+      }
+
+      if (editingSkill) {
+        const request: UpdateSkillRequest = {
+          displayName: values.displayName,
+          description: values.description || undefined,
+          category: values.category,
+          inputSchema,
+          outputSchema,
+          implementationConfig,
+          visibility: values.visibility,
+        }
+        await updateSkill(editingSkill.id, request)
+        message.success(t('skill.updateSuccess'))
+      } else {
+        const request: CreateSkillRequest = {
+          name: values.name,
+          displayName: values.displayName,
+          description: values.description || undefined,
+          category: values.category,
+          implementationType: values.implementationType,
+          inputSchema,
+          outputSchema,
+          implementationConfig,
+          visibility: values.visibility,
+        }
+        await createSkill(request)
+        message.success(t('skill.createSuccess'))
+      }
+      setFormModalOpen(false)
+      form.resetFields()
+    } catch (error) {
+      if (error && typeof error === 'object' && 'errorFields' in error) return
+      message.error(extractApiError(error, editingSkill ? t('skill.updateFailed') : t('skill.createFailed')))
+    } finally {
+      setFormSubmitting(false)
+    }
   }
 
   const getExampleInput = (schema: Record<string, unknown>): Record<string, unknown> => {
@@ -198,7 +309,7 @@ export default function SkillsPage() {
     {
       title: t('common.actions'),
       key: 'actions',
-      width: 150,
+      width: 180,
       render: (_: unknown, record: Skill) => (
         <Space>
           <Tooltip title={t('skill.test')}>
@@ -211,12 +322,12 @@ export default function SkillsPage() {
           </Tooltip>
           {!record.isBuiltin && (
             <>
-              <Tooltip title={t('common.comingSoon')}>
+              <Tooltip title={t('skill.editSkill')}>
                 <Button
                   type="link"
                   size="small"
                   icon={<EditOutlined />}
-                  disabled
+                  onClick={() => openEditModal(record)}
                 />
               </Tooltip>
               <Popconfirm
@@ -261,11 +372,9 @@ export default function SkillsPage() {
           </Space>
         }
         extra={
-          <Tooltip title={t('common.comingSoon')}>
-            <Button type="primary" icon={<PlusOutlined />} disabled>
-              {t('skill.createSkill')}
-            </Button>
-          </Tooltip>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+            {t('skill.createSkill')}
+          </Button>
         }
       >
         <Tabs
@@ -313,6 +422,95 @@ export default function SkillsPage() {
           }}
         />
       </Card>
+
+      {/* Create/Edit Skill Modal */}
+      <Modal
+        title={editingSkill ? t('skill.editSkill') : t('skill.createSkill')}
+        open={formModalOpen}
+        onCancel={() => { setFormModalOpen(false); form.resetFields(); }}
+        onOk={handleFormSubmit}
+        confirmLoading={formSubmitting}
+        width={600}
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          {!editingSkill && (
+            <Form.Item
+              name="name"
+              label={t('skill.nameIdentifier')}
+              rules={[
+                { required: true, message: t('skill.nameRequired') },
+                { pattern: /^[a-z][a-z0-9_]*$/, message: t('skill.namePattern') },
+              ]}
+            >
+              <Input placeholder="my_custom_skill" />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            name="displayName"
+            label={t('skill.displayName')}
+            rules={[{ required: true, message: t('skill.displayNameRequired') }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="description" label={t('common.description')}>
+            <TextArea rows={2} />
+          </Form.Item>
+
+          <Form.Item
+            name="category"
+            label={t('skill.category')}
+            rules={[{ required: true, message: t('skill.categoryRequired') }]}
+          >
+            <Select>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <Select.Option key={cat} value={cat}>
+                  <Space>{categoryIcons[cat]} {cat}</Space>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          {!editingSkill && (
+            <Form.Item
+              name="implementationType"
+              label={t('skill.implementationType')}
+              rules={[{ required: true, message: t('skill.implementationTypeRequired') }]}
+            >
+              <Select>
+                {IMPL_TYPE_OPTIONS.map((type) => (
+                  <Select.Option key={type} value={type}>{type}</Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+
+          <Form.Item
+            name="inputSchema"
+            label={t('skill.inputSchema')}
+            rules={[{ required: true, message: t('skill.nameRequired') }]}
+          >
+            <TextArea rows={4} style={{ fontFamily: 'monospace' }} />
+          </Form.Item>
+
+          <Form.Item name="outputSchema" label={t('skill.outputSchema')}>
+            <TextArea rows={3} style={{ fontFamily: 'monospace' }} placeholder="{}" />
+          </Form.Item>
+
+          <Form.Item name="implementationConfig" label={t('skill.implementationConfig')}>
+            <TextArea rows={3} style={{ fontFamily: 'monospace' }} placeholder="{}" />
+          </Form.Item>
+
+          <Form.Item name="visibility" label={t('skill.visibility')}>
+            <Select>
+              <Select.Option value="private">{t('skill.visibilityPrivate')}</Select.Option>
+              <Select.Option value="public">{t('skill.visibilityPublic')}</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Test Skill Modal */}
       <Modal
