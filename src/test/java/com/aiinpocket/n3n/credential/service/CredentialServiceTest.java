@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.base.BaseServiceTest;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
+import com.aiinpocket.n3n.credential.dto.UpdateCredentialRequest;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
@@ -349,6 +350,85 @@ class CredentialServiceTest extends BaseServiceTest {
             CredentialResponse result = credentialService.createCredential(request, userId);
 
             assertThat(result.getVisibility()).isEqualTo("shared");
+        }
+    }
+
+    @Nested
+    @DisplayName("updateCredential")
+    class UpdateCredential {
+
+        @Test
+        @DisplayName("should update description and visibility")
+        void updateCredential_descriptionAndVisibility() {
+            UpdateCredentialRequest request = new UpdateCredentialRequest();
+            request.setDescription("Updated description");
+            request.setVisibility("shared");
+
+            when(credentialRepository.findByIdAndOwnerId(credentialId, userId))
+                    .thenReturn(Optional.of(privateCredential));
+            when(credentialRepository.save(any(Credential.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+            CredentialResponse result = credentialService.updateCredential(credentialId, request, userId);
+
+            assertThat(result.getDescription()).isEqualTo("Updated description");
+            assertThat(result.getVisibility()).isEqualTo("shared");
+            verify(credentialRepository).save(any(Credential.class));
+            verify(encryptionService, never()).encrypt(anyString());
+        }
+
+        @Test
+        @DisplayName("should re-encrypt data when data is provided")
+        void updateCredential_withData_reEncrypts() {
+            UpdateCredentialRequest request = new UpdateCredentialRequest();
+            request.setData(Map.of("apiKey", "new-secret"));
+
+            EncryptionService.EncryptedData encryptedData =
+                    new EncryptionService.EncryptedData(new byte[]{10, 20, 30}, new byte[]{40, 50, 60});
+
+            when(credentialRepository.findByIdAndOwnerId(credentialId, userId))
+                    .thenReturn(Optional.of(privateCredential));
+            when(encryptionService.encrypt(anyString())).thenReturn(encryptedData);
+            when(credentialRepository.save(any(Credential.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+            credentialService.updateCredential(credentialId, request, userId);
+
+            verify(encryptionService).encrypt(anyString());
+            verify(credentialRepository).save(argThat(c ->
+                    java.util.Arrays.equals(c.getEncryptedData(), new byte[]{10, 20, 30})
+            ));
+        }
+
+        @Test
+        @DisplayName("should not overwrite fields when null in request")
+        void updateCredential_partialUpdate() {
+            UpdateCredentialRequest request = new UpdateCredentialRequest();
+            request.setDescription("Only this changes");
+            // visibility and data are null — should not be overwritten
+
+            when(credentialRepository.findByIdAndOwnerId(credentialId, userId))
+                    .thenReturn(Optional.of(privateCredential));
+            when(credentialRepository.save(any(Credential.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+            CredentialResponse result = credentialService.updateCredential(credentialId, request, userId);
+
+            assertThat(result.getDescription()).isEqualTo("Only this changes");
+            assertThat(result.getVisibility()).isEqualTo("private"); // unchanged
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when not owner")
+        void updateCredential_notOwner_throwsException() {
+            UpdateCredentialRequest request = new UpdateCredentialRequest();
+            request.setDescription("hacked");
+
+            when(credentialRepository.findByIdAndOwnerId(credentialId, otherUserId))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> credentialService.updateCredential(credentialId, request, otherUserId))
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
     }
 

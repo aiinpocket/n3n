@@ -309,6 +309,9 @@ public class PluginService {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
+        if (review != null && review.length() > 2000) {
+            throw new IllegalArgumentException("Review must not exceed 2000 characters");
+        }
 
         PluginRating pluginRating = pluginRatingRepository.findByPluginIdAndUserId(pluginId, userId)
                 .orElse(new PluginRating());

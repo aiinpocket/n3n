@@ -9,6 +9,7 @@ import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
 import com.aiinpocket.n3n.template.dto.TemplateResponse;
+import com.aiinpocket.n3n.template.dto.UpdateTemplateRequest;
 import com.aiinpocket.n3n.template.entity.FlowTemplate;
 import com.aiinpocket.n3n.template.repository.FlowTemplateRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -277,8 +278,7 @@ class FlowTemplateServiceTest extends BaseServiceTest {
             request.setName("test");
 
             assertThatThrownBy(() -> flowTemplateService.createTemplateFromFlow(flowId, "1.0.0", request, userId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("don't own");
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
         }
     }
 
@@ -317,6 +317,72 @@ class FlowTemplateServiceTest extends BaseServiceTest {
     }
 
     @Nested
+    @DisplayName("Update Template")
+    class UpdateTemplate {
+
+        @Test
+        void updateTemplate_validRequest_updatesAllFields() {
+            UpdateTemplateRequest request = new UpdateTemplateRequest();
+            request.setName("Updated Name");
+            request.setDescription("Updated Description");
+            request.setCategory("integration");
+            request.setTags(List.of("updated", "tag"));
+
+            when(templateRepository.findById(templateId)).thenReturn(Optional.of(testTemplate));
+            when(templateRepository.save(any(FlowTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            TemplateResponse result = flowTemplateService.updateTemplate(templateId, request, userId);
+
+            assertThat(result.getName()).isEqualTo("Updated Name");
+            assertThat(result.getDescription()).isEqualTo("Updated Description");
+            assertThat(result.getCategory()).isEqualTo("integration");
+            assertThat(result.getTags()).containsExactly("updated", "tag");
+            verify(templateRepository).save(any(FlowTemplate.class));
+        }
+
+        @Test
+        void updateTemplate_partialUpdate_onlyUpdatesProvidedFields() {
+            UpdateTemplateRequest request = new UpdateTemplateRequest();
+            request.setName("New Name Only");
+            // description, category, tags are null — should not be overwritten
+
+            when(templateRepository.findById(templateId)).thenReturn(Optional.of(testTemplate));
+            when(templateRepository.save(any(FlowTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            TemplateResponse result = flowTemplateService.updateTemplate(templateId, request, userId);
+
+            assertThat(result.getName()).isEqualTo("New Name Only");
+            assertThat(result.getDescription()).isEqualTo("A test template"); // unchanged
+            assertThat(result.getCategory()).isEqualTo("automation"); // unchanged
+            assertThat(result.getTags()).containsExactly("test", "demo"); // unchanged
+        }
+
+        @Test
+        void updateTemplate_nonExisting_throwsException() {
+            UUID nonExisting = UUID.randomUUID();
+            UpdateTemplateRequest request = new UpdateTemplateRequest();
+            request.setName("test");
+
+            when(templateRepository.findById(nonExisting)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> flowTemplateService.updateTemplate(nonExisting, request, userId))
+                .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        void updateTemplate_notOwner_throwsAccessDenied() {
+            UUID otherUser = UUID.randomUUID();
+            UpdateTemplateRequest request = new UpdateTemplateRequest();
+            request.setName("test");
+
+            when(templateRepository.findById(templateId)).thenReturn(Optional.of(testTemplate));
+
+            assertThatThrownBy(() -> flowTemplateService.updateTemplate(templateId, request, otherUser))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("Delete Template")
     class DeleteTemplate {
 
@@ -335,8 +401,7 @@ class FlowTemplateServiceTest extends BaseServiceTest {
             when(templateRepository.findById(templateId)).thenReturn(Optional.of(testTemplate));
 
             assertThatThrownBy(() -> flowTemplateService.deleteTemplate(templateId, otherUser))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("didn't create");
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
         }
 
         @Test

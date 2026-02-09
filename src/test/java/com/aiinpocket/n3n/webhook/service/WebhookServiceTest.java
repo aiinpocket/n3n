@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
+import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.entity.Webhook;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
@@ -180,6 +181,82 @@ class WebhookServiceTest extends BaseServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(webhookRepository).save(argThat(w -> "POST".equals(w.getMethod())));
+    }
+
+    // ========== Update Tests ==========
+
+    @Test
+    void updateWebhook_validRequest_updatesName() {
+        // Given
+        Webhook webhook = createTestWebhook();
+        UUID ownerId = webhook.getCreatedBy();
+        UpdateWebhookRequest request = new UpdateWebhookRequest();
+        request.setName("Updated Name");
+
+        ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
+
+        when(webhookRepository.findById(webhook.getId())).thenReturn(Optional.of(webhook));
+        when(webhookRepository.save(any(Webhook.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        WebhookResponse result = webhookService.updateWebhook(webhook.getId(), request, ownerId);
+
+        // Then
+        assertThat(result.getName()).isEqualTo("Updated Name");
+        verify(webhookRepository).save(argThat(w -> "Updated Name".equals(w.getName())));
+    }
+
+    @Test
+    void updateWebhook_updateAuthType_updatesAuthFields() {
+        // Given
+        Webhook webhook = createTestWebhook();
+        UUID ownerId = webhook.getCreatedBy();
+        UpdateWebhookRequest request = new UpdateWebhookRequest();
+        request.setAuthType("apiKey");
+        request.setAuthConfig(Map.of("headerName", "X-API-Key", "apiKey", "secret123"));
+
+        ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
+
+        when(webhookRepository.findById(webhook.getId())).thenReturn(Optional.of(webhook));
+        when(webhookRepository.save(any(Webhook.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        WebhookResponse result = webhookService.updateWebhook(webhook.getId(), request, ownerId);
+
+        // Then
+        verify(webhookRepository).save(argThat(w ->
+            "apiKey".equals(w.getAuthType()) && w.getAuthConfig() != null
+        ));
+    }
+
+    @Test
+    void updateWebhook_notOwner_throwsException() {
+        // Given
+        Webhook webhook = createTestWebhook();
+        UUID otherUser = UUID.randomUUID();
+        UpdateWebhookRequest request = new UpdateWebhookRequest();
+        request.setName("Hacked");
+
+        when(webhookRepository.findById(webhook.getId())).thenReturn(Optional.of(webhook));
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.updateWebhook(webhook.getId(), request, otherUser))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void updateWebhook_nonExisting_throwsException() {
+        // Given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UpdateWebhookRequest request = new UpdateWebhookRequest();
+        request.setName("test");
+
+        when(webhookRepository.findById(id)).thenReturn(Optional.empty());
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.updateWebhook(id, request, userId))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     // ========== Activate/Deactivate Tests ==========
