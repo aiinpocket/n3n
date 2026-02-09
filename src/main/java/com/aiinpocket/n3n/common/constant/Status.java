@@ -110,6 +110,7 @@ public final class Status {
     public static final class Visibility {
         public static final String PRIVATE = "private";
         public static final String PUBLIC = "public";
+        public static final String SHARED = "shared";
 
         private Visibility() {}
     }

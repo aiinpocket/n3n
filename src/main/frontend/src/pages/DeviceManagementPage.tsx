@@ -342,9 +342,9 @@ const DeviceManagementPage: React.FC = () => {
       <Modal
         title={t('device.installAgentTitle')}
         open={installModalOpen}
-        onCancel={() => setInstallModalOpen(false)}
+        onCancel={() => { setInstallModalOpen(false); setInstallCommand(null) }}
         footer={[
-          <Button key="close" onClick={() => setInstallModalOpen(false)}>
+          <Button key="close" onClick={() => { setInstallModalOpen(false); setInstallCommand(null) }}>
             {t('common.close')}
           </Button>,
           <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleCopyCommand}>

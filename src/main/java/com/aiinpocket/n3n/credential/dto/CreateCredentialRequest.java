@@ -25,6 +25,7 @@ public class CreateCredentialRequest {
 
     private UUID workspaceId;
 
+    @jakarta.validation.constraints.Pattern(regexp = "^(private|public|shared)$", message = "Visibility must be 'private', 'public', or 'shared'")
     private String visibility = Status.Visibility.PRIVATE;
 
     @NotNull(message = "Credential data is required")

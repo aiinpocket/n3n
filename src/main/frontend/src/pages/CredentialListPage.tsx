@@ -219,10 +219,10 @@ const CredentialListPage: React.FC = () => {
     switch (visibility) {
       case 'private':
         return <Tag>{t('credential.visibilityPrivate')}</Tag>
-      case 'workspace':
-        return <Tag color="blue">{t('credential.visibilityWorkspace')}</Tag>
       case 'shared':
         return <Tag color="green">{t('credential.visibilityShared')}</Tag>
+      case 'public':
+        return <Tag color="blue">{t('credential.visibilityPublic')}</Tag>
       default:
         return <Tag>{visibility}</Tag>
     }
@@ -435,7 +435,6 @@ const CredentialListPage: React.FC = () => {
           <Form.Item name="visibility" label={t('credential.visibility')}>
             <Select>
               <Select.Option value="private">{t('credential.visibilityPrivate')}</Select.Option>
-              <Select.Option value="workspace">{t('credential.visibilityWorkspace')}</Select.Option>
               <Select.Option value="shared">{t('credential.visibilityShared')}</Select.Option>
             </Select>
           </Form.Item>

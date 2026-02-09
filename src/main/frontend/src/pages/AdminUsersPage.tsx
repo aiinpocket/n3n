@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
     if (!selectedUser) return
     setRolesLoading(true)
     try {
-      await apiClient.put(`/admin/users/${selectedUser.id}/roles`, values.roles)
+      await apiClient.put(`/admin/users/${selectedUser.id}/roles`, { roles: values.roles })
       message.success(t('admin.rolesUpdated'))
       setRolesModalOpen(false)
       loadUsers(page)

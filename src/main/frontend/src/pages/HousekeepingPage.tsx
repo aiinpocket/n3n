@@ -41,6 +41,7 @@ export default function HousekeepingPage() {
   const [cleaningHistory, setCleaningHistory] = useState(false)
   const [totalJobs, setTotalJobs] = useState(0)
   const [jobPage, setJobPage] = useState(0)
+  const [jobLoading, setJobLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
@@ -111,6 +112,7 @@ export default function HousekeepingPage() {
   }
 
   const loadJobPage = async (page: number) => {
+    setJobLoading(true)
     try {
       const data = await housekeepingApi.getJobHistory(page, 10)
       setJobs(data.content)
@@ -118,6 +120,8 @@ export default function HousekeepingPage() {
       setJobPage(page)
     } catch (error) {
       message.error(extractApiError(error, t('common.loadFailed')))
+    } finally {
+      setJobLoading(false)
     }
   }
 
@@ -272,6 +276,7 @@ export default function HousekeepingPage() {
           columns={columns}
           dataSource={jobs}
           rowKey="id"
+          loading={jobLoading}
           pagination={{
             current: jobPage + 1,
             total: totalJobs,
