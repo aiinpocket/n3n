@@ -4,8 +4,9 @@ import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchO
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
-import type { Flow, FlowShare } from '../api/flow'
-import { flowShareApi } from '../api/flow'
+import type { Flow } from '../api/flow'
+import { flowShareApi } from '../api/flowShare'
+import type { FlowShare } from '../api/flowShare'
 import apiClient from '../api/client'
 import FlowExportModal from '../components/flow/FlowExportModal'
 import FlowImportModal from '../components/flow/FlowImportModal'
@@ -170,7 +171,7 @@ export default function FlowListPage() {
     if (!shareFlow || !shareEmail) return
     setShareActionLoading(true)
     try {
-      await flowShareApi.shareFlow(shareFlow.id, { email: shareEmail, permission: sharePermission })
+      await flowShareApi.share(shareFlow.id, { email: shareEmail, permission: sharePermission })
       message.success(t('share.shareSuccess'))
       setShareEmail('')
       const data = await flowShareApi.getShares(shareFlow.id)

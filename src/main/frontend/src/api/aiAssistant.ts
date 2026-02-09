@@ -138,11 +138,6 @@ export interface RequirementClarificationResponse {
 }
 
 // Flow Generation Types
-export interface GenerateFlowRequest {
-  userInput: string
-  language?: 'zh-TW' | 'en'
-}
-
 export interface GenerateFlowResponse {
   success: boolean
   aiAvailable: boolean
@@ -240,18 +235,6 @@ export const aiAssistantApi = {
     return response.data
   },
 
-  /**
-   * Generate a flow from natural language description
-   */
-  generateFlow: async (
-    request: GenerateFlowRequest
-  ): Promise<GenerateFlowResponse> => {
-    const response = await client.post<GenerateFlowResponse>(
-      '/ai-assistant/generate-flow',
-      request
-    )
-    return response.data
-  },
 }
 
 // Helper functions

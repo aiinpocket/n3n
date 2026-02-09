@@ -3,6 +3,8 @@ import apiClient from './client'
 export interface FlowShare {
   id: string
   flowId: string
+  flowName?: string
+  flowDescription?: string
   userId?: string
   userName?: string
   userEmail?: string

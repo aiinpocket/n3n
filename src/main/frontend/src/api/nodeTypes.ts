@@ -15,22 +15,8 @@ export interface NodeTypeInfo {
   }
 }
 
-export async function fetchNodeTypes(): Promise<NodeTypeInfo[]> {
-  const response = await apiClient.get<NodeTypeInfo[]>('/node-types')
-  return response.data
-}
-
 export async function fetchNodeType(type: string): Promise<NodeTypeInfo> {
   const response = await apiClient.get<NodeTypeInfo>(`/node-types/${type}`)
   return response.data
 }
 
-export async function fetchNodeTypeSchema(type: string): Promise<Record<string, unknown>> {
-  const response = await apiClient.get<Record<string, unknown>>(`/node-types/${type}/schema`)
-  return response.data
-}
-
-export async function fetchNodeTypesByCategory(category: string): Promise<NodeTypeInfo[]> {
-  const response = await apiClient.get<NodeTypeInfo[]>(`/node-types/category/${encodeURIComponent(category)}`)
-  return response.data
-}
