@@ -100,7 +100,7 @@ export default function GatewayPage() {
     }
   }
 
-  const getPlatformIcon = (_platform: string) => {
+  const getPlatformIcon = () => {
     return <DesktopOutlined />
   }
 
@@ -109,9 +109,9 @@ export default function GatewayPage() {
       title: t('gateway.nodeName'),
       dataIndex: 'displayName',
       key: 'displayName',
-      render: (name: string, record) => (
+      render: (name: string) => (
         <Space>
-          {getPlatformIcon(record.platform)}
+          {getPlatformIcon()}
           <Text strong>{name}</Text>
         </Space>
       ),
