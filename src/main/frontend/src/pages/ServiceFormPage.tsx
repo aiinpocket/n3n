@@ -204,9 +204,9 @@ export default function ServiceFormPage() {
           rules={[{ required: true }]}
         >
           <Select disabled={isEdit}>
-            <Option value="REST">REST API</Option>
-            <Option value="GraphQL">GraphQL</Option>
-            <Option value="gRPC">gRPC</Option>
+            <Option value="REST">{t('service.protocolRest')}</Option>
+            <Option value="GraphQL">{t('service.protocolGraphql')}</Option>
+            <Option value="gRPC">{t('service.protocolGrpc')}</Option>
           </Select>
         </Form.Item>
 
@@ -293,10 +293,10 @@ export default function ServiceFormPage() {
                   <Form.Item name="authType" label={t('service.authType')}>
                     <Select>
                       <Option value="none">{t('service.noAuth')}</Option>
-                      <Option value="api_key">API Key</Option>
-                      <Option value="bearer">Bearer Token</Option>
-                      <Option value="basic">Basic Auth</Option>
-                      <Option value="oauth2">OAuth2</Option>
+                      <Option value="api_key">{t('service.authApiKey')}</Option>
+                      <Option value="bearer">{t('service.authBearer')}</Option>
+                      <Option value="basic">{t('service.authBasic')}</Option>
+                      <Option value="oauth2">{t('service.authOauth2')}</Option>
                     </Select>
                   </Form.Item>
 
