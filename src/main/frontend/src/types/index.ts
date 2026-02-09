@@ -316,6 +316,9 @@ export interface FlowSnapshot {
     target: string
     sourceHandle?: string
     targetHandle?: string
+    type?: string
+    data?: Record<string, unknown>
+    label?: string
   }>
   timestamp: number
 }

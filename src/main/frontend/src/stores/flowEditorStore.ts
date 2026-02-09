@@ -312,6 +312,9 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
         target: e.target,
         sourceHandle: e.sourceHandle || undefined,
         targetHandle: e.targetHandle || undefined,
+        type: e.type,
+        data: e.data as Record<string, unknown>,
+        label: typeof e.label === 'string' ? e.label : undefined,
       })),
       timestamp: Date.now(),
     }
@@ -355,6 +358,9 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           target: e.target,
           sourceHandle: e.sourceHandle || undefined,
           targetHandle: e.targetHandle || undefined,
+          type: e.type,
+          data: e.data as Record<string, unknown>,
+          label: typeof e.label === 'string' ? e.label : undefined,
         })),
         timestamp: Date.now(),
       }
