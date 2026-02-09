@@ -8,7 +8,9 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "plugin_ratings")
+@Table(name = "plugin_ratings", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"plugin_id", "user_id"})
+})
 public class PluginRating {
 
     @Id

@@ -10,6 +10,7 @@ import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.credential.repository.CredentialTypeRepository;
+import com.aiinpocket.n3n.oauth2.repository.OAuth2TokenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class CredentialService {
     private final EncryptionService encryptionService;
     private final ObjectMapper objectMapper;
     private final ActivityService activityService;
+    private final OAuth2TokenRepository oAuth2TokenRepository;
 
     @Transactional(readOnly = true)
     public Page<CredentialResponse> listCredentials(UUID userId, Pageable pageable) {
@@ -129,6 +131,9 @@ public class CredentialService {
     public void deleteCredential(UUID id, UUID userId) {
         Credential credential = credentialRepository.findByIdAndOwnerId(id, userId)
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
+
+        // Clean up associated OAuth2 tokens before deleting credential
+        oAuth2TokenRepository.deleteByCredentialId(id);
 
         credentialRepository.delete(credential);
         activityService.logCredentialAccess(userId, credential.getId(), credential.getName(), "delete");

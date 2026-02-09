@@ -11,7 +11,9 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "plugin_installations")
+@Table(name = "plugin_installations", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"plugin_id", "user_id"})
+})
 public class PluginInstallation {
 
     @Id

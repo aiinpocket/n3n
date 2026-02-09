@@ -53,6 +53,9 @@ class CredentialServiceTest extends BaseServiceTest {
     @Mock
     private ActivityService activityService;
 
+    @Mock
+    private com.aiinpocket.n3n.oauth2.repository.OAuth2TokenRepository oAuth2TokenRepository;
+
     @InjectMocks
     private CredentialService credentialService;
 
