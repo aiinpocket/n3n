@@ -256,6 +256,9 @@
     "clone": "複製",
     "cloneSuccess": "流程複製成功",
     "cloneFailed": "流程複製失敗",
+    "saveAsTemplate": "儲存為範本",
+    "saveAsTemplateSuccess": "範本儲存成功",
+    "saveAsTemplateFailed": "儲存範本失敗",
     "loadError": "載入流程失敗",
     "backToList": "返回流程列表",
     "noFlowLoaded": "尚未載入流程",
@@ -1096,7 +1099,12 @@
     "changelog": "更新日誌",
     "capabilities": "功能",
     "noChangelog": "暫無更新日誌",
-    "loadDetailFailed": "無法載入工具詳情"
+    "loadDetailFailed": "無法載入工具詳情",
+    "featured": "精選推薦",
+    "ratings": "則評價",
+    "yourRating": "您的評分",
+    "rateSuccess": "評分已提交",
+    "rateFailed": "提交評分失敗"
   },
   "share": {
     "share": "分享",
@@ -2032,7 +2040,20 @@
     "allCategories": "全部",
     "myTemplates": "我的範本",
     "usage": "已使用 {{count}} 次",
-    "official": "官方範本"
+    "official": "官方範本",
+    "templateName": "範本名稱",
+    "templateNameRequired": "請輸入範本名稱",
+    "templateNamePlaceholder": "輸入範本名稱",
+    "templateDescPlaceholder": "描述此範本的用途",
+    "categories": {
+      "automation": "自動化",
+      "data": "資料處理",
+      "integration": "整合",
+      "notification": "通知",
+      "monitoring": "監控",
+      "ai": "AI / 機器學習",
+      "utility": "工具"
+    }
   },
   "shortcuts": {
     "commandPalette": "命令面板",

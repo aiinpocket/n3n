@@ -256,6 +256,9 @@
     "clone": "Clone",
     "cloneSuccess": "Flow cloned successfully",
     "cloneFailed": "Failed to clone flow",
+    "saveAsTemplate": "Save as Template",
+    "saveAsTemplateSuccess": "Template saved successfully",
+    "saveAsTemplateFailed": "Failed to save template",
     "loadError": "Failed to Load Flow",
     "backToList": "Back to Flow List",
     "noFlowLoaded": "No flow loaded",
@@ -1096,7 +1099,12 @@
     "changelog": "Changelog",
     "capabilities": "Capabilities",
     "noChangelog": "No changelog available",
-    "loadDetailFailed": "Failed to load tool details"
+    "loadDetailFailed": "Failed to load tool details",
+    "featured": "Featured",
+    "ratings": "ratings",
+    "yourRating": "Your rating",
+    "rateSuccess": "Rating submitted",
+    "rateFailed": "Failed to submit rating"
   },
   "share": {
     "share": "Share",
@@ -2213,7 +2221,20 @@
     "allCategories": "All",
     "myTemplates": "My Templates",
     "usage": "Used {{count}} times",
-    "official": "Official Template"
+    "official": "Official Template",
+    "templateName": "Template Name",
+    "templateNameRequired": "Template name is required",
+    "templateNamePlaceholder": "Enter template name",
+    "templateDescPlaceholder": "Describe what this template does",
+    "categories": {
+      "automation": "Automation",
+      "data": "Data Processing",
+      "integration": "Integration",
+      "notification": "Notification",
+      "monitoring": "Monitoring",
+      "ai": "AI / Machine Learning",
+      "utility": "Utility"
+    }
   },
   "shortcuts": {
     "commandPalette": "Command Palette",

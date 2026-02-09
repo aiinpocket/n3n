@@ -160,10 +160,16 @@ docker compose up -d --build
 - **Execution Approval System** - Workflows pause at approval nodes; approvers can approve or reject with comments from the Execution detail page
 - **Skills System** - Built-in automation skills, no extra setup needed
 - **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
-- **Custom Docker Tools** - Pull tool containers from Docker Hub, auto-register as flow nodes
+- **Custom Docker Tools** - Pull tool containers from Docker Hub, auto-register as flow nodes, with featured recommendations and community ratings
 - **Approval Dashboard** - Dedicated page to manage all pending approval items, approve or reject with one click
 - **System Housekeeping** - Admins can view statistics and manually trigger cleanup of expired execution records
 - **Device Management** - Connect a local agent to let workflows control your computer
+- **Flow Sharing & Collaboration** - Share flows with team members, supporting view/edit permission control
+- **OAuth2 Integration** - Third-party OAuth2 service connections for simplified authentication
+- **Real-time Log Viewer** - Admins can stream system logs in real-time via SSE
+- **System Monitoring Dashboard** - Live JVM memory, CPU, and flow execution statistics
+- **Multi-language Support** - Full English, Traditional Chinese, and Japanese interface (2,050+ translation keys)
+- **OpenAPI Documentation** - Built-in Swagger UI with 200+ fully documented API endpoints
 
 ### Error Handling Routes
 

@@ -18,6 +18,7 @@ import {
   message,
   Typography,
   Segmented,
+  Rate,
 } from 'antd'
 import {
   SearchOutlined,
@@ -28,6 +29,7 @@ import {
   DeleteOutlined,
   EyeOutlined,
   ToolOutlined,
+  FireOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type {
@@ -39,10 +41,12 @@ import {
   searchPlugins,
   getCategories,
   getInstalledPlugins,
+  getFeaturedPlugins,
   getPluginDetail,
   installPlugin,
   uninstallPlugin,
   updatePlugin,
+  ratePlugin,
 } from '../api/marketplace'
 import logger from '../utils/logger'
 
@@ -157,6 +161,10 @@ function ToolCard({
             <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 8, minHeight: 44 }}>
               {plugin.description}
             </Paragraph>
+            <Space size={4}>
+              <Rate disabled defaultValue={plugin.rating} count={5} style={{ fontSize: 12 }} />
+              <Text type="secondary" style={{ fontSize: 11 }}>({plugin.ratingCount})</Text>
+            </Space>
             <Space wrap size={[4, 4]}>
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {plugin.author}
@@ -181,6 +189,7 @@ function ToolDetailModal({
   onInstall,
   onUninstall,
   onUpdate,
+  onRate,
   loading,
 }: {
   visible: boolean
@@ -189,6 +198,7 @@ function ToolDetailModal({
   onInstall: (id: string) => void
   onUninstall: (id: string) => void
   onUpdate: (id: string) => void
+  onRate: (id: string, rating: number) => void
   loading: boolean
 }) {
   const { t } = useTranslation()
@@ -221,11 +231,30 @@ function ToolDetailModal({
         </Space>
       }
     >
-      <Space wrap style={{ marginBottom: 16 }}>
+      <Space wrap style={{ marginBottom: 8 }}>
         {plugin.tags.map(tag => (
           <Tag key={tag}>{tag}</Tag>
         ))}
       </Space>
+
+      <div style={{ marginBottom: 16 }}>
+        <Space size={8} align="center">
+          <Rate disabled value={plugin.rating} count={5} style={{ fontSize: 16 }} />
+          <Text type="secondary">
+            {plugin.rating.toFixed(1)} ({plugin.ratingCount} {t('customTools.ratings')})
+          </Text>
+        </Space>
+        {plugin.isInstalled && (
+          <div style={{ marginTop: 8 }}>
+            <Text type="secondary" style={{ marginRight: 8 }}>{t('customTools.yourRating')}:</Text>
+            <Rate
+              count={5}
+              style={{ fontSize: 16 }}
+              onChange={(value) => onRate(plugin.id, value)}
+            />
+          </div>
+        )}
+      </div>
 
       <div style={{ marginBottom: 16 }}>
         {plugin.isInstalled ? (
@@ -342,6 +371,7 @@ export default function CustomToolsPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'name'>('recent')
   const [activeTab, setActiveTab] = useState('browse')
   const [isOffline, setIsOffline] = useState(false)
+  const [featuredPlugins, setFeaturedPlugins] = useState<MarketplacePlugin[]>([])
   const [detailModal, setDetailModal] = useState<{ visible: boolean; plugin: PluginDetail | null }>({
     visible: false,
     plugin: null,
@@ -350,12 +380,14 @@ export default function CustomToolsPage() {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const [categoriesData, installedData] = await Promise.all([
+      const [categoriesData, installedData, featuredData] = await Promise.all([
         getCategories(),
         getInstalledPlugins(),
+        getFeaturedPlugins().catch(() => [] as MarketplacePlugin[]),
       ])
       setCategories(categoriesData)
       setInstalledPlugins(installedData)
+      setFeaturedPlugins(featuredData)
 
       // Load initial browse results
       const searchResult = await searchPlugins({ sortBy: 'recent', pageSize: 20 })
@@ -466,6 +498,21 @@ export default function CustomToolsPage() {
     }
   }
 
+  const handleRate = async (id: string, rating: number) => {
+    try {
+      const result = await ratePlugin(id, rating)
+      if (result.success) {
+        message.success(t('customTools.rateSuccess'))
+        // Refresh detail modal with updated rating
+        const detail = await getPluginDetail(id)
+        setDetailModal(prev => ({ ...prev, plugin: detail }))
+        loadData()
+      }
+    } catch {
+      message.error(t('customTools.rateFailed'))
+    }
+  }
+
   const filteredPlugins = plugins.filter(plugin => {
     if (selectedCategory !== 'all' && plugin.category !== selectedCategory) return false
     if (searchQuery && !plugin.displayName.toLowerCase().includes(searchQuery.toLowerCase())) return false
@@ -517,6 +564,30 @@ export default function CustomToolsPage() {
             ),
             children: (
               <>
+                {/* Featured Tools */}
+                {featuredPlugins.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <Title level={5} style={{ marginBottom: 12 }}>
+                      <FireOutlined style={{ color: '#F59E0B', marginRight: 8 }} />
+                      {t('customTools.featured')}
+                    </Title>
+                    <Row gutter={[16, 16]}>
+                      {featuredPlugins.slice(0, 4).map(plugin => (
+                        <Col xs={24} sm={12} md={8} lg={6} key={plugin.id}>
+                          <ToolCard
+                            plugin={plugin}
+                            onInstall={handleInstall}
+                            onUninstall={handleUninstall}
+                            onUpdate={handleUpdate}
+                            onViewDetails={handleViewDetails}
+                            loading={actionLoading}
+                          />
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                )}
+
                 {/* Filters */}
                 <Card style={{ marginBottom: 16 }}>
                   <Row gutter={16} align="middle">
@@ -615,6 +686,7 @@ export default function CustomToolsPage() {
         onInstall={handleInstall}
         onUninstall={handleUninstall}
         onUpdate={handleUpdate}
+        onRate={handleRate}
         loading={actionLoading !== null}
       />
     </div>

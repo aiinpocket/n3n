@@ -256,6 +256,9 @@
     "clone": "複製",
     "cloneSuccess": "フローの複製に成功しました",
     "cloneFailed": "フローの複製に失敗しました",
+    "saveAsTemplate": "テンプレートとして保存",
+    "saveAsTemplateSuccess": "テンプレートの保存に成功しました",
+    "saveAsTemplateFailed": "テンプレートの保存に失敗しました",
     "loadError": "フローの読み込みに失敗しました",
     "backToList": "フロー一覧に戻る",
     "noFlowLoaded": "フローが読み込まれていません",
@@ -1096,7 +1099,12 @@
     "changelog": "変更履歴",
     "capabilities": "機能",
     "noChangelog": "変更履歴がありません",
-    "loadDetailFailed": "ツール詳細の読み込みに失敗しました"
+    "loadDetailFailed": "ツール詳細の読み込みに失敗しました",
+    "featured": "おすすめ",
+    "ratings": "件の評価",
+    "yourRating": "あなたの評価",
+    "rateSuccess": "評価を送信しました",
+    "rateFailed": "評価の送信に失敗しました"
   },
   "share": {
     "share": "共有",
@@ -2213,7 +2221,20 @@
     "allCategories": "すべて",
     "myTemplates": "マイテンプレート",
     "usage": "{{count}}回使用",
-    "official": "公式テンプレート"
+    "official": "公式テンプレート",
+    "templateName": "テンプレート名",
+    "templateNameRequired": "テンプレート名を入力してください",
+    "templateNamePlaceholder": "テンプレート名を入力",
+    "templateDescPlaceholder": "このテンプレートの説明",
+    "categories": {
+      "automation": "自動化",
+      "data": "データ処理",
+      "integration": "インテグレーション",
+      "notification": "通知",
+      "monitoring": "モニタリング",
+      "ai": "AI / 機械学習",
+      "utility": "ユーティリティ"
+    }
   },
   "shortcuts": {
     "commandPalette": "コマンドパレット",

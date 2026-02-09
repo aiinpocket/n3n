@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
@@ -10,6 +10,7 @@ import apiClient from '../api/client'
 import FlowExportModal from '../components/flow/FlowExportModal'
 import FlowImportModal from '../components/flow/FlowImportModal'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
+import { templateApi } from '../api/template'
 import { Typography, Result } from 'antd'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
@@ -38,6 +39,10 @@ export default function FlowListPage() {
   const [sharedLoading, setSharedLoading] = useState(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [batchDeleting, setBatchDeleting] = useState(false)
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
+  const [templateFlow, setTemplateFlow] = useState<{ id: string; name: string; version: string } | null>(null)
+  const [templateForm] = Form.useForm()
+  const [templateSaving, setTemplateSaving] = useState(false)
 
   useEffect(() => {
     fetchFlows()
@@ -103,6 +108,26 @@ export default function FlowListPage() {
       navigate(`/flows/${cloned.id}/edit`)
     } catch (error: unknown) {
       message.error(extractApiError(error, t('flow.cloneFailed')))
+    }
+  }
+
+  const handleSaveAsTemplate = async (values: { name: string; description: string; category: string }) => {
+    if (!templateFlow) return
+    setTemplateSaving(true)
+    try {
+      await templateApi.createFromFlow(templateFlow.id, templateFlow.version, {
+        name: values.name,
+        description: values.description,
+        category: values.category,
+      })
+      message.success(t('flow.saveAsTemplateSuccess'))
+      setTemplateModalOpen(false)
+      templateForm.resetFields()
+      setTemplateFlow(null)
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('flow.saveAsTemplateFailed')))
+    } finally {
+      setTemplateSaving(false)
     }
   }
 
@@ -247,6 +272,21 @@ export default function FlowListPage() {
                     name: record.name,
                     version: record.latestVersion || '1',
                   }),
+                },
+                {
+                  key: 'saveAsTemplate',
+                  icon: <BookOutlined />,
+                  label: t('flow.saveAsTemplate'),
+                  disabled: !record.latestVersion,
+                  onClick: () => {
+                    setTemplateFlow({
+                      id: record.id,
+                      name: record.name,
+                      version: record.latestVersion || '1',
+                    })
+                    templateForm.setFieldsValue({ name: record.name, description: record.description || '' })
+                    setTemplateModalOpen(true)
+                  },
                 },
                 {
                   type: 'divider',
@@ -638,6 +678,65 @@ export default function FlowListPage() {
           }
         }}
       />
+
+      {/* Save as Template Modal */}
+      <Modal
+        title={t('flow.saveAsTemplate')}
+        open={templateModalOpen}
+        onCancel={() => {
+          setTemplateModalOpen(false)
+          templateForm.resetFields()
+          setTemplateFlow(null)
+        }}
+        footer={null}
+      >
+        <Form form={templateForm} layout="vertical" onFinish={handleSaveAsTemplate}>
+          <Form.Item
+            name="name"
+            label={t('template.templateName')}
+            rules={[{ required: true, message: t('template.templateNameRequired') }]}
+          >
+            <Input placeholder={t('template.templateNamePlaceholder')} />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t('flow.flowDescription')}
+          >
+            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} />
+          </Form.Item>
+          <Form.Item
+            name="category"
+            label={t('template.category')}
+            initialValue="automation"
+          >
+            <Select
+              options={[
+                { value: 'automation', label: t('template.categories.automation') },
+                { value: 'data', label: t('template.categories.data') },
+                { value: 'integration', label: t('template.categories.integration') },
+                { value: 'notification', label: t('template.categories.notification') },
+                { value: 'monitoring', label: t('template.categories.monitoring') },
+                { value: 'ai', label: t('template.categories.ai') },
+                { value: 'utility', label: t('template.categories.utility') },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button onClick={() => {
+                setTemplateModalOpen(false)
+                templateForm.resetFields()
+                setTemplateFlow(null)
+              }}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="primary" htmlType="submit" loading={templateSaving} icon={<BookOutlined />}>
+                {t('flow.saveAsTemplate')}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   )
 }
