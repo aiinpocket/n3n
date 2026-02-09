@@ -193,9 +193,10 @@ public class WhatsAppNodeHandler extends AbstractNodeHandler {
         template.put("language", Map.of("code", languageCode));
 
         // Template components (header, body, buttons)
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> components = (List<Map<String, Object>>) context.getNodeConfig().get("templateComponents");
-        if (components != null && !components.isEmpty()) {
+        Object componentsRaw = context.getNodeConfig().get("templateComponents");
+        if (componentsRaw instanceof List && !((List<?>) componentsRaw).isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> components = (List<Map<String, Object>>) componentsRaw;
             template.put("components", components);
         }
 

@@ -166,6 +166,12 @@ export default function ExecutionPage() {
           executionApi.getNodeExecutions(id)
             .then((data) => { if (!cancelled) setNodeExecutions(data) })
             .catch((err) => { logger.warn('Failed to refresh node executions:', err) })
+          // Reload approval data when execution enters waiting status
+          if (execution.status === 'waiting') {
+            executionApi.getApproval(id)
+              .then((data) => { if (!cancelled) setApprovalData(data) })
+              .catch((err) => { logger.warn('Failed to load approval data:', err) })
+          }
         }
       }
     }

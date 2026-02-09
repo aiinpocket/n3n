@@ -87,7 +87,7 @@ public class ExecuteCommandNodeHandler extends AbstractNodeHandler {
         String command = getStringConfig(context, "command", "");
         if (command.isBlank()) {
             // Try from input data
-            if (context.getInputData() != null && context.getInputData().containsKey("command")) {
+            if (context.getInputData() != null && context.getInputData().get("command") != null) {
                 command = context.getInputData().get("command").toString();
             }
         }

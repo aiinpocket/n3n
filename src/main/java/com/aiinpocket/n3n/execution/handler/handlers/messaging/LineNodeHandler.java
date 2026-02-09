@@ -141,10 +141,14 @@ public class LineNodeHandler extends AbstractNodeHandler {
     }
 
     private NodeExecutionResult multicastMessage(String token, NodeExecutionContext context) throws IOException {
+        Object toListRaw = context.getNodeConfig().get("toList");
+        if (!(toListRaw instanceof List)) {
+            return NodeExecutionResult.failure("'toList' (list of user IDs) is required");
+        }
         @SuppressWarnings("unchecked")
-        List<String> to = (List<String>) context.getNodeConfig().get("toList");
+        List<String> to = (List<String>) toListRaw;
 
-        if (to == null || to.isEmpty()) {
+        if (to.isEmpty()) {
             return NodeExecutionResult.failure("'toList' (list of user IDs) is required");
         }
 

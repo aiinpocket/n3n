@@ -169,9 +169,10 @@ public class ExternalServiceNodeHandler extends AbstractNodeHandler {
         String fullPath = path;
 
         // Replace path parameters
-        @SuppressWarnings("unchecked")
-        Map<String, Object> pathParams = (Map<String, Object>) context.getNodeConfig().get("pathParams");
-        if (pathParams != null) {
+        Object pathParamsRaw = context.getNodeConfig().get("pathParams");
+        if (pathParamsRaw instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> pathParams = (Map<String, Object>) pathParamsRaw;
             for (Map.Entry<String, Object> entry : pathParams.entrySet()) {
                 String placeholder = "{" + entry.getKey() + "}";
                 if (fullPath.contains(placeholder) && entry.getValue() != null) {
@@ -184,9 +185,13 @@ public class ExternalServiceNodeHandler extends AbstractNodeHandler {
     }
 
     private String addQueryParams(String url, NodeExecutionContext context) {
+        Object queryParamsRaw = context.getNodeConfig().get("queryParams");
+        if (!(queryParamsRaw instanceof Map)) {
+            return url;
+        }
         @SuppressWarnings("unchecked")
-        Map<String, Object> queryParams = (Map<String, Object>) context.getNodeConfig().get("queryParams");
-        if (queryParams == null || queryParams.isEmpty()) {
+        Map<String, Object> queryParams = (Map<String, Object>) queryParamsRaw;
+        if (queryParams.isEmpty()) {
             return url;
         }
 

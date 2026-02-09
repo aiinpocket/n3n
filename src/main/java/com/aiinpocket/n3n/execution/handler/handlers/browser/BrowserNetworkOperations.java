@@ -28,8 +28,13 @@ final class BrowserNetworkOperations {
                 yield NodeExecutionResult.success(Map.of("success", true, "userAgent", userAgent));
             }
             case "setExtraHeaders" -> {
-                Map<String, String> headers = (Map<String, String>) context.getNodeConfig().get("headers");
-                if (headers == null || headers.isEmpty()) {
+                Object headersRaw = context.getNodeConfig().get("headers");
+                if (!(headersRaw instanceof Map)) {
+                    yield NodeExecutionResult.failure("Headers are required");
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, String> headers = (Map<String, String>) headersRaw;
+                if (headers.isEmpty()) {
                     yield NodeExecutionResult.failure("Headers are required");
                 }
                 cdpSender.sendCommand(session, "Network.setExtraHTTPHeaders", Map.of("headers", headers));
