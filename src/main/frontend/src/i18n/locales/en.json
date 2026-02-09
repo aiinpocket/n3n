@@ -30,6 +30,7 @@
     "createdAt": "Created At",
     "updatedAt": "Updated At",
     "total": "Total {{count}} items",
+    "maxLength": "Maximum {{max}} characters",
     "notPublished": "Not Published",
     "createSuccess": "Created successfully",
     "createFailed": "Create failed",

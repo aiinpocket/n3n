@@ -215,9 +215,12 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
         <Form.Item
           name="name"
           label={t('credential.credentialName')}
-          rules={[{ required: true, message: t('credential.credentialNameRequired') }]}
+          rules={[
+            { required: true, message: t('credential.credentialNameRequired') },
+            { max: 255, message: t('common.maxLength', { max: 255 }) }
+          ]}
         >
-          <Input placeholder={t('credential.credentialNamePlaceholder')} />
+          <Input placeholder={t('credential.credentialNamePlaceholder')} maxLength={255} />
         </Form.Item>
 
         <Form.Item
@@ -241,8 +244,9 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
         <Form.Item
           name="description"
           label={t('common.description')}
+          rules={[{ max: 1000, message: t('common.maxLength', { max: 1000 }) }]}
         >
-          <TextArea rows={2} placeholder={t('credential.descriptionPlaceholder')} />
+          <TextArea rows={2} placeholder={t('credential.descriptionPlaceholder')} maxLength={1000} />
         </Form.Item>
 
         <Form.Item

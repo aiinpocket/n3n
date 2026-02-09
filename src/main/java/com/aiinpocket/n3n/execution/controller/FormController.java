@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.execution.entity.FormSubmission;
 import com.aiinpocket.n3n.execution.entity.FormTrigger;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.execution.service.FormService;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ public class FormController {
 
     private final FormService formService;
     private final ExecutionService executionService;
+    private final FlowShareService flowShareService;
 
     /**
      * Get form definition by token (public endpoint).
@@ -205,6 +207,11 @@ public class FormController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+
+        // Verify the user has access to this flow before disclosing form token
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         return formService.getFormTriggerByFlowAndNode(flowId, nodeId)
             .map(trigger -> ResponseEntity.ok(Map.of(
