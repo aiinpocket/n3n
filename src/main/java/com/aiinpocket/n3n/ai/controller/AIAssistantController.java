@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -249,7 +250,7 @@ public class AIAssistantController {
      */
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationSummary>> listConversations(
-            @RequestParam(required = false) String flowId,
+            @RequestParam(required = false) @Size(max = 100) String flowId,
             Principal principal) {
         UUID userId = getUserId(principal);
         if (userId == null) {

@@ -184,7 +184,7 @@ public class AgentController {
     public Flux<StreamChunk> streamMessage(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable UUID id,
-            @RequestParam String message) {
+            @RequestParam @Size(max = 10000) String message) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return agentService.chatStream(userId, id, message);
     }

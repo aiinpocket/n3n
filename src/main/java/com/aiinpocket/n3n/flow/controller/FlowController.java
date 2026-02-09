@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.flow.dto.*;
 import com.aiinpocket.n3n.flow.service.FlowService;
 import com.aiinpocket.n3n.flow.service.FlowShareService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -146,7 +147,7 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}")
     public ResponseEntity<FlowVersionResponse> getVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -184,7 +185,7 @@ public class FlowController {
     @PostMapping("/{flowId}/versions/{version}/publish")
     public ResponseEntity<FlowVersionResponse> publishVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
@@ -209,7 +210,7 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}/validate")
     public ResponseEntity<FlowValidationResponse> validateVersion(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -298,8 +299,8 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}/nodes/{nodeId}/upstream-outputs")
     public ResponseEntity<List<UpstreamNodeOutput>> getUpstreamOutputs(
             @PathVariable UUID flowId,
-            @PathVariable String version,
-            @PathVariable String nodeId,
+            @PathVariable @Size(max = 100) String version,
+            @PathVariable @Size(max = 255) String nodeId,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -316,7 +317,7 @@ public class FlowController {
     @GetMapping("/{flowId}/versions/{version}/pinned-data")
     public ResponseEntity<java.util.Map<String, Object>> getPinnedData(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -331,7 +332,7 @@ public class FlowController {
     @PostMapping("/{flowId}/versions/{version}/pin")
     public ResponseEntity<Void> pinNodeData(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @Valid @RequestBody PinDataRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -348,8 +349,8 @@ public class FlowController {
     @DeleteMapping("/{flowId}/versions/{version}/pin/{nodeId}")
     public ResponseEntity<Void> unpinNodeData(
             @PathVariable UUID flowId,
-            @PathVariable String version,
-            @PathVariable String nodeId,
+            @PathVariable @Size(max = 100) String version,
+            @PathVariable @Size(max = 255) String nodeId,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {

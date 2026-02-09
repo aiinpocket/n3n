@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
@@ -46,10 +47,10 @@ public class OAuth2Controller {
      */
     @GetMapping("/authorize/{provider}")
     public ResponseEntity<Map<String, String>> getAuthorizationUrl(
-            @PathVariable String provider,
+            @PathVariable @Size(max = 100) String provider,
             @RequestParam UUID credentialId,
-            @RequestParam(required = false) String scope,
-            @RequestParam(required = false) String redirectUri,
+            @RequestParam(required = false) @Size(max = 1000) String scope,
+            @RequestParam(required = false) @Size(max = 2000) String redirectUri,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -73,10 +74,10 @@ public class OAuth2Controller {
      */
     @GetMapping("/callback")
     public ResponseEntity<Void> handleCallback(
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String state,
-            @RequestParam(required = false) String error,
-            @RequestParam(required = false, name = "error_description") String errorDescription) {
+            @RequestParam(required = false) @Size(max = 2000) String code,
+            @RequestParam(required = false) @Size(max = 2000) String state,
+            @RequestParam(required = false) @Size(max = 500) String error,
+            @RequestParam(required = false, name = "error_description") @Size(max = 2000) String errorDescription) {
 
         if (error != null) {
             log.error("OAuth2 error: {} - {}", error, errorDescription);

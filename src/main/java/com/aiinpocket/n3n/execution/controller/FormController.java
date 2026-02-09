@@ -206,7 +206,7 @@ public class FormController {
     @GetMapping("/flow/{flowId}/url")
     public ResponseEntity<?> getFormUrl(
             @PathVariable UUID flowId,
-            @RequestParam String nodeId,
+            @RequestParam @Size(max = 255) String nodeId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
