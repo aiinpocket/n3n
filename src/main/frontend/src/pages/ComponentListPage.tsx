@@ -379,13 +379,13 @@ export default function ComponentListPage() {
               { pattern: /^[a-z][a-z0-9-]*$/, message: t('component.componentNamePattern') },
             ]}
           >
-            <Input placeholder={t('component.componentNamePlaceholder')} />
+            <Input placeholder={t('component.componentNamePlaceholder')} maxLength={100} />
           </Form.Item>
-          <Form.Item name="displayName" label={t('component.displayName')} rules={[{ required: true, message: t('component.displayNameRequired') }]}>
-            <Input placeholder={t('component.displayNamePlaceholder')} />
+          <Form.Item name="displayName" label={t('component.displayName')} rules={[{ required: true, message: t('component.displayNameRequired') }, { max: 255, message: t('common.maxLength', { max: 255 }) }]}>
+            <Input placeholder={t('component.displayNamePlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item name="description" label={t('common.description')}>
-            <TextArea rows={3} placeholder={t('component.descriptionPlaceholder')} />
+            <TextArea rows={3} placeholder={t('component.descriptionPlaceholder')} maxLength={1000} />
           </Form.Item>
           <Form.Item name="category" label={t('component.category')}>
             <Select placeholder={t('component.selectCategory')} allowClear>
@@ -517,7 +517,7 @@ export default function ComponentListPage() {
             ]}
             extra={t('component.versionFormatHint')}
           >
-            <Input placeholder={t('component.versionPlaceholder')} />
+            <Input placeholder={t('component.versionPlaceholder')} maxLength={50} />
           </Form.Item>
           <Form.Item
             name="image"
@@ -531,7 +531,7 @@ export default function ComponentListPage() {
             ]}
             extra={t('component.imageFormatHint')}
           >
-            <Input placeholder={t('component.imagePlaceholder')} />
+            <Input placeholder={t('component.imagePlaceholder')} maxLength={500} />
           </Form.Item>
           <Form.Item
             name="interfaceDefJson"

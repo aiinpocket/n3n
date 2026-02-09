@@ -72,6 +72,19 @@ public class SkillService {
     }
 
     /**
+     * Get skill by ID with access control check.
+     */
+    public Optional<SkillDto> getAccessibleSkill(UUID id, UUID requestingUserId) {
+        return skillRepository.findById(id)
+                .filter(skill ->
+                        Boolean.TRUE.equals(skill.getIsBuiltin()) ||
+                        requestingUserId.equals(skill.getOwnerId()) ||
+                        "public".equalsIgnoreCase(skill.getVisibility())
+                )
+                .map(this::toDto);
+    }
+
+    /**
      * Get skill by name.
      */
     public Optional<SkillDto> getSkillByName(String name) {

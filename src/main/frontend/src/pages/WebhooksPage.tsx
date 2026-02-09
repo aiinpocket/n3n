@@ -380,7 +380,7 @@ const WebhooksPage: React.FC = () => {
               { max: 255, message: t('common.maxLength', { max: 255 }) },
             ]}
           >
-            <Input placeholder={t('webhook.namePlaceholder')} />
+            <Input placeholder={t('webhook.namePlaceholder')} maxLength={255} />
           </Form.Item>
 
           <Form.Item

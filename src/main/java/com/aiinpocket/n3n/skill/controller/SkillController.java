@@ -61,8 +61,11 @@ public class SkillController {
      * Get skill by ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<SkillDto> getSkill(@PathVariable UUID id) {
-        return skillService.getSkill(id)
+    public ResponseEntity<SkillDto> getSkill(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return skillService.getAccessibleSkill(id, userId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
