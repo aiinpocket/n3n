@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert } from 'antd'
+import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
 import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -641,15 +641,23 @@ export default function FlowListPage() {
             renderItem={(item: FlowShare) => (
               <List.Item
                 actions={[
-                  <Button
-                    type="link"
-                    size="small"
-                    danger
-                    disabled={shareActionLoading}
-                    onClick={() => handleRemoveShare(item.id)}
+                  <Popconfirm
+                    key="remove"
+                    title={t('share.removeConfirm')}
+                    onConfirm={() => handleRemoveShare(item.id)}
+                    okText={t('common.delete')}
+                    cancelText={t('common.cancel')}
+                    okButtonProps={{ danger: true }}
                   >
-                    {t('common.delete')}
-                  </Button>,
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      disabled={shareActionLoading}
+                    >
+                      {t('common.delete')}
+                    </Button>
+                  </Popconfirm>,
                 ]}
               >
                 <List.Item.Meta
