@@ -137,6 +137,9 @@ public class ScheduleController {
             schedule.setName(request.getName());
         }
         if (request.getCronExpression() != null) {
+            if (request.getCronExpression().isBlank()) {
+                throw new IllegalArgumentException("Cron expression must not be blank");
+            }
             schedule.setCronExpression(request.getCronExpression());
             cronChanged = true;
         }
@@ -149,11 +152,13 @@ public class ScheduleController {
         }
 
         // Re-register in Quartz if cron or timezone changed
+        // Schedule new job first to validate cron, then unschedule old one
         if (cronChanged && schedule.getQuartzScheduleId() != null) {
-            schedulerService.unschedule(schedule.getQuartzScheduleId());
+            String oldQuartzId = schedule.getQuartzScheduleId();
             String newQuartzId = schedulerService.scheduleCron(
                     schedule.getFlowId(), schedule.getCronExpression(),
                     schedule.getTimezone(), userId);
+            schedulerService.unschedule(oldQuartzId);
             schedule.setQuartzScheduleId(newQuartzId);
             schedule.setNextRunAt(getNextRunInstant(newQuartzId));
         }
