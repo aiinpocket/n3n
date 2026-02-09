@@ -552,6 +552,13 @@ public class ExecutionService {
                                 completedNodes.add(errorNodeId);
                             } catch (Exception errorEx) {
                                 log.error("Error handler node {} also failed: {}", errorNodeId, errorEx.getMessage());
+                                // Track error handler failure for observability
+                                nodeOutputs.put(errorNodeId, Map.of(
+                                    "error", true,
+                                    "errorMessage", "Error handler also failed",
+                                    "errorType", errorEx.getClass().getName(),
+                                    "failedNodeId", nodeId
+                                ));
                             }
                         }
                     }
