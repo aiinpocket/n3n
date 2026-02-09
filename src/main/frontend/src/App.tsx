@@ -40,6 +40,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const HousekeepingPage = lazy(() => import('./pages/HousekeepingPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
+const SchedulerPage = lazy(() => import('./pages/SchedulerPage'))
 const FormPage = lazy(() => import('./pages/FormPage'))
 const OAuth2CallbackPage = lazy(() => import('./pages/OAuth2CallbackPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -216,6 +217,7 @@ function App() {
             <Route path="skills" element={<SkillsPage />} />
             <Route path="templates" element={<TemplatePage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
+            <Route path="schedules" element={<SchedulerPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="gateway" element={<GatewayPage />} />
             <Route path="settings/gateway" element={<GatewaySettingsPage />} />

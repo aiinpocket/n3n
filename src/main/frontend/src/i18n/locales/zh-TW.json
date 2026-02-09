@@ -126,7 +126,8 @@
     "adminUsers": "使用者管理",
     "templates": "範本",
     "approvals": "待審批",
-    "housekeeping": "系統清理"
+    "housekeeping": "系統清理",
+    "schedules": "排程管理"
   },
   "auth": {
     "login": "登入",
@@ -982,6 +983,37 @@
     "apiKeyPlaceholder": "輸入 API Key 值",
     "apiKeyRequired": "請輸入 API Key",
     "empty": "尚無 Webhook"
+  },
+  "schedule": {
+    "title": "排程管理",
+    "description": "排程可讓您根據 Cron 表達式自動定期觸發流程執行。",
+    "create": "建立排程",
+    "createTitle": "建立新排程",
+    "name": "名稱",
+    "nameRequired": "請輸入排程名稱",
+    "namePlaceholder": "例如：每日資料同步",
+    "flow": "目標流程",
+    "flowRequired": "請選擇流程",
+    "selectFlow": "選擇流程",
+    "cronExpression": "Cron 表達式",
+    "cronRequired": "請輸入 Cron 表達式",
+    "cronHint": "標準 6 欄位 Cron：秒 分 時 日 月 星期（例如：0 0 * * * ? = 每小時）",
+    "timezone": "時區",
+    "active": "啟用中",
+    "paused": "已暫停",
+    "resumed": "已恢復",
+    "pause": "暫停",
+    "resume": "恢復",
+    "triggerNow": "立即觸發",
+    "triggerSuccess": "排程觸發成功",
+    "triggerFailed": "排程觸發失敗",
+    "triggerInactiveWarning": "請先啟用排程再進行觸發",
+    "deleteConfirm": "確定要刪除此排程？",
+    "deleteWarning": "刪除後，相關流程將不再按此排程自動觸發。",
+    "empty": "尚無排程",
+    "createFirst": "建立您的第一個排程",
+    "nextRun": "下次執行",
+    "lastRun": "上次執行"
   },
   "language": {
     "title": "語言",

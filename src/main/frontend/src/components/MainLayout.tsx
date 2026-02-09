@@ -25,6 +25,7 @@ import {
   TeamOutlined,
   ExclamationCircleOutlined,
   ClearOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -65,6 +66,7 @@ export default function MainLayout() {
       '/admin/users': t('nav.adminUsers'),
       '/admin/housekeeping': t('nav.housekeeping'),
       '/approvals': t('nav.approvals'),
+      '/schedules': t('nav.schedules'),
     }
     const pageTitle = Object.entries(titles).find(([path]) =>
       path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -114,6 +116,11 @@ export default function MainLayout() {
           key: '/webhooks',
           icon: <LinkOutlined />,
           label: t('nav.webhooks'),
+        },
+        {
+          key: '/schedules',
+          icon: <ClockCircleOutlined />,
+          label: t('nav.schedules'),
         },
         {
           key: '/devices',

@@ -120,6 +120,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, "SECURITY_VIOLATION", "Security violation");
     }
 
+    @ExceptionHandler(org.quartz.SchedulerException.class)
+    public ResponseEntity<ErrorResponse> handleSchedulerException(org.quartz.SchedulerException ex) {
+        log.error("Scheduler error: {}", ex.getMessage());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "SCHEDULER_ERROR", "Scheduling operation failed");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage());

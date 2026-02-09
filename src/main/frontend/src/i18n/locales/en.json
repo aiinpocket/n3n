@@ -126,7 +126,8 @@
     "adminUsers": "User Management",
     "templates": "Templates",
     "approvals": "Approvals",
-    "housekeeping": "Housekeeping"
+    "housekeeping": "Housekeeping",
+    "schedules": "Schedules"
   },
   "auth": {
     "login": "Login",
@@ -982,6 +983,37 @@
     "apiKeyPlaceholder": "Enter the API key value",
     "apiKeyRequired": "Please enter an API key",
     "empty": "No Webhooks yet"
+  },
+  "schedule": {
+    "title": "Schedules",
+    "description": "Schedules allow you to automatically trigger flow executions on a cron-based schedule.",
+    "create": "Create Schedule",
+    "createTitle": "Create New Schedule",
+    "name": "Name",
+    "nameRequired": "Please enter a schedule name",
+    "namePlaceholder": "e.g., Daily Data Sync",
+    "flow": "Target Flow",
+    "flowRequired": "Please select a flow",
+    "selectFlow": "Select flow",
+    "cronExpression": "Cron Expression",
+    "cronRequired": "Please enter a cron expression",
+    "cronHint": "Standard 6-field cron: second minute hour day month weekday (e.g., 0 0 * * * ? = every hour)",
+    "timezone": "Timezone",
+    "active": "Active",
+    "paused": "Paused",
+    "resumed": "Resumed",
+    "pause": "Pause",
+    "resume": "Resume",
+    "triggerNow": "Trigger Now",
+    "triggerSuccess": "Schedule triggered successfully",
+    "triggerFailed": "Failed to trigger schedule",
+    "triggerInactiveWarning": "Please activate the schedule before triggering",
+    "deleteConfirm": "Are you sure you want to delete this schedule?",
+    "deleteWarning": "After deletion, the associated flow will no longer be triggered on this schedule.",
+    "empty": "No Schedules yet",
+    "createFirst": "Create your first Schedule",
+    "nextRun": "Next Run",
+    "lastRun": "Last Run"
   },
   "language": {
     "title": "Language",

@@ -126,7 +126,8 @@
     "adminUsers": "ユーザー管理",
     "templates": "テンプレート",
     "approvals": "承認待ち",
-    "housekeeping": "ハウスキーピング"
+    "housekeeping": "ハウスキーピング",
+    "schedules": "スケジュール"
   },
   "auth": {
     "login": "ログイン",
@@ -982,6 +983,37 @@
     "apiKeyPlaceholder": "APIキーの値を入力",
     "apiKeyRequired": "APIキーを入力してください",
     "empty": "Webhookがありません"
+  },
+  "schedule": {
+    "title": "スケジュール",
+    "description": "スケジュールを使用して、Cron式に基づいてフロー実行を自動的にトリガーできます。",
+    "create": "スケジュール作成",
+    "createTitle": "新規スケジュール作成",
+    "name": "名前",
+    "nameRequired": "スケジュール名を入力してください",
+    "namePlaceholder": "例：毎日のデータ同期",
+    "flow": "対象フロー",
+    "flowRequired": "フローを選択してください",
+    "selectFlow": "フローを選択",
+    "cronExpression": "Cron式",
+    "cronRequired": "Cron式を入力してください",
+    "cronHint": "標準6フィールドCron：秒 分 時 日 月 曜日（例：0 0 * * * ? = 毎時）",
+    "timezone": "タイムゾーン",
+    "active": "有効",
+    "paused": "一時停止中",
+    "resumed": "再開済み",
+    "pause": "一時停止",
+    "resume": "再開",
+    "triggerNow": "今すぐ実行",
+    "triggerSuccess": "スケジュールを正常にトリガーしました",
+    "triggerFailed": "スケジュールのトリガーに失敗しました",
+    "triggerInactiveWarning": "トリガーする前にスケジュールを有効にしてください",
+    "deleteConfirm": "このスケジュールを削除しますか？",
+    "deleteWarning": "削除すると、関連するフローはこのスケジュールで自動的にトリガーされなくなります。",
+    "empty": "スケジュールがありません",
+    "createFirst": "最初のスケジュールを作成",
+    "nextRun": "次回実行",
+    "lastRun": "前回実行"
   },
   "language": {
     "title": "言語",
