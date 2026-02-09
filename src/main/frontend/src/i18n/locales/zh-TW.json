@@ -1247,7 +1247,8 @@
     "invokeFailed": "指令執行失敗",
     "statusConnected": "已連線",
     "statusDisconnected": "已斷線",
-    "statusIdle": "閒置"
+    "statusIdle": "閒置",
+    "settingsSaved": "閘道設定儲存成功"
   },
   "agent": {
     "status": {

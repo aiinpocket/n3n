@@ -3,6 +3,7 @@ import { Modal, Form, Input, Switch, message } from 'antd'
 import { GlobalOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { updateDevice, type Device, type DeviceUpdateRequest } from '../../api/device'
+import { extractApiError } from '../../utils/errorMessages'
 
 interface DeviceEditModalProps {
   device: Device | null
@@ -47,8 +48,7 @@ const DeviceEditModal: React.FC<DeviceEditModalProps> = ({
       onUpdated()
       onClose()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('common.updateFailed')
-      message.error(errorMessage)
+      message.error(extractApiError(err, t('common.updateFailed')))
     } finally {
       setLoading(false)
     }

@@ -1247,7 +1247,8 @@
     "invokeFailed": "Command execution failed",
     "statusConnected": "Connected",
     "statusDisconnected": "Disconnected",
-    "statusIdle": "Idle"
+    "statusIdle": "Idle",
+    "settingsSaved": "Gateway settings saved successfully"
   },
   "agent": {
     "status": {

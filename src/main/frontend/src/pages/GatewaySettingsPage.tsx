@@ -74,7 +74,7 @@ const GatewaySettingsPage: React.FC = () => {
         enabled: values.enabled,
       })
       setSettings(result.settings)
-      message.success(result.message)
+      message.success(t('gateway.settingsSaved'))
     } catch (err: unknown) {
       message.error(extractApiError(err, t('gateway.saveFailed')))
     } finally {

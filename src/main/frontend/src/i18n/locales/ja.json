@@ -1247,7 +1247,8 @@
     "invokeFailed": "コマンド実行失敗",
     "statusConnected": "接続中",
     "statusDisconnected": "切断",
-    "statusIdle": "アイドル"
+    "statusIdle": "アイドル",
+    "settingsSaved": "ゲートウェイ設定を保存しました"
   },
   "agent": {
     "status": {

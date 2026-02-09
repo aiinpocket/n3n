@@ -33,7 +33,7 @@ export default function ServiceListPage() {
       if (result.success) {
         message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
-        message.warning(result.message)
+        message.warning(result.message || t('service.connectionFailed'))
       }
     } catch {
       message.error(t('service.testConnectionFailed'))

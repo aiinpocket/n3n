@@ -234,8 +234,11 @@ export default function MainLayout() {
   const selectedKey = findSelectedKey()
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+    try {
+      await logout()
+    } finally {
+      navigate('/login')
+    }
   }
 
   const userMenuItems = [
