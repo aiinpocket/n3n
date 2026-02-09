@@ -136,9 +136,8 @@ export async function listConversations(flowId?: string) {
 /**
  * Delete a conversation
  */
-export async function deleteConversation(conversationId: string) {
-  const response = await client.delete(`/ai-assistant/conversations/${conversationId}`)
-  return response.data
+export async function deleteConversation(conversationId: string): Promise<void> {
+  await client.delete(`/ai-assistant/conversations/${conversationId}`)
 }
 
 // ==================== Flow Generation Stream ====================

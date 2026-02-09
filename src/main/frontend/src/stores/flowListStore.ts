@@ -59,30 +59,54 @@ export const useFlowListStore = create<FlowListState>((set, get) => ({
   setSearchQuery: (query: string) => set({ searchQuery: query }),
 
   createFlow: async (name: string, description?: string) => {
-    const flow = await flowApi.createFlow({ name, description })
-    set((state) => ({ flows: [flow, ...state.flows] }))
-    return flow
+    set({ error: null })
+    try {
+      const flow = await flowApi.createFlow({ name, description })
+      set((state) => ({ flows: [flow, ...state.flows] }))
+      return flow
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   updateFlow: async (id: string, name?: string, description?: string) => {
-    const flow = await flowApi.updateFlow(id, { name, description })
-    set((state) => ({
-      flows: state.flows.map((f) => (f.id === id ? flow : f)),
-    }))
-    return flow
+    set({ error: null })
+    try {
+      const flow = await flowApi.updateFlow(id, { name, description })
+      set((state) => ({
+        flows: state.flows.map((f) => (f.id === id ? flow : f)),
+      }))
+      return flow
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   deleteFlow: async (id: string) => {
-    await flowApi.deleteFlow(id)
-    set((state) => ({
-      flows: state.flows.filter((f) => f.id !== id),
-    }))
+    set({ error: null })
+    try {
+      await flowApi.deleteFlow(id)
+      set((state) => ({
+        flows: state.flows.filter((f) => f.id !== id),
+      }))
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   cloneFlow: async (id: string, name?: string) => {
-    const flow = await flowApi.cloneFlow(id, name)
-    set((state) => ({ flows: [flow, ...state.flows] }))
-    return flow
+    set({ error: null })
+    try {
+      const flow = await flowApi.cloneFlow(id, name)
+      set((state) => ({ flows: [flow, ...state.flows] }))
+      return flow
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   clearError: () => set({ error: null }),

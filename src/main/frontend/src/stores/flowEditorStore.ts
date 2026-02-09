@@ -550,11 +550,15 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       throw new Error(i18n.t('flow.noFlowOrVersionLoaded'))
     }
 
-    await flowApi.pinNodeData(currentFlow.id, currentVersion.version, { nodeId, data })
-
-    set((state) => ({
-      pinnedData: { ...state.pinnedData, [nodeId]: data },
-    }))
+    try {
+      await flowApi.pinNodeData(currentFlow.id, currentVersion.version, { nodeId, data })
+      set((state) => ({
+        pinnedData: { ...state.pinnedData, [nodeId]: data },
+      }))
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   unpinNodeData: async (nodeId: string) => {
@@ -563,13 +567,17 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       throw new Error(i18n.t('flow.noFlowOrVersionLoaded'))
     }
 
-    await flowApi.unpinNodeData(currentFlow.id, currentVersion.version, nodeId)
-
-    set((state) => {
-      const newPinnedData = { ...state.pinnedData }
-      delete newPinnedData[nodeId]
-      return { pinnedData: newPinnedData }
-    })
+    try {
+      await flowApi.unpinNodeData(currentFlow.id, currentVersion.version, nodeId)
+      set((state) => {
+        const newPinnedData = { ...state.pinnedData }
+        delete newPinnedData[nodeId]
+        return { pinnedData: newPinnedData }
+      })
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   isNodePinned: (nodeId: string) => {

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { monitoringApi, type SystemMetrics, type FlowExecutionStats, type HealthStatus } from '../api/monitoring'
+import { extractApiError } from '../utils/errorMessages'
+import { logger } from '../utils/logger'
 import i18n from '../i18n'
 
 interface MonitoringState {
@@ -26,8 +28,8 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
     try {
       const data = await monitoringApi.getSystemMetrics()
       set({ systemMetrics: data })
-    } catch {
-      // silent fail for individual metrics
+    } catch (error) {
+      logger.error('Failed to fetch system metrics:', error)
     }
   },
 
@@ -35,8 +37,8 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
     try {
       const data = await monitoringApi.getFlowStats()
       set({ flowStats: data })
-    } catch {
-      // silent fail
+    } catch (error) {
+      logger.error('Failed to fetch flow stats:', error)
     }
   },
 
@@ -44,8 +46,8 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
     try {
       const data = await monitoringApi.getHealthStatus()
       set({ healthStatus: data })
-    } catch {
-      // silent fail
+    } catch (error) {
+      logger.error('Failed to fetch health status:', error)
     }
   },
 
@@ -63,8 +65,8 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
         healthStatus: health.status === 'fulfilled' ? health.value : null,
         loading: false,
       })
-    } catch {
-      set({ loading: false, error: i18n.t('errorMessage.defaultMessage') })
+    } catch (error) {
+      set({ loading: false, error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
     }
   },
 }))
