@@ -78,9 +78,18 @@ public class ScheduleController {
             @AuthenticationPrincipal UserDetails userDetails) throws SchedulerException {
         UUID userId = UUID.fromString(userDetails.getUsername());
 
-        // Verify the flow exists
-        flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
-                .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));
+        // Verify the flow exists and user owns it
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
+                .orElseThrow(() -> new ResourceNotFoundException("Flow not found"));
+        if (!flow.getCreatedBy().equals(userId)) {
+            throw new AccessDeniedException("Access denied");
+        }
+
+        // Limit schedules per user
+        long userScheduleCount = scheduleRepository.countByCreatedBy(userId);
+        if (userScheduleCount >= 100) {
+            throw new IllegalStateException("Schedule limit exceeded. Maximum 100 schedules per user.");
+        }
 
         String timezone = request.getTimezone() != null ? request.getTimezone() : "UTC";
 
@@ -228,6 +237,12 @@ public class ScheduleController {
         UUID userId = UUID.fromString(userDetails.getUsername());
         Schedule schedule = findScheduleWithOwnerCheck(id, userId);
 
+        if (!Boolean.TRUE.equals(schedule.getIsActive())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", "Cannot trigger paused schedule"));
+        }
+
         if (schedule.getQuartzScheduleId() == null) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
@@ -246,7 +261,7 @@ public class ScheduleController {
 
     private Schedule findScheduleWithOwnerCheck(UUID id, UUID userId) {
         Schedule schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
         if (!schedule.getCreatedBy().equals(userId)) {
             throw new AccessDeniedException("Access denied");
         }

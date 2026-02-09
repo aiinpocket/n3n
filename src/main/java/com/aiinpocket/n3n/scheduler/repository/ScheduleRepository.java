@@ -16,4 +16,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
     List<Schedule> findByFlowIdOrderByCreatedAtDesc(UUID flowId);
 
     Optional<Schedule> findByIdAndCreatedBy(UUID id, UUID createdBy);
+
+    long countByCreatedBy(UUID createdBy);
 }
