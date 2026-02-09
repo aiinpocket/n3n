@@ -419,14 +419,22 @@ public class ActivityService {
         }
         String ip = getCurrentClientIp();
         if (ip != null) {
-            sb.append(" ip=").append(ip);
+            sb.append(" ip=").append(sanitizeLogValue(ip));
         }
         for (Map.Entry<String, Object> entry : fields.entrySet()) {
             if (entry.getValue() != null) {
-                sb.append(" ").append(entry.getKey()).append("=").append(entry.getValue());
+                sb.append(" ").append(entry.getKey()).append("=").append(sanitizeLogValue(String.valueOf(entry.getValue())));
             }
         }
         log.info(sb.toString());
+    }
+
+    /**
+     * Sanitize value for structured log output to prevent log injection.
+     */
+    private String sanitizeLogValue(String value) {
+        if (value == null) return "";
+        return value.replace("\n", "").replace("\r", "").replace("\t", " ");
     }
 
     /**

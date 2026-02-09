@@ -43,6 +43,7 @@ export default function FlowListPage() {
   const [templateFlow, setTemplateFlow] = useState<{ id: string; name: string; version: string } | null>(null)
   const [templateForm] = Form.useForm()
   const [templateSaving, setTemplateSaving] = useState(false)
+  const [shareActionLoading, setShareActionLoading] = useState(false)
 
   useEffect(() => {
     fetchFlows()
@@ -167,6 +168,7 @@ export default function FlowListPage() {
 
   const handleShareFlow = async () => {
     if (!shareFlow || !shareEmail) return
+    setShareActionLoading(true)
     try {
       await flowShareApi.shareFlow(shareFlow.id, { email: shareEmail, permission: sharePermission })
       message.success(t('share.shareSuccess'))
@@ -175,11 +177,14 @@ export default function FlowListPage() {
       setShares(data)
     } catch (error: unknown) {
       message.error(extractApiError(error, t('share.shareFailed')))
+    } finally {
+      setShareActionLoading(false)
     }
   }
 
   const handleRemoveShare = async (shareId: string) => {
     if (!shareFlow) return
+    setShareActionLoading(true)
     try {
       await flowShareApi.removeShare(shareFlow.id, shareId)
       message.success(t('share.removeSuccess'))
@@ -187,6 +192,8 @@ export default function FlowListPage() {
       setShares(data)
     } catch {
       message.error(t('share.removeFailed'))
+    } finally {
+      setShareActionLoading(false)
     }
   }
 
@@ -621,7 +628,7 @@ export default function FlowListPage() {
                 { value: 'edit', label: t('share.edit') },
               ]}
             />
-            <Button type="primary" onClick={handleShareFlow} disabled={!shareEmail}>
+            <Button type="primary" onClick={handleShareFlow} disabled={!shareEmail} loading={shareActionLoading}>
               {t('share.invite')}
             </Button>
           </Space.Compact>
@@ -638,6 +645,7 @@ export default function FlowListPage() {
                     type="link"
                     size="small"
                     danger
+                    disabled={shareActionLoading}
                     onClick={() => handleRemoveShare(item.id)}
                   >
                     {t('common.delete')}

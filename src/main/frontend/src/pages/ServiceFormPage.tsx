@@ -87,6 +87,7 @@ export default function ServiceFormPage() {
         }
         await updateService(id, updateData)
         message.success(t('service.updateSuccess'))
+        navigate(`/services/${id}`)
       } else {
         const createData: CreateServiceRequest = {
           name: values.name as string,
