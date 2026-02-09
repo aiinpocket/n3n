@@ -289,6 +289,12 @@ Flow optimization suggestions via local LLM.
 - `FlowOptimizerController` - Analysis and status endpoints
 - `FlowOptimizerService` - Integration with Phi-3-Mini LLM service
 
+#### scheduler/
+Cron-based flow scheduling with Quartz integration.
+- `ScheduleController` - Full CRUD, pause/resume, trigger now (8 endpoints)
+- `SchedulerService` - Quartz CronTrigger/SimpleTrigger management
+- `Schedule` entity - Persists schedule config with `quartzScheduleId` link
+
 #### skill/
 Skill management and execution.
 - `SkillController` - Full CRUD, built-in skill listing, and direct execution
@@ -502,6 +508,19 @@ Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`
   "message": "Flow execution started"
 }
 ```
+
+### Schedules
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/schedules` | List user's schedules |
+| GET | `/api/schedules/{id}` | Get schedule detail |
+| POST | `/api/schedules` | Create schedule |
+| PUT | `/api/schedules/{id}` | Update schedule |
+| DELETE | `/api/schedules/{id}` | Delete schedule |
+| POST | `/api/schedules/{id}/pause` | Pause schedule |
+| POST | `/api/schedules/{id}/resume` | Resume schedule |
+| POST | `/api/schedules/{id}/trigger` | Trigger schedule now |
 
 ### Custom Docker Tools
 
