@@ -35,6 +35,8 @@
     "notPublished": "未公開",
     "createSuccess": "作成しました",
     "createFailed": "作成に失敗しました",
+    "updateSuccess": "更新しました",
+    "updateFailed": "更新に失敗しました",
     "deleteFailed": "削除に失敗しました",
     "saveFailed": "保存に失敗しました",
     "loadFailed": "読み込みに失敗しました",

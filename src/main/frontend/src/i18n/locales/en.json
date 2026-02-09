@@ -35,6 +35,8 @@
     "notPublished": "Not Published",
     "createSuccess": "Created successfully",
     "createFailed": "Create failed",
+    "updateSuccess": "Updated successfully",
+    "updateFailed": "Update failed",
     "deleteFailed": "Delete failed",
     "saveFailed": "Save failed",
     "loadFailed": "Load failed",
