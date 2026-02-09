@@ -87,15 +87,24 @@ public class FlowService {
     /**
      * 單一 Flow 轉換（用於 getFlow 等單一查詢場景）
      */
-    @SuppressWarnings("unchecked")
+    private static final int MAX_COPY_DEPTH = 50;
+
     private Map<String, Object> deepCopyMap(Map<String, Object> original) {
+        return deepCopyMap(original, 0);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> deepCopyMap(Map<String, Object> original, int depth) {
+        if (depth > MAX_COPY_DEPTH) {
+            throw new IllegalArgumentException("Definition nesting too deep (max " + MAX_COPY_DEPTH + " levels)");
+        }
         Map<String, Object> copy = new HashMap<>();
         for (Map.Entry<String, Object> entry : original.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof Map) {
-                copy.put(entry.getKey(), deepCopyMap((Map<String, Object>) value));
+                copy.put(entry.getKey(), deepCopyMap((Map<String, Object>) value, depth + 1));
             } else if (value instanceof java.util.List<?> list) {
-                copy.put(entry.getKey(), deepCopyList(list));
+                copy.put(entry.getKey(), deepCopyList(list, depth + 1));
             } else {
                 copy.put(entry.getKey(), value);
             }
@@ -104,13 +113,16 @@ public class FlowService {
     }
 
     @SuppressWarnings("unchecked")
-    private java.util.List<Object> deepCopyList(java.util.List<?> original) {
+    private java.util.List<Object> deepCopyList(java.util.List<?> original, int depth) {
+        if (depth > MAX_COPY_DEPTH) {
+            throw new IllegalArgumentException("Definition nesting too deep (max " + MAX_COPY_DEPTH + " levels)");
+        }
         java.util.List<Object> copy = new java.util.ArrayList<>();
         for (Object item : original) {
             if (item instanceof Map) {
-                copy.add(deepCopyMap((Map<String, Object>) item));
+                copy.add(deepCopyMap((Map<String, Object>) item, depth + 1));
             } else if (item instanceof java.util.List<?> list) {
-                copy.add(deepCopyList(list));
+                copy.add(deepCopyList(list, depth + 1));
             } else {
                 copy.add(item);
             }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.zone.ZoneRulesException;
 import java.util.*;
@@ -40,6 +41,7 @@ public class SchedulerService {
         if (!CronExpression.isValidExpression(cronExpression)) {
             throw new IllegalArgumentException("Invalid cron expression: " + cronExpression);
         }
+        validateCronFrequency(cronExpression);
 
         // Validate timezone
         if (timezone == null || timezone.isBlank()) {
@@ -195,5 +197,29 @@ public class SchedulerService {
             log.warn("Error cleaning up schedules for flow {}: {}", flowId, e.getMessage());
         }
         return removed;
+    }
+
+    /**
+     * Validate that a cron expression doesn't fire more frequently than the minimum interval.
+     * Prevents DoS via high-frequency scheduling (e.g., every second).
+     */
+    private void validateCronFrequency(String cronExpression) {
+        try {
+            CronExpression expr = new CronExpression(cronExpression);
+            Date now = new Date();
+            Date next1 = expr.getNextValidTimeAfter(now);
+            if (next1 == null) return;
+            Date next2 = expr.getNextValidTimeAfter(next1);
+            if (next2 == null) return;
+
+            long intervalMs = next2.getTime() - next1.getTime();
+            if (intervalMs < MIN_INTERVAL_MS) {
+                throw new IllegalArgumentException(
+                    "Cron frequency too high (minimum " + (MIN_INTERVAL_MS / 1000) +
+                    " seconds between executions, got " + (intervalMs / 1000) + "s)");
+            }
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Invalid cron expression: " + cronExpression);
+        }
     }
 }
