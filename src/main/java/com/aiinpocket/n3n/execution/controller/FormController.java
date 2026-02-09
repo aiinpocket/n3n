@@ -38,6 +38,7 @@ public class FormController {
     private final FormService formService;
     private final ExecutionService executionService;
     private final FlowShareService flowShareService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     /**
      * Get form definition by token (public endpoint).
@@ -82,6 +83,10 @@ public class FormController {
             @RequestBody Map<String, Object> formData,
             HttpServletRequest request) {
 
+        // Rate limit: 10 form submissions per minute per IP
+        String clientIp = getClientIp(request);
+        ipRateLimiter.checkAllowed("form-submit", clientIp, 10, 60);
+
         // Validate form data size to prevent oversized payloads
         if (formData != null && formData.size() > 500) {
             return ResponseEntity.badRequest()
@@ -95,8 +100,6 @@ public class FormController {
                 return ResponseEntity.status(HttpStatus.GONE)
                     .body(Map.of("error", "This form is not accepting submissions"));
             }
-
-            String clientIp = getClientIp(request);
 
             // Increment submission count
             formService.incrementSubmissionCount(trigger.getId());

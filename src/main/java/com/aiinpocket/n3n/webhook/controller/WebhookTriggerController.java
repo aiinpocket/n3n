@@ -21,6 +21,7 @@ public class WebhookTriggerController {
 
     private final WebhookService webhookService;
     private final ActivityService activityService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     @GetMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handleGet(
@@ -71,6 +72,10 @@ public class WebhookTriggerController {
         }
 
         String sourceIp = getClientIp(request);
+
+        // Rate limit: 60 webhook triggers per minute per IP
+        ipRateLimiter.checkAllowed("webhook-trigger", sourceIp, 60, 60);
+
         String userAgent = request.getHeader("User-Agent");
         int payloadSize = payload != null ? payload.toString().length() : 0;
 
