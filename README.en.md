@@ -169,6 +169,7 @@ docker compose up -d --build
 - **Real-time Log Viewer** - Admins can stream system logs in real-time via SSE
 - **System Monitoring Dashboard** - Live JVM memory, CPU, and flow execution statistics
 - **Flow Validation** - Built-in validation button in editor toolbar to check DAG structure before publishing
+- **Schedule Management** - Cron-based flow triggers with pause/resume/trigger-now support (Quartz integration)
 - **Webhook Testing** - Test triggers directly from the Webhook management page with instant flow activation confirmation
 - **Plugin Ratings** - Custom tool marketplace with community ratings and reviews
 - **Save as Template** - One-click conversion of existing flow versions into reusable templates

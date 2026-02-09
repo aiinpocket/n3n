@@ -45,6 +45,7 @@ export default function ServiceDetailPage() {
   const [form] = Form.useForm()
   const [refreshing, setRefreshing] = useState(false)
   const [testing, setTesting] = useState(false)
+  const [submittingEndpoint, setSubmittingEndpoint] = useState(false)
 
   const {
     currentService,
@@ -97,6 +98,7 @@ export default function ServiceDetailPage() {
 
   const handleEndpointSubmit = async (values: Record<string, unknown>) => {
     if (!id) return
+    setSubmittingEndpoint(true)
     try {
       let pathParams: Record<string, unknown> | undefined
       let queryParams: Record<string, unknown> | undefined
@@ -109,6 +111,7 @@ export default function ServiceDetailPage() {
         responseSchema = values.responseSchema ? JSON.parse(values.responseSchema as string) : undefined
       } catch {
         message.error(t('component.jsonFormatError'))
+        setSubmittingEndpoint(false)
         return
       }
       const data: CreateEndpointRequest = {
@@ -135,6 +138,8 @@ export default function ServiceDetailPage() {
       setEditingEndpoint(null)
     } catch (error) {
       message.error(extractApiError(error, t('common.operationFailed')))
+    } finally {
+      setSubmittingEndpoint(false)
     }
   }
 
@@ -444,7 +449,7 @@ export default function ServiceDetailPage() {
               >
                 {t('common.cancel')}
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={submittingEndpoint}>
                 {editingEndpoint ? t('common.save') : t('common.create')}
               </Button>
             </Space>
