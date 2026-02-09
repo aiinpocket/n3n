@@ -334,7 +334,7 @@ const WebhooksPage: React.FC = () => {
             dataSource={webhooks}
             rowKey="id"
             loading={isLoading}
-            pagination={{ pageSize: 10 }}
+            pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
           />
         )}
       </Card>

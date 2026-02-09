@@ -67,6 +67,7 @@ public class WebhookController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         WebhookResponse response = webhookService.updateWebhook(id, request, userId);
+        activityService.logActivity(userId, "WEBHOOK_UPDATE", "webhook", id, response.getPath(), null);
         return ResponseEntity.ok(response);
     }
 

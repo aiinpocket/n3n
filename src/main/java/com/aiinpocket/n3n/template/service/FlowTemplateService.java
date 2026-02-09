@@ -337,7 +337,7 @@ public class FlowTemplateService {
             .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
 
         if (!template.getCreatedBy().equals(userId)) {
-            throw new IllegalArgumentException("Cannot update a template you didn't create");
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
         }
 
         if (request.getName() != null) {
@@ -364,7 +364,7 @@ public class FlowTemplateService {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
         if (!flow.getCreatedBy().equals(userId)) {
-            throw new IllegalArgumentException("Cannot create template from a flow you don't own");
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
         }
 
         FlowVersion flowVersion = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
@@ -424,7 +424,7 @@ public class FlowTemplateService {
             .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
 
         if (!template.getCreatedBy().equals(userId)) {
-            throw new IllegalArgumentException("Cannot delete a template you didn't create");
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
         }
 
         templateRepository.delete(template);

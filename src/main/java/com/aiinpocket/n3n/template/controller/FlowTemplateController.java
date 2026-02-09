@@ -74,7 +74,8 @@ public class FlowTemplateController {
             @Valid @RequestBody UpdateTemplateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.ok(templateService.updateTemplate(id, request, userId));
+        TemplateResponse response = templateService.updateTemplate(id, request, userId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/from-flow/{flowId}/version/{version}")

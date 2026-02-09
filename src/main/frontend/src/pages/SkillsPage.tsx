@@ -416,7 +416,7 @@ export default function SkillsPage() {
           dataSource={filteredSkills}
           rowKey="id"
           loading={isLoading}
-          pagination={{ pageSize: 10 }}
+          pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
           locale={{
             emptyText: <Empty description={t('skill.noSkills')} />,
           }}
