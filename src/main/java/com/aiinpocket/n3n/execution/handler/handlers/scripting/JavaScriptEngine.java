@@ -22,11 +22,13 @@ public class JavaScriptEngine implements ScriptEngine {
     private static final long DEFAULT_TIMEOUT_MS = 30000; // 30 seconds
     private static final long MAX_TIMEOUT_MS = 300000; // 5 minutes
 
-    private final ExecutorService executor = Executors.newCachedThreadPool(r -> {
-        Thread t = new Thread(r, "js-executor");
-        t.setDaemon(true);
-        return t;
-    });
+    private final ExecutorService executor = Executors.newFixedThreadPool(
+        Math.max(4, Runtime.getRuntime().availableProcessors()),
+        r -> {
+            Thread t = new Thread(r, "js-executor");
+            t.setDaemon(true);
+            return t;
+        });
 
     @PreDestroy
     public void shutdown() {

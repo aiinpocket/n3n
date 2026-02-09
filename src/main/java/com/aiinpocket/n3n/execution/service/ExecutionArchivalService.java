@@ -66,26 +66,43 @@ public class ExecutionArchivalService {
         log.info("Starting execution archival for records older than {}", cutoffDate);
 
         int archivedCount = 0;
+        int failedCount = 0;
         int batchSize = 100;
+        int maxIterations = 10000;
+        int iteration = 0;
 
         List<Execution> toArchive = executionRepository.findByCompletedAtBeforeAndStatusIn(
             cutoffDate, COMPLETED_STATUSES, batchSize);
 
-        while (!toArchive.isEmpty()) {
+        while (!toArchive.isEmpty() && iteration < maxIterations) {
+            iteration++;
+            int batchFailed = 0;
             for (Execution execution : toArchive) {
                 try {
                     archiveExecution(execution);
                     archivedCount++;
                 } catch (Exception e) {
+                    failedCount++;
+                    batchFailed++;
                     log.error("Failed to archive execution: {}", execution.getId(), e);
                 }
+            }
+
+            // If entire batch failed, stop to avoid infinite loop
+            if (batchFailed == toArchive.size()) {
+                log.error("Entire batch failed to archive, stopping to prevent infinite loop. Failed: {}", failedCount);
+                break;
             }
 
             toArchive = executionRepository.findByCompletedAtBeforeAndStatusIn(
                 cutoffDate, COMPLETED_STATUSES, batchSize);
         }
 
-        log.info("Execution archival completed. Archived {} records.", archivedCount);
+        if (iteration >= maxIterations) {
+            log.warn("Execution archival hit max iteration limit ({}). Archived: {}, Failed: {}", maxIterations, archivedCount, failedCount);
+        } else {
+            log.info("Execution archival completed. Archived: {}, Failed: {}", archivedCount, failedCount);
+        }
     }
 
     @Transactional

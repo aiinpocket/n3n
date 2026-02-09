@@ -52,8 +52,8 @@ public class LogViewerController {
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamLogs() {
-        // No timeout - keep connection open indefinitely
-        SseEmitter emitter = new SseEmitter(0L);
+        // 5-minute timeout to prevent abandoned connections from leaking resources
+        SseEmitter emitter = new SseEmitter(300_000L);
 
         Consumer<LogEntry> listener = entry -> {
             try {

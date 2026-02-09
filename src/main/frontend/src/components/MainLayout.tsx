@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import ErrorBoundary from './error/ErrorBoundary'
 import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography } from 'antd'
 import {
   ApartmentOutlined,
@@ -369,7 +370,9 @@ export default function MainLayout() {
           </Space>
         </Header>
         <Content style={{ margin: 16 }}>
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </Content>
       </Layout>
 
