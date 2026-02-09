@@ -187,16 +187,10 @@ public class ExecutionService {
             version = flowVersionRepository.findByFlowIdAndVersion(flow.getId(), request.getVersion())
                 .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + request.getVersion()));
         } else {
-            // Use published version
-            // Try published version first, then latest version
+            // Use published version only - draft versions cannot be executed without explicit version
             version = flowVersionRepository.findByFlowIdAndStatus(flow.getId(), "published")
-                .orElseGet(() -> {
-                    List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flow.getId());
-                    if (versions.isEmpty()) {
-                        throw new ResourceNotFoundException("No version available for flow: " + flow.getName());
-                    }
-                    return versions.get(0);
-                });
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "No published version available for flow: " + flow.getName()));
         }
 
         // Validate DAG
