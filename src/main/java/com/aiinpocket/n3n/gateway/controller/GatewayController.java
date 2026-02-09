@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public class GatewayController {
      */
     @GetMapping("/nodes/{connectionId}")
     public ResponseEntity<NodeInfo> getNode(
-            @PathVariable String connectionId,
+            @PathVariable @Size(max = 255) String connectionId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = getUserId(userDetails);
@@ -67,7 +68,7 @@ public class GatewayController {
      */
     @PostMapping("/nodes/{connectionId}/invoke")
     public CompletableFuture<ResponseEntity<InvokeResponse>> invoke(
-            @PathVariable String connectionId,
+            @PathVariable @Size(max = 255) String connectionId,
             @Valid @RequestBody InvokeRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 

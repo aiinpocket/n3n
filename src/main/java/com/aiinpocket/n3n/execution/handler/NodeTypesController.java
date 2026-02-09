@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.execution.handler;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class NodeTypesController {
      * Get a specific node type by type name.
      */
     @GetMapping("/{type}")
-    public ResponseEntity<NodeHandlerInfo> getNodeType(@PathVariable String type) {
+    public ResponseEntity<NodeHandlerInfo> getNodeType(@PathVariable @Size(max = 100) String type) {
         return registry.findHandler(type)
             .map(handler -> NodeHandlerInfo.builder()
                 .type(handler.getType())
@@ -52,7 +53,7 @@ public class NodeTypesController {
      * Get the configuration schema for a node type.
      */
     @GetMapping("/{type}/schema")
-    public ResponseEntity<Map<String, Object>> getNodeSchema(@PathVariable String type) {
+    public ResponseEntity<Map<String, Object>> getNodeSchema(@PathVariable @Size(max = 100) String type) {
         return registry.findHandler(type)
             .map(NodeHandler::getConfigSchema)
             .map(ResponseEntity::ok)
@@ -71,7 +72,7 @@ public class NodeTypesController {
      * List node types by category.
      */
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<NodeHandlerInfo>> listByCategory(@PathVariable String category) {
+    public ResponseEntity<List<NodeHandlerInfo>> listByCategory(@PathVariable @Size(max = 100) String category) {
         List<NodeHandlerInfo> handlers = registry.getHandlersByCategory(category).stream()
             .map(handler -> NodeHandlerInfo.builder()
                 .type(handler.getType())

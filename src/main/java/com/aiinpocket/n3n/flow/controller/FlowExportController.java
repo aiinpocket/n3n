@@ -8,6 +8,7 @@ import com.aiinpocket.n3n.flow.dto.import_.FlowImportRequest;
 import com.aiinpocket.n3n.flow.service.FlowExportService;
 import com.aiinpocket.n3n.flow.service.FlowImportService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class FlowExportController {
     @GetMapping("/{flowId}/versions/{version}/export")
     public ResponseEntity<FlowExportPackage> exportFlow(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());

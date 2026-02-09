@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.component.controller;
 import com.aiinpocket.n3n.component.dto.*;
 import com.aiinpocket.n3n.component.service.ComponentService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +43,7 @@ public class ComponentController {
     }
 
     @GetMapping("/by-name/{name}")
-    public ResponseEntity<ComponentResponse> getComponentByName(@PathVariable String name) {
+    public ResponseEntity<ComponentResponse> getComponentByName(@PathVariable @Size(max = 255) String name) {
         return ResponseEntity.ok(componentService.getComponentByName(name));
     }
 
@@ -80,7 +81,7 @@ public class ComponentController {
     @GetMapping("/{componentId}/versions/{version}")
     public ResponseEntity<ComponentVersionResponse> getVersion(
             @PathVariable UUID componentId,
-            @PathVariable String version) {
+            @PathVariable @Size(max = 100) String version) {
         return ResponseEntity.ok(componentService.getVersion(componentId, version));
     }
 
@@ -103,7 +104,7 @@ public class ComponentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ComponentVersionResponse> activateVersion(
             @PathVariable UUID componentId,
-            @PathVariable String version) {
+            @PathVariable @Size(max = 100) String version) {
         return ResponseEntity.ok(componentService.activateVersion(componentId, version));
     }
 
@@ -111,7 +112,7 @@ public class ComponentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ComponentVersionResponse> deprecateVersion(
             @PathVariable UUID componentId,
-            @PathVariable String version) {
+            @PathVariable @Size(max = 100) String version) {
         return ResponseEntity.ok(componentService.deprecateVersion(componentId, version));
     }
 }

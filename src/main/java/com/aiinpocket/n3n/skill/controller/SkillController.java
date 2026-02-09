@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.skill.SkillResult;
 import com.aiinpocket.n3n.skill.dto.*;
 import com.aiinpocket.n3n.skill.service.SkillService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class SkillController {
      * Get skills by category.
      */
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<SkillDto>> getSkillsByCategory(@PathVariable String category) {
+    public ResponseEntity<List<SkillDto>> getSkillsByCategory(@PathVariable @Size(max = 100) String category) {
         return ResponseEntity.ok(skillService.getSkillsByCategory(category));
     }
 
@@ -74,7 +75,7 @@ public class SkillController {
      * Get skill by name.
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<SkillDto> getSkillByName(@PathVariable String name) {
+    public ResponseEntity<SkillDto> getSkillByName(@PathVariable @Size(max = 255) String name) {
         return skillService.getSkillByName(name)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -145,7 +146,7 @@ public class SkillController {
      */
     @PostMapping("/name/{name}/execute")
     public ResponseEntity<Map<String, Object>> executeSkillByName(
-            @PathVariable String name,
+            @PathVariable @Size(max = 255) String name,
             @Valid @RequestBody ExecuteSkillRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());

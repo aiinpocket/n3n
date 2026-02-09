@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -135,7 +136,7 @@ public class AgentPairingController {
      */
     @PutMapping("/devices/{deviceId}")
     public ResponseEntity<?> updateDevice(
-            @PathVariable String deviceId,
+            @PathVariable @Size(max = 255) String deviceId,
             @Valid @RequestBody DeviceUpdateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -176,7 +177,7 @@ public class AgentPairingController {
      */
     @DeleteMapping("/devices/{deviceId}")
     public ResponseEntity<?> unpairDevice(
-            @PathVariable String deviceId,
+            @PathVariable @Size(max = 255) String deviceId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {
