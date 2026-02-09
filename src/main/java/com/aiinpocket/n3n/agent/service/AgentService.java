@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -201,8 +202,11 @@ public class AgentService {
                         latencyMs
                     );
                 })
-                .doOnError(e -> {
-                    log.error("Error in stream chat: {}", e.getMessage());
+                .timeout(Duration.ofMinutes(5))
+                .doOnCancel(() -> log.info("Agent chat stream cancelled by client for conversation {}", conversationId))
+                .onErrorResume(e -> {
+                    log.error("Error in stream chat: {}", e.getClass().getSimpleName());
+                    return Flux.just(new StreamChunk("AI stream processing failed", true));
                 });
 
         } catch (Exception e) {

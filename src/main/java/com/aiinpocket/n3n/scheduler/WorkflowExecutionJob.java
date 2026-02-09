@@ -57,8 +57,9 @@ public class WorkflowExecutionJob implements Job {
             log.info("Scheduled execution completed for flow {}: {}", flowId, result);
 
         } catch (Exception e) {
-            log.error("Failed to execute scheduled workflow {}: {}", flowId, e.getMessage(), e);
-            throw new JobExecutionException("Failed to execute workflow", e);
+            log.error("Failed to execute scheduled workflow {}: {}", flowId, e.getClass().getSimpleName(), e);
+            // Log but do not rethrow - rethrowing JobExecutionException can cause Quartz
+            // to disable the trigger, preventing future scheduled executions
         }
     }
 }

@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -104,8 +105,10 @@ public class AIAssistantService {
                         }
                     })
             )
+            .timeout(Duration.ofMinutes(5))
+            .doOnCancel(() -> log.info("Chat stream cancelled by client for conversation {}", conversationId))
             .onErrorResume(e -> {
-                log.error("Chat stream error", e);
+                log.error("Chat stream error: {}", e.getClass().getSimpleName());
                 return Flux.just(ChatStreamChunk.error("AI service error"));
             });
     }
@@ -626,8 +629,10 @@ public class AIAssistantService {
                 request.getFeedback(),
                 request.getLanguage()
             )
+            .timeout(Duration.ofMinutes(5))
+            .doOnCancel(() -> log.info("Flow generation stream cancelled by client for user {}", userId))
             .onErrorResume(e -> {
-                log.error("Flow generation stream error", e);
+                log.error("Flow generation stream error: {}", e.getClass().getSimpleName());
                 return Flux.just(FlowGenerationChunk.error("Flow generation stream error"));
             });
     }
