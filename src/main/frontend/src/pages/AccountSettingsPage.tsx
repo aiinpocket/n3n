@@ -102,10 +102,13 @@ export default function AccountSettingsPage() {
             <Form.Item
               name="name"
               label={t('account.displayName')}
-              rules={[{ required: true, message: t('account.displayNamePlaceholder') }]}
+              rules={[
+                { required: true, message: t('account.displayNamePlaceholder') },
+                { max: 100, message: t('common.maxLength', { max: 100 }) },
+              ]}
               style={{ marginTop: 16 }}
             >
-              <Input placeholder={t('account.displayNamePlaceholder')} />
+              <Input placeholder={t('account.displayNamePlaceholder')} maxLength={100} />
             </Form.Item>
             <Form.Item style={{ marginBottom: 0 }}>
               <Button type="primary" htmlType="submit" loading={profileLoading} style={{ marginRight: 8 }}>
