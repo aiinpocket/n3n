@@ -133,6 +133,8 @@ interface AIAssistantState {
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 const MAX_HISTORY_SIZE = 50
+const MAX_MESSAGES_PER_SESSION = 200
+const MAX_PENDING_CHANGES = 50
 
 export const useAIAssistantStore = create<AIAssistantState>()(
   persist(
@@ -302,7 +304,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
 
           const updatedSession = {
             ...state.currentSession,
-            messages: [...state.currentSession.messages, message],
+            messages: [...state.currentSession.messages, message].slice(-MAX_MESSAGES_PER_SESSION),
             updatedAt: new Date(),
           }
 
@@ -330,7 +332,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
 
           const updatedSession = {
             ...state.currentSession,
-            messages: [...state.currentSession.messages, message],
+            messages: [...state.currentSession.messages, message].slice(-MAX_MESSAGES_PER_SESSION),
             updatedAt: new Date(),
           }
 
@@ -370,7 +372,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
 
       // Pending changes
       addPendingChange: (change) => set((state) => ({
-        pendingChanges: [...state.pendingChanges, change],
+        pendingChanges: [...state.pendingChanges, change].slice(-MAX_PENDING_CHANGES),
       })),
 
       applyChange: (changeId) => set((state) => ({
