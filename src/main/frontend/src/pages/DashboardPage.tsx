@@ -17,6 +17,7 @@ import {
   ApiOutlined,
   KeyOutlined,
   ReloadOutlined,
+  PauseCircleOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -105,6 +106,8 @@ export default function DashboardPage() {
     running: 'processing',
     pending: 'default',
     cancelled: 'warning',
+    waiting: 'orange',
+    paused: 'orange',
   }
 
   const statusIcons: Record<string, React.ReactNode> = {
@@ -113,6 +116,8 @@ export default function DashboardPage() {
     running: <SyncOutlined spin />,
     pending: <ClockCircleOutlined />,
     cancelled: <CloseCircleOutlined />,
+    waiting: <PauseCircleOutlined />,
+    paused: <PauseCircleOutlined />,
   }
 
   if (loading) {

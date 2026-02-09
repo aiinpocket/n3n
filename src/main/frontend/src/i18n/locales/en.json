@@ -508,6 +508,7 @@
     "cancelled": "Cancelled",
     "pending": "Pending",
     "waiting": "Waiting for Approval",
+    "paused": "Paused",
     "startTime": "Start Time",
     "endTime": "End Time",
     "duration": "Duration",

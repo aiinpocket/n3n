@@ -12,7 +12,7 @@ export interface ExecutionResponse {
   flowVersionId: string;
   flowName?: string;
   flowVersion?: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting' | 'paused';
   triggerType: string;
   triggeredBy: string;
   triggerInput?: Record<string, unknown>;

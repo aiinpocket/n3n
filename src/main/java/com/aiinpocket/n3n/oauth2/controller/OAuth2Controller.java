@@ -69,20 +69,22 @@ public class OAuth2Controller {
 
     /**
      * OAuth2 callback endpoint.
+     * After processing the authorization code, redirects to the frontend callback page.
      */
     @GetMapping("/callback")
-    public ResponseEntity<Map<String, Object>> handleCallback(
-            @RequestParam String code,
-            @RequestParam String state,
+    public ResponseEntity<Void> handleCallback(
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String state,
             @RequestParam(required = false) String error,
             @RequestParam(required = false, name = "error_description") String errorDescription) {
 
         if (error != null) {
             log.error("OAuth2 error: {} - {}", error, errorDescription);
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", error,
-                "description", errorDescription != null ? errorDescription : "Authorization failed"
-            ));
+            return redirectToFrontend(null, error, errorDescription != null ? errorDescription : "Authorization failed");
+        }
+
+        if (code == null || state == null) {
+            return redirectToFrontend(null, "invalid_request", "Missing code or state parameter");
         }
 
         // Parse state parameter (format: provider:credentialId:hmac)
@@ -90,7 +92,7 @@ public class OAuth2Controller {
         String[] stateParts = state.split(":", 3);
         if (stateParts.length < 3) {
             log.warn("OAuth2 callback with invalid state format (missing HMAC)");
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid state parameter"));
+            return redirectToFrontend(null, "invalid_state", "Invalid state parameter");
         }
 
         String provider = stateParts[0];
@@ -98,7 +100,7 @@ public class OAuth2Controller {
         try {
             credentialId = UUID.fromString(stateParts[1]);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid credential ID in state"));
+            return redirectToFrontend(provider, "invalid_state", "Invalid credential ID in state");
         }
 
         // Verify HMAC signature to prevent state forgery (constant-time comparison)
@@ -107,16 +109,14 @@ public class OAuth2Controller {
                 expectedHmac.getBytes(StandardCharsets.UTF_8),
                 stateParts[2].getBytes(StandardCharsets.UTF_8))) {
             log.warn("OAuth2 callback state HMAC mismatch for provider={}, credentialId={}", provider, credentialId);
-            return ResponseEntity.status(403).body(Map.of("error", "Invalid state signature"));
+            return redirectToFrontend(provider, "invalid_state", "Invalid state signature");
         }
 
         try {
             // Exchange code for token
             String tokenUrl = getTokenUrlForProvider(provider);
             if (tokenUrl == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Unsupported OAuth2 provider"
-                ));
+                return redirectToFrontend(provider, "unsupported_provider", "Unsupported OAuth2 provider");
             }
 
             // In production, client credentials should come from configuration
@@ -125,9 +125,7 @@ public class OAuth2Controller {
             String redirectUri = System.getenv("OAUTH2_REDIRECT_URI");
 
             if (clientId == null || clientSecret == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "OAuth2 not configured for provider: " + provider
-                ));
+                return redirectToFrontend(provider, "not_configured", "OAuth2 not configured for provider");
             }
 
             OAuth2Token token = tokenService.exchangeCode(
@@ -137,20 +135,33 @@ public class OAuth2Controller {
 
             log.info("OAuth2 token obtained for provider {} and credential {}", provider, credentialId);
 
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "provider", provider,
-                "credentialId", credentialId.toString(),
-                "expiresAt", token.getExpiresAt() != null ? token.getExpiresAt().toString() : "never"
-            ));
+            return redirectToFrontend(provider, null, null);
 
         } catch (IOException e) {
-            log.error("Failed to exchange OAuth2 code: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "token_exchange_failed",
-                "description", "Failed to exchange authorization code. Please try again."
-            ));
+            log.error("Failed to exchange OAuth2 code: {}", e.getClass().getSimpleName());
+            return redirectToFrontend(provider, "token_exchange_failed", "Failed to exchange authorization code");
         }
+    }
+
+    /**
+     * Redirect to frontend OAuth2 callback page with result parameters.
+     */
+    private ResponseEntity<Void> redirectToFrontend(String provider, String error, String errorDescription) {
+        StringBuilder url = new StringBuilder("/oauth2/callback?");
+        if (error != null) {
+            url.append("error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
+            if (errorDescription != null) {
+                url.append("&error_description=").append(URLEncoder.encode(errorDescription, StandardCharsets.UTF_8));
+            }
+        } else {
+            url.append("success=true");
+        }
+        if (provider != null) {
+            url.append("&provider=").append(URLEncoder.encode(provider, StandardCharsets.UTF_8));
+        }
+        return ResponseEntity.status(302)
+                .header("Location", url.toString())
+                .build();
     }
 
     /**

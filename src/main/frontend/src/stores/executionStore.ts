@@ -13,7 +13,7 @@ export interface NodeExecutionState {
 
 export interface ExecutionState {
   id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting' | 'paused';
   nodeStates: Map<string, NodeExecutionState>;
   output?: Record<string, unknown>;
   error?: string;

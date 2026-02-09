@@ -41,8 +41,8 @@ export const formApi = {
   },
 
   // Submit form in execution context (authenticated)
-  submitExecutionForm: async (executionId: string, data: Record<string, unknown>): Promise<FormSubmitResponse> => {
-    const response = await apiClient.post<FormSubmitResponse>(`/forms/execution/${executionId}/submit`, data)
+  submitExecutionForm: async (executionId: string, nodeId: string, formData: Record<string, unknown>): Promise<FormSubmitResponse> => {
+    const response = await apiClient.post<FormSubmitResponse>(`/forms/execution/${executionId}/submit`, { nodeId, formData })
     return response.data
   },
 

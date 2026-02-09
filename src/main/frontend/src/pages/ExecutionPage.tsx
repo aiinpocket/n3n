@@ -49,6 +49,7 @@ const statusColors: Record<string, string> = {
   failed: 'error',
   cancelled: 'warning',
   waiting: 'orange',
+  paused: 'orange',
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -58,6 +59,7 @@ const statusIcons: Record<string, React.ReactNode> = {
   failed: <CloseCircleOutlined />,
   cancelled: <StopOutlined />,
   waiting: <PauseCircleOutlined />,
+  paused: <PauseCircleOutlined />,
 }
 
 export default function ExecutionPage() {

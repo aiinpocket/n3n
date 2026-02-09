@@ -18,7 +18,7 @@ interface UseFlowExecutionResult {
   // Execution state
   executionId: string | null
   isExecuting: boolean
-  executionStatus: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting'
+  executionStatus: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting' | 'paused'
 
   // Nodes with execution state merged
   nodesWithExecutionState: Node[]

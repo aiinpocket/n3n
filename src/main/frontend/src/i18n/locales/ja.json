@@ -507,6 +507,8 @@
     "failed": "失敗",
     "cancelled": "キャンセル",
     "pending": "待機中",
+    "waiting": "承認待ち",
+    "paused": "一時停止",
     "startTime": "開始時刻",
     "endTime": "終了時刻",
     "duration": "実行時間",
