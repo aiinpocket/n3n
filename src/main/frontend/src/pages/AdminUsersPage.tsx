@@ -295,7 +295,7 @@ export default function AdminUsersPage() {
             { min: 12, message: t('auth.passwordTooShort') },
             { max: 128, message: t('common.maxLength', { max: 128 }) },
           ]}>
-            <Input.Password placeholder={t('admin.passwordPlaceholder')} />
+            <Input.Password placeholder={t('admin.passwordPlaceholder')} maxLength={128} />
           </Form.Item>
           <Form.Item name="roles" label={t('admin.roles')} initialValue={['USER']}>
             <Select mode="multiple" options={[
