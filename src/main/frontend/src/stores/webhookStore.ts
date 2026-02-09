@@ -18,6 +18,7 @@ interface WebhookState {
   activateWebhook: (id: string) => Promise<void>
   deactivateWebhook: (id: string) => Promise<void>
   deleteWebhook: (id: string) => Promise<void>
+  testWebhook: (id: string) => Promise<{ success: boolean; executionId?: string; error?: string }>
   setSelectedWebhook: (webhook: Webhook | null) => void
   clearError: () => void
 }
@@ -103,6 +104,11 @@ export const useWebhookStore = create<WebhookState>((set, get) => ({
       flowWebhooks: flowWebhooks.filter((w) => w.id !== id),
       selectedWebhook: get().selectedWebhook?.id === id ? null : get().selectedWebhook
     })
+  },
+
+  testWebhook: async (id: string) => {
+    const result = await webhookApi.test(id)
+    return result
   },
 
   setSelectedWebhook: (webhook: Webhook | null) => {

@@ -57,6 +57,11 @@ export const webhookApi = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/webhooks/${id}`)
   },
+
+  test: async (id: string): Promise<{ success: boolean; executionId?: string; error?: string }> => {
+    const response = await apiClient.post<{ success: boolean; executionId?: string; error?: string }>(`/webhooks/${id}/test`)
+    return response.data
+  },
 }
 
 export default webhookApi

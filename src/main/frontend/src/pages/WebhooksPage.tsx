@@ -23,6 +23,7 @@ import {
   CheckCircleOutlined,
   StopOutlined,
   LinkOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useWebhookStore } from '../stores/webhookStore'
@@ -46,6 +47,7 @@ const WebhooksPage: React.FC = () => {
     activateWebhook,
     deactivateWebhook,
     deleteWebhook,
+    testWebhook,
   } = useWebhookStore()
 
   const { flows, fetchFlows } = useFlowListStore()
@@ -107,6 +109,28 @@ const WebhooksPage: React.FC = () => {
       message.success(t('common.copied'))
     } catch {
       message.error(t('common.copyFailed'))
+    }
+  }
+
+  const [testing, setTesting] = useState<string | null>(null)
+
+  const handleTest = async (webhook: Webhook) => {
+    if (!webhook.isActive) {
+      message.warning(t('webhook.testInactiveWarning'))
+      return
+    }
+    setTesting(webhook.id)
+    try {
+      const result = await testWebhook(webhook.id)
+      if (result.success) {
+        message.success(t('webhook.testSuccess', { executionId: result.executionId }))
+      } else {
+        message.error(t('webhook.testFailed'))
+      }
+    } catch (error) {
+      message.error(extractApiError(error, t('webhook.testFailed')))
+    } finally {
+      setTesting(null)
     }
   }
 
@@ -185,7 +209,7 @@ const WebhooksPage: React.FC = () => {
     {
       title: t('common.actions'),
       key: 'actions',
-      width: 150,
+      width: 180,
       render: (_: unknown, record: Webhook) => (
         <Space>
           <Tooltip title={record.isActive ? t('webhook.deactivate') : t('webhook.activate')}>
@@ -194,6 +218,15 @@ const WebhooksPage: React.FC = () => {
               icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />}
               onClick={() => handleToggleActive(record)}
               aria-label={record.isActive ? t('webhook.deactivate') : t('webhook.activate')}
+            />
+          </Tooltip>
+          <Tooltip title={t('webhook.test')}>
+            <Button
+              type="text"
+              icon={<ThunderboltOutlined />}
+              onClick={() => handleTest(record)}
+              loading={testing === record.id}
+              aria-label={t('webhook.test')}
             />
           </Tooltip>
           <Tooltip title={t('webhook.copyUrl')}>

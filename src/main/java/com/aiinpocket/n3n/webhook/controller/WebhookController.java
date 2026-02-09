@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -72,6 +73,28 @@ public class WebhookController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(webhookService.deactivateWebhook(id, userId));
+    }
+
+    @PostMapping("/{id}/test")
+    public ResponseEntity<Map<String, Object>> testWebhook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        WebhookResponse webhook = webhookService.getWebhook(id, userId);
+        try {
+            UUID executionId = webhookService.triggerWebhook(
+                    webhook.getPath(), webhook.getMethod(),
+                    Map.of("test", true, "triggeredBy", "manual-test"),
+                    null);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "executionId", executionId.toString(),
+                    "message", "Test webhook triggered successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", "Webhook test failed"));
+        }
     }
 
     @DeleteMapping("/{id}")
