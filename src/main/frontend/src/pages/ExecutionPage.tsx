@@ -91,6 +91,7 @@ export default function ExecutionPage() {
   const [approvalData, setApprovalData] = useState<ApprovalResponse | null>(null)
   const [approvalComment, setApprovalComment] = useState('')
   const [submittingApproval, setSubmittingApproval] = useState(false)
+  const [executionOutput, setExecutionOutput] = useState<Record<string, unknown> | null>(null)
 
   const { execution, isConnected } = useExecutionMonitor(id)
   const { startExecution, cancelExecution } = useExecutionActions()
@@ -111,6 +112,16 @@ export default function ExecutionPage() {
       if (data.status === 'waiting') {
         const approval = await executionApi.getApproval(id)
         setApprovalData(approval)
+      }
+
+      // Load execution output if completed
+      if (data.status === 'completed') {
+        try {
+          const output = await executionApi.getOutput(id)
+          setExecutionOutput(output)
+        } catch {
+          // Output may not be available for all executions
+        }
       }
     } catch (error) {
       logger.error('Failed to load execution:', error)
@@ -503,6 +514,25 @@ export default function ExecutionPage() {
               />
             )}
           </Card>
+
+          {executionOutput && Object.keys(executionOutput).length > 0 && (
+            <Card title={t('execution.outputData')} size="small">
+              <pre
+                style={{
+                  background: 'var(--color-bg-elevated)',
+                  color: 'var(--color-text-primary)',
+                  padding: 16,
+                  borderRadius: 8,
+                  overflow: 'auto',
+                  maxHeight: 400,
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                }}
+              >
+                {JSON.stringify(executionOutput, null, 2)}
+              </pre>
+            </Card>
+          )}
         </Space>
       </Card>
 

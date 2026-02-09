@@ -71,6 +71,12 @@ public class ApprovalController {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
 
+        // Authorization check: verify user is allowed to act on this approval
+        ExecutionApproval existing = approvalService.getApproval(approvalId);
+        if (!approvalService.isUserAuthorizedForApproval(existing, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Approval not found: " + approvalId);
+        }
+
         ExecutionApproval approval = approvalService.submitApproval(
             approvalId,
             userId,
