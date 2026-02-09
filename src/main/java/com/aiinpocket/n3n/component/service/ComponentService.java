@@ -104,7 +104,7 @@ public class ComponentService {
     // Version management
 
     public List<ComponentVersionResponse> listVersions(UUID componentId) {
-        if (!componentRepository.existsById(componentId)) {
+        if (componentRepository.findByIdAndIsDeletedFalse(componentId).isEmpty()) {
             throw new ResourceNotFoundException("Component not found: " + componentId);
         }
 
@@ -128,7 +128,7 @@ public class ComponentService {
 
     @Transactional
     public ComponentVersionResponse createVersion(UUID componentId, CreateVersionRequest request, UUID userId) {
-        if (!componentRepository.existsById(componentId)) {
+        if (componentRepository.findByIdAndIsDeletedFalse(componentId).isEmpty()) {
             throw new ResourceNotFoundException("Component not found: " + componentId);
         }
 

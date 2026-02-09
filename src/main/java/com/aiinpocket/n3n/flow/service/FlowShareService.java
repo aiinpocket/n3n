@@ -274,7 +274,7 @@ public class FlowShareService {
         // Batch load users and flows
         Map<UUID, User> usersMap = userRepository.findAllById(userIds).stream()
             .collect(Collectors.toMap(User::getId, Function.identity()));
-        Map<UUID, Flow> flowsMap = flowRepository.findAllById(flowIds).stream()
+        Map<UUID, Flow> flowsMap = flowRepository.findByIdInAndIsDeletedFalse(flowIds).stream()
             .collect(Collectors.toMap(Flow::getId, Function.identity()));
 
         return shares.stream().map(share -> {
@@ -328,7 +328,7 @@ public class FlowShareService {
         FlowShareResponse response = FlowShareResponse.from(share, userName, userEmail, sharedByName);
 
         // Enrich with flow name and description
-        flowRepository.findById(share.getFlowId()).ifPresent(flow -> {
+        flowRepository.findByIdAndIsDeletedFalse(share.getFlowId()).ifPresent(flow -> {
             response.setFlowName(flow.getName());
             response.setFlowDescription(flow.getDescription());
         });

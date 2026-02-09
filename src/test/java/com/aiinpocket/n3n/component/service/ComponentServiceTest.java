@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.component.entity.Component;
 import com.aiinpocket.n3n.component.entity.ComponentVersion;
 import com.aiinpocket.n3n.component.repository.ComponentRepository;
 import com.aiinpocket.n3n.component.repository.ComponentVersionRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -324,7 +325,7 @@ class ComponentServiceTest extends BaseServiceTest {
 
         @Test
         void listVersions_existingComponent_returnsVersions() {
-            when(componentRepository.existsById(componentId)).thenReturn(true);
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
             when(componentVersionRepository.findByComponentIdOrderByCreatedAtDesc(componentId))
                 .thenReturn(List.of(disabledVersion, activeVersion));
 
@@ -336,7 +337,7 @@ class ComponentServiceTest extends BaseServiceTest {
         @Test
         void listVersions_nonExistingComponent_throwsException() {
             UUID nonExisting = UUID.randomUUID();
-            when(componentRepository.existsById(nonExisting)).thenReturn(false);
+            when(componentRepository.findByIdAndIsDeletedFalse(nonExisting)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> componentService.listVersions(nonExisting))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -389,7 +390,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setImage("registry.io/comp:3.0.0");
             request.setInterfaceDef(Map.of("inputs", List.of()));
 
-            when(componentRepository.existsById(componentId)).thenReturn(true);
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "3.0.0")).thenReturn(false);
             when(componentVersionRepository.save(any(ComponentVersion.class))).thenAnswer(inv -> {
                 ComponentVersion v = inv.getArgument(0);
@@ -413,7 +414,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setImage("registry.io/comp:1.0.0");
             request.setInterfaceDef(Map.of("inputs", List.of()));
 
-            when(componentRepository.existsById(componentId)).thenReturn(true);
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "1.0.0")).thenReturn(true);
 
             assertThatThrownBy(() -> componentService.createVersion(componentId, request, userId))
@@ -428,7 +429,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setImage("img");
             request.setInterfaceDef(Map.of());
             UUID nonExisting = UUID.randomUUID();
-            when(componentRepository.existsById(nonExisting)).thenReturn(false);
+            when(componentRepository.findByIdAndIsDeletedFalse(nonExisting)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> componentService.createVersion(nonExisting, request, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -443,7 +444,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setInterfaceDef(Map.of());
             request.setResources(customResources);
 
-            when(componentRepository.existsById(componentId)).thenReturn(true);
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "3.0.0")).thenReturn(false);
             when(componentVersionRepository.save(any(ComponentVersion.class))).thenAnswer(inv -> inv.getArgument(0));
 

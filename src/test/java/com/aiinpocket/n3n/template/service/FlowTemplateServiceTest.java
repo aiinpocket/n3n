@@ -219,7 +219,7 @@ class FlowTemplateServiceTest extends BaseServiceTest {
 
             // Mock flow ownership check
             Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
 
             FlowVersion flowVersion = FlowVersion.builder()
                 .flowId(flowId)
@@ -255,7 +255,7 @@ class FlowTemplateServiceTest extends BaseServiceTest {
 
             // Mock flow ownership check
             Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
 
             when(flowVersionRepository.findByFlowIdAndVersion(flowId, "9.9.9"))
                 .thenReturn(Optional.empty());
@@ -271,7 +271,7 @@ class FlowTemplateServiceTest extends BaseServiceTest {
 
             // Mock flow owned by a different user
             Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(otherUser).build();
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(flow));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
 
             CreateTemplateRequest request = new CreateTemplateRequest();
             request.setName("test");
