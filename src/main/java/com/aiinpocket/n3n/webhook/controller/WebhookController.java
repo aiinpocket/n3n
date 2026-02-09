@@ -102,6 +102,10 @@ public class WebhookController {
                     "success", true,
                     "executionId", executionId.toString(),
                     "message", "Test webhook triggered successfully"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of(
                     "success", false,
