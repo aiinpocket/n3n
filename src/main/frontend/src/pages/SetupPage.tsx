@@ -96,12 +96,17 @@ export default function SetupPage() {
                 <Form.Item
                   name="name"
                   label={t('auth.name')}
-                  rules={[{ required: true, message: t('auth.nameRequired') }]}
+                  rules={[
+                    { required: true, message: t('auth.nameRequired') },
+                    { min: 2, message: t('common.minLength', { min: 2 }) },
+                    { max: 100, message: t('common.maxLength', { max: 100 }) },
+                  ]}
                 >
                   <Input
                     prefix={<UserOutlined />}
                     placeholder={t('auth.name')}
                     size="large"
+                    maxLength={100}
                   />
                 </Form.Item>
 
@@ -111,12 +116,14 @@ export default function SetupPage() {
                   rules={[
                     { required: true, message: t('auth.emailRequired') },
                     { type: 'email', message: t('auth.emailInvalid') },
+                    { max: 255, message: t('common.maxLength', { max: 255 }) },
                   ]}
                 >
                   <Input
                     prefix={<MailOutlined />}
                     placeholder={t('auth.emailPlaceholder')}
                     size="large"
+                    maxLength={255}
                   />
                 </Form.Item>
 
@@ -144,6 +151,7 @@ export default function SetupPage() {
                     prefix={<LockOutlined />}
                     placeholder={t('auth.password')}
                     size="large"
+                    maxLength={128}
                   />
                 </Form.Item>
 
@@ -167,6 +175,7 @@ export default function SetupPage() {
                     prefix={<LockOutlined />}
                     placeholder={t('auth.confirmPassword')}
                     size="large"
+                    maxLength={128}
                   />
                 </Form.Item>
 

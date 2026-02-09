@@ -229,6 +229,7 @@ const AIConfigFormModal: React.FC<Props> = ({
                     : t('ai.apiKeyPlaceholder')
                 }
                 onChange={(e) => setCurrentApiKey(e.target.value)}
+                maxLength={500}
               />
             </Form.Item>
             {selectedProvider && providerApiLinks[selectedProvider] && (
@@ -282,7 +283,7 @@ const AIConfigFormModal: React.FC<Props> = ({
               label={t('ai.ollamaServerUrl')}
               rules={[{ required: true, message: t('ai.ollamaServerUrl') }]}
             >
-              <Input placeholder={t('ai.ollamaDefaultUrl')} />
+              <Input placeholder={t('ai.ollamaDefaultUrl')} maxLength={2000} />
             </Form.Item>
           </>
         )}

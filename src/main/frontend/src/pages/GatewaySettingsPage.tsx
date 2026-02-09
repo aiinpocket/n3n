@@ -133,12 +133,16 @@ const GatewaySettingsPage: React.FC = () => {
           <Form.Item
             name="domain"
             label={t('gateway.domainLabel')}
-            rules={[{ required: true, message: t('gateway.domainRequired') }]}
+            rules={[
+              { required: true, message: t('gateway.domainRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
             help={t('gateway.domainHelp')}
           >
             <Input
               placeholder={t('gateway.domainPlaceholder')}
               size="large"
+              maxLength={255}
             />
           </Form.Item>
 

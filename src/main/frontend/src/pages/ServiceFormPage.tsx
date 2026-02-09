@@ -163,6 +163,7 @@ export default function ServiceFormPage() {
           rules={[
             { required: true, message: t('service.identifierRequired') },
             { pattern: /^[a-z][a-z0-9-]*$/, message: t('service.identifierPattern') },
+            { max: 100, message: t('common.maxLength', { max: 100 }) },
           ]}
           tooltip={t('service.identifierTooltip')}
         >

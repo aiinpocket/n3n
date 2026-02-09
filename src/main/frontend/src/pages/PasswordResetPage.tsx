@@ -124,12 +124,14 @@ export default function PasswordResetPage() {
                 rules={[
                   { required: true, message: t('auth.emailRequired') },
                   { type: 'email', message: t('auth.emailRequired') },
+                  { max: 255, message: t('common.maxLength', { max: 255 }) },
                 ]}
               >
                 <Input
                   prefix={<MailOutlined />}
                   placeholder={t('auth.enterEmail')}
                   size="large"
+                  maxLength={255}
                 />
               </Form.Item>
 
@@ -188,6 +190,7 @@ export default function PasswordResetPage() {
                   prefix={<LockOutlined />}
                   placeholder={t('auth.newPassword')}
                   size="large"
+                  maxLength={128}
                 />
               </Form.Item>
 
@@ -210,6 +213,7 @@ export default function PasswordResetPage() {
                   prefix={<LockOutlined />}
                   placeholder={t('auth.confirmNewPassword')}
                   size="large"
+                  maxLength={128}
                 />
               </Form.Item>
 
