@@ -188,27 +188,29 @@ export default function MainLayout() {
       type: 'group' as const,
       label: collapsed ? null : t('nav.groupSystem'),
       children: [
-        {
-          key: '/monitoring',
-          icon: <DashboardOutlined />,
-          label: t('nav.monitoring'),
-        },
-        {
-          key: '/logs',
-          icon: <FileTextOutlined />,
-          label: t('nav.logs'),
-        },
+        ...(user?.roles?.includes('ADMIN') ? [
+          {
+            key: '/monitoring',
+            icon: <DashboardOutlined />,
+            label: t('nav.monitoring'),
+          },
+          {
+            key: '/logs',
+            icon: <FileTextOutlined />,
+            label: t('nav.logs'),
+          },
+        ] : []),
         {
           key: '/activities',
           icon: <HistoryOutlined />,
           label: t('nav.activities'),
         },
-        {
-          key: '/settings/gateway',
-          icon: <CloudServerOutlined />,
-          label: t('nav.gatewaySettings'),
-        },
         ...(user?.roles?.includes('ADMIN') ? [
+          {
+            key: '/settings/gateway',
+            icon: <CloudServerOutlined />,
+            label: t('nav.gatewaySettings'),
+          },
           {
             key: '/admin/users',
             icon: <TeamOutlined />,

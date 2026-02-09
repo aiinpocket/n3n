@@ -220,10 +220,10 @@ function App() {
             <Route path="schedules" element={<SchedulerPage />} />
             <Route path="devices" element={<DeviceManagementPage />} />
             <Route path="gateway" element={<GatewayPage />} />
-            <Route path="settings/gateway" element={<GatewaySettingsPage />} />
+            <Route path="settings/gateway" element={<AdminRoute><GatewaySettingsPage /></AdminRoute>} />
             <Route path="custom-tools" element={<CustomToolsPage />} />
-            <Route path="monitoring" element={<MonitoringPage />} />
-            <Route path="logs" element={<LogViewerPage />} />
+            <Route path="monitoring" element={<AdminRoute><MonitoringPage /></AdminRoute>} />
+            <Route path="logs" element={<AdminRoute><LogViewerPage /></AdminRoute>} />
             <Route path="activities" element={<ActivityHistoryPage />} />
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
