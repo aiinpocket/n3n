@@ -68,14 +68,18 @@ public class StateManager {
 
     public void markNodeStarted(UUID executionId, String nodeId) {
         String key = EXECUTION_PREFIX + executionId;
-        redisTemplate.opsForHash().put(key + ":current_nodes", nodeId, System.currentTimeMillis());
+        String subKey = key + ":current_nodes";
+        redisTemplate.opsForHash().put(subKey, nodeId, System.currentTimeMillis());
+        redisTemplate.expire(subKey, STATE_TTL);
         log.debug("Node started: execution={}, node={}", executionId, nodeId);
     }
 
     public void markNodeCompleted(UUID executionId, String nodeId, Map<String, Object> output) {
         String execKey = EXECUTION_PREFIX + executionId;
         redisTemplate.opsForHash().delete(execKey + ":current_nodes", nodeId);
-        redisTemplate.opsForHash().put(execKey + ":completed_nodes", nodeId, System.currentTimeMillis());
+        String completedKey = execKey + ":completed_nodes";
+        redisTemplate.opsForHash().put(completedKey, nodeId, System.currentTimeMillis());
+        redisTemplate.expire(completedKey, STATE_TTL);
 
         // Store node output
         String outputKey = NODE_STATE_PREFIX + executionId + ":" + nodeId;
@@ -88,7 +92,9 @@ public class StateManager {
     public void markNodeFailed(UUID executionId, String nodeId, String errorMessage) {
         String execKey = EXECUTION_PREFIX + executionId;
         redisTemplate.opsForHash().delete(execKey + ":current_nodes", nodeId);
-        redisTemplate.opsForHash().put(execKey + ":failed_nodes", nodeId, errorMessage);
+        String failedKey = execKey + ":failed_nodes";
+        redisTemplate.opsForHash().put(failedKey, nodeId, errorMessage);
+        redisTemplate.expire(failedKey, STATE_TTL);
         log.debug("Node failed: execution={}, node={}, error={}", executionId, nodeId, errorMessage);
     }
 
@@ -98,7 +104,9 @@ public class StateManager {
     public void markNodeWaiting(UUID executionId, String nodeId, String pauseReason) {
         String execKey = EXECUTION_PREFIX + executionId;
         redisTemplate.opsForHash().delete(execKey + ":current_nodes", nodeId);
-        redisTemplate.opsForHash().put(execKey + ":waiting_nodes", nodeId, pauseReason);
+        String waitingKey = execKey + ":waiting_nodes";
+        redisTemplate.opsForHash().put(waitingKey, nodeId, pauseReason);
+        redisTemplate.expire(waitingKey, STATE_TTL);
         log.debug("Node waiting: execution={}, node={}, reason={}", executionId, nodeId, pauseReason);
     }
 

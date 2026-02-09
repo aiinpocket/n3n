@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
       menu={{ items, onClick: handleLanguageChange, selectedKeys: [i18n.language] }}
       placement="bottomRight"
     >
-      <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }} role="button" aria-label="Language" tabIndex={0}>
         <GlobalOutlined />
         <span>{currentLang.flag}</span>
       </span>

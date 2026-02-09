@@ -348,7 +348,7 @@ export default function MainLayout() {
               }}
               placement="bottomRight"
             >
-              <QuestionCircleOutlined style={{ fontSize: 18, color: 'var(--color-text-secondary)', cursor: 'pointer' }} />
+              <QuestionCircleOutlined style={{ fontSize: 18, color: 'var(--color-text-secondary)', cursor: 'pointer' }} aria-label={t('common.help')} role="button" />
             </Dropdown>
             <LanguageSwitcher />
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">

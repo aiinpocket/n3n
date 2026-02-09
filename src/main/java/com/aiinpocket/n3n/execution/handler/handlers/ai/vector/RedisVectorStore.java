@@ -43,10 +43,12 @@ public class RedisVectorStore implements VectorStore {
                 data.put("metadata", objectMapper.writeValueAsString(document.metadata()));
 
                 redisTemplate.opsForHash().putAll(key, data);
+                redisTemplate.expire(key, java.time.Duration.ofDays(7));
 
                 // Add to index
                 String indexKey = INDEX_PREFIX + namespace;
                 redisTemplate.opsForSet().add(indexKey, document.id());
+                redisTemplate.expire(indexKey, java.time.Duration.ofDays(7));
 
                 log.debug("Upserted vector: {} in {}", document.id(), namespace);
             } catch (Exception e) {
