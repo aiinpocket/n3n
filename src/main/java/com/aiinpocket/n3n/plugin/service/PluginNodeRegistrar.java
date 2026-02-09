@@ -182,6 +182,11 @@ public class PluginNodeRegistrar {
 
             log.info("Unregistered plugin node: {} for user {} from plugin {}", nodeType, userId, plugin.getName());
         }
+
+        // Remove empty user entry to prevent memory leak
+        if (userHandlers.isEmpty()) {
+            userPluginHandlers.remove(userId);
+        }
     }
 
     /**

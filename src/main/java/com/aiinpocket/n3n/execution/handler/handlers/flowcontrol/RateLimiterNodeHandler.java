@@ -105,7 +105,7 @@ public class RateLimiterNodeHandler extends AbstractNodeHandler {
 
         // Evict stale keys to prevent unbounded memory growth
         if (windowState.size() > MAX_KEYS) {
-            long evictBefore = System.currentTimeMillis() - windowMs * 2;
+            long evictBefore = System.currentTimeMillis() - 300_000; // 5 minutes fixed threshold
             windowState.entrySet().removeIf(e -> {
                 Deque<Long> deque = e.getValue();
                 Long last = deque.peekLast();
