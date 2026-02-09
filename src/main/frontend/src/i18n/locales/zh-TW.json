@@ -1079,6 +1079,7 @@
     },
     "noLogs": "無日誌記錄",
     "streaming": "即時串流中...",
+    "streamDisconnected": "日誌串流已斷線，請重新開啟串流以重新連線。",
     "paused": "已暫停",
     "clear": "清除",
     "timestamp": "時間",

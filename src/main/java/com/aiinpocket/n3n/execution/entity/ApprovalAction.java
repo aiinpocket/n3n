@@ -13,7 +13,9 @@ import java.util.UUID;
  * Entity representing an individual approval or rejection action by a user.
  */
 @Entity
-@Table(name = "approval_actions")
+@Table(name = "approval_actions", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_approval_action_user", columnNames = {"approval_id", "user_id"})
+})
 @Data
 @Builder
 @NoArgsConstructor

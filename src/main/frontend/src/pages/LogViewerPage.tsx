@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert } from 'antd'
+import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert, message } from 'antd'
 import {
   ReloadOutlined,
   ClearOutlined,
@@ -79,6 +79,7 @@ export default function LogViewerPage() {
         },
         () => {
           setStreaming(false)
+          message.warning(t('logs.streamDisconnected'))
         },
       )
       eventSourceRef.current = es

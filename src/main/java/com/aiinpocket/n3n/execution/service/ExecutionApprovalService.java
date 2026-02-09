@@ -9,6 +9,7 @@ import com.aiinpocket.n3n.execution.repository.ExecutionApprovalRepository;
 import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,14 +108,18 @@ public class ExecutionApprovalService {
             throw new IllegalStateException("User has already submitted an action for this approval");
         }
 
-        // Create action record
+        // Create action record (unique constraint on approval_id + user_id prevents duplicate votes)
         ApprovalAction approvalAction = ApprovalAction.builder()
             .approvalId(approvalId)
             .userId(userId)
             .action(action)
             .comment(comment)
             .build();
-        actionRepository.save(approvalAction);
+        try {
+            actionRepository.save(approvalAction);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("User has already submitted an action for this approval");
+        }
 
         // Update counts
         if ("approve".equals(action)) {

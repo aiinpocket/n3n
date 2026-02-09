@@ -237,11 +237,13 @@ export default function FlowEditorPage() {
 
   // Auto-save with debounce
   useEffect(() => {
+    let cancelled = false
     if (isDirty && !saving) {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current)
       }
       autoSaveTimerRef.current = setTimeout(async () => {
+        if (cancelled) return
         try {
           await autoSaveDraft()
         } catch {
@@ -250,6 +252,7 @@ export default function FlowEditorPage() {
       }, AUTO_SAVE_DELAY)
     }
     return () => {
+      cancelled = true
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current)
       }

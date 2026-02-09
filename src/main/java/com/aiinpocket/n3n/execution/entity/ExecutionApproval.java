@@ -73,6 +73,10 @@ public class ExecutionApproval {
     @Column(name = "resolved_at")
     private Instant resolvedAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     /**
      * Check if this approval has been resolved (approved, rejected, expired, or cancelled)
      */
