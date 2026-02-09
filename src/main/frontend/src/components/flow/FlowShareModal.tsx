@@ -153,7 +153,7 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
           cancelText={t('common.cancel')}
           okButtonProps={{ danger: true }}
         >
-          <Button type="link" danger icon={<DeleteOutlined />} title={t('common.delete')} />
+          <Button type="link" danger icon={<DeleteOutlined />} aria-label={t('common.delete')} />
         </Popconfirm>
       )
     }

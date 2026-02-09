@@ -320,7 +320,7 @@ export default function ComponentListPage() {
       render: (_, record) => (
         <Space>
           <Tooltip title={t('common.edit')}>
-            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} aria-label={t('common.edit')} />
           </Tooltip>
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openVersionDrawer(record)}>
             {t('component.versions')}

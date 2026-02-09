@@ -210,14 +210,14 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             onOpenChange={setDiffVisible}
           >
             <Tooltip title={t('aiAssistant.previewChanges')}>
-              <Button size="small" icon={<DiffOutlined />} />
+              <Button size="small" icon={<DiffOutlined />} aria-label={t('aiAssistant.previewChanges')} />
             </Tooltip>
           </Popover>
         )}
 
         {onViewNodes && (
           <Tooltip title={t('aiAssistant.viewNodes')}>
-            <Button size="small" icon={<EyeOutlined />} onClick={onViewNodes} />
+            <Button size="small" icon={<EyeOutlined />} onClick={onViewNodes} aria-label={t('aiAssistant.viewNodes')} />
           </Tooltip>
         )}
         {selected && (
