@@ -42,7 +42,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean
     public TaskScheduler heartbeatScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(1);
+        scheduler.setPoolSize(2);
         scheduler.setThreadNamePrefix("ws-heartbeat-");
         scheduler.initialize();
         return scheduler;

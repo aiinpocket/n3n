@@ -27,8 +27,8 @@ class WebSocketService {
   private handlers: Map<string, Set<EventHandler>> = new Map();
   private connected = false;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
+  private maxReconnectAttempts = 8;
+  private baseReconnectDelay = 1000;
   private connectPromise: Promise<void> | null = null;
   onReconnectFailed: (() => void) | null = null;
 
@@ -61,7 +61,7 @@ class WebSocketService {
         debug: (str) => {
           logger.debug('[STOMP] ' + str);
         },
-        reconnectDelay: this.reconnectDelay,
+        reconnectDelay: this.getReconnectDelay(),
         heartbeatIncoming: 25000,
         heartbeatOutgoing: 25000,
       });
@@ -94,7 +94,11 @@ class WebSocketService {
         this.subscriptions.clear();
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
-          logger.info(`WebSocket reconnecting... attempt ${this.reconnectAttempts}`);
+          const nextDelay = Math.round(this.getReconnectDelay() / 1000);
+          logger.info(`WebSocket reconnecting... attempt ${this.reconnectAttempts} (next in ~${nextDelay}s)`);
+          if (this.client) {
+            this.client.reconnectDelay = this.getReconnectDelay();
+          }
         } else {
           logger.error('WebSocket reconnection failed after max attempts');
           // Stop STOMP auto-reconnect to prevent infinite retries
@@ -201,6 +205,13 @@ class WebSocketService {
         logger.info(`Re-subscribed to ${topic}`);
       }
     }
+  }
+
+  private getReconnectDelay(): number {
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s, max 60s
+    const delay = Math.min(this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts), 60000);
+    // Add jitter (0-25% of delay) to prevent thundering herd
+    return delay + Math.random() * delay * 0.25;
   }
 
   isConnected(): boolean {
