@@ -156,7 +156,7 @@ docker compose up -d --build
 - **Error Handling Routes** - Visually distinguish normal flow and error handling paths (green/red/blue connections)
 - **Real-time Monitoring** - See every step of workflow execution with live node status updates
 - **Webhook Triggers** - Let external systems (GitHub, Slack, etc.) automatically trigger workflows
-- **Flow Template Library** - 58+ official templates with a dedicated page for browsing, searching, creating templates from existing flows, and sharing across the platform
+- **Flow Template Library** - Official templates with a dedicated page for browsing, searching, creating templates from existing flows, and sharing across the platform
 - **Execution Approval System** - Workflows pause at approval nodes; approvers can approve or reject with comments from the Execution detail page
 - **Skills System** - Built-in automation skills, no extra setup needed
 - **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
@@ -168,8 +168,12 @@ docker compose up -d --build
 - **OAuth2 Integration** - Third-party OAuth2 service connections for simplified authentication
 - **Real-time Log Viewer** - Admins can stream system logs in real-time via SSE
 - **System Monitoring Dashboard** - Live JVM memory, CPU, and flow execution statistics
+- **Flow Validation** - Built-in validation button in editor toolbar to check DAG structure before publishing
+- **Webhook Testing** - Test triggers directly from the Webhook management page with instant flow activation confirmation
+- **Plugin Ratings** - Custom tool marketplace with community ratings and reviews
+- **Save as Template** - One-click conversion of existing flow versions into reusable templates
 - **Multi-language Support** - Full English, Traditional Chinese, and Japanese interface (2,050+ translation keys)
-- **OpenAPI Documentation** - Built-in Swagger UI with 200+ fully documented API endpoints
+- **OpenAPI Documentation** - Built-in Swagger UI with 150+ fully documented API endpoints
 
 ### Error Handling Routes
 

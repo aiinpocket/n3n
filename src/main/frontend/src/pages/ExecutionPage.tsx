@@ -78,6 +78,7 @@ export default function ExecutionPage() {
   const [pauseReason, setPauseReason] = useState('')
   const [pausing, setPausing] = useState(false)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
+  const [resumeDataInput, setResumeDataInput] = useState('')
   const [retrying, setRetrying] = useState(false)
   const [dataDrawerOpen, setDataDrawerOpen] = useState(false)
   const [selectedNodeData, setSelectedNodeData] = useState<{
@@ -217,9 +218,19 @@ export default function ExecutionPage() {
   const handleResumeExecution = async () => {
     if (!id) return
     try {
-      await executionApi.resume(id)
+      let resumeData: Record<string, unknown> | undefined
+      if (resumeDataInput.trim()) {
+        try {
+          resumeData = JSON.parse(resumeDataInput.trim())
+        } catch {
+          message.error(t('execution.invalidResumeData'))
+          return
+        }
+      }
+      await executionApi.resume(id, resumeData)
       message.success(t('execution.resumeSuccess'))
       setResumeModalOpen(false)
+      setResumeDataInput('')
       loadExecution()
     } catch (error: unknown) {
       message.error(extractApiError(error, t('execution.resumeFailed')))
@@ -550,7 +561,7 @@ export default function ExecutionPage() {
         title={t('execution.resumeExecution')}
         open={resumeModalOpen}
         onOk={handleResumeExecution}
-        onCancel={() => setResumeModalOpen(false)}
+        onCancel={() => { setResumeModalOpen(false); setResumeDataInput('') }}
         okText={t('execution.resume')}
       >
         {executionData?.pauseReason && (
@@ -560,6 +571,16 @@ export default function ExecutionPage() {
           <p><Text strong>{t('execution.resumeCondition')}:</Text> {executionData.resumeCondition}</p>
         )}
         <p>{t('execution.resumeConfirm')}</p>
+        <div style={{ marginTop: 12 }}>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>{t('execution.resumeDataLabel')}</Text>
+          <Input.TextArea
+            placeholder={t('execution.resumeDataPlaceholder')}
+            value={resumeDataInput}
+            onChange={(e) => setResumeDataInput(e.target.value)}
+            rows={4}
+            style={{ fontFamily: 'monospace', fontSize: 12 }}
+          />
+        </div>
       </Modal>
 
       <Drawer

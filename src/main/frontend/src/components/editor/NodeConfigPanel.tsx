@@ -111,11 +111,14 @@ export default function NodeConfigPanel({
   const nodeType = (nodeData?.nodeType as string) || (node?.type as string) || 'action'
   const isExternalService = nodeType === 'externalService'
 
+  const [handlerMissing, setHandlerMissing] = useState(false)
+
   // Load node type info
   useEffect(() => {
     if (nodeType) {
       setLoading(true)
       setLoadError(null)
+      setHandlerMissing(false)
       fetchNodeType(nodeType)
         .then((info) => {
           setNodeTypeInfo(info)
@@ -124,8 +127,9 @@ export default function NodeConfigPanel({
         .catch((err) => {
           logger.warn(`Failed to load node type info for "${nodeType}":`, err)
           setNodeTypeInfo(null)
-          // Only show error if it's not a 404 (handler not found)
-          if (err?.response?.status !== 404) {
+          if (err?.response?.status === 404) {
+            setHandlerMissing(true)
+          } else {
             setLoadError(t('editor.loadNodeTypeFailed') + ': ' + (err.message || t('common.error')))
           }
         })
@@ -440,6 +444,23 @@ export default function NodeConfigPanel({
     // If still loading, show nothing (loading indicator is shown elsewhere)
     if (loading) {
       return null
+    }
+
+    // If handler not found (404), show warning with install hint
+    if (handlerMissing) {
+      return (
+        <Alert
+          type="warning"
+          message={t('editor.handlerNotFound')}
+          description={t('editor.handlerNotFoundDesc', { type: nodeType })}
+          action={
+            <Button size="small" type="primary" href="/custom-tools" target="_self">
+              {t('editor.goToCustomTools')}
+            </Button>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      )
     }
 
     // If there's an error or no nodeTypeInfo, show informative message
