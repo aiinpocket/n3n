@@ -2,7 +2,7 @@ import apiClient from './client';
 
 export interface CreateExecutionRequest {
   flowId: string;
-  version?: number;
+  version?: string;
   input?: Record<string, unknown>;
   context?: Record<string, unknown>;
 }
@@ -11,7 +11,7 @@ export interface ExecutionResponse {
   id: string;
   flowVersionId: string;
   flowName?: string;
-  version?: number;
+  flowVersion?: string;
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting';
   triggerType: string;
   triggeredBy: string;
@@ -23,11 +23,14 @@ export interface ExecutionResponse {
   pausedAt?: string;
   waitingNodeId?: string;
   pauseReason?: string;
-  resumeCondition?: string;
+  resumeCondition?: Record<string, unknown>;
   startedAt?: string;
   completedAt?: string;
   durationMs?: number;
-  createdAt: string;
+  retryOf?: string;
+  retryCount?: number;
+  maxRetries?: number;
+  canRetry?: boolean;
 }
 
 export interface NodeExecutionResponse {

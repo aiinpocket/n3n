@@ -31,6 +31,12 @@ public class ExecutionResponse {
     private Integer maxRetries;
     private boolean canRetry;
 
+    // Pause/resume fields
+    private Instant pausedAt;
+    private String waitingNodeId;
+    private String pauseReason;
+    private Map<String, Object> resumeCondition;
+
     // Extended fields from joins
     private String flowName;
     private String flowVersion;
@@ -59,6 +65,10 @@ public class ExecutionResponse {
             .retryCount(retryCount)
             .maxRetries(maxRetries)
             .canRetry(canRetry)
+            .pausedAt(e.getPausedAt())
+            .waitingNodeId(e.getWaitingNodeId())
+            .pauseReason(e.getPauseReason())
+            .resumeCondition(e.getResumeCondition())
             .build();
     }
 

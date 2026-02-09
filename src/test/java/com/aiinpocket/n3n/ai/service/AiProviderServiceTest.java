@@ -121,8 +121,8 @@ class AiProviderServiceTest extends BaseServiceTest {
         }
 
         @Test
-        @DisplayName("should indicate hasApiKey based on credentialId presence")
-        void listUserConfigs_hasApiKeyReflectsCredentialId() {
+        @DisplayName("should indicate hasCredential based on credentialId presence")
+        void listUserConfigs_hasCredentialReflectsCredentialId() {
             AiProviderConfig noKeyConfig = AiProviderConfig.builder()
                     .id(UUID.randomUUID())
                     .ownerId(userId)
@@ -139,8 +139,8 @@ class AiProviderServiceTest extends BaseServiceTest {
 
             List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(userId);
 
-            assertThat(result.get(0).getHasApiKey()).isTrue();
-            assertThat(result.get(1).getHasApiKey()).isFalse();
+            assertThat(result.get(0).getHasCredential()).isTrue();
+            assertThat(result.get(1).getHasCredential()).isFalse();
         }
     }
 

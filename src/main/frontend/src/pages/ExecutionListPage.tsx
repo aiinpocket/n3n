@@ -154,10 +154,10 @@ export default function ExecutionListPage() {
     },
     {
       title: t('flow.version'),
-      dataIndex: 'version',
-      key: 'version',
+      dataIndex: 'flowVersion',
+      key: 'flowVersion',
       width: 80,
-      render: (version: number) => version || '-',
+      render: (version: string) => version || '-',
     },
     {
       title: t('common.status'),

@@ -24,7 +24,7 @@ public class AiProviderConfigResponse {
     private Map<String, Object> settings;
     private Boolean isActive;
     private Boolean isDefault;
-    private Boolean hasApiKey;
+    private Boolean hasCredential;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -39,7 +39,7 @@ public class AiProviderConfigResponse {
                 .settings(config.getSettings())
                 .isActive(config.getIsActive())
                 .isDefault(config.getIsDefault())
-                .hasApiKey(config.getCredentialId() != null)
+                .hasCredential(config.getCredentialId() != null)
                 .createdAt(config.getCreatedAt())
                 .updatedAt(config.getUpdatedAt())
                 .build();

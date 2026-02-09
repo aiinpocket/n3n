@@ -59,7 +59,7 @@ public class PluginInstallController {
     @PostMapping("/{pluginId}")
     public ResponseEntity<Map<String, Object>> installPlugin(
             @PathVariable UUID pluginId,
-            @RequestBody(required = false) InstallPluginVersionRequest request,
+            @Valid @RequestBody(required = false) InstallPluginVersionRequest request,
             Authentication authentication) {
 
         UUID userId = getUserId(authentication);

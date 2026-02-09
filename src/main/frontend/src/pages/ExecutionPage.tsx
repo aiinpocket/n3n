@@ -397,16 +397,15 @@ export default function ExecutionPage() {
           <Descriptions bordered column={2}>
             <Descriptions.Item label={t('execution.executionId')}>{executionData.id}</Descriptions.Item>
             <Descriptions.Item label={t('execution.flowName')}>{executionData.flowName || '-'}</Descriptions.Item>
-            <Descriptions.Item label={t('flow.version')}>{executionData.version || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('flow.version')}>{executionData.flowVersion || '-'}</Descriptions.Item>
             <Descriptions.Item label={t('execution.triggerType')}>{executionData.triggerType}</Descriptions.Item>
             <Descriptions.Item label={t('execution.startTime')}>{executionData.startedAt ? new Date(executionData.startedAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
             <Descriptions.Item label={t('execution.endTime')}>{executionData.completedAt ? new Date(executionData.completedAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
             <Descriptions.Item label={t('execution.duration')}>{formatDuration(executionData.durationMs)}</Descriptions.Item>
-            <Descriptions.Item label={t('common.createdAt')}>{executionData.createdAt ? new Date(executionData.createdAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>
             {executionData.cancelReason && <Descriptions.Item label={t('execution.cancelReason')}>{executionData.cancelReason}</Descriptions.Item>}
             {executionData.pauseReason && <Descriptions.Item label={t('execution.pauseReason')}>{executionData.pauseReason}</Descriptions.Item>}
             {executionData.waitingNodeId && <Descriptions.Item label={t('execution.waitingNode')}>{executionData.waitingNodeId}</Descriptions.Item>}
-            {executionData.resumeCondition && <Descriptions.Item label={t('execution.resumeCondition')}>{executionData.resumeCondition}</Descriptions.Item>}
+            {executionData.resumeCondition && <Descriptions.Item label={t('execution.resumeCondition')}>{JSON.stringify(executionData.resumeCondition)}</Descriptions.Item>}
           </Descriptions>
 
           {approvalData && approvalData.status === 'pending' && (
@@ -568,7 +567,7 @@ export default function ExecutionPage() {
           <p><Text strong>{t('execution.pauseReason')}:</Text> {executionData.pauseReason}</p>
         )}
         {executionData?.resumeCondition && (
-          <p><Text strong>{t('execution.resumeCondition')}:</Text> {executionData.resumeCondition}</p>
+          <p><Text strong>{t('execution.resumeCondition')}:</Text> {JSON.stringify(executionData.resumeCondition)}</p>
         )}
         <p>{t('execution.resumeConfirm')}</p>
         <div style={{ marginTop: 12 }}>
