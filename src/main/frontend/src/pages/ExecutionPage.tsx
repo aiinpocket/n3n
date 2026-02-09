@@ -77,8 +77,10 @@ export default function ExecutionPage() {
   const [pauseModalOpen, setPauseModalOpen] = useState(false)
   const [pauseReason, setPauseReason] = useState('')
   const [pausing, setPausing] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [resumeModalOpen, setResumeModalOpen] = useState(false)
   const [resumeDataInput, setResumeDataInput] = useState('')
+  const [resuming, setResuming] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [dataDrawerOpen, setDataDrawerOpen] = useState(false)
   const [selectedNodeData, setSelectedNodeData] = useState<{
@@ -204,6 +206,7 @@ export default function ExecutionPage() {
 
   const handleCancelExecution = async () => {
     if (!id) return
+    setCancelling(true)
     try {
       await cancelExecution(id, cancelReason)
       message.success(t('execution.cancelSuccess'))
@@ -212,6 +215,8 @@ export default function ExecutionPage() {
       loadExecution()
     } catch (error: unknown) {
       message.error(extractApiError(error, t('execution.cancelFailed')))
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -233,6 +238,7 @@ export default function ExecutionPage() {
 
   const handleResumeExecution = async () => {
     if (!id) return
+    setResuming(true)
     try {
       let resumeData: Record<string, unknown> | undefined
       if (resumeDataInput.trim()) {
@@ -240,6 +246,7 @@ export default function ExecutionPage() {
           resumeData = JSON.parse(resumeDataInput.trim())
         } catch {
           message.error(t('execution.invalidResumeData'))
+          setResuming(false)
           return
         }
       }
@@ -250,6 +257,8 @@ export default function ExecutionPage() {
       loadExecution()
     } catch (error: unknown) {
       message.error(extractApiError(error, t('execution.resumeFailed')))
+    } finally {
+      setResuming(false)
     }
   }
 
@@ -536,7 +545,7 @@ export default function ExecutionPage() {
         </Space>
       </Card>
 
-      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => { setCancelModalOpen(false); setCancelReason('') }}>
+      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => { setCancelModalOpen(false); setCancelReason('') }} confirmLoading={cancelling}>
         <Input.TextArea placeholder={t('execution.cancelReasonPlaceholder')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
       </Modal>
 
@@ -557,6 +566,7 @@ export default function ExecutionPage() {
         open={resumeModalOpen}
         onOk={handleResumeExecution}
         onCancel={() => { setResumeModalOpen(false); setResumeDataInput('') }}
+        confirmLoading={resuming}
         okText={t('execution.resume')}
       >
         {executionData?.pauseReason && (
