@@ -25,6 +25,9 @@ import {
   SearchOutlined,
   ReloadOutlined,
   LinkOutlined,
+  CheckOutlined,
+  WarningOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -98,6 +101,11 @@ export default function FlowEditorPage() {
     autoSaveDraft,
     publishVersion,
     clearEditor,
+    // Validation
+    validateVersion,
+    validating,
+    validationResult,
+    clearValidation,
     // Clipboard
     copySelectedNodes,
     cutSelectedNodes,
@@ -160,6 +168,7 @@ export default function FlowEditorPage() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [nodeSearchOpen, setNodeSearchOpen] = useState(false)
   const [saveForm] = Form.useForm()
+  const [validationModalOpen, setValidationModalOpen] = useState(false)
 
   // Edge configuration state
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -537,6 +546,18 @@ export default function FlowEditorPage() {
     }
   }
 
+  const handleValidate = async () => {
+    const result = await validateVersion()
+    if (result) {
+      setValidationModalOpen(true)
+      if (result.valid && result.warnings.length === 0) {
+        message.success(t('editor.validationPassed'))
+      }
+    } else {
+      message.error(t('editor.validationFailed'))
+    }
+  }
+
   const handleLoadVersion = async (version: string) => {
     if (id) {
       await loadFlow(id, version)
@@ -752,6 +773,16 @@ export default function FlowEditorPage() {
                 loading={saving}
               >
                 {t('common.save')}
+              </Button>
+            </Tooltip>
+            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
+              <Button
+                icon={<CheckOutlined />}
+                onClick={handleValidate}
+                disabled={!currentVersion}
+                loading={validating}
+              >
+                {t('editor.validate')}
               </Button>
             </Tooltip>
             <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : currentVersion.status === 'published' ? t('flow.published') : ''}>
@@ -1071,6 +1102,77 @@ export default function FlowEditorPage() {
           }
         }}
       />
+
+      {/* Validation Result Modal */}
+      <Modal
+        title={
+          <Space>
+            {validationResult?.valid ? (
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+            ) : (
+              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+            )}
+            {t('editor.validationResult')}
+          </Space>
+        }
+        open={validationModalOpen}
+        onCancel={() => { setValidationModalOpen(false); clearValidation() }}
+        footer={[
+          <Button key="close" onClick={() => { setValidationModalOpen(false); clearValidation() }}>
+            {t('common.close')}
+          </Button>,
+        ]}
+      >
+        {validationResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {validationResult.valid && validationResult.warnings.length === 0 && (
+              <Tag color="success" style={{ fontSize: 14, padding: '4px 12px' }}>
+                <CheckCircleOutlined /> {t('editor.validationPassed')}
+              </Tag>
+            )}
+            {validationResult.errors.length > 0 && (
+              <div>
+                <Text strong style={{ color: '#ff4d4f', display: 'block', marginBottom: 8 }}>
+                  <CloseCircleOutlined /> {t('editor.validationErrors')} ({validationResult.errors.length})
+                </Text>
+                {validationResult.errors.map((err, i) => (
+                  <Tag key={i} color="error" style={{ marginBottom: 4, whiteSpace: 'normal' }}>{err}</Tag>
+                ))}
+              </div>
+            )}
+            {validationResult.warnings.length > 0 && (
+              <div>
+                <Text strong style={{ color: '#faad14', display: 'block', marginBottom: 8 }}>
+                  <WarningOutlined /> {t('editor.validationWarnings')} ({validationResult.warnings.length})
+                </Text>
+                {validationResult.warnings.map((warn, i) => (
+                  <Tag key={i} color="warning" style={{ marginBottom: 4, whiteSpace: 'normal' }}>{warn}</Tag>
+                ))}
+              </div>
+            )}
+            {validationResult.entryPoints.length > 0 && (
+              <div>
+                <Text strong style={{ display: 'block', marginBottom: 4 }}>{t('editor.entryPoints')}</Text>
+                <Space wrap>
+                  {validationResult.entryPoints.map((ep) => (
+                    <Tag key={ep} color="blue">{ep}</Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+            {validationResult.exitPoints.length > 0 && (
+              <div>
+                <Text strong style={{ display: 'block', marginBottom: 4 }}>{t('editor.exitPoints')}</Text>
+                <Space wrap>
+                  {validationResult.exitPoints.map((ep) => (
+                    <Tag key={ep} color="cyan">{ep}</Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
 
       <NodeRecommendationDrawer
         open={nodeRecommendationOpen}

@@ -73,6 +73,16 @@ export interface PageResponse<T> {
   number: number
 }
 
+export interface FlowValidationResponse {
+  valid: boolean
+  errors: string[]
+  warnings: string[]
+  entryPoints: string[]
+  exitPoints: string[]
+  executionOrder: string[]
+  dependencies: Record<string, string[]>
+}
+
 export interface UpstreamNodeOutput {
   nodeId: string
   nodeLabel: string
@@ -144,6 +154,11 @@ export const flowApi = {
 
   publishVersion: async (flowId: string, version: string): Promise<FlowVersion> => {
     const response = await apiClient.post(`/flows/${flowId}/versions/${version}/publish`)
+    return response.data
+  },
+
+  validateVersion: async (flowId: string, version: string): Promise<FlowValidationResponse> => {
+    const response = await apiClient.get(`/flows/${flowId}/versions/${version}/validate`)
     return response.data
   },
 

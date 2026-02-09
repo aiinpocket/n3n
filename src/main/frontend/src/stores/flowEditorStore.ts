@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Node, Edge } from '@xyflow/react'
-import { Flow, FlowVersion, flowApi, FlowDefinition } from '../api/flow'
+import { Flow, FlowVersion, flowApi, FlowDefinition, FlowValidationResponse } from '../api/flow'
 import { logger } from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 import { ClipboardData, FlowSnapshot } from '../types'
@@ -45,6 +45,10 @@ interface FlowEditorState {
   saveVersion: (version: string, settings?: Record<string, unknown>) => Promise<FlowVersion>
   autoSaveDraft: () => Promise<FlowVersion | null>
   publishVersion: (version: string) => Promise<FlowVersion>
+  validateVersion: () => Promise<FlowValidationResponse | null>
+  validating: boolean
+  validationResult: FlowValidationResponse | null
+  clearValidation: () => void
   clearEditor: () => void
   // Clipboard actions
   copySelectedNodes: () => void
@@ -85,6 +89,9 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   maxHistory: 50,
   // Pinned Data
   pinnedData: {},
+  // Validation
+  validating: false,
+  validationResult: null,
 
   loadFlow: async (flowId: string, version?: string) => {
     set({ loading: true, error: null })
@@ -500,6 +507,25 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
     }
   },
 
+  validateVersion: async () => {
+    const { currentFlow, currentVersion } = get()
+    if (!currentFlow || !currentVersion) return null
+
+    set({ validating: true, validationResult: null })
+    try {
+      const result = await flowApi.validateVersion(currentFlow.id, currentVersion.version)
+      set({ validationResult: result })
+      return result
+    } catch (error) {
+      logger.error('Flow validation failed:', error)
+      return null
+    } finally {
+      set({ validating: false })
+    }
+  },
+
+  clearValidation: () => set({ validationResult: null }),
+
   clearEditor: () =>
     set({
       currentFlow: null,
@@ -513,6 +539,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       history: [],
       historyIndex: -1,
       pinnedData: {},
+      validating: false,
+      validationResult: null,
     }),
 
   // Data Pinning actions
