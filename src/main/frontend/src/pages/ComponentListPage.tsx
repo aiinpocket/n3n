@@ -24,6 +24,7 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   EyeOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +34,7 @@ import {
   ComponentVersionResponse,
   CreateComponentRequest,
   CreateVersionRequest,
+  UpdateComponentRequest,
 } from '../api/component'
 import logger from '../utils/logger'
 import { getLocale } from '../utils/locale'
@@ -85,6 +87,12 @@ export default function ComponentListPage() {
   const [selectedComponent, setSelectedComponent] = useState<ComponentResponse | null>(null)
   const [versions, setVersions] = useState<ComponentVersionResponse[]>([])
   const [loadingVersions, setLoadingVersions] = useState(false)
+
+  // Edit component modal
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingComponent, setEditingComponent] = useState<ComponentResponse | null>(null)
+  const [editForm] = Form.useForm()
+  const [editSubmitting, setEditSubmitting] = useState(false)
 
   // Add version modal
   const [addVersionModalOpen, setAddVersionModalOpen] = useState(false)
@@ -139,6 +147,40 @@ export default function ComponentListPage() {
       loadComponents(pagination.current, pagination.pageSize)
     } catch (error: unknown) {
       message.error(extractApiError(error, t('common.deleteFailed')))
+    }
+  }
+
+  const handleEdit = (record: ComponentResponse) => {
+    setEditingComponent(record)
+    editForm.setFieldsValue({
+      displayName: record.displayName,
+      description: record.description,
+      category: record.category,
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await editForm.validateFields()
+      if (!editingComponent) return
+      setEditSubmitting(true)
+      const request: UpdateComponentRequest = {
+        displayName: values.displayName,
+        description: values.description,
+        category: values.category,
+      }
+      await componentApi.update(editingComponent.id, request)
+      message.success(t('common.updateSuccess'))
+      setEditModalOpen(false)
+      setEditingComponent(null)
+      editForm.resetFields()
+      loadComponents(pagination.current, pagination.pageSize)
+    } catch (err) {
+      if (err && typeof err === 'object' && 'errorFields' in err) return
+      message.error(extractApiError(err, t('common.saveFailed')))
+    } finally {
+      setEditSubmitting(false)
     }
   }
 
@@ -277,6 +319,9 @@ export default function ComponentListPage() {
       width: 180,
       render: (_, record) => (
         <Space>
+          <Tooltip title={t('common.edit')}>
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          </Tooltip>
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openVersionDrawer(record)}>
             {t('component.versions')}
           </Button>
@@ -358,6 +403,38 @@ export default function ComponentListPage() {
                 {t('common.create')}
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Component Modal */}
+      <Modal
+        title={`${t('common.edit')}: ${editingComponent?.displayName}`}
+        open={editModalOpen}
+        onCancel={() => { setEditModalOpen(false); editForm.resetFields() }}
+        onOk={handleEditSubmit}
+        confirmLoading={editSubmitting}
+        destroyOnClose
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="displayName"
+            label={t('component.displayName')}
+            rules={[{ required: true, message: t('component.displayNameRequired') }]}
+          >
+            <Input maxLength={255} />
+          </Form.Item>
+          <Form.Item name="description" label={t('common.description')}>
+            <TextArea rows={3} maxLength={1000} />
+          </Form.Item>
+          <Form.Item name="category" label={t('component.category')}>
+            <Select placeholder={t('component.selectCategory')} allowClear>
+              {categories.map((cat) => (
+                <Select.Option key={cat} value={cat}>
+                  {cat}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
