@@ -1016,10 +1016,13 @@ export default function FlowEditorPage() {
           <Form.Item
             name="version"
             label={t('editor.versionNumber')}
-            rules={[{ required: true, message: t('editor.versionRequired') }]}
+            rules={[
+              { required: true, message: t('editor.versionRequired') },
+              { max: 100, message: t('common.maxLength', { max: 100 }) },
+            ]}
             extra={t('editor.versionHint')}
           >
-            <Input placeholder={t('editor.versionPlaceholder')} />
+            <Input placeholder={t('editor.versionPlaceholder')} maxLength={100} />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>

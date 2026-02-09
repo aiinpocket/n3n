@@ -26,6 +26,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { gatewayApi, type GatewayNode, type GatewayStats } from '../api/gateway'
 import { extractApiError } from '../utils/errorMessages'
+import { getLocale } from '../utils/locale'
 
 const { Text } = Typography
 
@@ -164,7 +165,7 @@ export default function GatewayPage() {
         <Tooltip title={time}>
           <Space>
             <ClockCircleOutlined />
-            <Text type="secondary">{new Date(time).toLocaleString()}</Text>
+            <Text type="secondary">{new Date(time).toLocaleString(getLocale())}</Text>
           </Space>
         </Tooltip>
       ),
