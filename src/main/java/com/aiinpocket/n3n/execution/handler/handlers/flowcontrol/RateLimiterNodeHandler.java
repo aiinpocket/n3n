@@ -48,8 +48,8 @@ public class RateLimiterNodeHandler extends AbstractNodeHandler {
 
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
-        int maxRequests = getIntConfig(context, "maxRequests", 10);
-        int windowMs = getIntConfig(context, "windowMs", 1000);
+        int maxRequests = Math.max(1, getIntConfig(context, "maxRequests", 10));
+        int windowMs = Math.max(100, getIntConfig(context, "windowMs", 1000));
         String mode = getStringConfig(context, "mode", "delay");
         String key = getStringConfig(context, "key",
             context.getExecutionId() + ":" + context.getNodeId());
