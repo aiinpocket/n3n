@@ -315,11 +315,14 @@ export default function FlowEditorPage() {
     // Ctrl+V or Cmd+V to paste
     if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
       e.preventDefault()
+      const hadClipboard = !!useFlowEditorStore.getState().clipboard?.nodes?.length
       pasteNodes()
-      message.info(t('editor.pasted'))
+      if (hadClipboard) {
+        message.info(t('editor.pasted'))
+      }
     }
     // Ctrl+D or Cmd+D to duplicate
-    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedNodeIds.length > 0) {
       e.preventDefault()
       duplicateSelectedNodes()
       message.info(t('editor.duplicated'))
