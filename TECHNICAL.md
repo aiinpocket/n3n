@@ -426,6 +426,26 @@ Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`
 | POST | `/api/templates/{id}/use?flowName=name` | Create a new flow from template |
 | DELETE | `/api/templates/{id}` | Delete template |
 
+### Form Triggers
+
+Form triggers allow public form access that triggers flow execution. Forms are accessed via secure tokens without authentication.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/forms/{token}` | Get form definition by token (public, no auth) |
+| POST | `/api/forms/{token}/submit` | Submit form data to trigger flow (public, rate-limited) |
+| POST | `/api/forms/execution/{executionId}/submit` | Submit in-flow form for a running execution |
+| GET | `/api/forms/flow/{flowId}/url` | Get form URL for a flow node (authenticated) |
+
+**Form Submission Flow:**
+1. Flow designer creates a Form Trigger node in the flow editor
+2. System generates a unique form token and public URL
+3. External users access the form via `/api/forms/{token}` (no login required)
+4. Form submission triggers the associated flow with form data as input
+5. Rate limited to 10 submissions per minute per IP address
+
+**Published-Only Execution:** All flow executions (manual, webhook, form, schedule) require a published flow version. Draft-only flows cannot be executed.
+
 ### Credentials
 
 | Method | Endpoint | Description |
@@ -477,7 +497,9 @@ Flow templates provide pre-built workflow patterns. The frontend TemplatePage (`
 | GET | `/api/webhooks/{id}` | Get webhook details |
 | POST | `/api/webhooks/{id}/activate` | Activate webhook |
 | POST | `/api/webhooks/{id}/deactivate` | Deactivate webhook |
+| PUT | `/api/webhooks/{id}` | Update webhook |
 | DELETE | `/api/webhooks/{id}` | Delete webhook |
+| POST | `/api/webhooks/{id}/test` | Test webhook trigger (manual test) |
 
 #### Webhook Trigger Endpoints (Public)
 
