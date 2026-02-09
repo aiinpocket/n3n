@@ -203,7 +203,7 @@ export default function FlowListPage() {
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record: Flow) => (
-        <a onClick={() => navigate(`/flows/${record.id}/edit`)}>{name}</a>
+        <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/flows/${record.id}/edit`)}>{name}</Button>
       ),
     },
     {
@@ -321,7 +321,7 @@ export default function FlowListPage() {
       dataIndex: 'flowName',
       key: 'flowName',
       render: (name: string, record: FlowShare) => (
-        <a onClick={() => navigate(`/flows/${record.flowId}/edit`)}>{name || record.flowId}</a>
+        <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/flows/${record.flowId}/edit`)}>{name || record.flowId}</Button>
       ),
     },
     {

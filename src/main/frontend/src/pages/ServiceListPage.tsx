@@ -70,7 +70,7 @@ export default function ServiceListPage() {
       dataIndex: 'displayName',
       key: 'displayName',
       render: (name: string, record: ExternalService) => (
-        <a onClick={() => navigate(`/services/${record.id}`)}>{name}</a>
+        <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/services/${record.id}`)}>{name}</Button>
       ),
     },
     {

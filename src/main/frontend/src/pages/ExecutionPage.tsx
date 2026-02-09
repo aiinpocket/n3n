@@ -165,7 +165,7 @@ export default function ExecutionPage() {
         if (id) {
           executionApi.getNodeExecutions(id)
             .then((data) => { if (!cancelled) setNodeExecutions(data) })
-            .catch(() => { /* Silently handle - node data will refresh on next update */ })
+            .catch((err) => { logger.warn('Failed to refresh node executions:', err) })
         }
       }
     }

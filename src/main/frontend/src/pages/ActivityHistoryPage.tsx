@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Card, Table, Select, Tag, Space, Tabs, Tooltip, Typography, message } from 'antd'
+import { Button, Card, Table, Select, Tag, Space, Tabs, Tooltip, Typography, message } from 'antd'
 import {
   HistoryOutlined,
   LoginOutlined,
@@ -315,9 +315,9 @@ export default function ActivityHistoryPage() {
           <Space direction="vertical" size={0}>
             {record.resourceName && (
               route ? (
-                <a onClick={() => navigate(route)} style={{ cursor: 'pointer' }}>
+                <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(route)}>
                   {record.resourceName}
-                </a>
+                </Button>
               ) : (
                 <Text>{record.resourceName}</Text>
               )
