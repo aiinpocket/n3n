@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { aiCodeApi, GenerateCodeResponse } from '../../api/aiCode'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { TextArea } = Input
 const { Text, Paragraph } = Typography
@@ -59,7 +60,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
       setResult({
         success: false,
         aiAvailable: true,
-        error: error instanceof Error ? error.message : t('codeGenerator.generateFailed'),
+        error: extractApiError(error, t('codeGenerator.generateFailed')),
       })
     } finally {
       setLoading(false)

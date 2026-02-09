@@ -5,6 +5,7 @@ import { MailOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import apiClient from '../api/client'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Title } = Typography
 
@@ -27,8 +28,7 @@ export default function PasswordResetPage() {
       setSuccessMessage(t('auth.resetLinkSent'))
       setCurrentStep(1)
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } }
-      setError(axiosErr.response?.data?.message || t('common.error'))
+      setError(extractApiError(err, t('common.error')))
     } finally {
       setLoading(false)
     }
@@ -48,8 +48,7 @@ export default function PasswordResetPage() {
         navigate('/login')
       }, 2000)
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } }
-      setError(axiosErr.response?.data?.message || t('common.error'))
+      setError(extractApiError(err, t('common.error')))
     } finally {
       setLoading(false)
     }
