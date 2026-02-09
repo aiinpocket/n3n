@@ -65,9 +65,9 @@ class TrustedRegistryValidatorTest {
     }
 
     @Test
-    void isFromTrustedRegistry_emptyRegistries_allowsAll() {
+    void isFromTrustedRegistry_emptyRegistries_rejectsAll() {
         ReflectionTestUtils.setField(validator, "trustedRegistriesConfig", "");
-        assertThat(validator.isFromTrustedRegistry("any-image")).isTrue();
+        assertThat(validator.isFromTrustedRegistry("any-image")).isFalse();
     }
 
     @Test
