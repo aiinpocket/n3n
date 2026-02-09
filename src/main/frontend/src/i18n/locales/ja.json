@@ -46,13 +46,14 @@
     "complete": "完了",
     "more": "もっと見る",
     "retry": "再試行",
-    "updateFailed": "更新に失敗しました",
     "fullscreen": "全画面表示",
     "unknown": "不明",
     "selectField": "{{field}}を選択",
     "invalidUrl": "有効なURLを入力してください",
     "operationFailed": "操作に失敗しました",
-    "comingSoon": "近日公開"
+    "comingSoon": "近日公開",
+    "deleteSuccess": "正常に削除しました",
+    "help": "ヘルプ"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -169,7 +170,9 @@
     "tokenRefreshFailed": "トークンの更新に失敗しました",
     "appTitle": "N3N Flow",
     "appSubtitle": "AI駆動のワークフロー自動化",
-    "emailPlaceholder": "you@example.com"
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "無効なメールアドレス形式です",
+    "passwordTooShort": "パスワードは12文字以上必要です"
   },
   "setup": {
     "title": "N3N Flow へようこそ",
@@ -573,7 +576,6 @@
     "resumeCondition": "再開条件",
     "searchPlaceholder": "フロー名で検索",
     "allStatuses": "すべてのステータス",
-    "waiting": "承認待ち",
     "executeFailed": "実行に失敗しました",
     "viewData": "データ表示",
     "inputData": "入力データ",
@@ -723,7 +725,8 @@
     "viewData": "データを表示",
     "viewDataTitle": "認証データ",
     "viewDataWarning": "復号化された機密データが表示されます。画面を他人に見られないようにしてください。",
-    "viewDataFailed": "認証データの読み込みに失敗しました"
+    "viewDataFailed": "認証データの読み込みに失敗しました",
+    "addCredential": "認証情報を追加"
   },
   "component": {
     "title": "コンポーネント",
@@ -1903,119 +1906,460 @@
     "viewCredentials": "認証情報を表示"
   },
   "nodeCategories": {
-    "triggers": { "label": "トリガー", "description": "ワークフローを開始するトリガー条件" },
-    "ai": { "label": "AI", "description": "AIチャット、エージェント、メモリ、ベクトル検索" },
-    "flow": { "label": "フロー制御", "description": "フロー実行ロジックの制御" },
-    "transform": { "label": "データ変換", "description": "データの変換と処理" },
-    "communication": { "label": "通信", "description": "メール、通知の送信など" },
-    "database": { "label": "データベース", "description": "データベース操作とNoSQLアクセス" },
-    "messaging": { "label": "メッセージング", "description": "インスタントメッセージとソーシャルプラットフォーム連携" },
-    "google": { "label": "Google", "description": "Google WorkspaceとGCPサービス" },
-    "cloud": { "label": "クラウド", "description": "GCP、AWSなどのクラウドサービス連携" },
-    "tools": { "label": "ツール", "description": "各種ユーティリティツール" },
-    "files": { "label": "ファイル", "description": "ファイルの読み書きと処理" },
-    "social": { "label": "ソーシャルメディア", "description": "Facebook、Instagram、Threadsなどのソーシャルプラットフォーム連携" },
-    "interactive": { "label": "インタラクティブ", "description": "ユーザー操作が必要なノード" },
-    "output": { "label": "出力", "description": "結果を出力" }
+    "triggers": {
+      "label": "トリガー",
+      "description": "ワークフローを開始するトリガー条件"
+    },
+    "ai": {
+      "label": "AI",
+      "description": "AIチャット、エージェント、メモリ、ベクトル検索"
+    },
+    "flow": {
+      "label": "フロー制御",
+      "description": "フロー実行ロジックの制御"
+    },
+    "transform": {
+      "label": "データ変換",
+      "description": "データの変換と処理"
+    },
+    "communication": {
+      "label": "通信",
+      "description": "メール、通知の送信など"
+    },
+    "database": {
+      "label": "データベース",
+      "description": "データベース操作とNoSQLアクセス"
+    },
+    "messaging": {
+      "label": "メッセージング",
+      "description": "インスタントメッセージとソーシャルプラットフォーム連携"
+    },
+    "google": {
+      "label": "Google",
+      "description": "Google WorkspaceとGCPサービス"
+    },
+    "cloud": {
+      "label": "クラウド",
+      "description": "GCP、AWSなどのクラウドサービス連携"
+    },
+    "tools": {
+      "label": "ツール",
+      "description": "各種ユーティリティツール"
+    },
+    "files": {
+      "label": "ファイル",
+      "description": "ファイルの読み書きと処理"
+    },
+    "social": {
+      "label": "ソーシャルメディア",
+      "description": "Facebook、Instagram、Threadsなどのソーシャルプラットフォーム連携"
+    },
+    "interactive": {
+      "label": "インタラクティブ",
+      "description": "ユーザー操作が必要なノード"
+    },
+    "output": {
+      "label": "出力",
+      "description": "結果を出力"
+    }
   },
   "nodeTypes": {
-    "trigger": { "label": "手動トリガー", "description": "ワークフローを手動で開始" },
-    "scheduleTrigger": { "label": "スケジュールトリガー", "description": "スケジュールに従って自動実行" },
-    "webhookTrigger": { "label": "Webhookトリガー", "description": "HTTPリクエストによりトリガー" },
-    "formTrigger": { "label": "フォームトリガー", "description": "フォーム送信によりトリガー" },
-    "emailTrigger": { "label": "メールトリガー (IMAP)", "description": "メール受信時にトリガー" },
-    "errorTrigger": { "label": "エラートリガー", "description": "別のフローでエラーが発生した時にトリガー" },
-    "aiChat": { "label": "AIチャット", "description": "AIモデルとチャット、OpenAI、Claude、Gemini、Ollamaに対応" },
-    "aiAgent": { "label": "AIエージェント", "description": "自動的にツールを使用してタスクを完了するインテリジェントエージェント（ReActモード）" },
-    "aiChain": { "label": "AI処理チェーン", "description": "RAG、Map-Reduce、要約などのAI処理パイプライン" },
-    "aiMemory": { "label": "AIメモリ", "description": "会話メモリの管理、保存、検索、要約に対応" },
-    "aiEmbedding": { "label": "AIエンベディング", "description": "テキストをベクトルエンベディングに変換" },
-    "aiVectorSearch": { "label": "ベクトル検索", "description": "ベクトル類似度検索、セマンティック検索向け" },
-    "aiRag": { "label": "RAG Q&A", "description": "検索拡張生成に基づくドキュメントQ&Aシステム" },
-    "aiConversation": { "label": "会話チェーン", "description": "メモリ付きマルチターン会話処理チェーン" },
-    "aiRouter": { "label": "AIルーター", "description": "入力内容に基づいて異なる処理ブランチにインテリジェントルーティング" },
-    "aiSequence": { "label": "シーケンシャルチェーン", "description": "複数のAI処理ステップを順番に実行" },
-    "aiVectorStore": { "label": "ベクトルストア", "description": "ベクトルデータベースのインデックスとストレージを管理" },
-    "aiDocLoader": { "label": "ドキュメントローダー", "description": "PDF、テキスト、Webページなどのドキュメントを読み込み" },
-    "aiTextSplitter": { "label": "テキスト分割", "description": "長いドキュメントを小さなチャンクに分割" },
-    "aiSummarize": { "label": "AI要約", "description": "ドキュメントや会話の要約を自動生成" },
-    "aiClassify": { "label": "AI分類", "description": "AIを使用してコンテンツを自動分類" },
-    "openai": { "label": "OpenAI", "description": "OpenAI API（GPT-4、GPT-3.5）を直接呼び出し" },
-    "claude": { "label": "Claude", "description": "Anthropic Claude APIを直接呼び出し" },
-    "gemini": { "label": "Google Gemini", "description": "Google Gemini APIを直接呼び出し" },
-    "condition": { "label": "条件分岐", "description": "条件に基づいて分岐実行", "true": "真", "false": "偽" },
-    "switch": { "label": "スイッチ", "description": "複数条件ルーティング" },
-    "merge": { "label": "マージ", "description": "複数のデータストリームをマージ" },
-    "loop": { "label": "ループ", "description": "データ項目を反復処理" },
-    "filter": { "label": "フィルター", "description": "データ項目をフィルタリング" },
-    "splitOut": { "label": "分割", "description": "配列を個別の項目に分割" },
-    "subWorkflow": { "label": "サブワークフロー実行", "description": "別のワークフローを実行" },
-    "stopAndError": { "label": "停止してエラー", "description": "実行を停止してエラーをスロー" },
-    "wait": { "label": "待機", "description": "指定時間だけ実行を一時停止" },
-    "noOp": { "label": "ノーオペレーション", "description": "プレースホルダー、何も実行しない" },
-    "setFields": { "label": "フィールド編集 (Set)", "description": "データフィールドを設定または変更" },
-    "renameKeys": { "label": "キー名変更", "description": "JSONキー名を変更" },
-    "sort": { "label": "ソート", "description": "データを並べ替え" },
-    "aggregate": { "label": "集約", "description": "複数の項目を一つに集約" },
-    "removeDuplicates": { "label": "重複削除", "description": "重複する項目を削除" },
-    "compareDatasets": { "label": "データセット比較", "description": "2つのデータセットの差異を比較" },
-    "code": { "label": "コード", "description": "カスタムJavaScript/Pythonコードを実行" },
-    "aiTransform": { "label": "AI変換", "description": "自然言語でデータ変換ロジックを記述、AIが自動的にコードを生成して実行" },
-    "httpRequest": { "label": "HTTPリクエスト", "description": "HTTP/REST APIリクエストを送信" },
-    "sendEmail": { "label": "メール送信", "description": "SMTP経由でメールを送信" },
-    "graphql": { "label": "GraphQL", "description": "GraphQLクエリを実行" },
-    "ssh": { "label": "SSH", "description": "SSH経由でリモートコマンドを実行" },
-    "ftp": { "label": "FTP", "description": "ファイル転送操作" },
-    "agent": { "label": "Agent", "description": "リモートAgentでコマンドを実行" },
-    "email": { "label": "メール", "description": "メールの送信、読み取り、管理" },
-    "externalService": { "label": "外部サービス", "description": "OpenAPI経由で登録済み外部サービスを呼び出し" },
-    "json": { "label": "JSON", "description": "JSONのパース、シリアライズ、クエリ、変換" },
-    "text": { "label": "テキスト", "description": "テキストの分割、置換、大文字小文字変換など" },
-    "regex": { "label": "正規表現", "description": "正規表現によるマッチ、抽出、置換" },
-    "database": { "label": "データベース", "description": "PostgreSQL、MySQL、SQLite、SQL Server、Oracleなどに対応" },
-    "postgres": { "label": "PostgreSQL", "description": "PostgreSQLデータベース操作" },
-    "mysql": { "label": "MySQL", "description": "MySQLデータベース操作" },
-    "mongodb": { "label": "MongoDB", "description": "MongoDBドキュメントクエリ、集約、コレクション管理" },
-    "redis": { "label": "Redis", "description": "Redisキーバリュー、リスト、ハッシュ、セット操作" },
-    "elasticsearch": { "label": "Elasticsearch", "description": "Elasticsearch全文検索とインデックス管理" },
-    "telegram": { "label": "Telegram", "description": "Telegramメッセージ、スタンプ、ファイルの送信" },
-    "discord": { "label": "Discord", "description": "Discordメッセージとエンベッドの送信" },
-    "slack": { "label": "Slack", "description": "Slackメッセージの送信とファイルアップロード" },
-    "whatsapp": { "label": "WhatsApp", "description": "WhatsApp Business API連携" },
-    "line": { "label": "LINE", "description": "LINE Messaging API連携" },
-    "facebook": { "label": "Facebook", "description": "Facebookページ管理とコンテンツ公開" },
-    "instagram": { "label": "Instagram", "description": "Instagramコンテンツ公開とアカウント管理" },
-    "threads": { "label": "Threads", "description": "Threadsコンテンツ公開とインタラクション" },
-    "gmail": { "label": "Gmail", "description": "Gmailメール検索、読み取り、送信" },
-    "googleSheets": { "label": "Google Sheets", "description": "Googleスプレッドシートの読み書きと追加" },
-    "googleDrive": { "label": "Google Drive", "description": "Googleドライブファイル管理" },
-    "googleCalendar": { "label": "Google Calendar", "description": "Googleカレンダーイベント管理" },
-    "bigQuery": { "label": "BigQuery", "description": "Google BigQuery SQLクエリ" },
-    "googleCloudStorage": { "label": "Google Cloud Storage", "description": "Google Cloud Storageオブジェクト管理" },
-    "googlePubSub": { "label": "Google Cloud Pub/Sub", "description": "Google Cloud Pub/Subメッセージのパブリッシュとサブスクライブ" },
-    "browser": { "label": "ブラウザ自動化", "description": "Chrome DevTools Protocol経由でブラウザ操作を自動化" },
-    "datetime": { "label": "日付・時刻", "description": "日付/時刻のフォーマットと計算" },
-    "crypto": { "label": "暗号化", "description": "暗号化、復号化、ハッシュ操作" },
-    "jwt": { "label": "JWT", "description": "JSON Web Token処理" },
-    "html": { "label": "HTML", "description": "HTMLのパースと操作" },
-    "xml": { "label": "XML", "description": "XMLのパースと変換" },
-    "markdown": { "label": "Markdown", "description": "Markdown変換" },
-    "readFile": { "label": "ファイル読み込み", "description": "ローカルまたはリモートファイルを読み込み" },
-    "writeFile": { "label": "ファイル書き込み", "description": "ディスクにファイルを書き込み" },
-    "convertFile": { "label": "ファイル変換", "description": "データをファイル形式に変換" },
-    "compression": { "label": "圧縮", "description": "ファイルの圧縮・解凍" },
-    "form": { "label": "フォーム", "description": "ユーザー入力を収集" },
-    "approval": { "label": "承認待ち", "description": "フローを一時停止して承認を待つ", "approved": "承認済み", "rejected": "却下" },
-    "action": { "label": "アクション", "description": "カスタムアクションを実行" },
-    "output": { "label": "出力", "description": "フロー実行結果を出力" },
-    "respondWebhook": { "label": "Webhook応答", "description": "HTTPリクエストに応答" },
-    "retry": { "label": "リトライ", "description": "失敗時に自動リトライ、指数バックオフに対応" },
-    "rateLimiter": { "label": "レートリミッター", "description": "フローのスループット率を制御して過負荷を防止" },
-    "itemLists": { "label": "リスト操作", "description": "高度なリスト操作：連結、チャンク、フラット化、グループ化など" },
-    "spreadsheet": { "label": "スプレッドシート / CSV", "description": "CSVのパースと生成、JSONとスプレッドシート形式の相互変換" },
-    "base64": { "label": "Base64", "description": "Base64エンコードとデコード" },
-    "urlParser": { "label": "URLパーサー", "description": "URLのパース、構築、操作" },
-    "executeCommand": { "label": "コマンド実行", "description": "システムコマンドを実行して出力を取得" }
+    "trigger": {
+      "label": "手動トリガー",
+      "description": "ワークフローを手動で開始"
+    },
+    "scheduleTrigger": {
+      "label": "スケジュールトリガー",
+      "description": "スケジュールに従って自動実行"
+    },
+    "webhookTrigger": {
+      "label": "Webhookトリガー",
+      "description": "HTTPリクエストによりトリガー"
+    },
+    "formTrigger": {
+      "label": "フォームトリガー",
+      "description": "フォーム送信によりトリガー"
+    },
+    "emailTrigger": {
+      "label": "メールトリガー (IMAP)",
+      "description": "メール受信時にトリガー"
+    },
+    "errorTrigger": {
+      "label": "エラートリガー",
+      "description": "別のフローでエラーが発生した時にトリガー"
+    },
+    "aiChat": {
+      "label": "AIチャット",
+      "description": "AIモデルとチャット、OpenAI、Claude、Gemini、Ollamaに対応"
+    },
+    "aiAgent": {
+      "label": "AIエージェント",
+      "description": "自動的にツールを使用してタスクを完了するインテリジェントエージェント（ReActモード）"
+    },
+    "aiChain": {
+      "label": "AI処理チェーン",
+      "description": "RAG、Map-Reduce、要約などのAI処理パイプライン"
+    },
+    "aiMemory": {
+      "label": "AIメモリ",
+      "description": "会話メモリの管理、保存、検索、要約に対応"
+    },
+    "aiEmbedding": {
+      "label": "AIエンベディング",
+      "description": "テキストをベクトルエンベディングに変換"
+    },
+    "aiVectorSearch": {
+      "label": "ベクトル検索",
+      "description": "ベクトル類似度検索、セマンティック検索向け"
+    },
+    "aiRag": {
+      "label": "RAG Q&A",
+      "description": "検索拡張生成に基づくドキュメントQ&Aシステム"
+    },
+    "aiConversation": {
+      "label": "会話チェーン",
+      "description": "メモリ付きマルチターン会話処理チェーン"
+    },
+    "aiRouter": {
+      "label": "AIルーター",
+      "description": "入力内容に基づいて異なる処理ブランチにインテリジェントルーティング"
+    },
+    "aiSequence": {
+      "label": "シーケンシャルチェーン",
+      "description": "複数のAI処理ステップを順番に実行"
+    },
+    "aiVectorStore": {
+      "label": "ベクトルストア",
+      "description": "ベクトルデータベースのインデックスとストレージを管理"
+    },
+    "aiDocLoader": {
+      "label": "ドキュメントローダー",
+      "description": "PDF、テキスト、Webページなどのドキュメントを読み込み"
+    },
+    "aiTextSplitter": {
+      "label": "テキスト分割",
+      "description": "長いドキュメントを小さなチャンクに分割"
+    },
+    "aiSummarize": {
+      "label": "AI要約",
+      "description": "ドキュメントや会話の要約を自動生成"
+    },
+    "aiClassify": {
+      "label": "AI分類",
+      "description": "AIを使用してコンテンツを自動分類"
+    },
+    "openai": {
+      "label": "OpenAI",
+      "description": "OpenAI API（GPT-4、GPT-3.5）を直接呼び出し"
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Anthropic Claude APIを直接呼び出し"
+    },
+    "gemini": {
+      "label": "Google Gemini",
+      "description": "Google Gemini APIを直接呼び出し"
+    },
+    "condition": {
+      "label": "条件分岐",
+      "description": "条件に基づいて分岐実行",
+      "true": "真",
+      "false": "偽"
+    },
+    "switch": {
+      "label": "スイッチ",
+      "description": "複数条件ルーティング"
+    },
+    "merge": {
+      "label": "マージ",
+      "description": "複数のデータストリームをマージ"
+    },
+    "loop": {
+      "label": "ループ",
+      "description": "データ項目を反復処理"
+    },
+    "filter": {
+      "label": "フィルター",
+      "description": "データ項目をフィルタリング"
+    },
+    "splitOut": {
+      "label": "分割",
+      "description": "配列を個別の項目に分割"
+    },
+    "subWorkflow": {
+      "label": "サブワークフロー実行",
+      "description": "別のワークフローを実行"
+    },
+    "stopAndError": {
+      "label": "停止してエラー",
+      "description": "実行を停止してエラーをスロー"
+    },
+    "wait": {
+      "label": "待機",
+      "description": "指定時間だけ実行を一時停止"
+    },
+    "noOp": {
+      "label": "ノーオペレーション",
+      "description": "プレースホルダー、何も実行しない"
+    },
+    "setFields": {
+      "label": "フィールド編集 (Set)",
+      "description": "データフィールドを設定または変更"
+    },
+    "renameKeys": {
+      "label": "キー名変更",
+      "description": "JSONキー名を変更"
+    },
+    "sort": {
+      "label": "ソート",
+      "description": "データを並べ替え"
+    },
+    "aggregate": {
+      "label": "集約",
+      "description": "複数の項目を一つに集約"
+    },
+    "removeDuplicates": {
+      "label": "重複削除",
+      "description": "重複する項目を削除"
+    },
+    "compareDatasets": {
+      "label": "データセット比較",
+      "description": "2つのデータセットの差異を比較"
+    },
+    "code": {
+      "label": "コード",
+      "description": "カスタムJavaScript/Pythonコードを実行"
+    },
+    "aiTransform": {
+      "label": "AI変換",
+      "description": "自然言語でデータ変換ロジックを記述、AIが自動的にコードを生成して実行"
+    },
+    "httpRequest": {
+      "label": "HTTPリクエスト",
+      "description": "HTTP/REST APIリクエストを送信"
+    },
+    "sendEmail": {
+      "label": "メール送信",
+      "description": "SMTP経由でメールを送信"
+    },
+    "graphql": {
+      "label": "GraphQL",
+      "description": "GraphQLクエリを実行"
+    },
+    "ssh": {
+      "label": "SSH",
+      "description": "SSH経由でリモートコマンドを実行"
+    },
+    "ftp": {
+      "label": "FTP",
+      "description": "ファイル転送操作"
+    },
+    "agent": {
+      "label": "Agent",
+      "description": "リモートAgentでコマンドを実行"
+    },
+    "email": {
+      "label": "メール",
+      "description": "メールの送信、読み取り、管理"
+    },
+    "externalService": {
+      "label": "外部サービス",
+      "description": "OpenAPI経由で登録済み外部サービスを呼び出し"
+    },
+    "json": {
+      "label": "JSON",
+      "description": "JSONのパース、シリアライズ、クエリ、変換"
+    },
+    "text": {
+      "label": "テキスト",
+      "description": "テキストの分割、置換、大文字小文字変換など"
+    },
+    "regex": {
+      "label": "正規表現",
+      "description": "正規表現によるマッチ、抽出、置換"
+    },
+    "database": {
+      "label": "データベース",
+      "description": "PostgreSQL、MySQL、SQLite、SQL Server、Oracleなどに対応"
+    },
+    "postgres": {
+      "label": "PostgreSQL",
+      "description": "PostgreSQLデータベース操作"
+    },
+    "mysql": {
+      "label": "MySQL",
+      "description": "MySQLデータベース操作"
+    },
+    "mongodb": {
+      "label": "MongoDB",
+      "description": "MongoDBドキュメントクエリ、集約、コレクション管理"
+    },
+    "redis": {
+      "label": "Redis",
+      "description": "Redisキーバリュー、リスト、ハッシュ、セット操作"
+    },
+    "elasticsearch": {
+      "label": "Elasticsearch",
+      "description": "Elasticsearch全文検索とインデックス管理"
+    },
+    "telegram": {
+      "label": "Telegram",
+      "description": "Telegramメッセージ、スタンプ、ファイルの送信"
+    },
+    "discord": {
+      "label": "Discord",
+      "description": "Discordメッセージとエンベッドの送信"
+    },
+    "slack": {
+      "label": "Slack",
+      "description": "Slackメッセージの送信とファイルアップロード"
+    },
+    "whatsapp": {
+      "label": "WhatsApp",
+      "description": "WhatsApp Business API連携"
+    },
+    "line": {
+      "label": "LINE",
+      "description": "LINE Messaging API連携"
+    },
+    "facebook": {
+      "label": "Facebook",
+      "description": "Facebookページ管理とコンテンツ公開"
+    },
+    "instagram": {
+      "label": "Instagram",
+      "description": "Instagramコンテンツ公開とアカウント管理"
+    },
+    "threads": {
+      "label": "Threads",
+      "description": "Threadsコンテンツ公開とインタラクション"
+    },
+    "gmail": {
+      "label": "Gmail",
+      "description": "Gmailメール検索、読み取り、送信"
+    },
+    "googleSheets": {
+      "label": "Google Sheets",
+      "description": "Googleスプレッドシートの読み書きと追加"
+    },
+    "googleDrive": {
+      "label": "Google Drive",
+      "description": "Googleドライブファイル管理"
+    },
+    "googleCalendar": {
+      "label": "Google Calendar",
+      "description": "Googleカレンダーイベント管理"
+    },
+    "bigQuery": {
+      "label": "BigQuery",
+      "description": "Google BigQuery SQLクエリ"
+    },
+    "googleCloudStorage": {
+      "label": "Google Cloud Storage",
+      "description": "Google Cloud Storageオブジェクト管理"
+    },
+    "googlePubSub": {
+      "label": "Google Cloud Pub/Sub",
+      "description": "Google Cloud Pub/Subメッセージのパブリッシュとサブスクライブ"
+    },
+    "browser": {
+      "label": "ブラウザ自動化",
+      "description": "Chrome DevTools Protocol経由でブラウザ操作を自動化"
+    },
+    "datetime": {
+      "label": "日付・時刻",
+      "description": "日付/時刻のフォーマットと計算"
+    },
+    "crypto": {
+      "label": "暗号化",
+      "description": "暗号化、復号化、ハッシュ操作"
+    },
+    "jwt": {
+      "label": "JWT",
+      "description": "JSON Web Token処理"
+    },
+    "html": {
+      "label": "HTML",
+      "description": "HTMLのパースと操作"
+    },
+    "xml": {
+      "label": "XML",
+      "description": "XMLのパースと変換"
+    },
+    "markdown": {
+      "label": "Markdown",
+      "description": "Markdown変換"
+    },
+    "readFile": {
+      "label": "ファイル読み込み",
+      "description": "ローカルまたはリモートファイルを読み込み"
+    },
+    "writeFile": {
+      "label": "ファイル書き込み",
+      "description": "ディスクにファイルを書き込み"
+    },
+    "convertFile": {
+      "label": "ファイル変換",
+      "description": "データをファイル形式に変換"
+    },
+    "compression": {
+      "label": "圧縮",
+      "description": "ファイルの圧縮・解凍"
+    },
+    "form": {
+      "label": "フォーム",
+      "description": "ユーザー入力を収集"
+    },
+    "approval": {
+      "label": "承認待ち",
+      "description": "フローを一時停止して承認を待つ",
+      "approved": "承認済み",
+      "rejected": "却下"
+    },
+    "action": {
+      "label": "アクション",
+      "description": "カスタムアクションを実行"
+    },
+    "output": {
+      "label": "出力",
+      "description": "フロー実行結果を出力"
+    },
+    "respondWebhook": {
+      "label": "Webhook応答",
+      "description": "HTTPリクエストに応答"
+    },
+    "retry": {
+      "label": "リトライ",
+      "description": "失敗時に自動リトライ、指数バックオフに対応"
+    },
+    "rateLimiter": {
+      "label": "レートリミッター",
+      "description": "フローのスループット率を制御して過負荷を防止"
+    },
+    "itemLists": {
+      "label": "リスト操作",
+      "description": "高度なリスト操作：連結、チャンク、フラット化、グループ化など"
+    },
+    "spreadsheet": {
+      "label": "スプレッドシート / CSV",
+      "description": "CSVのパースと生成、JSONとスプレッドシート形式の相互変換"
+    },
+    "base64": {
+      "label": "Base64",
+      "description": "Base64エンコードとデコード"
+    },
+    "urlParser": {
+      "label": "URLパーサー",
+      "description": "URLのパース、構築、操作"
+    },
+    "executeCommand": {
+      "label": "コマンド実行",
+      "description": "システムコマンドを実行して出力を取得"
+    },
+    "pinnedData": {
+      "label": "固定データ",
+      "description": "固定データをノード出力として使用"
+    }
   },
   "quickActions": {
     "category": {

@@ -46,13 +46,14 @@
     "complete": "完成",
     "more": "更多",
     "retry": "重試",
-    "updateFailed": "更新失敗",
     "fullscreen": "全螢幕檢視",
     "unknown": "未知",
     "selectField": "選擇{{field}}",
     "invalidUrl": "請輸入有效的網址",
     "operationFailed": "操作失敗",
-    "comingSoon": "即將推出"
+    "comingSoon": "即將推出",
+    "deleteSuccess": "刪除成功",
+    "help": "幫助"
   },
   "error": {
     "title": "發生錯誤",
@@ -169,7 +170,9 @@
     "tokenRefreshFailed": "令牌刷新失敗",
     "appTitle": "N3N Flow",
     "appSubtitle": "AI 驅動的工作流程自動化",
-    "emailPlaceholder": "you@example.com"
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "電子郵件格式無效",
+    "passwordTooShort": "密碼至少需要 12 個字元"
   },
   "setup": {
     "title": "歡迎使用 N3N Flow",
@@ -722,7 +725,8 @@
     "viewData": "檢視資料",
     "viewDataTitle": "認證資料",
     "viewDataWarning": "此操作將顯示解密後的敏感資料，請確保周圍無人窺視螢幕。",
-    "viewDataFailed": "無法載入認證資料"
+    "viewDataFailed": "無法載入認證資料",
+    "addCredential": "新增憑證"
   },
   "component": {
     "title": "元件管理",
@@ -1902,150 +1906,672 @@
     "viewCredentials": "檢視憑證"
   },
   "nodeCategories": {
-    "triggers": { "label": "觸發器", "description": "啟動工作流程的觸發條件" },
-    "ai": { "label": "AI 智能", "description": "AI 對話、代理、記憶和向量搜尋" },
-    "flow": { "label": "流程控制", "description": "控制流程執行邏輯" },
-    "transform": { "label": "數據轉換", "description": "轉換和處理數據" },
-    "communication": { "label": "通訊", "description": "發送郵件、通知等" },
-    "database": { "label": "資料庫", "description": "資料庫操作與 NoSQL 存取" },
-    "messaging": { "label": "訊息通訊", "description": "即時訊息和社交平台整合" },
-    "google": { "label": "Google 整合", "description": "Google Workspace 與 GCP 服務" },
-    "cloud": { "label": "雲端服務", "description": "GCP、AWS 等雲端服務整合" },
-    "tools": { "label": "工具", "description": "各種實用工具" },
-    "files": { "label": "檔案處理", "description": "檔案讀寫和處理" },
-    "social": { "label": "社交媒體", "description": "Facebook、Instagram、Threads 等社交平台整合" },
-    "interactive": { "label": "互動", "description": "需要人工互動的節點" },
-    "output": { "label": "輸出", "description": "輸出結果" }
+    "triggers": {
+      "label": "觸發器",
+      "description": "啟動工作流程的觸發條件"
+    },
+    "ai": {
+      "label": "AI 智能",
+      "description": "AI 對話、代理、記憶和向量搜尋"
+    },
+    "flow": {
+      "label": "流程控制",
+      "description": "控制流程執行邏輯"
+    },
+    "transform": {
+      "label": "數據轉換",
+      "description": "轉換和處理數據"
+    },
+    "communication": {
+      "label": "通訊",
+      "description": "發送郵件、通知等"
+    },
+    "database": {
+      "label": "資料庫",
+      "description": "資料庫操作與 NoSQL 存取"
+    },
+    "messaging": {
+      "label": "訊息通訊",
+      "description": "即時訊息和社交平台整合"
+    },
+    "google": {
+      "label": "Google 整合",
+      "description": "Google Workspace 與 GCP 服務"
+    },
+    "cloud": {
+      "label": "雲端服務",
+      "description": "GCP、AWS 等雲端服務整合"
+    },
+    "tools": {
+      "label": "工具",
+      "description": "各種實用工具"
+    },
+    "files": {
+      "label": "檔案處理",
+      "description": "檔案讀寫和處理"
+    },
+    "social": {
+      "label": "社交媒體",
+      "description": "Facebook、Instagram、Threads 等社交平台整合"
+    },
+    "interactive": {
+      "label": "互動",
+      "description": "需要人工互動的節點"
+    },
+    "output": {
+      "label": "輸出",
+      "description": "輸出結果"
+    }
   },
   "nodeTypes": {
-    "trigger": { "label": "手動觸發", "description": "手動啟動工作流程" },
-    "scheduleTrigger": { "label": "排程觸發", "description": "定時自動執行" },
-    "webhookTrigger": { "label": "Webhook 觸發", "description": "接收 HTTP 請求觸發" },
-    "formTrigger": { "label": "表單觸發", "description": "表單提交觸發" },
-    "emailTrigger": { "label": "郵件觸發", "description": "收到郵件時觸發" },
-    "errorTrigger": { "label": "錯誤觸發", "description": "其他流程發生錯誤時觸發" },
-    "aiChat": { "label": "AI 對話", "description": "與 AI 模型對話，支援 OpenAI、Claude、Gemini、Ollama" },
-    "aiAgent": { "label": "AI 代理", "description": "智能代理，可自動使用工具完成任務（ReAct 模式）" },
-    "aiChain": { "label": "AI 處理鏈", "description": "RAG、Map-Reduce、摘要等 AI 處理流程" },
-    "aiMemory": { "label": "AI 記憶", "description": "管理對話記憶，支援儲存、檢索和摘要" },
-    "aiEmbedding": { "label": "AI 嵌入", "description": "將文本轉換為向量嵌入" },
-    "aiVectorSearch": { "label": "向量搜尋", "description": "向量相似度搜尋，用於語意檢索" },
-    "aiRag": { "label": "RAG 問答", "description": "基於檢索增強生成的文檔問答系統" },
-    "aiConversation": { "label": "對話鏈", "description": "帶記憶的多輪對話處理鏈" },
-    "aiRouter": { "label": "AI 路由", "description": "根據輸入內容智能路由到不同處理分支" },
-    "aiSequence": { "label": "順序鏈", "description": "依序執行多個 AI 處理步驟" },
-    "aiVectorStore": { "label": "向量存儲", "description": "管理向量數據庫的索引和存儲" },
-    "aiDocLoader": { "label": "文檔載入", "description": "載入 PDF、文字、網頁等文檔" },
-    "aiTextSplitter": { "label": "文本分割", "description": "將長文檔分割成較小的區塊" },
-    "aiSummarize": { "label": "AI 摘要", "description": "自動生成文檔或對話摘要" },
-    "aiClassify": { "label": "AI 分類", "description": "使用 AI 自動分類內容" },
-    "openai": { "label": "OpenAI", "description": "直接呼叫 OpenAI API（GPT-4、GPT-3.5）" },
-    "claude": { "label": "Claude", "description": "直接呼叫 Anthropic Claude API" },
-    "gemini": { "label": "Google Gemini", "description": "直接呼叫 Google Gemini API" },
-    "condition": { "label": "條件判斷", "description": "根據條件分支執行", "true": "為真", "false": "為假" },
-    "switch": { "label": "多路分支", "description": "多條件路由" },
-    "merge": { "label": "合併", "description": "合併多個數據流" },
-    "loop": { "label": "迴圈", "description": "遍歷數據項目" },
-    "filter": { "label": "過濾", "description": "過濾數據項目" },
-    "splitOut": { "label": "拆分", "description": "將數組拆分為單獨項目" },
-    "subWorkflow": { "label": "子工作流", "description": "執行另一個工作流" },
-    "stopAndError": { "label": "停止並報錯", "description": "停止執行並拋出錯誤" },
-    "wait": { "label": "等待", "description": "暫停執行指定時間" },
-    "noOp": { "label": "無操作", "description": "佔位符，不做任何操作" },
-    "setFields": { "label": "設置欄位", "description": "設置或修改數據欄位" },
-    "renameKeys": { "label": "重命名鍵", "description": "重命名 JSON 鍵名" },
-    "sort": { "label": "排序", "description": "對數據進行排序" },
-    "aggregate": { "label": "聚合", "description": "聚合多個項目為一個" },
-    "removeDuplicates": { "label": "去重", "description": "移除重複項目" },
-    "compareDatasets": { "label": "比較數據集", "description": "比較兩組數據的差異" },
-    "code": { "label": "代碼", "description": "執行自定義 JavaScript/Python 代碼" },
-    "aiTransform": { "label": "AI 資料轉換", "description": "使用自然語言描述資料轉換邏輯，AI 自動生成並執行程式碼" },
-    "httpRequest": { "label": "HTTP 請求", "description": "發送 HTTP/REST API 請求" },
-    "sendEmail": { "label": "發送郵件", "description": "通過 SMTP 發送郵件" },
-    "graphql": { "label": "GraphQL", "description": "執行 GraphQL 查詢" },
-    "ssh": { "label": "SSH 命令", "description": "透過 SSH 執行遠端命令" },
-    "ftp": { "label": "FTP", "description": "檔案傳輸操作" },
-    "agent": { "label": "Agent 執行", "description": "在遠端 Agent 上執行命令" },
-    "email": { "label": "郵件管理", "description": "郵件發送、讀取和管理" },
-    "externalService": { "label": "外部服務", "description": "透過 OpenAPI 呼叫已註冊的外部服務" },
-    "json": { "label": "JSON 操作", "description": "JSON 解析、序列化、查詢和轉換" },
-    "text": { "label": "文字處理", "description": "文字分割、替換、大小寫轉換等處理" },
-    "regex": { "label": "正規表達式", "description": "正規表達式匹配、提取和替換" },
-    "database": { "label": "資料庫", "description": "支援 PostgreSQL、MySQL、SQLite、SQL Server、Oracle 等" },
-    "postgres": { "label": "PostgreSQL", "description": "PostgreSQL 資料庫操作" },
-    "mysql": { "label": "MySQL", "description": "MySQL 資料庫操作" },
-    "mongodb": { "label": "MongoDB", "description": "MongoDB 文檔查詢、聚合和集合管理" },
-    "redis": { "label": "Redis", "description": "Redis 鍵值、列表、雜湊、集合操作" },
-    "elasticsearch": { "label": "Elasticsearch", "description": "Elasticsearch 全文搜尋和索引管理" },
-    "telegram": { "label": "Telegram", "description": "發送 Telegram 訊息、貼圖和檔案" },
-    "discord": { "label": "Discord", "description": "發送 Discord 訊息和嵌入" },
-    "slack": { "label": "Slack", "description": "發送 Slack 訊息和上傳檔案" },
-    "whatsapp": { "label": "WhatsApp", "description": "WhatsApp Business API 整合" },
-    "line": { "label": "LINE", "description": "LINE Messaging API 整合" },
-    "facebook": { "label": "Facebook", "description": "Facebook 頁面管理和內容發佈" },
-    "instagram": { "label": "Instagram", "description": "Instagram 內容發佈和帳號管理" },
-    "threads": { "label": "Threads", "description": "Threads 內容發佈和互動" },
-    "gmail": { "label": "Gmail", "description": "Gmail 郵件搜尋、讀取和發送" },
-    "googleSheets": { "label": "Google Sheets", "description": "讀寫和追加 Google 試算表" },
-    "googleDrive": { "label": "Google Drive", "description": "Google Drive 檔案管理" },
-    "googleCalendar": { "label": "Google Calendar", "description": "管理 Google 日曆事件" },
-    "bigQuery": { "label": "BigQuery", "description": "Google BigQuery SQL 查詢" },
-    "googleCloudStorage": { "label": "Cloud Storage", "description": "Google Cloud Storage 物件管理" },
-    "googlePubSub": { "label": "Pub/Sub", "description": "Google Cloud Pub/Sub 訊息發佈與訂閱" },
-    "browser": { "label": "瀏覽器自動化", "description": "透過 Chrome DevTools Protocol 自動化瀏覽器操作" },
-    "datetime": { "label": "日期時間", "description": "日期時間格式化和計算" },
-    "crypto": { "label": "加密", "description": "加密、解密、雜湊運算" },
-    "jwt": { "label": "JWT", "description": "JSON Web Token 處理" },
-    "html": { "label": "HTML 處理", "description": "HTML 解析和操作" },
-    "xml": { "label": "XML 處理", "description": "XML 解析和轉換" },
-    "markdown": { "label": "Markdown", "description": "Markdown 轉換" },
-    "readFile": { "label": "讀取檔案", "description": "讀取本地或遠端檔案" },
-    "writeFile": { "label": "寫入檔案", "description": "寫入檔案到磁碟" },
-    "convertFile": { "label": "轉換檔案", "description": "將數據轉換為檔案格式" },
-    "compression": { "label": "壓縮/解壓", "description": "壓縮或解壓檔案" },
-    "form": { "label": "表單", "description": "收集用戶輸入" },
-    "approval": { "label": "等待審批", "description": "暫停流程等待審批", "approved": "已核准", "rejected": "已駁回" },
-    "action": { "label": "自定義動作", "description": "執行自定義動作" },
-    "output": { "label": "輸出結果", "description": "輸出流程執行結果" },
-    "respondWebhook": { "label": "回應 Webhook", "description": "回應 HTTP 請求" },
-    "retry": { "label": "重試", "description": "失敗時自動重試，支援指數退避策略" },
-    "rateLimiter": { "label": "限流器", "description": "控制流程通過速率，防止超載" },
-    "itemLists": { "label": "列表操作", "description": "進階列表操作：連接、分塊、扁平化、分組等" },
-    "spreadsheet": { "label": "CSV / 表格", "description": "解析和生成 CSV，JSON 與表格格式互轉" },
-    "base64": { "label": "Base64", "description": "Base64 編碼和解碼" },
-    "urlParser": { "label": "URL 解析", "description": "解析、建構和操作 URL" },
-    "executeCommand": { "label": "執行命令", "description": "執行系統命令並取得輸出" }
+    "trigger": {
+      "label": "手動觸發",
+      "description": "手動啟動工作流程"
+    },
+    "scheduleTrigger": {
+      "label": "排程觸發",
+      "description": "定時自動執行"
+    },
+    "webhookTrigger": {
+      "label": "Webhook 觸發",
+      "description": "接收 HTTP 請求觸發"
+    },
+    "formTrigger": {
+      "label": "表單觸發",
+      "description": "表單提交觸發"
+    },
+    "emailTrigger": {
+      "label": "郵件觸發",
+      "description": "收到郵件時觸發"
+    },
+    "errorTrigger": {
+      "label": "錯誤觸發",
+      "description": "其他流程發生錯誤時觸發"
+    },
+    "aiChat": {
+      "label": "AI 對話",
+      "description": "與 AI 模型對話，支援 OpenAI、Claude、Gemini、Ollama"
+    },
+    "aiAgent": {
+      "label": "AI 代理",
+      "description": "智能代理，可自動使用工具完成任務（ReAct 模式）"
+    },
+    "aiChain": {
+      "label": "AI 處理鏈",
+      "description": "RAG、Map-Reduce、摘要等 AI 處理流程"
+    },
+    "aiMemory": {
+      "label": "AI 記憶",
+      "description": "管理對話記憶，支援儲存、檢索和摘要"
+    },
+    "aiEmbedding": {
+      "label": "AI 嵌入",
+      "description": "將文本轉換為向量嵌入"
+    },
+    "aiVectorSearch": {
+      "label": "向量搜尋",
+      "description": "向量相似度搜尋，用於語意檢索"
+    },
+    "aiRag": {
+      "label": "RAG 問答",
+      "description": "基於檢索增強生成的文檔問答系統"
+    },
+    "aiConversation": {
+      "label": "對話鏈",
+      "description": "帶記憶的多輪對話處理鏈"
+    },
+    "aiRouter": {
+      "label": "AI 路由",
+      "description": "根據輸入內容智能路由到不同處理分支"
+    },
+    "aiSequence": {
+      "label": "順序鏈",
+      "description": "依序執行多個 AI 處理步驟"
+    },
+    "aiVectorStore": {
+      "label": "向量存儲",
+      "description": "管理向量數據庫的索引和存儲"
+    },
+    "aiDocLoader": {
+      "label": "文檔載入",
+      "description": "載入 PDF、文字、網頁等文檔"
+    },
+    "aiTextSplitter": {
+      "label": "文本分割",
+      "description": "將長文檔分割成較小的區塊"
+    },
+    "aiSummarize": {
+      "label": "AI 摘要",
+      "description": "自動生成文檔或對話摘要"
+    },
+    "aiClassify": {
+      "label": "AI 分類",
+      "description": "使用 AI 自動分類內容"
+    },
+    "openai": {
+      "label": "OpenAI",
+      "description": "直接呼叫 OpenAI API（GPT-4、GPT-3.5）"
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "直接呼叫 Anthropic Claude API"
+    },
+    "gemini": {
+      "label": "Google Gemini",
+      "description": "直接呼叫 Google Gemini API"
+    },
+    "condition": {
+      "label": "條件判斷",
+      "description": "根據條件分支執行",
+      "true": "為真",
+      "false": "為假"
+    },
+    "switch": {
+      "label": "多路分支",
+      "description": "多條件路由"
+    },
+    "merge": {
+      "label": "合併",
+      "description": "合併多個數據流"
+    },
+    "loop": {
+      "label": "迴圈",
+      "description": "遍歷數據項目"
+    },
+    "filter": {
+      "label": "過濾",
+      "description": "過濾數據項目"
+    },
+    "splitOut": {
+      "label": "拆分",
+      "description": "將數組拆分為單獨項目"
+    },
+    "subWorkflow": {
+      "label": "子工作流",
+      "description": "執行另一個工作流"
+    },
+    "stopAndError": {
+      "label": "停止並報錯",
+      "description": "停止執行並拋出錯誤"
+    },
+    "wait": {
+      "label": "等待",
+      "description": "暫停執行指定時間"
+    },
+    "noOp": {
+      "label": "無操作",
+      "description": "佔位符，不做任何操作"
+    },
+    "setFields": {
+      "label": "設置欄位",
+      "description": "設置或修改數據欄位"
+    },
+    "renameKeys": {
+      "label": "重命名鍵",
+      "description": "重命名 JSON 鍵名"
+    },
+    "sort": {
+      "label": "排序",
+      "description": "對數據進行排序"
+    },
+    "aggregate": {
+      "label": "聚合",
+      "description": "聚合多個項目為一個"
+    },
+    "removeDuplicates": {
+      "label": "去重",
+      "description": "移除重複項目"
+    },
+    "compareDatasets": {
+      "label": "比較數據集",
+      "description": "比較兩組數據的差異"
+    },
+    "code": {
+      "label": "代碼",
+      "description": "執行自定義 JavaScript/Python 代碼"
+    },
+    "aiTransform": {
+      "label": "AI 資料轉換",
+      "description": "使用自然語言描述資料轉換邏輯，AI 自動生成並執行程式碼"
+    },
+    "httpRequest": {
+      "label": "HTTP 請求",
+      "description": "發送 HTTP/REST API 請求"
+    },
+    "sendEmail": {
+      "label": "發送郵件",
+      "description": "通過 SMTP 發送郵件"
+    },
+    "graphql": {
+      "label": "GraphQL",
+      "description": "執行 GraphQL 查詢"
+    },
+    "ssh": {
+      "label": "SSH 命令",
+      "description": "透過 SSH 執行遠端命令"
+    },
+    "ftp": {
+      "label": "FTP",
+      "description": "檔案傳輸操作"
+    },
+    "agent": {
+      "label": "Agent 執行",
+      "description": "在遠端 Agent 上執行命令"
+    },
+    "email": {
+      "label": "郵件管理",
+      "description": "郵件發送、讀取和管理"
+    },
+    "externalService": {
+      "label": "外部服務",
+      "description": "透過 OpenAPI 呼叫已註冊的外部服務"
+    },
+    "json": {
+      "label": "JSON 操作",
+      "description": "JSON 解析、序列化、查詢和轉換"
+    },
+    "text": {
+      "label": "文字處理",
+      "description": "文字分割、替換、大小寫轉換等處理"
+    },
+    "regex": {
+      "label": "正規表達式",
+      "description": "正規表達式匹配、提取和替換"
+    },
+    "database": {
+      "label": "資料庫",
+      "description": "支援 PostgreSQL、MySQL、SQLite、SQL Server、Oracle 等"
+    },
+    "postgres": {
+      "label": "PostgreSQL",
+      "description": "PostgreSQL 資料庫操作"
+    },
+    "mysql": {
+      "label": "MySQL",
+      "description": "MySQL 資料庫操作"
+    },
+    "mongodb": {
+      "label": "MongoDB",
+      "description": "MongoDB 文檔查詢、聚合和集合管理"
+    },
+    "redis": {
+      "label": "Redis",
+      "description": "Redis 鍵值、列表、雜湊、集合操作"
+    },
+    "elasticsearch": {
+      "label": "Elasticsearch",
+      "description": "Elasticsearch 全文搜尋和索引管理"
+    },
+    "telegram": {
+      "label": "Telegram",
+      "description": "發送 Telegram 訊息、貼圖和檔案"
+    },
+    "discord": {
+      "label": "Discord",
+      "description": "發送 Discord 訊息和嵌入"
+    },
+    "slack": {
+      "label": "Slack",
+      "description": "發送 Slack 訊息和上傳檔案"
+    },
+    "whatsapp": {
+      "label": "WhatsApp",
+      "description": "WhatsApp Business API 整合"
+    },
+    "line": {
+      "label": "LINE",
+      "description": "LINE Messaging API 整合"
+    },
+    "facebook": {
+      "label": "Facebook",
+      "description": "Facebook 頁面管理和內容發佈"
+    },
+    "instagram": {
+      "label": "Instagram",
+      "description": "Instagram 內容發佈和帳號管理"
+    },
+    "threads": {
+      "label": "Threads",
+      "description": "Threads 內容發佈和互動"
+    },
+    "gmail": {
+      "label": "Gmail",
+      "description": "Gmail 郵件搜尋、讀取和發送"
+    },
+    "googleSheets": {
+      "label": "Google Sheets",
+      "description": "讀寫和追加 Google 試算表"
+    },
+    "googleDrive": {
+      "label": "Google Drive",
+      "description": "Google Drive 檔案管理"
+    },
+    "googleCalendar": {
+      "label": "Google Calendar",
+      "description": "管理 Google 日曆事件"
+    },
+    "bigQuery": {
+      "label": "BigQuery",
+      "description": "Google BigQuery SQL 查詢"
+    },
+    "googleCloudStorage": {
+      "label": "Cloud Storage",
+      "description": "Google Cloud Storage 物件管理"
+    },
+    "googlePubSub": {
+      "label": "Pub/Sub",
+      "description": "Google Cloud Pub/Sub 訊息發佈與訂閱"
+    },
+    "browser": {
+      "label": "瀏覽器自動化",
+      "description": "透過 Chrome DevTools Protocol 自動化瀏覽器操作"
+    },
+    "datetime": {
+      "label": "日期時間",
+      "description": "日期時間格式化和計算"
+    },
+    "crypto": {
+      "label": "加密",
+      "description": "加密、解密、雜湊運算"
+    },
+    "jwt": {
+      "label": "JWT",
+      "description": "JSON Web Token 處理"
+    },
+    "html": {
+      "label": "HTML 處理",
+      "description": "HTML 解析和操作"
+    },
+    "xml": {
+      "label": "XML 處理",
+      "description": "XML 解析和轉換"
+    },
+    "markdown": {
+      "label": "Markdown",
+      "description": "Markdown 轉換"
+    },
+    "readFile": {
+      "label": "讀取檔案",
+      "description": "讀取本地或遠端檔案"
+    },
+    "writeFile": {
+      "label": "寫入檔案",
+      "description": "寫入檔案到磁碟"
+    },
+    "convertFile": {
+      "label": "轉換檔案",
+      "description": "將數據轉換為檔案格式"
+    },
+    "compression": {
+      "label": "壓縮/解壓",
+      "description": "壓縮或解壓檔案"
+    },
+    "form": {
+      "label": "表單",
+      "description": "收集用戶輸入"
+    },
+    "approval": {
+      "label": "等待審批",
+      "description": "暫停流程等待審批",
+      "approved": "已核准",
+      "rejected": "已駁回"
+    },
+    "action": {
+      "label": "自定義動作",
+      "description": "執行自定義動作"
+    },
+    "output": {
+      "label": "輸出結果",
+      "description": "輸出流程執行結果"
+    },
+    "respondWebhook": {
+      "label": "回應 Webhook",
+      "description": "回應 HTTP 請求"
+    },
+    "retry": {
+      "label": "重試",
+      "description": "失敗時自動重試，支援指數退避策略"
+    },
+    "rateLimiter": {
+      "label": "限流器",
+      "description": "控制流程通過速率，防止超載"
+    },
+    "itemLists": {
+      "label": "列表操作",
+      "description": "進階列表操作：連接、分塊、扁平化、分組等"
+    },
+    "spreadsheet": {
+      "label": "CSV / 表格",
+      "description": "解析和生成 CSV，JSON 與表格格式互轉"
+    },
+    "base64": {
+      "label": "Base64",
+      "description": "Base64 編碼和解碼"
+    },
+    "urlParser": {
+      "label": "URL 解析",
+      "description": "解析、建構和操作 URL"
+    },
+    "executeCommand": {
+      "label": "執行命令",
+      "description": "執行系統命令並取得輸出"
+    },
+    "pinnedData": {
+      "label": "固定資料",
+      "description": "使用固定資料作為節點輸出"
+    }
   },
   "quickActions": {
-    "category": { "create": "建立", "optimize": "優化", "analyze": "分析", "debug": "除錯", "template": "範本" },
-    "createBasicFlow": { "label": "建立基本流程", "description": "從零開始建立一個新的自動化流程", "prompt": "請幫我建立一個新的自動化流程。" },
-    "createScheduleTask": { "label": "建立排程任務", "description": "建立定時執行的自動化任務", "prompt": "請幫我建立一個每天定時執行的排程任務，" },
-    "createWebhookHandler": { "label": "建立 Webhook 處理", "description": "建立接收外部 Webhook 請求的流程", "prompt": "請幫我建立一個 Webhook 接收器，當收到請求時進行處理。" },
-    "createDataSync": { "label": "建立資料同步", "description": "建立資料來源之間的同步流程", "prompt": "請幫我建立一個資料同步流程，從來源讀取資料並寫入目標。" },
-    "createNotification": { "label": "建立通知流程", "description": "建立多管道通知發送流程", "prompt": "請幫我建立一個通知流程，當特定事件發生時發送通知。" },
-    "optimizePerformance": { "label": "優化效能", "description": "分析並優化流程執行效能", "prompt": "請分析這個流程的效能瓶頸，並建議優化方式。" },
-    "addErrorHandling": { "label": "加入錯誤處理", "description": "為流程加入完整的錯誤處理機制", "prompt": "請為這個流程加入完整的錯誤處理，包括重試機制和告警通知。" },
-    "addLogging": { "label": "加入日誌記錄", "description": "為流程加入詳細的日誌記錄", "prompt": "請為這個流程在關鍵步驟加入日誌記錄，便於追蹤和除錯。" },
-    "parallelize": { "label": "並行化處理", "description": "將可並行的步驟改為同時執行", "prompt": "請分析這個流程中可以並行執行的步驟，並建議如何優化。" },
-    "explainFlow": { "label": "解釋流程", "description": "詳細解釋流程的每個步驟", "prompt": "請詳細解釋這個流程的運作方式，包括每個節點的作用和資料流向。" },
-    "findIssues": { "label": "檢查潛在問題", "description": "找出流程中可能的問題", "prompt": "請檢查這個流程中可能存在的問題，包括潛在的錯誤、效能問題或設計問題。" },
-    "suggestImprovements": { "label": "建議改進", "description": "提供流程改進建議", "prompt": "請分析這個流程並提供改進建議，讓它更有效率、更可靠。" },
-    "debugError": { "label": "除錯錯誤", "description": "協助找出並修復流程錯誤", "prompt": "這個流程執行時發生錯誤，請幫我分析可能的原因並提供修復建議。" },
-    "traceData": { "label": "追蹤資料流", "description": "追蹤資料在流程中的傳遞", "prompt": "請幫我追蹤資料在這個流程中的傳遞過程，找出資料可能遺失或轉換的地方。" },
-    "templateMonitor": { "label": "API 監控範本", "description": "建立 API 健康檢查與告警流程", "prompt": "請幫我建立一個 API 監控流程，每 5 分鐘檢查 API 狀態，如果異常則發送告警。" },
-    "templateEtl": { "label": "ETL 處理範本", "description": "建立資料擷取、轉換、載入流程", "prompt": "請幫我建立一個 ETL 流程，從來源擷取資料、進行轉換處理、然後載入目標資料庫。" },
-    "templateAiPipeline": { "label": "AI 處理管線", "description": "建立包含 AI 處理的流程", "prompt": "請幫我建立一個包含 AI 處理的流程，可以自動處理和分析資料。" },
-    "tags": { "new": "新建", "flow": "流程", "schedule": "排程", "timer": "定時", "receive": "接收", "data": "資料", "sync": "同步", "import": "匯入", "notification": "通知", "message": "訊息", "performance": "效能", "optimize": "優化", "speed": "速度", "error": "錯誤", "handling": "處理", "retry": "重試", "log": "日誌", "record": "記錄", "parallel": "並行", "concurrent": "同時", "efficiency": "效率", "explain": "解釋", "description": "說明", "understand": "理解", "issue": "問題", "check": "檢查", "review": "審查", "suggestion": "建議", "improvement": "改進", "debug": "除錯", "fix": "修復", "trace": "追蹤", "direction": "流向", "monitor": "監控", "alert": "告警", "transform": "轉換", "processing": "處理", "analysis": "分析" },
-    "promptTemplates": { "createFlow": "請幫我建立一個{description}的流程", "whenTrigger": "當{trigger}時，執行{action}", "everyInterval": "每{interval}執行一次{task}", "readTransformStore": "從{source}讀取資料，轉換後存入{target}", "monitorAlert": "監控{target}，異常時發送{notification}", "webhookRespond": "接收 Webhook，處理後回傳{response}" }
+    "category": {
+      "create": "建立",
+      "optimize": "優化",
+      "analyze": "分析",
+      "debug": "除錯",
+      "template": "範本"
+    },
+    "createBasicFlow": {
+      "label": "建立基本流程",
+      "description": "從零開始建立一個新的自動化流程",
+      "prompt": "請幫我建立一個新的自動化流程。"
+    },
+    "createScheduleTask": {
+      "label": "建立排程任務",
+      "description": "建立定時執行的自動化任務",
+      "prompt": "請幫我建立一個每天定時執行的排程任務，"
+    },
+    "createWebhookHandler": {
+      "label": "建立 Webhook 處理",
+      "description": "建立接收外部 Webhook 請求的流程",
+      "prompt": "請幫我建立一個 Webhook 接收器，當收到請求時進行處理。"
+    },
+    "createDataSync": {
+      "label": "建立資料同步",
+      "description": "建立資料來源之間的同步流程",
+      "prompt": "請幫我建立一個資料同步流程，從來源讀取資料並寫入目標。"
+    },
+    "createNotification": {
+      "label": "建立通知流程",
+      "description": "建立多管道通知發送流程",
+      "prompt": "請幫我建立一個通知流程，當特定事件發生時發送通知。"
+    },
+    "optimizePerformance": {
+      "label": "優化效能",
+      "description": "分析並優化流程執行效能",
+      "prompt": "請分析這個流程的效能瓶頸，並建議優化方式。"
+    },
+    "addErrorHandling": {
+      "label": "加入錯誤處理",
+      "description": "為流程加入完整的錯誤處理機制",
+      "prompt": "請為這個流程加入完整的錯誤處理，包括重試機制和告警通知。"
+    },
+    "addLogging": {
+      "label": "加入日誌記錄",
+      "description": "為流程加入詳細的日誌記錄",
+      "prompt": "請為這個流程在關鍵步驟加入日誌記錄，便於追蹤和除錯。"
+    },
+    "parallelize": {
+      "label": "並行化處理",
+      "description": "將可並行的步驟改為同時執行",
+      "prompt": "請分析這個流程中可以並行執行的步驟，並建議如何優化。"
+    },
+    "explainFlow": {
+      "label": "解釋流程",
+      "description": "詳細解釋流程的每個步驟",
+      "prompt": "請詳細解釋這個流程的運作方式，包括每個節點的作用和資料流向。"
+    },
+    "findIssues": {
+      "label": "檢查潛在問題",
+      "description": "找出流程中可能的問題",
+      "prompt": "請檢查這個流程中可能存在的問題，包括潛在的錯誤、效能問題或設計問題。"
+    },
+    "suggestImprovements": {
+      "label": "建議改進",
+      "description": "提供流程改進建議",
+      "prompt": "請分析這個流程並提供改進建議，讓它更有效率、更可靠。"
+    },
+    "debugError": {
+      "label": "除錯錯誤",
+      "description": "協助找出並修復流程錯誤",
+      "prompt": "這個流程執行時發生錯誤，請幫我分析可能的原因並提供修復建議。"
+    },
+    "traceData": {
+      "label": "追蹤資料流",
+      "description": "追蹤資料在流程中的傳遞",
+      "prompt": "請幫我追蹤資料在這個流程中的傳遞過程，找出資料可能遺失或轉換的地方。"
+    },
+    "templateMonitor": {
+      "label": "API 監控範本",
+      "description": "建立 API 健康檢查與告警流程",
+      "prompt": "請幫我建立一個 API 監控流程，每 5 分鐘檢查 API 狀態，如果異常則發送告警。"
+    },
+    "templateEtl": {
+      "label": "ETL 處理範本",
+      "description": "建立資料擷取、轉換、載入流程",
+      "prompt": "請幫我建立一個 ETL 流程，從來源擷取資料、進行轉換處理、然後載入目標資料庫。"
+    },
+    "templateAiPipeline": {
+      "label": "AI 處理管線",
+      "description": "建立包含 AI 處理的流程",
+      "prompt": "請幫我建立一個包含 AI 處理的流程，可以自動處理和分析資料。"
+    },
+    "tags": {
+      "new": "新建",
+      "flow": "流程",
+      "schedule": "排程",
+      "timer": "定時",
+      "receive": "接收",
+      "data": "資料",
+      "sync": "同步",
+      "import": "匯入",
+      "notification": "通知",
+      "message": "訊息",
+      "performance": "效能",
+      "optimize": "優化",
+      "speed": "速度",
+      "error": "錯誤",
+      "handling": "處理",
+      "retry": "重試",
+      "log": "日誌",
+      "record": "記錄",
+      "parallel": "並行",
+      "concurrent": "同時",
+      "efficiency": "效率",
+      "explain": "解釋",
+      "description": "說明",
+      "understand": "理解",
+      "issue": "問題",
+      "check": "檢查",
+      "review": "審查",
+      "suggestion": "建議",
+      "improvement": "改進",
+      "debug": "除錯",
+      "fix": "修復",
+      "trace": "追蹤",
+      "direction": "流向",
+      "monitor": "監控",
+      "alert": "告警",
+      "transform": "轉換",
+      "processing": "處理",
+      "analysis": "分析"
+    },
+    "promptTemplates": {
+      "createFlow": "請幫我建立一個{description}的流程",
+      "whenTrigger": "當{trigger}時，執行{action}",
+      "everyInterval": "每{interval}執行一次{task}",
+      "readTransformStore": "從{source}讀取資料，轉換後存入{target}",
+      "monitorAlert": "監控{target}，異常時發送{notification}",
+      "webhookRespond": "接收 Webhook，處理後回傳{response}"
+    }
   },
   "contextSuggestions": {
-    "emptyCanvas": { "createNew": "建立新流程", "createNewPrompt": "請幫我建立一個新的自動化流程", "fromTemplate": "從範本開始", "fromTemplatePrompt": "請推薦適合我需求的流程範本", "importFlow": "匯入現有流程", "importFlowPrompt": "我想匯入一個現有的流程並進行修改", "scheduleTask": "排程任務", "scheduleTaskPrompt": "請幫我建立一個定時執行的排程任務", "webhookHandler": "Webhook 處理", "webhookHandlerPrompt": "請幫我建立一個 Webhook 接收處理流程" },
-    "hasTrigger": { "addLogic": "加入處理邏輯", "addLogicPrompt": "觸發器建立好了，請幫我加入後續的處理邏輯", "addCondition": "加入條件判斷", "addConditionPrompt": "請在觸發後加入條件判斷，根據不同情況執行不同操作", "addTransform": "加入資料轉換", "addTransformPrompt": "請加入資料轉換節點，處理觸發器傳入的資料", "addNotification": "加入通知", "addNotificationPrompt": "請在流程最後加入通知，告知執行結果" },
-    "hasCondition": { "addBranch": "加入分支邏輯", "addBranchPrompt": "請幫我完善條件判斷後的兩個分支處理", "addDefault": "加入預設處理", "addDefaultPrompt": "請加入預設處理，處理不符合任何條件的情況", "mergeBranches": "合併分支結果", "mergeBranchesPrompt": "請幫我在分支結束後合併處理結果" },
-    "complexFlow": { "optimize": "優化流程", "optimizePrompt": "請分析這個流程並提供優化建議", "splitSubflow": "拆分子流程", "splitSubflowPrompt": "這個流程有點複雜，請幫我拆分成多個子流程", "addMonitoring": "加入監控", "addMonitoringPrompt": "請為這個複雜流程加入執行監控和日誌", "checkPerformance": "檢查效能", "checkPerformancePrompt": "請檢查這個流程的效能瓶頸" },
-    "hasHttp": { "addRetry": "加入重試機制", "addRetryPrompt": "請為 HTTP 請求加入自動重試機制", "addTimeout": "加入逾時處理", "addTimeoutPrompt": "請加入 HTTP 請求逾時的處理邏輯", "handleResponse": "處理回應", "handleResponsePrompt": "請幫我加入處理 HTTP 回應的邏輯", "addAuth": "加入認證", "addAuthPrompt": "請為 HTTP 請求加入認證機制" },
-    "hasAi": { "optimizePrompts": "加入提示優化", "optimizePromptsPrompt": "請幫我優化 AI 節點的提示詞", "handleOutput": "處理 AI 輸出", "handleOutputPrompt": "請加入處理 AI 輸出結果的邏輯", "addCache": "加入快取", "addCachePrompt": "請為 AI 呼叫加入快取，避免重複處理", "addFallback": "加入備用方案", "addFallbackPrompt": "請加入 AI 呼叫失敗時的備用處理" },
-    "noErrorHandler": { "addErrorHandling": "加入錯誤處理", "addErrorHandlingPrompt": "請為這個流程加入完整的錯誤處理機制", "addAlert": "加入告警通知", "addAlertPrompt": "請加入錯誤發生時的告警通知", "addRetry": "加入重試邏輯", "addRetryPrompt": "請加入失敗自動重試的機制" }
+    "emptyCanvas": {
+      "createNew": "建立新流程",
+      "createNewPrompt": "請幫我建立一個新的自動化流程",
+      "fromTemplate": "從範本開始",
+      "fromTemplatePrompt": "請推薦適合我需求的流程範本",
+      "importFlow": "匯入現有流程",
+      "importFlowPrompt": "我想匯入一個現有的流程並進行修改",
+      "scheduleTask": "排程任務",
+      "scheduleTaskPrompt": "請幫我建立一個定時執行的排程任務",
+      "webhookHandler": "Webhook 處理",
+      "webhookHandlerPrompt": "請幫我建立一個 Webhook 接收處理流程"
+    },
+    "hasTrigger": {
+      "addLogic": "加入處理邏輯",
+      "addLogicPrompt": "觸發器建立好了，請幫我加入後續的處理邏輯",
+      "addCondition": "加入條件判斷",
+      "addConditionPrompt": "請在觸發後加入條件判斷，根據不同情況執行不同操作",
+      "addTransform": "加入資料轉換",
+      "addTransformPrompt": "請加入資料轉換節點，處理觸發器傳入的資料",
+      "addNotification": "加入通知",
+      "addNotificationPrompt": "請在流程最後加入通知，告知執行結果"
+    },
+    "hasCondition": {
+      "addBranch": "加入分支邏輯",
+      "addBranchPrompt": "請幫我完善條件判斷後的兩個分支處理",
+      "addDefault": "加入預設處理",
+      "addDefaultPrompt": "請加入預設處理，處理不符合任何條件的情況",
+      "mergeBranches": "合併分支結果",
+      "mergeBranchesPrompt": "請幫我在分支結束後合併處理結果"
+    },
+    "complexFlow": {
+      "optimize": "優化流程",
+      "optimizePrompt": "請分析這個流程並提供優化建議",
+      "splitSubflow": "拆分子流程",
+      "splitSubflowPrompt": "這個流程有點複雜，請幫我拆分成多個子流程",
+      "addMonitoring": "加入監控",
+      "addMonitoringPrompt": "請為這個複雜流程加入執行監控和日誌",
+      "checkPerformance": "檢查效能",
+      "checkPerformancePrompt": "請檢查這個流程的效能瓶頸"
+    },
+    "hasHttp": {
+      "addRetry": "加入重試機制",
+      "addRetryPrompt": "請為 HTTP 請求加入自動重試機制",
+      "addTimeout": "加入逾時處理",
+      "addTimeoutPrompt": "請加入 HTTP 請求逾時的處理邏輯",
+      "handleResponse": "處理回應",
+      "handleResponsePrompt": "請幫我加入處理 HTTP 回應的邏輯",
+      "addAuth": "加入認證",
+      "addAuthPrompt": "請為 HTTP 請求加入認證機制"
+    },
+    "hasAi": {
+      "optimizePrompts": "加入提示優化",
+      "optimizePromptsPrompt": "請幫我優化 AI 節點的提示詞",
+      "handleOutput": "處理 AI 輸出",
+      "handleOutputPrompt": "請加入處理 AI 輸出結果的邏輯",
+      "addCache": "加入快取",
+      "addCachePrompt": "請為 AI 呼叫加入快取，避免重複處理",
+      "addFallback": "加入備用方案",
+      "addFallbackPrompt": "請加入 AI 呼叫失敗時的備用處理"
+    },
+    "noErrorHandler": {
+      "addErrorHandling": "加入錯誤處理",
+      "addErrorHandlingPrompt": "請為這個流程加入完整的錯誤處理機制",
+      "addAlert": "加入告警通知",
+      "addAlertPrompt": "請加入錯誤發生時的告警通知",
+      "addRetry": "加入重試邏輯",
+      "addRetryPrompt": "請加入失敗自動重試的機制"
+    }
   },
   "quickSuggestions": {
     "title": "快速建議"

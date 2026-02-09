@@ -115,17 +115,14 @@ public class PluginInstallController {
      * DELETE /api/plugins/install/tasks/{taskId}
      */
     @DeleteMapping("/tasks/{taskId}")
-    public ResponseEntity<Map<String, Object>> cancelTask(
+    public ResponseEntity<Void> cancelTask(
             @PathVariable UUID taskId,
             Authentication authentication) {
 
         UUID userId = getUserId(authentication);
         pluginInstallService.cancelTask(taskId, userId);
 
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Installation task cancelled"
-        ));
+        return ResponseEntity.noContent().build();
     }
 
     private UUID getUserId(Authentication authentication) {

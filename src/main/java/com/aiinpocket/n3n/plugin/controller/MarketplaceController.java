@@ -127,26 +127,16 @@ public class MarketplaceController {
      * Uninstall a plugin.
      */
     @DeleteMapping("/plugins/{id}/uninstall")
-    public ResponseEntity<Map<String, Object>> uninstallPlugin(
+    public ResponseEntity<Void> uninstallPlugin(
             @PathVariable UUID id,
             @AuthenticationPrincipal User user) {
 
         if (user == null) {
-            return ResponseEntity.status(401).body(Map.of(
-                    "success", false,
-                    "message", "Authentication required"
-            ));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        try {
-            Map<String, Object> result = pluginService.uninstallPlugin(id, user.getId());
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Plugin not found or cannot be uninstalled"
-            ));
-        }
+        pluginService.uninstallPlugin(id, user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     /**

@@ -46,13 +46,14 @@
     "complete": "Complete",
     "more": "More",
     "retry": "Retry",
-    "updateFailed": "Update failed",
     "fullscreen": "Fullscreen View",
     "unknown": "Unknown",
     "selectField": "Select {{field}}",
     "invalidUrl": "Please enter a valid URL",
     "operationFailed": "Operation failed",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "deleteSuccess": "Deleted successfully",
+    "help": "Help"
   },
   "error": {
     "title": "Something went wrong",
@@ -169,7 +170,9 @@
     "tokenRefreshFailed": "Token refresh failed",
     "appTitle": "N3N Flow",
     "appSubtitle": "AI-Powered Workflow Automation",
-    "emailPlaceholder": "you@example.com"
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "Invalid email format",
+    "passwordTooShort": "Password must be at least 12 characters"
   },
   "setup": {
     "title": "Welcome to N3N Flow",
@@ -722,7 +725,8 @@
     "viewData": "View Data",
     "viewDataTitle": "Credential Data",
     "viewDataWarning": "This displays decrypted sensitive data. Make sure no one else can see your screen.",
-    "viewDataFailed": "Failed to load credential data"
+    "viewDataFailed": "Failed to load credential data",
+    "addCredential": "Add Credential"
   },
   "component": {
     "title": "Components",
@@ -1902,119 +1906,460 @@
     "viewCredentials": "View Credentials"
   },
   "nodeCategories": {
-    "triggers": { "label": "Triggers", "description": "Trigger conditions to start workflows" },
-    "ai": { "label": "AI", "description": "AI chat, agents, memory and vector search" },
-    "flow": { "label": "Flow Control", "description": "Control flow execution logic" },
-    "transform": { "label": "Data Transform", "description": "Transform and process data" },
-    "communication": { "label": "Communication", "description": "Send emails, notifications, etc." },
-    "database": { "label": "Database", "description": "Database operations and NoSQL access" },
-    "messaging": { "label": "Messaging", "description": "Instant messaging and social platform integration" },
-    "google": { "label": "Google", "description": "Google Workspace and GCP services" },
-    "cloud": { "label": "Cloud", "description": "GCP, AWS and other cloud service integration" },
-    "tools": { "label": "Tools", "description": "Various utility tools" },
-    "files": { "label": "Files", "description": "File read/write and processing" },
-    "social": { "label": "Social Media", "description": "Facebook, Instagram, Threads and other social platform integration" },
-    "interactive": { "label": "Interactive", "description": "Nodes requiring human interaction" },
-    "output": { "label": "Output", "description": "Output results" }
+    "triggers": {
+      "label": "Triggers",
+      "description": "Trigger conditions to start workflows"
+    },
+    "ai": {
+      "label": "AI",
+      "description": "AI chat, agents, memory and vector search"
+    },
+    "flow": {
+      "label": "Flow Control",
+      "description": "Control flow execution logic"
+    },
+    "transform": {
+      "label": "Data Transform",
+      "description": "Transform and process data"
+    },
+    "communication": {
+      "label": "Communication",
+      "description": "Send emails, notifications, etc."
+    },
+    "database": {
+      "label": "Database",
+      "description": "Database operations and NoSQL access"
+    },
+    "messaging": {
+      "label": "Messaging",
+      "description": "Instant messaging and social platform integration"
+    },
+    "google": {
+      "label": "Google",
+      "description": "Google Workspace and GCP services"
+    },
+    "cloud": {
+      "label": "Cloud",
+      "description": "GCP, AWS and other cloud service integration"
+    },
+    "tools": {
+      "label": "Tools",
+      "description": "Various utility tools"
+    },
+    "files": {
+      "label": "Files",
+      "description": "File read/write and processing"
+    },
+    "social": {
+      "label": "Social Media",
+      "description": "Facebook, Instagram, Threads and other social platform integration"
+    },
+    "interactive": {
+      "label": "Interactive",
+      "description": "Nodes requiring human interaction"
+    },
+    "output": {
+      "label": "Output",
+      "description": "Output results"
+    }
   },
   "nodeTypes": {
-    "trigger": { "label": "Manual Trigger", "description": "Manually start a workflow" },
-    "scheduleTrigger": { "label": "Schedule Trigger", "description": "Execute automatically on a schedule" },
-    "webhookTrigger": { "label": "Webhook Trigger", "description": "Triggered by HTTP request" },
-    "formTrigger": { "label": "Form Trigger", "description": "Triggered by form submission" },
-    "emailTrigger": { "label": "Email Trigger (IMAP)", "description": "Triggered when email is received" },
-    "errorTrigger": { "label": "Error Trigger", "description": "Triggered when another flow encounters an error" },
-    "aiChat": { "label": "AI Chat", "description": "Chat with AI models, supports OpenAI, Claude, Gemini, Ollama" },
-    "aiAgent": { "label": "AI Agent", "description": "Intelligent agent that can automatically use tools to complete tasks (ReAct mode)" },
-    "aiChain": { "label": "AI Chain", "description": "RAG, Map-Reduce, summary and other AI processing pipelines" },
-    "aiMemory": { "label": "AI Memory", "description": "Manage conversation memory, supports storage, retrieval and summarization" },
-    "aiEmbedding": { "label": "AI Embedding", "description": "Convert text to vector embeddings" },
-    "aiVectorSearch": { "label": "Vector Search", "description": "Vector similarity search for semantic retrieval" },
-    "aiRag": { "label": "RAG Q&A", "description": "Document Q&A system based on retrieval-augmented generation" },
-    "aiConversation": { "label": "Conversation Chain", "description": "Multi-turn conversation processing chain with memory" },
-    "aiRouter": { "label": "AI Router", "description": "Intelligently route to different processing branches based on input content" },
-    "aiSequence": { "label": "Sequential Chain", "description": "Execute multiple AI processing steps in sequence" },
-    "aiVectorStore": { "label": "Vector Store", "description": "Manage vector database indexing and storage" },
-    "aiDocLoader": { "label": "Document Loader", "description": "Load PDF, text, web page and other documents" },
-    "aiTextSplitter": { "label": "Text Splitter", "description": "Split long documents into smaller chunks" },
-    "aiSummarize": { "label": "AI Summarize", "description": "Automatically generate document or conversation summaries" },
-    "aiClassify": { "label": "AI Classify", "description": "Automatically classify content using AI" },
-    "openai": { "label": "OpenAI", "description": "Directly call OpenAI API (GPT-4, GPT-3.5)" },
-    "claude": { "label": "Claude", "description": "Directly call Anthropic Claude API" },
-    "gemini": { "label": "Google Gemini", "description": "Directly call Google Gemini API" },
-    "condition": { "label": "If", "description": "Branch execution based on conditions", "true": "True", "false": "False" },
-    "switch": { "label": "Switch", "description": "Multi-condition routing" },
-    "merge": { "label": "Merge", "description": "Merge multiple data streams" },
-    "loop": { "label": "Loop Over Items", "description": "Iterate over data items" },
-    "filter": { "label": "Filter", "description": "Filter data items" },
-    "splitOut": { "label": "Split Out", "description": "Split array into individual items" },
-    "subWorkflow": { "label": "Execute Sub-workflow", "description": "Execute another workflow" },
-    "stopAndError": { "label": "Stop And Error", "description": "Stop execution and throw an error" },
-    "wait": { "label": "Wait", "description": "Pause execution for specified time" },
-    "noOp": { "label": "No Operation", "description": "Placeholder, does nothing" },
-    "setFields": { "label": "Edit Fields (Set)", "description": "Set or modify data fields" },
-    "renameKeys": { "label": "Rename Keys", "description": "Rename JSON key names" },
-    "sort": { "label": "Sort", "description": "Sort data" },
-    "aggregate": { "label": "Aggregate", "description": "Aggregate multiple items into one" },
-    "removeDuplicates": { "label": "Remove Duplicates", "description": "Remove duplicate items" },
-    "compareDatasets": { "label": "Compare Datasets", "description": "Compare differences between two datasets" },
-    "code": { "label": "Code", "description": "Execute custom JavaScript/Python code" },
-    "aiTransform": { "label": "AI Transform", "description": "Describe data transformation logic in natural language, AI auto-generates and executes code" },
-    "httpRequest": { "label": "HTTP Request", "description": "Send HTTP/REST API requests" },
-    "sendEmail": { "label": "Send Email", "description": "Send email via SMTP" },
-    "graphql": { "label": "GraphQL", "description": "Execute GraphQL queries" },
-    "ssh": { "label": "SSH", "description": "Execute remote commands via SSH" },
-    "ftp": { "label": "FTP", "description": "File transfer operations" },
-    "agent": { "label": "Agent", "description": "Execute commands on remote Agent" },
-    "email": { "label": "Email", "description": "Email send, read and manage" },
-    "externalService": { "label": "External Service", "description": "Call registered external services via OpenAPI" },
-    "json": { "label": "JSON", "description": "JSON parse, serialize, query and transform" },
-    "text": { "label": "Text", "description": "Text split, replace, case conversion and more" },
-    "regex": { "label": "Regex", "description": "Regular expression match, extract and replace" },
-    "database": { "label": "Database", "description": "Supports PostgreSQL, MySQL, SQLite, SQL Server, Oracle and more" },
-    "postgres": { "label": "PostgreSQL", "description": "PostgreSQL database operations" },
-    "mysql": { "label": "MySQL", "description": "MySQL database operations" },
-    "mongodb": { "label": "MongoDB", "description": "MongoDB document query, aggregation and collection management" },
-    "redis": { "label": "Redis", "description": "Redis key-value, list, hash, set operations" },
-    "elasticsearch": { "label": "Elasticsearch", "description": "Elasticsearch full-text search and index management" },
-    "telegram": { "label": "Telegram", "description": "Send Telegram messages, stickers and files" },
-    "discord": { "label": "Discord", "description": "Send Discord messages and embeds" },
-    "slack": { "label": "Slack", "description": "Send Slack messages and upload files" },
-    "whatsapp": { "label": "WhatsApp", "description": "WhatsApp Business API integration" },
-    "line": { "label": "LINE", "description": "LINE Messaging API integration" },
-    "facebook": { "label": "Facebook", "description": "Facebook page management and content publishing" },
-    "instagram": { "label": "Instagram", "description": "Instagram content publishing and account management" },
-    "threads": { "label": "Threads", "description": "Threads content publishing and interaction" },
-    "gmail": { "label": "Gmail", "description": "Gmail email search, read and send" },
-    "googleSheets": { "label": "Google Sheets", "description": "Read, write and append Google Sheets" },
-    "googleDrive": { "label": "Google Drive", "description": "Google Drive file management" },
-    "googleCalendar": { "label": "Google Calendar", "description": "Manage Google Calendar events" },
-    "bigQuery": { "label": "BigQuery", "description": "Google BigQuery SQL queries" },
-    "googleCloudStorage": { "label": "Google Cloud Storage", "description": "Google Cloud Storage object management" },
-    "googlePubSub": { "label": "Google Cloud Pub/Sub", "description": "Google Cloud Pub/Sub message publish and subscribe" },
-    "browser": { "label": "Browser Automation", "description": "Automate browser operations via Chrome DevTools Protocol" },
-    "datetime": { "label": "Date & Time", "description": "Date/time formatting and calculation" },
-    "crypto": { "label": "Crypto", "description": "Encryption, decryption, hash operations" },
-    "jwt": { "label": "JWT", "description": "JSON Web Token processing" },
-    "html": { "label": "HTML", "description": "HTML parsing and manipulation" },
-    "xml": { "label": "XML", "description": "XML parsing and transformation" },
-    "markdown": { "label": "Markdown", "description": "Markdown conversion" },
-    "readFile": { "label": "Read File", "description": "Read local or remote files" },
-    "writeFile": { "label": "Write File", "description": "Write files to disk" },
-    "convertFile": { "label": "Convert to File", "description": "Convert data to file format" },
-    "compression": { "label": "Compression", "description": "Compress or decompress files" },
-    "form": { "label": "Form", "description": "Collect user input" },
-    "approval": { "label": "Wait for Approval", "description": "Pause flow and wait for approval", "approved": "Approved", "rejected": "Rejected" },
-    "action": { "label": "Action", "description": "Execute custom action" },
-    "output": { "label": "Output", "description": "Output flow execution results" },
-    "respondWebhook": { "label": "Respond to Webhook", "description": "Respond to HTTP request" },
-    "retry": { "label": "Retry", "description": "Auto-retry on failure with exponential backoff support" },
-    "rateLimiter": { "label": "Rate Limiter", "description": "Control flow throughput rate to prevent overload" },
-    "itemLists": { "label": "Item Lists", "description": "Advanced list operations: concatenate, chunk, flatten, group, etc." },
-    "spreadsheet": { "label": "Spreadsheet / CSV", "description": "Parse and generate CSV, convert between JSON and spreadsheet formats" },
-    "base64": { "label": "Base64", "description": "Base64 encode and decode" },
-    "urlParser": { "label": "URL Parser", "description": "Parse, build and manipulate URLs" },
-    "executeCommand": { "label": "Execute Command", "description": "Execute system commands and get output" }
+    "trigger": {
+      "label": "Manual Trigger",
+      "description": "Manually start a workflow"
+    },
+    "scheduleTrigger": {
+      "label": "Schedule Trigger",
+      "description": "Execute automatically on a schedule"
+    },
+    "webhookTrigger": {
+      "label": "Webhook Trigger",
+      "description": "Triggered by HTTP request"
+    },
+    "formTrigger": {
+      "label": "Form Trigger",
+      "description": "Triggered by form submission"
+    },
+    "emailTrigger": {
+      "label": "Email Trigger (IMAP)",
+      "description": "Triggered when email is received"
+    },
+    "errorTrigger": {
+      "label": "Error Trigger",
+      "description": "Triggered when another flow encounters an error"
+    },
+    "aiChat": {
+      "label": "AI Chat",
+      "description": "Chat with AI models, supports OpenAI, Claude, Gemini, Ollama"
+    },
+    "aiAgent": {
+      "label": "AI Agent",
+      "description": "Intelligent agent that can automatically use tools to complete tasks (ReAct mode)"
+    },
+    "aiChain": {
+      "label": "AI Chain",
+      "description": "RAG, Map-Reduce, summary and other AI processing pipelines"
+    },
+    "aiMemory": {
+      "label": "AI Memory",
+      "description": "Manage conversation memory, supports storage, retrieval and summarization"
+    },
+    "aiEmbedding": {
+      "label": "AI Embedding",
+      "description": "Convert text to vector embeddings"
+    },
+    "aiVectorSearch": {
+      "label": "Vector Search",
+      "description": "Vector similarity search for semantic retrieval"
+    },
+    "aiRag": {
+      "label": "RAG Q&A",
+      "description": "Document Q&A system based on retrieval-augmented generation"
+    },
+    "aiConversation": {
+      "label": "Conversation Chain",
+      "description": "Multi-turn conversation processing chain with memory"
+    },
+    "aiRouter": {
+      "label": "AI Router",
+      "description": "Intelligently route to different processing branches based on input content"
+    },
+    "aiSequence": {
+      "label": "Sequential Chain",
+      "description": "Execute multiple AI processing steps in sequence"
+    },
+    "aiVectorStore": {
+      "label": "Vector Store",
+      "description": "Manage vector database indexing and storage"
+    },
+    "aiDocLoader": {
+      "label": "Document Loader",
+      "description": "Load PDF, text, web page and other documents"
+    },
+    "aiTextSplitter": {
+      "label": "Text Splitter",
+      "description": "Split long documents into smaller chunks"
+    },
+    "aiSummarize": {
+      "label": "AI Summarize",
+      "description": "Automatically generate document or conversation summaries"
+    },
+    "aiClassify": {
+      "label": "AI Classify",
+      "description": "Automatically classify content using AI"
+    },
+    "openai": {
+      "label": "OpenAI",
+      "description": "Directly call OpenAI API (GPT-4, GPT-3.5)"
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Directly call Anthropic Claude API"
+    },
+    "gemini": {
+      "label": "Google Gemini",
+      "description": "Directly call Google Gemini API"
+    },
+    "condition": {
+      "label": "If",
+      "description": "Branch execution based on conditions",
+      "true": "True",
+      "false": "False"
+    },
+    "switch": {
+      "label": "Switch",
+      "description": "Multi-condition routing"
+    },
+    "merge": {
+      "label": "Merge",
+      "description": "Merge multiple data streams"
+    },
+    "loop": {
+      "label": "Loop Over Items",
+      "description": "Iterate over data items"
+    },
+    "filter": {
+      "label": "Filter",
+      "description": "Filter data items"
+    },
+    "splitOut": {
+      "label": "Split Out",
+      "description": "Split array into individual items"
+    },
+    "subWorkflow": {
+      "label": "Execute Sub-workflow",
+      "description": "Execute another workflow"
+    },
+    "stopAndError": {
+      "label": "Stop And Error",
+      "description": "Stop execution and throw an error"
+    },
+    "wait": {
+      "label": "Wait",
+      "description": "Pause execution for specified time"
+    },
+    "noOp": {
+      "label": "No Operation",
+      "description": "Placeholder, does nothing"
+    },
+    "setFields": {
+      "label": "Edit Fields (Set)",
+      "description": "Set or modify data fields"
+    },
+    "renameKeys": {
+      "label": "Rename Keys",
+      "description": "Rename JSON key names"
+    },
+    "sort": {
+      "label": "Sort",
+      "description": "Sort data"
+    },
+    "aggregate": {
+      "label": "Aggregate",
+      "description": "Aggregate multiple items into one"
+    },
+    "removeDuplicates": {
+      "label": "Remove Duplicates",
+      "description": "Remove duplicate items"
+    },
+    "compareDatasets": {
+      "label": "Compare Datasets",
+      "description": "Compare differences between two datasets"
+    },
+    "code": {
+      "label": "Code",
+      "description": "Execute custom JavaScript/Python code"
+    },
+    "aiTransform": {
+      "label": "AI Transform",
+      "description": "Describe data transformation logic in natural language, AI auto-generates and executes code"
+    },
+    "httpRequest": {
+      "label": "HTTP Request",
+      "description": "Send HTTP/REST API requests"
+    },
+    "sendEmail": {
+      "label": "Send Email",
+      "description": "Send email via SMTP"
+    },
+    "graphql": {
+      "label": "GraphQL",
+      "description": "Execute GraphQL queries"
+    },
+    "ssh": {
+      "label": "SSH",
+      "description": "Execute remote commands via SSH"
+    },
+    "ftp": {
+      "label": "FTP",
+      "description": "File transfer operations"
+    },
+    "agent": {
+      "label": "Agent",
+      "description": "Execute commands on remote Agent"
+    },
+    "email": {
+      "label": "Email",
+      "description": "Email send, read and manage"
+    },
+    "externalService": {
+      "label": "External Service",
+      "description": "Call registered external services via OpenAPI"
+    },
+    "json": {
+      "label": "JSON",
+      "description": "JSON parse, serialize, query and transform"
+    },
+    "text": {
+      "label": "Text",
+      "description": "Text split, replace, case conversion and more"
+    },
+    "regex": {
+      "label": "Regex",
+      "description": "Regular expression match, extract and replace"
+    },
+    "database": {
+      "label": "Database",
+      "description": "Supports PostgreSQL, MySQL, SQLite, SQL Server, Oracle and more"
+    },
+    "postgres": {
+      "label": "PostgreSQL",
+      "description": "PostgreSQL database operations"
+    },
+    "mysql": {
+      "label": "MySQL",
+      "description": "MySQL database operations"
+    },
+    "mongodb": {
+      "label": "MongoDB",
+      "description": "MongoDB document query, aggregation and collection management"
+    },
+    "redis": {
+      "label": "Redis",
+      "description": "Redis key-value, list, hash, set operations"
+    },
+    "elasticsearch": {
+      "label": "Elasticsearch",
+      "description": "Elasticsearch full-text search and index management"
+    },
+    "telegram": {
+      "label": "Telegram",
+      "description": "Send Telegram messages, stickers and files"
+    },
+    "discord": {
+      "label": "Discord",
+      "description": "Send Discord messages and embeds"
+    },
+    "slack": {
+      "label": "Slack",
+      "description": "Send Slack messages and upload files"
+    },
+    "whatsapp": {
+      "label": "WhatsApp",
+      "description": "WhatsApp Business API integration"
+    },
+    "line": {
+      "label": "LINE",
+      "description": "LINE Messaging API integration"
+    },
+    "facebook": {
+      "label": "Facebook",
+      "description": "Facebook page management and content publishing"
+    },
+    "instagram": {
+      "label": "Instagram",
+      "description": "Instagram content publishing and account management"
+    },
+    "threads": {
+      "label": "Threads",
+      "description": "Threads content publishing and interaction"
+    },
+    "gmail": {
+      "label": "Gmail",
+      "description": "Gmail email search, read and send"
+    },
+    "googleSheets": {
+      "label": "Google Sheets",
+      "description": "Read, write and append Google Sheets"
+    },
+    "googleDrive": {
+      "label": "Google Drive",
+      "description": "Google Drive file management"
+    },
+    "googleCalendar": {
+      "label": "Google Calendar",
+      "description": "Manage Google Calendar events"
+    },
+    "bigQuery": {
+      "label": "BigQuery",
+      "description": "Google BigQuery SQL queries"
+    },
+    "googleCloudStorage": {
+      "label": "Google Cloud Storage",
+      "description": "Google Cloud Storage object management"
+    },
+    "googlePubSub": {
+      "label": "Google Cloud Pub/Sub",
+      "description": "Google Cloud Pub/Sub message publish and subscribe"
+    },
+    "browser": {
+      "label": "Browser Automation",
+      "description": "Automate browser operations via Chrome DevTools Protocol"
+    },
+    "datetime": {
+      "label": "Date & Time",
+      "description": "Date/time formatting and calculation"
+    },
+    "crypto": {
+      "label": "Crypto",
+      "description": "Encryption, decryption, hash operations"
+    },
+    "jwt": {
+      "label": "JWT",
+      "description": "JSON Web Token processing"
+    },
+    "html": {
+      "label": "HTML",
+      "description": "HTML parsing and manipulation"
+    },
+    "xml": {
+      "label": "XML",
+      "description": "XML parsing and transformation"
+    },
+    "markdown": {
+      "label": "Markdown",
+      "description": "Markdown conversion"
+    },
+    "readFile": {
+      "label": "Read File",
+      "description": "Read local or remote files"
+    },
+    "writeFile": {
+      "label": "Write File",
+      "description": "Write files to disk"
+    },
+    "convertFile": {
+      "label": "Convert to File",
+      "description": "Convert data to file format"
+    },
+    "compression": {
+      "label": "Compression",
+      "description": "Compress or decompress files"
+    },
+    "form": {
+      "label": "Form",
+      "description": "Collect user input"
+    },
+    "approval": {
+      "label": "Wait for Approval",
+      "description": "Pause flow and wait for approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "action": {
+      "label": "Action",
+      "description": "Execute custom action"
+    },
+    "output": {
+      "label": "Output",
+      "description": "Output flow execution results"
+    },
+    "respondWebhook": {
+      "label": "Respond to Webhook",
+      "description": "Respond to HTTP request"
+    },
+    "retry": {
+      "label": "Retry",
+      "description": "Auto-retry on failure with exponential backoff support"
+    },
+    "rateLimiter": {
+      "label": "Rate Limiter",
+      "description": "Control flow throughput rate to prevent overload"
+    },
+    "itemLists": {
+      "label": "Item Lists",
+      "description": "Advanced list operations: concatenate, chunk, flatten, group, etc."
+    },
+    "spreadsheet": {
+      "label": "Spreadsheet / CSV",
+      "description": "Parse and generate CSV, convert between JSON and spreadsheet formats"
+    },
+    "base64": {
+      "label": "Base64",
+      "description": "Base64 encode and decode"
+    },
+    "urlParser": {
+      "label": "URL Parser",
+      "description": "Parse, build and manipulate URLs"
+    },
+    "executeCommand": {
+      "label": "Execute Command",
+      "description": "Execute system commands and get output"
+    },
+    "pinnedData": {
+      "label": "Pinned Data",
+      "description": "Use fixed data as node output"
+    }
   },
   "quickActions": {
     "category": {
