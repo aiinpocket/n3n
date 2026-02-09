@@ -212,11 +212,16 @@ public class OAuth2TokenService {
     }
 
     /**
-     * Get client credentials for provider (should be from config in production).
+     * Get client credentials for provider from environment variables.
      */
     private Map<String, String> getClientCredentialsForProvider(String provider) {
-        // In production, these should come from configuration
-        // For now, return null to indicate refresh is not supported without config
-        return null;
+        String clientId = System.getenv(provider.toUpperCase() + "_CLIENT_ID");
+        String clientSecret = System.getenv(provider.toUpperCase() + "_CLIENT_SECRET");
+
+        if (clientId == null || clientSecret == null) {
+            return null;
+        }
+
+        return Map.of("client_id", clientId, "client_secret", clientSecret);
     }
 }
