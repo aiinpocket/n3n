@@ -216,13 +216,19 @@ public class ExecutionApprovalService {
     @Transactional
     public int expireOldApprovals() {
         List<ExecutionApproval> expired = approvalRepository.findExpiredApprovals(Instant.now());
+        if (expired.isEmpty()) {
+            return 0;
+        }
+        Instant now = Instant.now();
         for (ExecutionApproval approval : expired) {
             approval.setStatus("expired");
-            approval.setResolvedAt(Instant.now());
-            approvalRepository.save(approval);
-            notificationService.notifyApprovalResolved(approval.getExecutionId(), approval.getId(), "expired");
-            log.info("Expired approval: id={}", approval.getId());
+            approval.setResolvedAt(now);
         }
+        approvalRepository.saveAll(expired);
+        for (ExecutionApproval approval : expired) {
+            notificationService.notifyApprovalResolved(approval.getExecutionId(), approval.getId(), "expired");
+        }
+        log.info("Expired {} approvals", expired.size());
         return expired.size();
     }
 

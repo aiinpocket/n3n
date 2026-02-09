@@ -54,8 +54,8 @@ public class ExecutionService {
 
     @Transactional(readOnly = true)
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
-        return executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)
-            .map(e -> enrichExecution(e));
+        Page<Execution> page = executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable);
+        return enrichExecutionPage(page);
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +73,7 @@ public class ExecutionService {
         } else {
             page = executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable);
         }
-        return page.map(e -> enrichExecution(e));
+        return enrichExecutionPage(page);
     }
 
     @Transactional(readOnly = true)
@@ -94,8 +94,8 @@ public class ExecutionService {
             .findFirst()
             .orElse(versions.get(0));
 
-        return executionRepository.findByFlowVersionIdOrderByStartedAtDesc(published.getId(), pageable)
-            .map(e -> enrichExecution(e));
+        Page<Execution> page = executionRepository.findByFlowVersionIdOrderByStartedAtDesc(published.getId(), pageable);
+        return enrichExecutionPage(page);
     }
 
     private Execution findExecutionWithOwnerCheck(UUID id, UUID userId) {
@@ -1005,6 +1005,42 @@ public class ExecutionService {
         });
         stateManager.updateExecutionStatus(executionId, "failed");
         notificationService.notifyExecutionFailed(executionId, errorMessage);
+    }
+
+    /**
+     * Batch-enrich a page of executions to avoid N+1 queries.
+     * Loads all FlowVersions and Flows in two bulk queries instead of 2N individual queries.
+     */
+    private Page<ExecutionResponse> enrichExecutionPage(Page<Execution> page) {
+        if (page.isEmpty()) {
+            return page.map(ExecutionResponse::from);
+        }
+
+        // Batch load all flow versions
+        Set<UUID> versionIds = page.getContent().stream()
+            .map(Execution::getFlowVersionId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<UUID, FlowVersion> versionsMap = flowVersionRepository.findAllById(versionIds).stream()
+            .collect(Collectors.toMap(FlowVersion::getId, v -> v));
+
+        // Batch load all flows
+        Set<UUID> flowIds = versionsMap.values().stream()
+            .map(FlowVersion::getFlowId)
+            .collect(Collectors.toSet());
+        Map<UUID, Flow> flowsMap = flowRepository.findByIdInAndIsDeletedFalse(flowIds).stream()
+            .collect(Collectors.toMap(Flow::getId, f -> f));
+
+        return page.map(execution -> {
+            FlowVersion version = versionsMap.get(execution.getFlowVersionId());
+            if (version != null) {
+                Flow flow = flowsMap.get(version.getFlowId());
+                if (flow != null) {
+                    return ExecutionResponse.from(execution, flow.getName(), version.getVersion());
+                }
+            }
+            return ExecutionResponse.from(execution);
+        });
     }
 
     private ExecutionResponse enrichExecution(Execution execution) {

@@ -121,8 +121,8 @@ class ExecutionServiceTest extends BaseServiceTest {
             Page<Execution> page = new PageImpl<>(List.of(execution));
 
             when(executionRepository.findByTriggeredByOrderByStartedAtDesc(userId, pageable)).thenReturn(page);
-            when(flowVersionRepository.findById(versionId)).thenReturn(Optional.of(testVersion));
-            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowVersionRepository.findAllById(any())).thenReturn(List.of(testVersion));
+            when(flowRepository.findByIdInAndIsDeletedFalse(any())).thenReturn(List.of(testFlow));
 
             // When
             Page<ExecutionResponse> result = executionService.listExecutions(userId, pageable);

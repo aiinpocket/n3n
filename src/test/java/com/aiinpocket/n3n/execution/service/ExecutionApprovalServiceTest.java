@@ -563,7 +563,6 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
 
         when(approvalRepository.findExpiredApprovals(any(Instant.class)))
                 .thenReturn(List.of(exp1, exp2));
-        when(approvalRepository.save(any(ExecutionApproval.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // When
         int count = approvalService.expireOldApprovals();
@@ -575,7 +574,7 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
         assertThat(exp2.getStatus()).isEqualTo("expired");
         assertThat(exp2.getResolvedAt()).isNotNull();
 
-        verify(approvalRepository, times(2)).save(any(ExecutionApproval.class));
+        verify(approvalRepository).saveAll(any());
         verify(notificationService).notifyApprovalResolved(eq(execId1), eq(exp1.getId()), eq("expired"));
         verify(notificationService).notifyApprovalResolved(eq(execId2), eq(exp2.getId()), eq("expired"));
     }
