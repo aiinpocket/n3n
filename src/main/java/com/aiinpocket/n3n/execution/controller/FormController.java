@@ -101,9 +101,6 @@ public class FormController {
                     .body(Map.of("error", "This form is not accepting submissions"));
             }
 
-            // Increment submission count
-            formService.incrementSubmissionCount(trigger.getId());
-
             // Trigger the flow with form data
             log.info("Form submitted: token={}, flowId={}, nodeId={}",
                 token, trigger.getFlowId(), trigger.getNodeId());
@@ -122,6 +119,9 @@ public class FormController {
                 trigger.getCreatedBy(),  // Use form creator as user
                 triggerInput
             );
+
+            // Increment submission count only after successful execution start
+            formService.incrementSubmissionCount(trigger.getId());
 
             // Get success message from config
             String successMessage = "Thank you for your submission!";
