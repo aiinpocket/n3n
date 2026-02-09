@@ -136,9 +136,8 @@ public class PluginNodeRegistrar {
 
             userHandlers.put(nodeType, handler);
 
-            // Also register globally if not already registered
-            if (!globalPluginHandlers.containsKey(nodeType)) {
-                globalPluginHandlers.put(nodeType, handler);
+            // Also register globally if not already registered (atomic putIfAbsent)
+            if (globalPluginHandlers.putIfAbsent(nodeType, handler) == null) {
                 nodeHandlerRegistry.register(handler);
             }
 
@@ -245,12 +244,6 @@ public class PluginNodeRegistrar {
             return;
         }
 
-        // Check if already registered
-        if (globalPluginHandlers.containsKey(nodeType)) {
-            log.info("Node type {} already registered, skipping", nodeType);
-            return;
-        }
-
         // Create handler from container info
         DynamicPluginNodeHandler handler = new DynamicPluginNodeHandler(
                 null, // No plugin ID for container-based nodes
@@ -259,7 +252,11 @@ public class PluginNodeRegistrar {
                 extractConfigSchema(nodeInfo)
         );
 
-        globalPluginHandlers.put(nodeType, handler);
+        // Atomic putIfAbsent to avoid race condition
+        if (globalPluginHandlers.putIfAbsent(nodeType, handler) != null) {
+            log.info("Node type {} already registered, skipping", nodeType);
+            return;
+        }
         nodeHandlerRegistry.register(handler);
 
         log.info("Registered dynamic node from container: {} ({})",

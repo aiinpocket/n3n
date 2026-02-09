@@ -20,9 +20,11 @@ import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,7 +74,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
     void runCleanup_noExpiredExecutions_completesWithZeroProcessed() {
         // Given
         setupDefaultProperties();
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             j.setId(UUID.randomUUID());
@@ -91,9 +93,11 @@ class HousekeepingServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void runCleanup_alreadyRunning_returnsNull() {
-        // Given
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(true);
+    void runCleanup_alreadyRunning_returnsNull() throws Exception {
+        // Given - set the AtomicBoolean to true to simulate already running
+        Field cleanupRunningField = HousekeepingService.class.getDeclaredField("cleanupRunning");
+        cleanupRunningField.setAccessible(true);
+        ((AtomicBoolean) cleanupRunningField.get(housekeepingService)).set(true);
 
         // When
         HousekeepingJob result = housekeepingService.runCleanup();
@@ -101,6 +105,9 @@ class HousekeepingServiceTest extends BaseServiceTest {
         // Then
         assertThat(result).isNull();
         verify(executionRepository, never()).findByStatusInAndStartedAtBefore(any(), any(), any());
+
+        // Reset for other tests
+        ((AtomicBoolean) cleanupRunningField.get(housekeepingService)).set(false);
     }
 
     @Test
@@ -110,7 +117,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
 
         Execution expiredExecution = createExpiredExecution();
 
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             if (j.getId() == null) j.setId(UUID.randomUUID());
@@ -143,7 +150,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
 
         Execution expiredExecution = createExpiredExecution();
 
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             if (j.getId() == null) j.setId(UUID.randomUUID());
@@ -174,7 +181,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
         // Given
         setupDefaultProperties();
 
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             if (j.getId() == null) j.setId(UUID.randomUUID());
@@ -201,7 +208,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
         when(properties.isArchiveToHistory()).thenReturn(false);
         when(properties.getHistoryRetentionDays()).thenReturn(0);
 
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             if (j.getId() == null) j.setId(UUID.randomUUID());
@@ -224,7 +231,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
         when(properties.getRetentionDays()).thenReturn(30);
         when(properties.getBatchSize()).thenReturn(100);
         when(properties.isArchiveToHistory()).thenReturn(false);
-        when(jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")).thenReturn(false);
+
         when(jobRepository.save(any(HousekeepingJob.class))).thenAnswer(invocation -> {
             HousekeepingJob j = invocation.getArgument(0);
             if (j.getId() == null) j.setId(UUID.randomUUID());

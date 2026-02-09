@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service for cleaning up old execution records.
@@ -49,6 +50,7 @@ public class HousekeepingService {
     private final NodeExecutionHistoryRepository nodeExecutionHistoryRepository;
     private final HousekeepingJobRepository jobRepository;
     private final UserActivityRepository userActivityRepository;
+    private final AtomicBoolean cleanupRunning = new AtomicBoolean(false);
 
     /**
      * Scheduled cleanup job.
@@ -72,106 +74,110 @@ public class HousekeepingService {
      * Run cleanup manually.
      */
     public HousekeepingJob runCleanup() {
-        // Check if already running
-        if (jobRepository.existsByJobTypeAndStatus("execution_cleanup", "running")) {
+        // Atomic guard to prevent concurrent cleanup runs (TOCTOU safe)
+        if (!cleanupRunning.compareAndSet(false, true)) {
             log.warn("HOUSEKEEPING_SKIP reason=already_running");
             return null;
         }
 
-        // Create job record
-        HousekeepingJob job = HousekeepingJob.builder()
-                .jobType("execution_cleanup")
-                .startedAt(Instant.now())
-                .status("running")
-                .details(Map.of(
-                        "retentionDays", properties.getRetentionDays(),
-                        "archiveToHistory", properties.isArchiveToHistory(),
-                        "batchSize", properties.getBatchSize()
-                ))
-                .build();
-        job = jobRepository.save(job);
-
         try {
-            Instant cutoffDate = Instant.now().minus(properties.getRetentionDays(), ChronoUnit.DAYS);
-            log.info("HOUSEKEEPING_CUTOFF date={}", cutoffDate);
+            // Create job record
+            HousekeepingJob job = HousekeepingJob.builder()
+                    .jobType("execution_cleanup")
+                    .startedAt(Instant.now())
+                    .status("running")
+                    .details(Map.of(
+                            "retentionDays", properties.getRetentionDays(),
+                            "archiveToHistory", properties.isArchiveToHistory(),
+                            "batchSize", properties.getBatchSize()
+                    ))
+                    .build();
+            job = jobRepository.save(job);
 
-            int totalProcessed = 0;
-            int totalArchived = 0;
-            int totalDeleted = 0;
+            try {
+                Instant cutoffDate = Instant.now().minus(properties.getRetentionDays(), ChronoUnit.DAYS);
+                log.info("HOUSEKEEPING_CUTOFF date={}", cutoffDate);
 
-            // Process in batches with safety limit
-            int batchSize = properties.getBatchSize();
-            boolean hasMore = true;
-            int maxIterations = 10000; // Safety limit to prevent infinite loops
-            int iteration = 0;
+                int totalProcessed = 0;
+                int totalArchived = 0;
+                int totalDeleted = 0;
 
-            while (hasMore && iteration < maxIterations) {
-                iteration++;
-                Page<Execution> batch = findExpiredExecutions(cutoffDate, batchSize);
-                List<Execution> executions = batch.getContent();
+                // Process in batches with safety limit
+                int batchSize = properties.getBatchSize();
+                boolean hasMore = true;
+                int maxIterations = 10000; // Safety limit to prevent infinite loops
+                int iteration = 0;
 
-                if (executions.isEmpty()) {
-                    hasMore = false;
-                    continue;
-                }
+                while (hasMore && iteration < maxIterations) {
+                    iteration++;
+                    Page<Execution> batch = findExpiredExecutions(cutoffDate, batchSize);
+                    List<Execution> executions = batch.getContent();
 
-                for (Execution execution : executions) {
-                    try {
-                        if (properties.isArchiveToHistory()) {
-                            archiveExecution(execution);
-                            totalArchived++;
-                        } else {
-                            deleteExecution(execution);
-                            totalDeleted++;
-                        }
-                        totalProcessed++;
-                    } catch (Exception e) {
-                        log.error("HOUSEKEEPING_ERROR executionId={} error={}",
-                                execution.getId(), e.getMessage());
+                    if (executions.isEmpty()) {
+                        hasMore = false;
+                        continue;
                     }
+
+                    for (Execution execution : executions) {
+                        try {
+                            if (properties.isArchiveToHistory()) {
+                                archiveExecution(execution);
+                                totalArchived++;
+                            } else {
+                                deleteExecution(execution);
+                                totalDeleted++;
+                            }
+                            totalProcessed++;
+                        } catch (Exception e) {
+                            log.error("HOUSEKEEPING_ERROR executionId={} error={}",
+                                    execution.getId(), e.getMessage());
+                        }
+                    }
+
+                    log.info("HOUSEKEEPING_BATCH processed={} archived={} deleted={}",
+                            totalProcessed, totalArchived, totalDeleted);
+
+                    // Since we always query page 0 and delete processed records,
+                    // check if there are still records to process
+                    hasMore = batch.getTotalElements() > executions.size();
                 }
 
-                log.info("HOUSEKEEPING_BATCH processed={} archived={} deleted={}",
+                if (iteration >= maxIterations) {
+                    log.warn("HOUSEKEEPING_MAX_ITERATIONS reached={}", maxIterations);
+                }
+
+                // Also cleanup old history if configured
+                if (properties.getHistoryRetentionDays() > 0) {
+                    int historyDeleted = cleanupOldHistory();
+                    log.info("HOUSEKEEPING_HISTORY deleted={}", historyDeleted);
+                }
+
+                // Cleanup old activity logs
+                if (properties.getActivityRetentionDays() > 0) {
+                    int activityDeleted = cleanupOldActivities();
+                    log.info("HOUSEKEEPING_ACTIVITIES deleted={}", activityDeleted);
+                }
+
+                // Update job
+                job.setRecordsProcessed(totalProcessed);
+                job.setRecordsArchived(totalArchived);
+                job.setRecordsDeleted(totalDeleted);
+                job.complete();
+                jobRepository.save(job);
+
+                log.info("HOUSEKEEPING_COMPLETE processed={} archived={} deleted={}",
                         totalProcessed, totalArchived, totalDeleted);
 
-                // Since we always query page 0 and delete processed records,
-                // check if there are still records to process
-                hasMore = batch.getTotalElements() > executions.size();
+                return job;
+
+            } catch (Exception e) {
+                log.error("HOUSEKEEPING_FAILED error={}", e.getMessage(), e);
+                job.fail("Housekeeping job failed");
+                jobRepository.save(job);
+                throw e;
             }
-
-            if (iteration >= maxIterations) {
-                log.warn("HOUSEKEEPING_MAX_ITERATIONS reached={}", maxIterations);
-            }
-
-            // Also cleanup old history if configured
-            if (properties.getHistoryRetentionDays() > 0) {
-                int historyDeleted = cleanupOldHistory();
-                log.info("HOUSEKEEPING_HISTORY deleted={}", historyDeleted);
-            }
-
-            // Cleanup old activity logs
-            if (properties.getActivityRetentionDays() > 0) {
-                int activityDeleted = cleanupOldActivities();
-                log.info("HOUSEKEEPING_ACTIVITIES deleted={}", activityDeleted);
-            }
-
-            // Update job
-            job.setRecordsProcessed(totalProcessed);
-            job.setRecordsArchived(totalArchived);
-            job.setRecordsDeleted(totalDeleted);
-            job.complete();
-            jobRepository.save(job);
-
-            log.info("HOUSEKEEPING_COMPLETE processed={} archived={} deleted={}",
-                    totalProcessed, totalArchived, totalDeleted);
-
-            return job;
-
-        } catch (Exception e) {
-            log.error("HOUSEKEEPING_FAILED error={}", e.getMessage(), e);
-            job.fail("Housekeeping job failed");
-            jobRepository.save(job);
-            throw e;
+        } finally {
+            cleanupRunning.set(false);
         }
     }
 

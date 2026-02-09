@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -20,7 +19,6 @@ public class InMemoryLogBuffer {
     private static final int MAX_SIZE = 2000;
 
     private final ConcurrentLinkedDeque<LogEntry> entries = new ConcurrentLinkedDeque<>();
-    private final AtomicInteger size = new AtomicInteger(0);
     private final CopyOnWriteArrayList<Consumer<LogEntry>> listeners = new CopyOnWriteArrayList<>();
 
     /**
@@ -29,14 +27,12 @@ public class InMemoryLogBuffer {
      */
     public void add(LogEntry entry) {
         entries.addLast(entry);
-        int currentSize = size.incrementAndGet();
 
         // Trim oldest entries if over max size
-        while (currentSize > MAX_SIZE) {
-            LogEntry removed = entries.pollFirst();
-            if (removed != null) {
-                currentSize = size.decrementAndGet();
-            } else {
+        // ConcurrentLinkedDeque.size() is O(n) but we only call pollFirst which is O(1)
+        // Use a simple over-provision trim: if deque is too large, remove excess
+        while (entries.size() > MAX_SIZE) {
+            if (entries.pollFirst() == null) {
                 break;
             }
         }
@@ -107,7 +103,7 @@ public class InMemoryLogBuffer {
      * Get the current number of entries in the buffer.
      */
     public int getSize() {
-        return size.get();
+        return entries.size();
     }
 
     private boolean matchesFilter(LogEntry entry, String level, String search) {
