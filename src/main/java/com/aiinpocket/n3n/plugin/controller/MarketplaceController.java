@@ -45,7 +45,7 @@ public class MarketplaceController {
             @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String category,
             @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 50) String pricing,
             @RequestParam(required = false, name = "q") @jakarta.validation.constraints.Size(max = 500) String query,
-            @RequestParam(required = false, defaultValue = "popular") @Pattern(regexp = "^(popular|rating|recent|trending)$", message = "sortBy must be one of: popular, rating, recent, trending") String sortBy,
+            @RequestParam(required = false, defaultValue = "popular") @Pattern(regexp = "^(popular|rating|recent|trending|name)$", message = "sortBy must be one of: popular, rating, recent, trending, name") String sortBy,
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false, defaultValue = "20") @Min(1) @Max(100) int pageSize,
             @AuthenticationPrincipal User user) {
