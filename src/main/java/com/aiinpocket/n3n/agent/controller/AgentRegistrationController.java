@@ -589,7 +589,7 @@ public class AgentRegistrationController {
     @PutMapping("/{id}/block")
     public ResponseEntity<?> blockAgent(
             @PathVariable UUID id,
-            @RequestBody(required = false) BlockRequest request,
+            @Valid @RequestBody(required = false) BlockRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {
@@ -699,7 +699,7 @@ public class AgentRegistrationController {
         return "http://localhost:8080";
     }
 
-    public record BlockRequest(String reason) {}
+    public record BlockRequest(@jakarta.validation.constraints.Size(max = 500) String reason) {}
 
     public record RegistrationInfo(
         UUID id,
