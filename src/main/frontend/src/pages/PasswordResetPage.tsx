@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, Steps } from 'antd'
 import { MailOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons'
@@ -13,6 +13,13 @@ export default function PasswordResetPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [currentStep, setCurrentStep] = useState(0)
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current)
+    }
+  }, [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -44,7 +51,7 @@ export default function PasswordResetPage() {
         newPassword: values.newPassword,
       })
       setSuccessMessage(t('auth.resetSuccess'))
-      setTimeout(() => {
+      redirectTimerRef.current = setTimeout(() => {
         navigate('/login')
       }, 2000)
     } catch (err: unknown) {

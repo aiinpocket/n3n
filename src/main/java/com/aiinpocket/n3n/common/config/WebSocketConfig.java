@@ -24,7 +24,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Enable a simple memory-based message broker to carry messages back to the client
-        config.enableSimpleBroker("/topic", "/queue");
+        // Heartbeat: server sends every 25s, expects client heartbeat every 25s
+        // Prevents intermediate proxies/firewalls from closing idle connections
+        config.enableSimpleBroker("/topic", "/queue")
+            .setHeartbeatValue(new long[]{25000, 25000});
         // Set prefix for destinations bound for @MessageMapping methods
         config.setApplicationDestinationPrefixes("/app");
         // Set prefix for user-specific destinations

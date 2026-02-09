@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Modal,
   Steps,
@@ -57,6 +57,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
   const [analysis, setAnalysis] = useState<PublishAnalysisResponse | null>(null)
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set())
   const [applying, setApplying] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const [error, setError] = useState<string | null>(null)
 
   const startAnalysis = useCallback(async () => {
@@ -102,6 +103,13 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
     }
   }, [open, startAnalysis])
 
+  // Cleanup auto-close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
+  }, [])
+
   const toggleSuggestion = (id: string) => {
     setSelectedSuggestions((prev) => {
       const newSet = new Set(prev)
@@ -137,7 +145,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       setStep('complete')
 
       // Auto close after success
-      setTimeout(() => {
+      closeTimerRef.current = setTimeout(() => {
         onClose()
       }, 1500)
     } catch (err) {
@@ -154,7 +162,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
     try {
       await onPublish()
       setStep('complete')
-      setTimeout(() => {
+      closeTimerRef.current = setTimeout(() => {
         onClose()
       }, 1500)
     } catch (err) {
