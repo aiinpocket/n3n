@@ -102,6 +102,7 @@
     "skills": "技能",
     "webhooks": "Webhooks",
     "devices": "設備管理",
+    "gateway": "閘道節點",
     "customTools": "自訂工具",
     "aiAssistant": "AI 助手",
     "aiSettings": "AI 設定",
@@ -1233,7 +1234,20 @@
     "currentConnectionInfo": "目前連線資訊",
     "lastUpdated": "最後更新",
     "webSocketUrl": "WebSocket 連線網址",
-    "httpUrl": "HTTP 連線網址"
+    "httpUrl": "HTTP 連線網址",
+    "nodeName": "節點名稱",
+    "platform": "平台",
+    "capabilities": "功能",
+    "latency": "延遲",
+    "lastActive": "最後活動",
+    "ping": "Ping 測試",
+    "noNodes": "沒有已連線的閘道節點",
+    "availableCapabilities": "可用功能",
+    "invokeSuccess": "指令執行成功",
+    "invokeFailed": "指令執行失敗",
+    "statusConnected": "已連線",
+    "statusDisconnected": "已斷線",
+    "statusIdle": "閒置"
   },
   "agent": {
     "status": {

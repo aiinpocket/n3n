@@ -194,14 +194,17 @@ function getRelativeTime(dateStr: string, locale: string, t: (key: string, opts?
   return date.toLocaleDateString(locale)
 }
 
-const RESOURCE_ROUTES: Record<string, string> = {
-  FLOW: '/flows',
-  EXECUTION: '/executions',
-  CREDENTIAL: '/credentials',
-  WEBHOOK: '/webhooks',
-  SERVICE: '/services',
-  SKILL: '/skills',
-  USER: '/admin/users',
+const getResourceRoute = (resourceType: string, resourceId: string): string | null => {
+  switch (resourceType) {
+    case 'FLOW': return `/flows/${resourceId}/edit`
+    case 'EXECUTION': return `/executions/${resourceId}`
+    case 'SERVICE': return `/services/${resourceId}`
+    case 'CREDENTIAL': return '/credentials'
+    case 'WEBHOOK': return '/webhooks'
+    case 'SKILL': return '/skills'
+    case 'USER': return '/admin/users'
+    default: return null
+  }
 }
 
 export default function ActivityHistoryPage() {
@@ -305,13 +308,14 @@ export default function ActivityHistoryPage() {
       width: 240,
       render: (_: unknown, record: UserActivity) => {
         if (!record.resourceType && !record.resourceName) return <Text type="secondary">-</Text>
-        const route = record.resourceType ? RESOURCE_ROUTES[record.resourceType] : undefined
-        const canNavigate = route && record.resourceId
+        const route = record.resourceType && record.resourceId
+          ? getResourceRoute(record.resourceType, record.resourceId)
+          : null
         return (
           <Space direction="vertical" size={0}>
             {record.resourceName && (
-              canNavigate ? (
-                <a onClick={() => navigate(`${route}/${record.resourceId}`)} style={{ cursor: 'pointer' }}>
+              route ? (
+                <a onClick={() => navigate(route)} style={{ cursor: 'pointer' }}>
                   {record.resourceName}
                 </a>
               ) : (

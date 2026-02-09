@@ -102,6 +102,7 @@
     "skills": "スキル",
     "webhooks": "Webhooks",
     "devices": "デバイス管理",
+    "gateway": "ゲートウェイノード",
     "customTools": "カスタムツール",
     "aiAssistant": "AIアシスタント",
     "aiSettings": "AI設定",
@@ -1233,7 +1234,20 @@
     "currentConnectionInfo": "現在の接続情報",
     "lastUpdated": "最終更新",
     "webSocketUrl": "WebSocket URL",
-    "httpUrl": "HTTP URL"
+    "httpUrl": "HTTP URL",
+    "nodeName": "ノード名",
+    "platform": "プラットフォーム",
+    "capabilities": "機能",
+    "latency": "レイテンシー",
+    "lastActive": "最終アクティブ",
+    "ping": "Ping テスト",
+    "noNodes": "接続されたゲートウェイノードはありません",
+    "availableCapabilities": "利用可能な機能",
+    "invokeSuccess": "コマンド実行成功",
+    "invokeFailed": "コマンド実行失敗",
+    "statusConnected": "接続中",
+    "statusDisconnected": "切断",
+    "statusIdle": "アイドル"
   },
   "agent": {
     "status": {

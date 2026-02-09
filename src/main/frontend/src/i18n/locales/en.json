@@ -102,6 +102,7 @@
     "skills": "Skills",
     "webhooks": "Webhooks",
     "devices": "Devices",
+    "gateway": "Gateway Nodes",
     "customTools": "Custom Tools",
     "aiAssistant": "AI Assistant",
     "aiSettings": "AI Settings",
@@ -1233,7 +1234,20 @@
     "currentConnectionInfo": "Current Connection Info",
     "lastUpdated": "Last Updated",
     "webSocketUrl": "WebSocket URL",
-    "httpUrl": "HTTP URL"
+    "httpUrl": "HTTP URL",
+    "nodeName": "Node Name",
+    "platform": "Platform",
+    "capabilities": "Capabilities",
+    "latency": "Latency",
+    "lastActive": "Last Active",
+    "ping": "Ping",
+    "noNodes": "No connected gateway nodes",
+    "availableCapabilities": "Available Capabilities",
+    "invokeSuccess": "Command executed successfully",
+    "invokeFailed": "Command execution failed",
+    "statusConnected": "Connected",
+    "statusDisconnected": "Disconnected",
+    "statusIdle": "Idle"
   },
   "agent": {
     "status": {
