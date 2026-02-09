@@ -142,7 +142,7 @@ export default function ExecutionOverlay({
         </Space>
       }
       extra={
-        <Button type="text" size="small" onClick={onClose}>
+        <Button type="text" size="small" onClick={onClose} aria-label={t('common.close')}>
           ×
         </Button>
       }

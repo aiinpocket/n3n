@@ -644,7 +644,7 @@ export default function NodeConfigPanel({
       width={520}
       onClose={onClose}
       open={!!node}
-      extra={<Button type="text" icon={<CloseOutlined />} onClick={onClose} />}
+      extra={<Button type="text" icon={<CloseOutlined />} onClick={onClose} aria-label={t('common.close')} />}
       styles={{ body: { paddingBottom: 80 } }}
     >
       {loading ? (

@@ -649,7 +649,7 @@ export default function FlowEditorPage() {
       <Card
         title={
           <Space>
-            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate('/flows')} />
+            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate('/flows')} aria-label={t('common.back')} />
             <span>{currentFlow?.name || t('common.loading')}</span>
             {currentVersion && (
               <Tag color={currentVersion.status === 'published' ? 'green' : 'default'}>

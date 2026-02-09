@@ -304,7 +304,7 @@ export default function ExecutionPage() {
       <Card
         title={
           <Space>
-            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} />
+            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} aria-label={t('common.back')} />
             <span>{t('execution.runFlow')}: {flowName}</span>
           </Space>
         }
@@ -365,7 +365,7 @@ export default function ExecutionPage() {
       <Card
         title={
           <Space>
-            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} />
+            <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => navigate(-1)} aria-label={t('common.back')} />
             <span>{t('execution.detail')}</span>
             <Tag icon={statusIcons[executionData.status]} color={statusColors[executionData.status]}>
               {t(`execution.${executionData.status.toLowerCase()}`, { defaultValue: executionData.status.toUpperCase() })}
