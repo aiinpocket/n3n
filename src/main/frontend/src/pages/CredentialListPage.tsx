@@ -336,7 +336,11 @@ const CredentialListPage: React.FC = () => {
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={t('credential.noCredentials')}
-              />
+              >
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormVisible(true)}>
+                  {t('credential.addCredential')}
+                </Button>
+              </Empty>
             )
           }}
           pagination={{

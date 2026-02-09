@@ -979,6 +979,7 @@
     "waitingFor": "Waiting for {{count}} approver(s)",
     "approvedCount": "{{count}} approved",
     "rejectedCount": "{{count}} rejected",
+    "modeLabel": "Mode",
     "mode": {
       "any": "Any",
       "all": "All",

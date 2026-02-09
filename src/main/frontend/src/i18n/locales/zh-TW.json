@@ -979,6 +979,7 @@
     "waitingFor": "等待 {{count}} 人審批",
     "approvedCount": "{{count}} 人已核准",
     "rejectedCount": "{{count}} 人已拒絕",
+    "modeLabel": "模式",
     "mode": {
       "any": "任一人",
       "all": "全部",

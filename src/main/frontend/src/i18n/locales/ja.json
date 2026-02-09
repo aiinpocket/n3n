@@ -979,6 +979,7 @@
     "waitingFor": "{{count}}人の承認者を待機中",
     "approvedCount": "{{count}}人が承認",
     "rejectedCount": "{{count}}人が却下",
+    "modeLabel": "モード",
     "mode": {
       "any": "いずれか",
       "all": "全員",

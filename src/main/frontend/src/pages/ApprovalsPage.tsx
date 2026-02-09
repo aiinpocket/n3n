@@ -115,7 +115,7 @@ export default function ApprovalsPage() {
       ),
     },
     {
-      title: t('approval.mode.any'),
+      title: t('approval.modeLabel'),
       dataIndex: 'approvalMode',
       key: 'approvalMode',
       width: 100,
@@ -243,7 +243,7 @@ export default function ApprovalsPage() {
         footer={
           selectedApproval?.status === 'pending' ? (
             <Space>
-              <Button onClick={() => { setDetailModalOpen(false); setComment('') }}>
+              <Button onClick={() => { setDetailModalOpen(false); setSelectedApproval(null); setComment('') }}>
                 {t('common.cancel')}
               </Button>
               <Button
