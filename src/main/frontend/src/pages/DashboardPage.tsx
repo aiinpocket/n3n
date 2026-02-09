@@ -66,7 +66,7 @@ export default function DashboardPage() {
       const [statsRes, execRes, activitiesRes] = await Promise.allSettled([
         apiClient.get('/dashboard/stats'),
         apiClient.get('/executions', { params: { size: 5 } }),
-        apiClient.get('/activities', { params: { size: 5 } }),
+        apiClient.get('/activities/my', { params: { size: 5 } }),
       ])
 
       if (statsRes.status === 'fulfilled') {

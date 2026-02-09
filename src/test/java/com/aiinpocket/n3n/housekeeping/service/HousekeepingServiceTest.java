@@ -359,9 +359,8 @@ class HousekeepingServiceTest extends BaseServiceTest {
         // Given
         when(executionRepository.count()).thenReturn(100L);
         when(executionHistoryRepository.count()).thenReturn(500L);
+        when(executionRepository.countByStartedAtBefore(any(Instant.class))).thenReturn(25L);
         when(properties.getRetentionDays()).thenReturn(30);
-        when(properties.isArchiveToHistory()).thenReturn(true);
-        when(properties.getHistoryRetentionDays()).thenReturn(365);
 
         HousekeepingJob lastJob = HousekeepingJob.builder()
                 .id(UUID.randomUUID())
@@ -377,11 +376,11 @@ class HousekeepingServiceTest extends BaseServiceTest {
         Map<String, Object> stats = housekeepingService.getStatistics();
 
         // Then
-        assertThat(stats).containsEntry("executionsCount", 100L);
-        assertThat(stats).containsEntry("executionsHistoryCount", 500L);
+        assertThat(stats).containsEntry("totalExecutions", 100L);
+        assertThat(stats).containsEntry("archivedExecutions", 500L);
+        assertThat(stats).containsEntry("oldExecutions", 25L);
         assertThat(stats).containsEntry("retentionDays", 30);
-        assertThat(stats).containsEntry("archiveToHistory", true);
-        assertThat(stats).containsEntry("lastJobStatus", "completed");
+        assertThat(stats).containsKey("lastCleanupAt");
     }
 
     // ========== Helper Methods ==========

@@ -322,23 +322,25 @@ public class HousekeepingService {
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
 
-        // Current counts
-        stats.put("executionsCount", executionRepository.count());
-        stats.put("executionsHistoryCount", executionHistoryRepository.count());
+        // Current counts (aligned with frontend HousekeepingStats interface)
+        long totalExecutions = executionRepository.count();
+        long archivedExecutions = executionHistoryRepository.count();
+        stats.put("totalExecutions", totalExecutions);
+        stats.put("archivedExecutions", archivedExecutions);
+
+        // Count executions older than retention period
+        Instant cutoff = Instant.now().minus(properties.getRetentionDays(), ChronoUnit.DAYS);
+        long oldExecutions = executionRepository.countByStartedAtBefore(cutoff);
+        stats.put("oldExecutions", oldExecutions);
 
         // Configuration
         stats.put("retentionDays", properties.getRetentionDays());
-        stats.put("archiveToHistory", properties.isArchiveToHistory());
-        stats.put("historyRetentionDays", properties.getHistoryRetentionDays());
-        stats.put("activityRetentionDays", properties.getActivityRetentionDays());
 
-        // Last job
+        // Last cleanup time
         jobRepository.findFirstByJobTypeOrderByStartedAtDesc("execution_cleanup")
-                .ifPresent(job -> {
-                    stats.put("lastJobStatus", job.getStatus());
-                    stats.put("lastJobStartedAt", job.getStartedAt());
-                    stats.put("lastJobRecordsProcessed", job.getRecordsProcessed());
-                });
+                .ifPresent(job -> stats.put("lastCleanupAt", job.getStartedAt()));
+
+        stats.put("nextScheduledCleanup", null);
 
         return stats;
     }

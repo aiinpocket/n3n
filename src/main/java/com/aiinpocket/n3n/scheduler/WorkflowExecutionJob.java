@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.scheduler;
 
+import com.aiinpocket.n3n.scheduler.repository.ScheduleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +23,9 @@ public class WorkflowExecutionJob implements Job {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -55,6 +60,16 @@ public class WorkflowExecutionJob implements Job {
                 triggerData);
 
             log.info("Scheduled execution completed for flow {}: {}", flowId, result);
+
+            // Update lastRunAt on the Schedule entity
+            try {
+                scheduleRepository.findById(UUID.fromString(scheduleId)).ifPresent(schedule -> {
+                    schedule.setLastRunAt(Instant.now());
+                    scheduleRepository.save(schedule);
+                });
+            } catch (Exception updateErr) {
+                log.warn("Failed to update lastRunAt for schedule {}: {}", scheduleId, updateErr.getMessage());
+            }
 
         } catch (Exception e) {
             log.error("Failed to execute scheduled workflow {}: {}", flowId, e.getClass().getSimpleName(), e);

@@ -125,4 +125,9 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
      */
     @Query("SELECT AVG(e.durationMs) FROM Execution e WHERE e.status = 'completed' AND e.durationMs IS NOT NULL AND e.startedAt > :after")
     Double findAverageDurationMsSince(@Param("after") Instant after);
+
+    /**
+     * Count executions started before a given time (for housekeeping stats).
+     */
+    long countByStartedAtBefore(Instant before);
 }
