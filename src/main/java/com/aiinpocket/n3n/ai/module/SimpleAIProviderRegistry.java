@@ -64,17 +64,11 @@ public class SimpleAIProviderRegistry {
      * Get provider by user's configuration ID
      */
     public SimpleAIProvider getProviderByConfigId(UUID configId) {
-        SimpleAIProvider cached = dynamicProviders.get(configId);
-        if (cached != null) {
-            return cached;
-        }
-
-        AiModuleConfig config = configRepository.findById(configId)
-            .orElseThrow(() -> new IllegalArgumentException("Config not found: " + configId));
-
-        SimpleAIProvider provider = createProviderFromConfig(config);
-        dynamicProviders.put(configId, provider);
-        return provider;
+        return dynamicProviders.computeIfAbsent(configId, id -> {
+            AiModuleConfig config = configRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Config not found: " + id));
+            return createProviderFromConfig(config);
+        });
     }
 
     /**

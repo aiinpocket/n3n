@@ -1701,6 +1701,7 @@
     "userCreated": "使用者建立成功",
     "statusUpdated": "使用者狀態已更新",
     "rolesUpdated": "使用者角色已更新",
+    "rolesRequired": "請至少選擇一個角色",
     "passwordReset": "密碼已重設",
     "namePlaceholder": "輸入使用者名稱",
     "emailPlaceholder": "user@example.com",

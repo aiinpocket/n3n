@@ -1701,6 +1701,7 @@
     "userCreated": "ユーザーが正常に作成されました",
     "statusUpdated": "ユーザーステータスが更新されました",
     "rolesUpdated": "ユーザーロールが更新されました",
+    "rolesRequired": "少なくとも1つのロールを選択してください",
     "passwordReset": "パスワードがリセットされました",
     "namePlaceholder": "ユーザー名を入力",
     "emailPlaceholder": "user@example.com",

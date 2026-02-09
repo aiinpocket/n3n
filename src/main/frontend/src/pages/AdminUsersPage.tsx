@@ -40,6 +40,7 @@ export default function AdminUsersPage() {
   const [createForm] = Form.useForm()
   const [rolesForm] = Form.useForm()
   const [createLoading, setCreateLoading] = useState(false)
+  const [rolesLoading, setRolesLoading] = useState(false)
 
   const loadUsers = useCallback(async (p = 0) => {
     setLoading(true)
@@ -84,6 +85,7 @@ export default function AdminUsersPage() {
 
   const handleUpdateRoles = async (values: { roles: string[] }) => {
     if (!selectedUser) return
+    setRolesLoading(true)
     try {
       await apiClient.put(`/admin/users/${selectedUser.id}/roles`, values.roles)
       message.success(t('admin.rolesUpdated'))
@@ -91,6 +93,8 @@ export default function AdminUsersPage() {
       loadUsers(page)
     } catch (error: unknown) {
       message.error(extractApiError(error, t('common.updateFailed')))
+    } finally {
+      setRolesLoading(false)
     }
   }
 
@@ -284,7 +288,9 @@ export default function AdminUsersPage() {
           ]}>
             <Input placeholder={t('admin.namePlaceholder')} />
           </Form.Item>
-          <Form.Item name="password" label={t('admin.password')}>
+          <Form.Item name="password" label={t('admin.password')} rules={[
+            { min: 8, message: t('auth.passwordTooShort') },
+          ]}>
             <Input.Password placeholder={t('admin.passwordPlaceholder')} />
           </Form.Item>
           <Form.Item name="roles" label={t('admin.roles')} initialValue={['USER']}>
@@ -314,7 +320,9 @@ export default function AdminUsersPage() {
         footer={null}
       >
         <Form form={rolesForm} layout="vertical" onFinish={handleUpdateRoles}>
-          <Form.Item name="roles" label={t('admin.roles')}>
+          <Form.Item name="roles" label={t('admin.roles')} rules={[
+            { required: true, message: t('admin.rolesRequired'), type: 'array' },
+          ]}>
             <Select mode="multiple" options={[
               { value: 'USER', label: 'USER' },
               { value: 'ADMIN', label: 'ADMIN' },
@@ -325,7 +333,7 @@ export default function AdminUsersPage() {
               <Button onClick={() => setRolesModalOpen(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={rolesLoading}>
                 {t('common.save')}
               </Button>
             </Space>

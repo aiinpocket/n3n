@@ -334,7 +334,10 @@ const WebhooksPage: React.FC = () => {
           <Form.Item
             name="name"
             label={t('webhook.name')}
-            rules={[{ required: true, message: t('webhook.nameRequired') }]}
+            rules={[
+              { required: true, message: t('webhook.nameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
             <Input placeholder={t('webhook.namePlaceholder')} />
           </Form.Item>

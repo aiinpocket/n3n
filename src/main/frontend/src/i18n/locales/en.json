@@ -1701,6 +1701,7 @@
     "userCreated": "User created successfully",
     "statusUpdated": "User status updated",
     "rolesUpdated": "User roles updated",
+    "rolesRequired": "Please select at least one role",
     "passwordReset": "Password has been reset",
     "namePlaceholder": "Enter user name",
     "emailPlaceholder": "user@example.com",
