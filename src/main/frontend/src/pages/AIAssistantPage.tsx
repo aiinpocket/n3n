@@ -32,6 +32,7 @@ import type {
 import ChatMessage from '../components/ai/ChatMessage'
 import ComponentRecommendation from '../components/ai/ComponentRecommendation'
 import FlowPreview from '../components/ai/FlowPreview'
+import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 
 const { Title, Paragraph } = Typography
@@ -62,8 +63,8 @@ const AIAssistantPage: React.FC = () => {
     try {
       const convs = await agentApi.getConversations(true)
       setConversations(convs)
-    } catch {
-      message.error(t('chat.loadFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('chat.loadFailed')))
     }
   }
 
@@ -76,8 +77,8 @@ const AIAssistantPage: React.FC = () => {
       const detail = await agentApi.getConversation(conv.id)
       setCurrentConversation(detail)
       await fetchConversations()
-    } catch {
-      message.error(t('chat.createFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('chat.createFailed')))
     } finally {
       setLoading(false)
     }
@@ -89,8 +90,8 @@ const AIAssistantPage: React.FC = () => {
     try {
       const detail = await agentApi.getConversation(conv.id)
       setCurrentConversation(detail)
-    } catch {
-      message.error(t('chat.loadFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('chat.loadFailed')))
     } finally {
       setLoading(false)
     }
@@ -146,8 +147,8 @@ const AIAssistantPage: React.FC = () => {
           totalTokens: prev.totalTokens + response.tokenCount,
         }
       })
-    } catch {
-      message.error(t('chat.sendFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('chat.sendFailed')))
       // Remove temp message on error
       setCurrentConversation((prev) => {
         if (!prev) return prev
@@ -168,8 +169,8 @@ const AIAssistantPage: React.FC = () => {
       await agentApi.completeConversation(currentConversation.id, flowId)
       message.success(t('chat.flowCreated'))
       navigate(`/flows/${flowId}/edit`)
-    } catch {
-      message.error(t('chat.flowCreateFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('chat.flowCreateFailed')))
     }
   }
 

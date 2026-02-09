@@ -54,7 +54,10 @@ export default function MonitoringPage() {
       intervalRef.current = setInterval(loadData, 10000) // 10s
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
   }, [autoRefresh, loadData])
 
