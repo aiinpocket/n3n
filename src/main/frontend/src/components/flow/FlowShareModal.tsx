@@ -183,13 +183,15 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
             name="email"
             rules={[
               { required: true, message: t('share.emailRequired') },
-              { type: 'email', message: t('share.emailInvalid') }
+              { type: 'email', message: t('share.emailInvalid') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
             ]}
             style={{ flex: 1, marginRight: 8 }}
           >
             <Input
               prefix={<MailOutlined />}
               placeholder={t('share.emailPlaceholder')}
+              maxLength={255}
             />
           </Form.Item>
 

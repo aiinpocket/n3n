@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.flow.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class FlowShareRequest {
      * 邀請的 Email（尚未註冊的用戶）
      */
     @Email(message = "Invalid email format")
+    @Size(max = 255, message = "Email must not exceed 255 characters")
     private String email;
 
     /**

@@ -45,9 +45,9 @@ public class ExecutionArchivalService {
 
     /**
      * Archive completed executions older than retention period.
-     * Runs daily at 2:00 AM.
+     * Runs daily at 3:00 AM (staggered from housekeeping at 2:00 AM).
      */
-    @Scheduled(cron = "${execution.archival.cron:0 0 2 * * ?}")
+    @Scheduled(cron = "${execution.archival.cron:0 0 3 * * ?}")
     @Transactional
     public void archiveOldExecutions() {
         if (!archivalRunning.compareAndSet(false, true)) {
@@ -153,9 +153,9 @@ public class ExecutionArchivalService {
 
     /**
      * Clean up archives older than 1 year.
-     * Runs monthly on the 1st at 3:00 AM.
+     * Runs monthly on the 1st at 4:00 AM.
      */
-    @Scheduled(cron = "0 0 3 1 * ?")
+    @Scheduled(cron = "0 0 4 1 * ?")
     @Transactional
     public void cleanupOldArchives() {
         try {

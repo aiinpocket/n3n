@@ -197,9 +197,12 @@ const AIConfigFormModal: React.FC<Props> = ({
         <Form.Item
           name="name"
           label={t('ai.configName')}
-          rules={[{ required: true, message: t('ai.configName') }]}
+          rules={[
+            { required: true, message: t('ai.configName') },
+            { max: 255, message: t('common.maxLength', { max: 255 }) },
+          ]}
         >
-          <Input placeholder={t('ai.configNamePlaceholder')} />
+          <Input placeholder={t('ai.configNamePlaceholder')} maxLength={255} />
         </Form.Item>
 
         {requiresApiKey && (

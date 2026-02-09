@@ -92,6 +92,7 @@ export default function LoginPage() {
                 prefix={<UserOutlined />}
                 placeholder={t('auth.email')}
                 size="large"
+                maxLength={255}
               />
             </Form.Item>
 
@@ -103,6 +104,7 @@ export default function LoginPage() {
                 prefix={<LockOutlined />}
                 placeholder={t('auth.password')}
                 size="large"
+                maxLength={128}
               />
             </Form.Item>
 

@@ -88,12 +88,14 @@ export default function RegisterPage() {
               rules={[
                 { required: true, message: t('auth.nameRequired') },
                 { min: 2, message: t('auth.nameRequired') },
+                { max: 100, message: t('common.maxLength', { max: 100 }) },
               ]}
             >
               <Input
                 prefix={<UserOutlined />}
                 placeholder={t('auth.name')}
                 size="large"
+                maxLength={100}
               />
             </Form.Item>
 
@@ -102,12 +104,14 @@ export default function RegisterPage() {
               rules={[
                 { required: true, message: t('auth.emailRequired') },
                 { type: 'email', message: t('auth.emailInvalid') },
+                { max: 255, message: t('common.maxLength', { max: 255 }) },
               ]}
             >
               <Input
                 prefix={<MailOutlined />}
                 placeholder={t('auth.email')}
                 size="large"
+                maxLength={255}
               />
             </Form.Item>
 
@@ -116,6 +120,7 @@ export default function RegisterPage() {
               rules={[
                 { required: true, message: t('auth.passwordRequired') },
                 { min: 8, message: t('auth.passwordMinLength') },
+                { max: 128, message: t('common.maxLength', { max: 128 }) },
                 {
                   validator: (_, value) => {
                     if (!value) return Promise.resolve()
@@ -134,6 +139,7 @@ export default function RegisterPage() {
                 prefix={<LockOutlined />}
                 placeholder={t('auth.password')}
                 size="large"
+                maxLength={128}
               />
             </Form.Item>
 

@@ -228,6 +228,7 @@ export default function AccountSettingsPage() {
             rules={[
               { required: true, message: t('account.newPasswordRequired') },
               { min: 8, message: t('account.passwordMinLength') },
+              { max: 128, message: t('common.maxLength', { max: 128 }) },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve()
@@ -241,7 +242,7 @@ export default function AccountSettingsPage() {
               },
             ]}
           >
-            <Input.Password placeholder={t('account.newPasswordPlaceholder')} />
+            <Input.Password placeholder={t('account.newPasswordPlaceholder')} maxLength={128} />
           </Form.Item>
 
           <Form.Item
