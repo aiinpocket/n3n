@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.plugin.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,6 +12,7 @@ import java.util.Map;
 @Builder
 @EqualsAndHashCode(callSuper = false)
 public class PluginDetailDto {
+    @JsonUnwrapped
     private PluginDto plugin;
     private String readme;
     private String changelog;

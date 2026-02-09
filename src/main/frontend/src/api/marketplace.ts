@@ -34,11 +34,19 @@ export interface MarketplaceCategory {
   count: number
 }
 
+export interface PluginVersion {
+  version: string
+  changelog: string
+  publishedAt: string
+}
+
 export interface PluginDetail extends MarketplacePlugin {
   readme: string
   changelog: string
   configSchema: Record<string, unknown>
   capabilities: string[]
+  nodeDefinitions?: Record<string, unknown>
+  versions?: PluginVersion[]
 }
 
 export interface InstallationResult {

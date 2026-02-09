@@ -8,6 +8,7 @@ export interface Credential {
   ownerId: string
   workspaceId?: string
   visibility: string
+  metadata?: Record<string, unknown>
   createdAt: string
   updatedAt: string
 }
