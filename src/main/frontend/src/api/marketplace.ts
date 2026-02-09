@@ -8,17 +8,19 @@ export interface MarketplacePlugin {
   description: string
   category: string
   author: string
+  authorUrl: string | null
   version: string
   downloads: number
   rating: number
   ratingCount: number
-  icon: string | null
-  screenshots: string[]
+  iconUrl: string | null
   tags: string[]
   pricing: 'free' | 'paid' | 'freemium'
   price: number | null
   isInstalled: boolean
   installedVersion: string | null
+  repositoryUrl: string | null
+  documentationUrl: string | null
   publishedAt: string
   updatedAt: string
 }
@@ -35,12 +37,8 @@ export interface MarketplaceCategory {
 export interface PluginDetail extends MarketplacePlugin {
   readme: string
   changelog: string
-  dependencies: string[]
   configSchema: Record<string, unknown>
   capabilities: string[]
-  supportUrl: string | null
-  documentationUrl: string | null
-  repositoryUrl: string | null
 }
 
 export interface InstallationResult {

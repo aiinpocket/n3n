@@ -46,8 +46,6 @@ export interface NodeExecutionResponse {
   durationMs?: number;
   errorMessage?: string;
   errorStack?: string;
-  inputData: Record<string, unknown> | null;
-  outputData: Record<string, unknown> | null;
 }
 
 export interface Page<T> {

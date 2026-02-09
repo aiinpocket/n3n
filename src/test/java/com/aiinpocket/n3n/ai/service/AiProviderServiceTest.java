@@ -101,7 +101,7 @@ class AiProviderServiceTest extends BaseServiceTest {
             assertThat(result.get(0).getProvider()).isEqualTo("openai");
             assertThat(result.get(0).getName()).isEqualTo("My OpenAI");
             assertThat(result.get(0).getIsDefault()).isTrue();
-            assertThat(result.get(0).getHasApiKey()).isTrue();
+            assertThat(result.get(0).getHasCredential()).isTrue();
             assertThat(result.get(1).getProvider()).isEqualTo("anthropic");
             assertThat(result.get(1).getName()).isEqualTo("My Anthropic");
             assertThat(result.get(1).getIsDefault()).isFalse();

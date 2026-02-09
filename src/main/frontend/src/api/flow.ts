@@ -241,7 +241,7 @@ export interface FlowShare {
   sharedByName?: string
   sharedAt?: string
   acceptedAt?: string
-  createdAt: string
+  pending: boolean
 }
 
 export interface FlowShareRequest {

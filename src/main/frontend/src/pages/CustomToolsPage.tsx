@@ -89,8 +89,8 @@ function ToolCard({
             position: 'relative',
           }}
         >
-          {plugin.icon ? (
-            <Avatar src={plugin.icon} size={56} shape="square" />
+          {plugin.iconUrl ? (
+            <Avatar src={plugin.iconUrl} size={56} shape="square" />
           ) : (
             <Avatar size={56} shape="square" style={{ background: 'rgba(255,255,255,0.2)' }}>
               <ToolOutlined style={{ fontSize: 28 }} />
@@ -215,8 +215,8 @@ function ToolDetailModal({
       footer={null}
       title={
         <Space>
-          {plugin.icon ? (
-            <Avatar src={plugin.icon} size={40} shape="square" />
+          {plugin.iconUrl ? (
+            <Avatar src={plugin.iconUrl} size={40} shape="square" />
           ) : (
             <Avatar size={40} shape="square">
               <ToolOutlined />

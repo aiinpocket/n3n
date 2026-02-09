@@ -263,11 +263,11 @@ export default function ExecutionPage() {
         output: data.output,
       })
     } catch {
-      // Fallback to inline data if the API call fails
+      // Fallback to empty data if the API call fails
       setSelectedNodeData({
         nodeId: node.nodeId,
-        input: node.inputData,
-        output: node.outputData,
+        input: null,
+        output: null,
       })
     } finally {
       setLoadingNodeData(false)
