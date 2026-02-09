@@ -231,6 +231,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           target: e.target,
           sourceHandle: e.sourceHandle || undefined,
           targetHandle: e.targetHandle || undefined,
+          type: e.type,
+          data: e.data,
         })),
         timestamp: Date.now(),
       },
@@ -271,6 +273,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
         target: idMap[e.target],
         sourceHandle: e.sourceHandle,
         targetHandle: e.targetHandle,
+        type: e.type,
+        data: e.data,
       }))
 
     set({

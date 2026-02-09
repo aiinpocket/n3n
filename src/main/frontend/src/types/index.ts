@@ -297,6 +297,8 @@ export interface ClipboardData {
     target: string
     sourceHandle?: string
     targetHandle?: string
+    type?: string
+    data?: Record<string, unknown>
   }>
   timestamp: number
 }

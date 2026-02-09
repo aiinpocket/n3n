@@ -42,6 +42,7 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   Node,
+  Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useFlowEditorStore } from '../stores/flowEditorStore'
@@ -413,6 +414,19 @@ export default function FlowEditorPage() {
       setEdges(newEdges)
     },
     [edges, setEdges]
+  )
+
+  const isValidConnection = useCallback(
+    (connection: Edge | Connection) => {
+      // Prevent self-connections
+      if (connection.source === connection.target) return false
+      // Prevent duplicate edges between same handles
+      return !edges.some(
+        (e) => e.source === connection.source && e.target === connection.target
+          && e.sourceHandle === connection.sourceHandle && e.targetHandle === connection.targetHandle
+      )
+    },
+    [edges]
   )
 
   const onConnect = useCallback(
@@ -868,6 +882,7 @@ export default function FlowEditorPage() {
           onNodesChange={executionMode ? undefined : onNodesChange}
           onEdgesChange={executionMode ? undefined : onEdgesChange}
           onConnect={executionMode ? undefined : onConnect}
+          isValidConnection={isValidConnection}
           onNodeClick={executionMode ? undefined : handleNodeClick}
           onEdgeClick={executionMode ? undefined : handleEdgeClick}
           onPaneClick={executionMode ? undefined : handlePaneClick}
