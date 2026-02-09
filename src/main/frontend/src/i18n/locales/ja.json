@@ -725,6 +725,7 @@
     "selectType": "認証タイプを選択",
     "descriptionPlaceholder": "任意、この認証の用途を説明",
     "visibilityPrivateDesc": "プライベート - 自分のみ表示",
+    "visibilityPublicDesc": "パブリック - すべてのユーザーに表示",
     "visibilityWorkspaceDesc": "ワークスペース - メンバーに表示",
     "visibilitySharedDesc": "共有 - 特定ユーザーと共有可能",
     "securityTip": "セキュリティ情報",

@@ -256,7 +256,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
         >
           <Select>
             <Option value="private">{t('credential.visibilityPrivateDesc')}</Option>
-            <Option value="workspace">{t('credential.visibilityWorkspaceDesc')}</Option>
+            <Option value="public">{t('credential.visibilityPublicDesc')}</Option>
             <Option value="shared">{t('credential.visibilitySharedDesc')}</Option>
           </Select>
         </Form.Item>

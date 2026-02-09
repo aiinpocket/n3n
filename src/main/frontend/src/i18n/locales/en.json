@@ -725,6 +725,7 @@
     "selectType": "Select credential type",
     "descriptionPlaceholder": "Optional, describe the purpose of this credential",
     "visibilityPrivateDesc": "Private - Only visible to you",
+    "visibilityPublicDesc": "Public - Visible to all users",
     "visibilityWorkspaceDesc": "Workspace - Visible to workspace members",
     "visibilitySharedDesc": "Shared - Can be shared with specific users",
     "securityTip": "Security Tip",

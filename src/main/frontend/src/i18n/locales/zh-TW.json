@@ -725,6 +725,7 @@
     "selectType": "選擇認證類型",
     "descriptionPlaceholder": "選填，說明此認證的用途",
     "visibilityPrivateDesc": "私人 - 僅自己可見",
+    "visibilityPublicDesc": "公開 - 所有用戶可見",
     "visibilityWorkspaceDesc": "工作區 - 工作區成員可見",
     "visibilitySharedDesc": "共享 - 可分享給指定用戶",
     "securityTip": "安全提示",
