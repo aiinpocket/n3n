@@ -173,7 +173,7 @@ com.aiinpocket.n3n/
 ├── component/       # Custom component registry
 ├── credential/      # Credential management (AES-256-GCM encryption)
 ├── dashboard/       # User dashboard statistics and metrics
-├── execution/       # Flow execution engine and 90+ node handlers
+├── execution/       # Flow execution engine and 94 node handlers
 ├── flow/            # Flow CRUD & versioning
 ├── gateway/         # Agent Gateway (WebSocket, ECDH encryption)
 ├── housekeeping/    # Execution history archival and cleanup
@@ -219,18 +219,23 @@ Flow execution engine with node handlers.
 - `ExecutionApprovalService` - Approval lifecycle (pending → approved/rejected → auto-resume)
 - `StateManager` - Redis-backed execution state
 - `NodeHandler` - Interface for node type handlers
-- 90+ built-in handlers organized in `execution/handler/handlers/` across categories:
-  - **Core** (42 root-level): Condition, Loop, Switch, Filter, Merge, Sort, Aggregate, HttpRequest, Code, SubWorkflow, Approval, etc.
+- 94 built-in handlers organized in `execution/handler/handlers/` across 16 subdirectories:
+  - **Action** (`action/`): Approval, SubWorkflow, etc.
   - **AI** (`ai/`): OpenAI, Claude, Gemini, Chat, Embedding, RAG, Agent (with 25+ built-in tools), etc.
+  - **Browser** (`browser/`): Browser automation with page/element/network/cookie operations
   - **Data** (`data/`): JSON, XML, Regex, DateTime, Base64, Spreadsheet, Text, URL Parser, JWT, Markdown
   - **Database** (`database/`): Generic database handler with connection management and SQL utilities
-  - **NoSQL** (`nosql/`): MongoDB, Redis, Elasticsearch
+  - **File** (`file/`): Read/Write, Compression, Convert
+  - **Flow Control** (`flowcontrol/`): Condition, Loop, Switch, Filter, Merge, Sort, Aggregate, etc.
+  - **GCP** (`gcp/`): BigQuery, Cloud Storage, Pub/Sub
+  - **Google** (`google/`): Gmail, Calendar, Drive, Sheets
   - **Integrations** (`integrations/`): Slack, Email, Facebook, Instagram, Threads, PostgreSQL, MySQL
   - **Messaging** (`messaging/`): Telegram, Discord, LINE, WhatsApp
-  - **Google** (`google/`): Gmail, Calendar, Drive, Sheets
-  - **GCP** (`gcp/`): BigQuery, Cloud Storage, Pub/Sub
-  - **File** (`file/`): Read/Write, Compression, Convert
-  - **Browser** (`browser/`): Browser automation with page/element/network/cookie operations
+  - **Network** (`network/`): HttpRequest, etc.
+  - **NoSQL** (`nosql/`): MongoDB, Redis, Elasticsearch
+  - **Scripting** (`scripting/`): Code execution handlers
+  - **Transform** (`transform/`): Data transformation handlers
+  - **Trigger** (`trigger/`): Trigger node handlers
 
 #### credential/
 Secure credential storage with AES-256-GCM encryption.
