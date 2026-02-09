@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.credential.service;
 
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
+import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.entity.EncryptionKeyMetadata;
 import com.aiinpocket.n3n.credential.entity.KeyMigrationLog;
@@ -96,7 +97,7 @@ class MasterKeyProviderMigrationTest {
 
         assertThatThrownBy(() ->
                 masterKeyProvider.migrateWithRecoveryKey("valid phrase", testCredentialId, testUserId))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Credential not found");
     }
 
@@ -166,7 +167,7 @@ class MasterKeyProviderMigrationTest {
 
         assertThatThrownBy(() ->
                 masterKeyProvider.emergencyRestore("valid phrase", "password123", testUserId))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found");
     }
 

@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.credential.service;
 
+import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
@@ -79,7 +80,7 @@ public class ConnectionTestService {
 
         // Get credential entity to get the type
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credential not found: " + credentialId));
+                .orElseThrow(() -> new ResourceNotFoundException("Credential not found"));
 
         // Test the connection
         ConnectionTestResult result = testConnection(credential.getType(), data);

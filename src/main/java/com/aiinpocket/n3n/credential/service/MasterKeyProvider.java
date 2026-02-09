@@ -8,6 +8,7 @@ import com.aiinpocket.n3n.credential.entity.EncryptionKeyMetadata;
 import com.aiinpocket.n3n.credential.entity.KeyMigrationLog;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.credential.repository.EncryptionKeyMetadataRepository;
+import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.credential.repository.KeyMigrationLogRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -377,7 +378,7 @@ public class MasterKeyProvider {
         }
 
         Credential credential = credentialRepository.findById(credentialId)
-                .orElseThrow(() -> new IllegalArgumentException("Credential not found: " + credentialId));
+                .orElseThrow(() -> new ResourceNotFoundException("Credential not found"));
 
         // 建立遷移記錄
         KeyMigrationLog migrationLog = KeyMigrationLog.builder()
@@ -440,7 +441,7 @@ public class MasterKeyProvider {
 
         // 驗證永久密碼
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!passwordEncoder.matches(permanentPassword, user.getPasswordHash())) {
             throw new SecurityException("Invalid permanent password");
         }
