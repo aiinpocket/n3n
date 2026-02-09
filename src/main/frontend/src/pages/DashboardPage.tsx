@@ -247,28 +247,28 @@ export default function DashboardPage() {
         {/* Quick Start Cards */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
-            <Card hoverable size="small" onClick={() => navigate('/credentials')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <Card hoverable size="small" onClick={() => navigate('/credentials')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/credentials') }} tabIndex={0} role="button" aria-label={t('dashboard.quickCredentials')} style={{ cursor: 'pointer', textAlign: 'center' }}>
               <KeyOutlined style={{ fontSize: 28, color: 'var(--color-warning)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickCredentials')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickCredentialsDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card hoverable size="small" onClick={() => navigate('/services')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <Card hoverable size="small" onClick={() => navigate('/services')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/services') }} tabIndex={0} role="button" aria-label={t('dashboard.quickServices')} style={{ cursor: 'pointer', textAlign: 'center' }}>
               <ApiOutlined style={{ fontSize: 28, color: 'var(--color-info)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickServices')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickServicesDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card hoverable size="small" onClick={() => navigate('/webhooks')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <Card hoverable size="small" onClick={() => navigate('/webhooks')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/webhooks') }} tabIndex={0} role="button" aria-label={t('dashboard.quickWebhooks')} style={{ cursor: 'pointer', textAlign: 'center' }}>
               <ThunderboltOutlined style={{ fontSize: 28, color: 'var(--color-primary)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickWebhooks')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickWebhooksDesc')}</Text>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card hoverable size="small" onClick={() => navigate('/settings/account')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <Card hoverable size="small" onClick={() => navigate('/settings/account')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/settings/account') }} tabIndex={0} role="button" aria-label={t('dashboard.quickSecurity')} style={{ cursor: 'pointer', textAlign: 'center' }}>
               <SafetyOutlined style={{ fontSize: 28, color: 'var(--color-ai)', marginBottom: 8 }} />
               <div><Text strong style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.quickSecurity')}</Text></div>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('dashboard.quickSecurityDesc')}</Text>

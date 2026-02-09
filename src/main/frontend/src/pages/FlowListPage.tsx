@@ -402,6 +402,7 @@ export default function FlowListPage() {
           <Space>
             <Input.Search
               placeholder={t('flow.searchPlaceholder')}
+              aria-label={t('flow.searchPlaceholder')}
               allowClear
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}

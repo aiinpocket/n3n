@@ -300,6 +300,7 @@ export default function ExecutionListPage() {
         <Space>
           <Input.Search
             placeholder={t('execution.searchPlaceholder')}
+            aria-label={t('execution.searchPlaceholder')}
             allowClear
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}

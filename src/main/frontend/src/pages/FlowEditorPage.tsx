@@ -699,7 +699,7 @@ export default function FlowEditorPage() {
               />
             </Tooltip>
             <Tooltip title={t('editor.nodeSearch.title')}>
-              <Button icon={<SearchOutlined />} onClick={() => setNodeSearchOpen(true)} />
+              <Button icon={<SearchOutlined />} onClick={() => setNodeSearchOpen(true)} aria-label={t('editor.nodeSearch.title')} />
             </Tooltip>
             <Dropdown menu={addNodeMenu} placement="bottomRight">
               <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
