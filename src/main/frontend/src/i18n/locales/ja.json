@@ -32,6 +32,7 @@
     "updatedAt": "更新日時",
     "total": "全{{count}}件",
     "maxLength": "最大{{max}}文字",
+    "maxItems": "最大{{max}}項目",
     "minLength": "最小{{min}}文字",
     "notPublished": "未公開",
     "createSuccess": "作成しました",

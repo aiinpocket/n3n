@@ -32,6 +32,7 @@
     "updatedAt": "Updated At",
     "total": "Total {{count}} items",
     "maxLength": "Maximum {{max}} characters",
+    "maxItems": "Maximum {{max}} items",
     "minLength": "Minimum {{min}} characters",
     "notPublished": "Not Published",
     "createSuccess": "Created successfully",

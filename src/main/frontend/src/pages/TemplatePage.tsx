@@ -572,8 +572,12 @@ export default function TemplatePage() {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="tags" label={t('template.tags')}>
-            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} />
+          <Form.Item
+            name="tags"
+            label={t('template.tags')}
+            rules={[{ type: 'array', max: 20, message: t('common.maxItems', { max: 20 }) }]}
+          >
+            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} maxCount={20} />
           </Form.Item>
         </Form>
       </Modal>
@@ -658,8 +662,12 @@ export default function TemplatePage() {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="tags" label={t('template.tags')}>
-            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} />
+          <Form.Item
+            name="tags"
+            label={t('template.tags')}
+            rules={[{ type: 'array', max: 20, message: t('common.maxItems', { max: 20 }) }]}
+          >
+            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} maxCount={20} />
           </Form.Item>
         </Form>
       </Modal>
