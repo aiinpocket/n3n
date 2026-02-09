@@ -172,7 +172,7 @@ docker compose up -d --build
 - **Webhook Testing** - Test triggers directly from the Webhook management page with instant flow activation confirmation
 - **Plugin Ratings** - Custom tool marketplace with community ratings and reviews
 - **Save as Template** - One-click conversion of existing flow versions into reusable templates
-- **Multi-language Support** - Full English, Traditional Chinese, and Japanese interface (2,050+ translation keys)
+- **Multi-language Support** - Full English, Traditional Chinese, and Japanese interface (2,100+ translation keys)
 - **OpenAPI Documentation** - Built-in Swagger UI with 150+ fully documented API endpoints
 
 ### Error Handling Routes

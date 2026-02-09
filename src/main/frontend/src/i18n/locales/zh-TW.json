@@ -1593,7 +1593,24 @@
     "nodesModified": "節點修改",
     "edges": "連線",
     "noChanges": "無變更",
-    "noNodesToPreview": "無節點可預覽"
+    "noNodesToPreview": "無節點可預覽",
+    "add": "新增",
+    "remove": "移除",
+    "modify": "修改",
+    "move": "移動",
+    "changeSummary": "變更摘要",
+    "addedNodes": "新增 {{count}} 個節點",
+    "removedNodes": "移除 {{count}} 個節點",
+    "modifiedNodes": "修改 {{count}} 個節點",
+    "movedNodes": "移動 {{count}} 個節點",
+    "moreChanges": "還有 {{count}} 項變更...",
+    "desc": {
+      "parallel": "改為並行執行",
+      "merge": "合併到其他節點",
+      "merged": "包含合併後的功能",
+      "removeRedundant": "移除冗餘節點",
+      "reorder": "調整執行順序至第 {{position}} 位"
+    }
   },
   "codeGenerator": {
     "title": "AI 程式碼生成",
@@ -2018,25 +2035,6 @@
     "hoursAgo": "{{count}} 小時前",
     "daysAgo": "{{count}} 天前"
   },
-  "diff": {
-    "add": "新增",
-    "remove": "移除",
-    "modify": "修改",
-    "move": "移動",
-    "changeSummary": "變更摘要",
-    "addedNodes": "新增 {{count}} 個節點",
-    "removedNodes": "移除 {{count}} 個節點",
-    "modifiedNodes": "修改 {{count}} 個節點",
-    "movedNodes": "移動 {{count}} 個節點",
-    "moreChanges": "還有 {{count}} 項變更...",
-    "desc": {
-      "parallel": "改為並行執行",
-      "merge": "合併到其他節點",
-      "merged": "包含合併後的功能",
-      "removeRedundant": "移除冗餘節點",
-      "reorder": "調整執行順序至第 {{position}} 位"
-    }
-  },
   "help": {
     "documentation": "API 文件",
     "keyboardShortcuts": "鍵盤快捷鍵",
@@ -2119,22 +2117,5 @@
       "slack": "Slack",
       "microsoft": "Microsoft"
     }
-  },
-  "diff": {
-    "nodes": "節點",
-    "nodesModified": "節點已修改",
-    "edges": "連線",
-    "noChanges": "沒有變更",
-    "noNodesToPreview": "沒有節點可預覽",
-    "add": "新增",
-    "remove": "移除",
-    "modify": "修改",
-    "move": "移動",
-    "changeSummary": "變更摘要",
-    "addedNodes": "新增 {{count}} 個節點",
-    "removedNodes": "移除 {{count}} 個節點",
-    "modifiedNodes": "修改 {{count}} 個節點",
-    "movedNodes": "移動 {{count}} 個節點",
-    "moreChanges": "還有 {{count}} 項變更"
   }
 }

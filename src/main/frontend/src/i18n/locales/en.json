@@ -1593,7 +1593,24 @@
     "nodesModified": "nodes modified",
     "edges": "edges",
     "noChanges": "No changes",
-    "noNodesToPreview": "No nodes to preview"
+    "noNodesToPreview": "No nodes to preview",
+    "add": "Add",
+    "remove": "Remove",
+    "modify": "Modify",
+    "move": "Move",
+    "changeSummary": "Change Summary",
+    "addedNodes": "Added {{count}} node(s)",
+    "removedNodes": "Removed {{count}} node(s)",
+    "modifiedNodes": "Modified {{count}} node(s)",
+    "movedNodes": "Moved {{count}} node(s)",
+    "moreChanges": "{{count}} more changes...",
+    "desc": {
+      "parallel": "Change to parallel execution",
+      "merge": "Merge into other node",
+      "merged": "Contains merged functionality",
+      "removeRedundant": "Remove redundant node",
+      "reorder": "Adjust execution order to position {{position}}"
+    }
   },
   "codeGenerator": {
     "title": "AI Code Generator",
@@ -2199,25 +2216,6 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
   },
-  "diff": {
-    "add": "Add",
-    "remove": "Remove",
-    "modify": "Modify",
-    "move": "Move",
-    "changeSummary": "Change Summary",
-    "addedNodes": "Added {{count}} node(s)",
-    "removedNodes": "Removed {{count}} node(s)",
-    "modifiedNodes": "Modified {{count}} node(s)",
-    "movedNodes": "Moved {{count}} node(s)",
-    "moreChanges": "{{count}} more changes...",
-    "desc": {
-      "parallel": "Change to parallel execution",
-      "merge": "Merge into other node",
-      "merged": "Contains merged functionality",
-      "removeRedundant": "Remove redundant node",
-      "reorder": "Adjust execution order to position {{position}}"
-    }
-  },
   "help": {
     "documentation": "API Documentation",
     "keyboardShortcuts": "Keyboard Shortcuts",
@@ -2300,22 +2298,5 @@
       "slack": "Slack",
       "microsoft": "Microsoft"
     }
-  },
-  "diff": {
-    "nodes": "nodes",
-    "nodesModified": "nodes modified",
-    "edges": "edges",
-    "noChanges": "No changes",
-    "noNodesToPreview": "No nodes to preview",
-    "add": "Add",
-    "remove": "Remove",
-    "modify": "Modify",
-    "move": "Move",
-    "changeSummary": "Change Summary",
-    "addedNodes": "{{count}} node(s) added",
-    "removedNodes": "{{count}} node(s) removed",
-    "modifiedNodes": "{{count}} node(s) modified",
-    "movedNodes": "{{count}} node(s) moved",
-    "moreChanges": "{{count}} more change(s)"
   }
 }
