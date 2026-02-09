@@ -1693,6 +1693,8 @@
     "editRoles": "ロール編集",
     "suspend": "一時停止",
     "activate": "有効化",
+    "confirmSuspend": "このユーザーを一時停止しますか？",
+    "confirmActivate": "このユーザーを有効化しますか？",
     "resetPassword": "パスワードリセット",
     "confirmResetPassword": "ユーザーのパスワードをリセットしますか？",
     "resetPasswordDesc": "新しいランダムパスワードが生成され、メールでユーザーに送信されます。",

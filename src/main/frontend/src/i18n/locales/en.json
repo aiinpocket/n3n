@@ -1693,6 +1693,8 @@
     "editRoles": "Edit Roles",
     "suspend": "Suspend",
     "activate": "Activate",
+    "confirmSuspend": "Suspend this user?",
+    "confirmActivate": "Activate this user?",
     "resetPassword": "Reset Password",
     "confirmResetPassword": "Reset user password?",
     "resetPasswordDesc": "A new random password will be generated and sent to the user via email.",

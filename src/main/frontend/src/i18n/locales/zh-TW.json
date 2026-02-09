@@ -1693,6 +1693,8 @@
     "editRoles": "編輯角色",
     "suspend": "停權",
     "activate": "啟用",
+    "confirmSuspend": "確定要停權此使用者？",
+    "confirmActivate": "確定要啟用此使用者？",
     "resetPassword": "重設密碼",
     "confirmResetPassword": "確定要重設使用者密碼？",
     "resetPasswordDesc": "將產生新的隨機密碼，並透過電子郵件傳送給使用者。",

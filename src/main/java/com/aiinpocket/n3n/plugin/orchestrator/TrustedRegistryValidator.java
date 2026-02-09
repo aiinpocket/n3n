@@ -31,8 +31,8 @@ public class TrustedRegistryValidator {
     public boolean isFromTrustedRegistry(String image) {
         List<String> trustedRegistries = getTrustedRegistries();
         if (trustedRegistries.isEmpty()) {
-            log.warn("No trusted registries configured, allowing all images");
-            return true;
+            log.warn("No trusted registries configured, rejecting all images (fail-closed)");
+            return false;
         }
 
         for (String registry : trustedRegistries) {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm } from 'antd'
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -183,25 +183,37 @@ export default function AdminUsersPage() {
             )}
             {!isSelf && (
               record.status === 'active' ? (
-                <Tooltip title={t('admin.suspend')}>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<StopOutlined />}
-                    onClick={() => handleStatusChange(record.id, 'suspended')}
-                    aria-label={t('admin.suspend')}
-                  />
-                </Tooltip>
+                <Popconfirm
+                  title={t('admin.confirmSuspend')}
+                  onConfirm={() => handleStatusChange(record.id, 'suspended')}
+                  okText={t('common.confirm')}
+                  cancelText={t('common.cancel')}
+                >
+                  <Tooltip title={t('admin.suspend')}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<StopOutlined />}
+                      aria-label={t('admin.suspend')}
+                    />
+                  </Tooltip>
+                </Popconfirm>
               ) : (
-                <Tooltip title={t('admin.activate')}>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<CheckCircleOutlined />}
-                    onClick={() => handleStatusChange(record.id, 'active')}
-                    aria-label={t('admin.activate')}
-                  />
-                </Tooltip>
+                <Popconfirm
+                  title={t('admin.confirmActivate')}
+                  onConfirm={() => handleStatusChange(record.id, 'active')}
+                  okText={t('common.confirm')}
+                  cancelText={t('common.cancel')}
+                >
+                  <Tooltip title={t('admin.activate')}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<CheckCircleOutlined />}
+                      aria-label={t('admin.activate')}
+                    />
+                  </Tooltip>
+                </Popconfirm>
               )
             )}
             {!isSelf && (
