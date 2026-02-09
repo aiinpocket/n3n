@@ -344,7 +344,6 @@ export async function getActiveInstallTasks(): Promise<PluginInstallTaskStatus[]
 /**
  * Cancel install task
  */
-export async function cancelInstallTask(taskId: string) {
-  const response = await client.delete(`/plugins/install/tasks/${taskId}`)
-  return response.data
+export async function cancelInstallTask(taskId: string): Promise<void> {
+  await client.delete(`/plugins/install/tasks/${taskId}`)
 }

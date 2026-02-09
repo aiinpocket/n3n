@@ -73,36 +73,61 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   getSkill: async (id: string) => {
-    const skill = await skillApi.get(id)
-    set({ selectedSkill: skill })
-    return skill
+    try {
+      const skill = await skillApi.get(id)
+      set({ selectedSkill: skill })
+      return skill
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   createSkill: async (request: CreateSkillRequest) => {
-    const skill = await skillApi.create(request)
-    const { skills } = get()
-    set({ skills: [...skills, skill] })
-    return skill
+    try {
+      const skill = await skillApi.create(request)
+      const { skills } = get()
+      set({ skills: [...skills, skill] })
+      return skill
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   updateSkill: async (id: string, request: UpdateSkillRequest) => {
-    const skill = await skillApi.update(id, request)
-    const { skills } = get()
-    set({
-      skills: skills.map((s) => (s.id === id ? skill : s)),
-      selectedSkill: skill
-    })
-    return skill
+    try {
+      const skill = await skillApi.update(id, request)
+      const { skills } = get()
+      set({
+        skills: skills.map((s) => (s.id === id ? skill : s)),
+        selectedSkill: skill
+      })
+      return skill
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   deleteSkill: async (id: string) => {
-    await skillApi.delete(id)
-    const { skills } = get()
-    set({ skills: skills.filter((s) => s.id !== id) })
+    try {
+      await skillApi.delete(id)
+      const { skills } = get()
+      set({ skills: skills.filter((s) => s.id !== id) })
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   executeSkill: async (id: string, input: Record<string, unknown>) => {
-    return await skillApi.execute(id, input)
+    try {
+      return await skillApi.execute(id, input)
+    } catch (error) {
+      set({ error: extractApiError(error) })
+      throw error
+    }
   },
 
   setSelectedSkill: (skill: Skill | null) => {

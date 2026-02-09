@@ -106,9 +106,8 @@ export async function installPlugin(id: string): Promise<InstallationResult> {
   return response.data
 }
 
-export async function uninstallPlugin(id: string): Promise<{ success: boolean; message: string }> {
-  const response = await apiClient.delete<{ success: boolean; message: string }>(`/marketplace/plugins/${id}/uninstall`)
-  return response.data
+export async function uninstallPlugin(id: string): Promise<void> {
+  await apiClient.delete(`/marketplace/plugins/${id}/uninstall`)
 }
 
 export async function updatePlugin(id: string): Promise<InstallationResult> {
