@@ -713,7 +713,11 @@
     "loadFailed": "認証情報の読み込みに失敗しました",
     "noTypeCredentials": "{{type}}タイプの認証情報が見つかりません",
     "createNew": "新規認証を作成",
-    "typeRequired": "{{type}}の認証情報が必要です"
+    "typeRequired": "{{type}}の認証情報が必要です",
+    "viewData": "データを表示",
+    "viewDataTitle": "認証データ",
+    "viewDataWarning": "復号化された機密データが表示されます。画面を他人に見られないようにしてください。",
+    "viewDataFailed": "認証データの読み込みに失敗しました"
   },
   "component": {
     "title": "コンポーネント",
@@ -1267,7 +1271,11 @@
     "statusConnected": "接続中",
     "statusDisconnected": "切断",
     "statusIdle": "アイドル",
-    "settingsSaved": "ゲートウェイ設定を保存しました"
+    "settingsSaved": "ゲートウェイ設定を保存しました",
+    "stats": "統計",
+    "totalNodes": "接続ノード数",
+    "totalInvocations": "合計呼び出し数",
+    "uptime": "稼働時間"
   },
   "agent": {
     "status": {

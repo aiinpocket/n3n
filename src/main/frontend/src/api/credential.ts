@@ -99,6 +99,12 @@ export const credentialApi = {
     return response.data
   },
 
+  // Get decrypted credential data
+  getData: async (id: string): Promise<Record<string, unknown>> => {
+    const response = await apiClient.get(`/credentials/${id}/data`)
+    return response.data
+  },
+
   // List credential types
   listTypes: async (): Promise<CredentialType[]> => {
     const response = await apiClient.get('/credentials/types')

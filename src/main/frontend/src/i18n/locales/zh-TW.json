@@ -713,7 +713,11 @@
     "loadFailed": "載入認證失敗",
     "noTypeCredentials": "找不到 {{type}} 類型的認證",
     "createNew": "建立新認證",
-    "typeRequired": "需要 {{type}} 認證"
+    "typeRequired": "需要 {{type}} 認證",
+    "viewData": "檢視資料",
+    "viewDataTitle": "認證資料",
+    "viewDataWarning": "此操作將顯示解密後的敏感資料，請確保周圍無人窺視螢幕。",
+    "viewDataFailed": "無法載入認證資料"
   },
   "component": {
     "title": "元件管理",
@@ -1267,7 +1271,11 @@
     "statusConnected": "已連線",
     "statusDisconnected": "已斷線",
     "statusIdle": "閒置",
-    "settingsSaved": "閘道設定儲存成功"
+    "settingsSaved": "閘道設定儲存成功",
+    "stats": "統計資訊",
+    "totalNodes": "已連線節點",
+    "totalInvocations": "總呼叫次數",
+    "uptime": "運行時間"
   },
   "agent": {
     "status": {

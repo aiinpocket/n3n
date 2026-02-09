@@ -11,6 +11,9 @@ import {
   message,
   Tooltip,
   Badge,
+  Statistic,
+  Row,
+  Col,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -32,6 +35,16 @@ export default function GatewayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<Record<string, unknown>>({})
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null)
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await gatewayApi.getStats()
+      setStats(data)
+    } catch {
+      // Non-critical, ignore (may require ADMIN role)
+    }
+  }, [])
 
   const fetchNodes = useCallback(async () => {
     setLoading(true)
@@ -58,7 +71,8 @@ export default function GatewayPage() {
   useEffect(() => {
     fetchNodes()
     fetchCapabilities()
-  }, [fetchNodes, fetchCapabilities])
+    fetchStats()
+  }, [fetchNodes, fetchCapabilities, fetchStats])
 
   const handleInvoke = async (connectionId: string, capability: string) => {
     try {
@@ -191,6 +205,37 @@ export default function GatewayPage() {
           </Button>
         }
       >
+        {stats && (
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title={t('gateway.totalNodes')}
+                  value={stats.connectedNodes as number ?? nodes.length}
+                  prefix={<CheckCircleOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title={t('gateway.totalInvocations')}
+                  value={stats.totalInvocations as number ?? 0}
+                  prefix={<ApiOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title={t('gateway.uptime')}
+                  value={stats.uptime as string ?? '-'}
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+
         {error && (
           <Alert
             type="error"

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined } from '@ant-design/icons'
+import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal } from 'antd'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
-import { Credential } from '../api/credential'
+import { Credential, credentialApi } from '../api/credential'
 import { oauth2Api, OAuth2Status } from '../api/oauth2'
 import CredentialFormModal from '../components/credentials/CredentialFormModal'
 import { extractApiError } from '../utils/errorMessages'
@@ -31,6 +31,10 @@ const CredentialListPage: React.FC = () => {
   const [oauth2Statuses, setOauth2Statuses] = useState<Record<string, OAuth2Status>>({})
   const [oauth2Loading, setOauth2Loading] = useState<Record<string, boolean>>({})
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null)
+  const [viewDataModalOpen, setViewDataModalOpen] = useState(false)
+  const [viewDataLoading, setViewDataLoading] = useState(false)
+  const [viewDataContent, setViewDataContent] = useState<Record<string, unknown> | null>(null)
+  const [viewDataName, setViewDataName] = useState('')
 
   useEffect(() => {
     fetchCredentials()
@@ -133,6 +137,22 @@ const CredentialListPage: React.FC = () => {
       message.error(extractApiError(error, t('credential.testFailed', { message: t('common.error') })))
     } finally {
       setTestingId(null)
+    }
+  }
+
+  const handleViewData = async (id: string, name: string) => {
+    setViewDataName(name)
+    setViewDataLoading(true)
+    setViewDataContent(null)
+    setViewDataModalOpen(true)
+    try {
+      const data = await credentialApi.getData(id)
+      setViewDataContent(data)
+    } catch (err) {
+      message.error(extractApiError(err, t('credential.viewDataFailed')))
+      setViewDataModalOpen(false)
+    } finally {
+      setViewDataLoading(false)
     }
   }
 
@@ -262,6 +282,14 @@ const CredentialListPage: React.FC = () => {
               </Tooltip>
             )
           })()}
+          <Tooltip title={t('credential.viewData')}>
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewData(record.id, record.name)}
+              aria-label={t('credential.viewData')}
+            />
+          </Tooltip>
           <Tooltip title={t('credential.testConnection')}>
             <Button
               type="link"
@@ -352,6 +380,37 @@ const CredentialListPage: React.FC = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title={`${t('credential.viewDataTitle')}: ${viewDataName}`}
+        open={viewDataModalOpen}
+        onCancel={() => { setViewDataModalOpen(false); setViewDataContent(null); }}
+        footer={<Button onClick={() => { setViewDataModalOpen(false); setViewDataContent(null); }}>{t('common.close')}</Button>}
+        width={600}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message={t('credential.viewDataWarning')}
+          style={{ marginBottom: 16 }}
+        />
+        {viewDataLoading ? (
+          <div style={{ textAlign: 'center', padding: 24 }}><LoadingOutlined style={{ fontSize: 24 }} /></div>
+        ) : viewDataContent ? (
+          <pre style={{
+            background: 'var(--color-bg-elevated)',
+            padding: 12,
+            borderRadius: 6,
+            fontSize: 12,
+            maxHeight: 400,
+            overflow: 'auto',
+            fontFamily: 'monospace',
+            color: 'var(--color-text-primary)',
+          }}>
+            {JSON.stringify(viewDataContent, null, 2)}
+          </pre>
+        ) : null}
+      </Modal>
 
       <CredentialFormModal
         visible={formVisible}

@@ -713,7 +713,11 @@
     "loadFailed": "Failed to load credentials",
     "noTypeCredentials": "No {{type}} credentials found",
     "createNew": "Create new credential",
-    "typeRequired": "{{type}} credential required"
+    "typeRequired": "{{type}} credential required",
+    "viewData": "View Data",
+    "viewDataTitle": "Credential Data",
+    "viewDataWarning": "This displays decrypted sensitive data. Make sure no one else can see your screen.",
+    "viewDataFailed": "Failed to load credential data"
   },
   "component": {
     "title": "Components",
@@ -1267,7 +1271,11 @@
     "statusConnected": "Connected",
     "statusDisconnected": "Disconnected",
     "statusIdle": "Idle",
-    "settingsSaved": "Gateway settings saved successfully"
+    "settingsSaved": "Gateway settings saved successfully",
+    "stats": "Statistics",
+    "totalNodes": "Connected Nodes",
+    "totalInvocations": "Total Invocations",
+    "uptime": "Uptime"
   },
   "agent": {
     "status": {
