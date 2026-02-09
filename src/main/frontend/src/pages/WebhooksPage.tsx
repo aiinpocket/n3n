@@ -24,11 +24,13 @@ import {
   StopOutlined,
   LinkOutlined,
   ThunderboltOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useWebhookStore } from '../stores/webhookStore'
 import { useFlowListStore } from '../stores/flowListStore'
 import type { Webhook, CreateWebhookRequest } from '../api/webhook'
+import { webhookApi } from '../api/webhook'
 import { extractApiError } from '../utils/errorMessages'
 
 const { Text, Paragraph } = Typography
@@ -38,6 +40,10 @@ const WebhooksPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [form] = Form.useForm()
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editForm] = Form.useForm()
 
   const {
     webhooks,
@@ -131,6 +137,34 @@ const WebhooksPage: React.FC = () => {
       message.error(extractApiError(error, t('webhook.testFailed')))
     } finally {
       setTesting(null)
+    }
+  }
+
+  const handleEdit = (record: Webhook) => {
+    setEditingWebhook(record)
+    editForm.setFieldsValue({
+      name: record.name,
+      authType: record.authType || undefined,
+      authConfig: record.authConfig || undefined,
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await editForm.validateFields()
+      setEditSubmitting(true)
+      await webhookApi.update(editingWebhook!.id, values)
+      message.success(t('common.updateSuccess'))
+      setEditModalOpen(false)
+      setEditingWebhook(null)
+      editForm.resetFields()
+      fetchWebhooks()
+    } catch (err) {
+      if (err && typeof err === 'object' && 'errorFields' in err) return
+      message.error(extractApiError(err, t('common.saveFailed')))
+    } finally {
+      setEditSubmitting(false)
     }
   }
 
@@ -235,6 +269,13 @@ const WebhooksPage: React.FC = () => {
               icon={<CopyOutlined />}
               onClick={() => copyToClipboard(record.webhookUrl)}
               aria-label={t('webhook.copyUrl')}
+            />
+          </Tooltip>
+          <Tooltip title={t('common.edit')}>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
             />
           </Tooltip>
           <Tooltip title={t('common.delete')}>
@@ -434,6 +475,60 @@ const WebhooksPage: React.FC = () => {
                 {t('common.create')}
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`${t('common.edit')}: ${editingWebhook?.name}`}
+        open={editModalOpen}
+        onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
+        onOk={handleEditSubmit}
+        confirmLoading={editSubmitting}
+        destroyOnClose
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="name"
+            label={t('webhook.name')}
+            rules={[
+              { required: true, message: t('webhook.nameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
+          >
+            <Input maxLength={255} />
+          </Form.Item>
+          <Form.Item name="authType" label={t('webhook.authType')}>
+            <Select placeholder={t('webhook.selectAuthType')} allowClear>
+              <Select.Option value="none">{t('webhook.authNone')}</Select.Option>
+              <Select.Option value="signature">{t('webhook.authSignature')}</Select.Option>
+              <Select.Option value="apiKey">{t('webhook.authApiKey')}</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(prev, cur) => prev.authType !== cur.authType}>
+            {({ getFieldValue }) => {
+              const authType = getFieldValue('authType');
+              if (authType === 'signature') {
+                return (
+                  <Form.Item name={['authConfig', 'secret']} label={t('webhook.secret')}>
+                    <Input.Password placeholder={t('webhook.secretPlaceholder')} />
+                  </Form.Item>
+                );
+              }
+              if (authType === 'apiKey') {
+                return (
+                  <>
+                    <Form.Item name={['authConfig', 'headerName']} label={t('webhook.headerName')}>
+                      <Input placeholder="X-API-Key" />
+                    </Form.Item>
+                    <Form.Item name={['authConfig', 'apiKey']} label={t('webhook.apiKey')}>
+                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} />
+                    </Form.Item>
+                  </>
+                );
+              }
+              return null;
+            }}
           </Form.Item>
         </Form>
       </Modal>

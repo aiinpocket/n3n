@@ -25,6 +25,7 @@ import {
   BookOutlined,
   PlayCircleOutlined,
   DeleteOutlined,
+  EditOutlined,
   UserOutlined,
   FireOutlined,
   TagOutlined,
@@ -57,12 +58,14 @@ const categoryColors: Record<string, string> = {
 function TemplateCard({
   template,
   onUse,
+  onEdit,
   onDelete,
   showDelete,
   actionLoading,
 }: {
   template: Template
   onUse: (template: Template) => void
+  onEdit: (template: Template) => void
   onDelete: (id: string) => void
   showDelete: boolean
   actionLoading: string | null
@@ -115,6 +118,13 @@ function TemplateCard({
         </Button>,
         ...(showDelete
           ? [
+              <Tooltip title={t('common.edit')} key="edit">
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={() => onEdit(template)}
+                />
+              </Tooltip>,
               <Button
                 key="delete"
                 type="text"
@@ -198,6 +208,12 @@ export default function TemplatePage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createSubmitting, setCreateSubmitting] = useState(false)
   const [createForm] = Form.useForm()
+
+  // Edit template modal
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editForm] = Form.useForm()
 
   // Load templates
   const loadTemplates = useCallback(
@@ -343,6 +359,39 @@ export default function TemplatePage() {
     }
   }
 
+  // Edit template handler
+  const handleEditTemplate = (template: Template) => {
+    setEditingTemplate(template)
+    editForm.setFieldsValue({
+      name: template.name,
+      description: template.description || '',
+      category: template.category || undefined,
+      tags: template.tags || [],
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await editForm.validateFields()
+      setEditSubmitting(true)
+      await templateApi.update(editingTemplate!.id, values)
+      message.success(t('common.updateSuccess'))
+      setEditModalOpen(false)
+      setEditingTemplate(null)
+      editForm.resetFields()
+      loadTemplates(currentPage, selectedCategory, searchQuery)
+      if (activeTab === 'mine') {
+        loadMyTemplates()
+      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'errorFields' in err) return
+      message.error(extractApiError(err, t('common.saveFailed')))
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
+
   // Render template grid
   const renderTemplateGrid = (items: Template[], showDelete: boolean) => {
     if (loading && items.length === 0) {
@@ -374,6 +423,7 @@ export default function TemplatePage() {
             <TemplateCard
               template={template}
               onUse={handleOpenUseModal}
+              onEdit={handleEditTemplate}
               onDelete={handleDelete}
               showDelete={showDelete}
               actionLoading={actionLoading}
@@ -573,6 +623,43 @@ export default function TemplatePage() {
                 {t('template.useTemplate')}
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Template Modal */}
+      <Modal
+        title={`${t('common.edit')}: ${editingTemplate?.name}`}
+        open={editModalOpen}
+        onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
+        onOk={handleEditSubmit}
+        confirmLoading={editSubmitting}
+        destroyOnClose
+        width={500}
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="name"
+            label={t('template.templateName')}
+            rules={[
+              { required: true, message: t('template.templateNameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
+          >
+            <Input maxLength={255} />
+          </Form.Item>
+          <Form.Item name="description" label={t('common.description')}>
+            <Input.TextArea rows={3} maxLength={2000} showCount />
+          </Form.Item>
+          <Form.Item name="category" label={t('template.category')}>
+            <Select placeholder={t('template.category')}>
+              {categories.map((cat) => (
+                <Select.Option key={cat} value={cat}>{cat}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="tags" label={t('template.tags')}>
+            <Select mode="tags" placeholder={t('template.tagsPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>

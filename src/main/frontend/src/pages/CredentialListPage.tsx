@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined } from '@ant-design/icons'
+import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal, Form, Input, Select } from 'antd'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential, credentialApi } from '../api/credential'
@@ -35,6 +35,10 @@ const CredentialListPage: React.FC = () => {
   const [viewDataLoading, setViewDataLoading] = useState(false)
   const [viewDataContent, setViewDataContent] = useState<Record<string, unknown> | null>(null)
   const [viewDataName, setViewDataName] = useState('')
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingCredential, setEditingCredential] = useState<Credential | null>(null)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editForm] = Form.useForm()
 
   useEffect(() => {
     fetchCredentials()
@@ -153,6 +157,33 @@ const CredentialListPage: React.FC = () => {
       setViewDataModalOpen(false)
     } finally {
       setViewDataLoading(false)
+    }
+  }
+
+  const handleEdit = (record: Credential) => {
+    setEditingCredential(record)
+    editForm.setFieldsValue({
+      description: record.description || '',
+      visibility: record.visibility || 'private',
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await editForm.validateFields()
+      setEditSubmitting(true)
+      await credentialApi.update(editingCredential!.id, values)
+      message.success(t('common.updateSuccess'))
+      setEditModalOpen(false)
+      setEditingCredential(null)
+      editForm.resetFields()
+      fetchCredentials()
+    } catch (err) {
+      if (err && typeof err === 'object' && 'errorFields' in err) return
+      message.error(extractApiError(err, t('common.saveFailed')))
+    } finally {
+      setEditSubmitting(false)
     }
   }
 
@@ -282,6 +313,14 @@ const CredentialListPage: React.FC = () => {
               </Tooltip>
             )
           })()}
+          <Tooltip title={t('common.edit')}>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              aria-label={t('common.edit')}
+            />
+          </Tooltip>
           <Tooltip title={t('credential.viewData')}>
             <Button
               type="link"
@@ -380,6 +419,28 @@ const CredentialListPage: React.FC = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title={`${t('common.edit')}: ${editingCredential?.name}`}
+        open={editModalOpen}
+        onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
+        onOk={handleEditSubmit}
+        confirmLoading={editSubmitting}
+        destroyOnClose
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="description" label={t('common.description')}>
+            <Input.TextArea rows={3} maxLength={1000} showCount />
+          </Form.Item>
+          <Form.Item name="visibility" label={t('credential.visibility')}>
+            <Select>
+              <Select.Option value="private">{t('credential.visibilityPrivate')}</Select.Option>
+              <Select.Option value="workspace">{t('credential.visibilityWorkspace')}</Select.Option>
+              <Select.Option value="shared">{t('credential.visibilityShared')}</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
 
       <Modal
         title={`${t('credential.viewDataTitle')}: ${viewDataName}`}
