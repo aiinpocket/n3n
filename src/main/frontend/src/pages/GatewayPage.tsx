@@ -24,7 +24,7 @@ import {
   DesktopOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { gatewayApi, type GatewayNode } from '../api/gateway'
+import { gatewayApi, type GatewayNode, type GatewayStats } from '../api/gateway'
 import { extractApiError } from '../utils/errorMessages'
 
 const { Text } = Typography
@@ -35,7 +35,7 @@ export default function GatewayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<Record<string, unknown>>({})
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null)
+  const [stats, setStats] = useState<GatewayStats | null>(null)
 
   const fetchStats = useCallback(async () => {
     try {
@@ -211,7 +211,7 @@ export default function GatewayPage() {
               <Card size="small">
                 <Statistic
                   title={t('gateway.totalNodes')}
-                  value={stats.connectedNodes as number ?? nodes.length}
+                  value={stats.connectedNodes ?? nodes.length}
                   prefix={<CheckCircleOutlined />}
                 />
               </Card>
@@ -220,7 +220,7 @@ export default function GatewayPage() {
               <Card size="small">
                 <Statistic
                   title={t('gateway.totalInvocations')}
-                  value={stats.totalInvocations as number ?? 0}
+                  value={stats.totalInvocations ?? 0}
                   prefix={<ApiOutlined />}
                 />
               </Card>
@@ -229,7 +229,7 @@ export default function GatewayPage() {
               <Card size="small">
                 <Statistic
                   title={t('gateway.uptime')}
-                  value={stats.uptime as string ?? '-'}
+                  value={stats.uptime ?? '-'}
                 />
               </Card>
             </Col>

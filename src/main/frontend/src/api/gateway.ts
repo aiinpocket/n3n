@@ -23,6 +23,12 @@ export interface InvokeResponse {
   error: string | null
 }
 
+export interface GatewayStats {
+  connectedNodes: number
+  totalInvocations: number
+  uptime: string
+}
+
 export const gatewayApi = {
   listNodes: async (): Promise<GatewayNode[]> => {
     const response = await apiClient.get<GatewayNode[]>('/gateway/nodes')
@@ -49,8 +55,8 @@ export const gatewayApi = {
     return response.data
   },
 
-  getStats: async (): Promise<Record<string, unknown>> => {
-    const response = await apiClient.get<Record<string, unknown>>('/gateway/stats')
+  getStats: async (): Promise<GatewayStats> => {
+    const response = await apiClient.get<GatewayStats>('/gateway/stats')
     return response.data
   },
 }
