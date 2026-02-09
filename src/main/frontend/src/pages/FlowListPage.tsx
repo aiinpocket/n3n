@@ -559,15 +559,18 @@ export default function FlowListPage() {
           <Form.Item
             name="name"
             label={t('flow.flowName')}
-            rules={[{ required: true, message: t('flow.flowNamePlaceholder') }]}
+            rules={[
+              { required: true, message: t('flow.flowNamePlaceholder') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
-            <Input placeholder={t('flow.flowNamePlaceholder')} />
+            <Input placeholder={t('flow.flowNamePlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item
             name="description"
             label={t('flow.flowDescription')}
           >
-            <Input.TextArea rows={3} placeholder={t('flow.flowDescriptionPlaceholder')} />
+            <Input.TextArea rows={3} placeholder={t('flow.flowDescriptionPlaceholder')} maxLength={5000} showCount />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
@@ -710,15 +713,18 @@ export default function FlowListPage() {
           <Form.Item
             name="name"
             label={t('template.templateName')}
-            rules={[{ required: true, message: t('template.templateNameRequired') }]}
+            rules={[
+              { required: true, message: t('template.templateNameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
-            <Input placeholder={t('template.templateNamePlaceholder')} />
+            <Input placeholder={t('template.templateNamePlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item
             name="description"
             label={t('flow.flowDescription')}
           >
-            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} />
+            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} maxLength={2000} showCount />
           </Form.Item>
           <Form.Item
             name="category"

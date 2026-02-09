@@ -166,19 +166,22 @@ export default function ServiceFormPage() {
           ]}
           tooltip={t('service.identifierTooltip')}
         >
-          <Input placeholder={t('service.identifierPlaceholder')} disabled={isEdit} />
+          <Input placeholder={t('service.identifierPlaceholder')} disabled={isEdit} maxLength={100} />
         </Form.Item>
 
         <Form.Item
           name="displayName"
           label={t('service.displayName')}
-          rules={[{ required: true, message: t('service.displayNameRequired') }]}
+          rules={[
+            { required: true, message: t('service.displayNameRequired') },
+            { max: 255, message: t('common.maxLength', { max: 255 }) },
+          ]}
         >
-          <Input placeholder={t('service.displayNamePlaceholder')} />
+          <Input placeholder={t('service.displayNamePlaceholder')} maxLength={255} />
         </Form.Item>
 
         <Form.Item name="description" label={t('common.description')}>
-          <TextArea rows={3} placeholder={t('service.descriptionPlaceholder')} />
+          <TextArea rows={3} placeholder={t('service.descriptionPlaceholder')} maxLength={1000} showCount />
         </Form.Item>
 
         <Divider orientation="left">{t('service.connectionSettings')}</Divider>
@@ -192,7 +195,7 @@ export default function ServiceFormPage() {
           ]}
           tooltip={t('service.baseUrlTooltip')}
         >
-          <Input placeholder={t('service.baseUrlPlaceholder')} />
+          <Input placeholder={t('service.baseUrlPlaceholder')} maxLength={2000} />
         </Form.Item>
 
         <Form.Item
@@ -212,7 +215,7 @@ export default function ServiceFormPage() {
           label={t('service.schemaUrl')}
           tooltip={t('service.schemaUrlTooltip')}
         >
-          <Input placeholder={t('service.schemaUrlPlaceholder')} />
+          <Input placeholder={t('service.schemaUrlPlaceholder')} maxLength={2000} />
         </Form.Item>
 
         {testResult && (

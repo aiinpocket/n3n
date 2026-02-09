@@ -505,12 +505,15 @@ export default function TemplatePage() {
           <Form.Item
             name="name"
             label={t('template.templateName')}
-            rules={[{ required: true, message: t('template.templateNameRequired') }]}
+            rules={[
+              { required: true, message: t('template.templateNameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
-            <Input placeholder={t('template.templateNamePlaceholder')} />
+            <Input placeholder={t('template.templateNamePlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item name="description" label={t('common.description')}>
-            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} />
+            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} maxLength={2000} showCount />
           </Form.Item>
           <Form.Item name="category" label={t('template.category')}>
             <Select placeholder={t('template.category')}>

@@ -441,22 +441,26 @@ export default function SkillsPage() {
               rules={[
                 { required: true, message: t('skill.nameRequired') },
                 { pattern: /^[a-z][a-z0-9_]*$/, message: t('skill.namePattern') },
+                { max: 100, message: t('common.maxLength', { max: 100 }) },
               ]}
             >
-              <Input placeholder="my_custom_skill" />
+              <Input placeholder="my_custom_skill" maxLength={100} />
             </Form.Item>
           )}
 
           <Form.Item
             name="displayName"
             label={t('skill.displayName')}
-            rules={[{ required: true, message: t('skill.displayNameRequired') }]}
+            rules={[
+              { required: true, message: t('skill.displayNameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
           >
-            <Input />
+            <Input maxLength={255} />
           </Form.Item>
 
           <Form.Item name="description" label={t('common.description')}>
-            <TextArea rows={2} />
+            <TextArea rows={2} maxLength={1000} showCount />
           </Form.Item>
 
           <Form.Item
@@ -490,7 +494,7 @@ export default function SkillsPage() {
           <Form.Item
             name="inputSchema"
             label={t('skill.inputSchema')}
-            rules={[{ required: true, message: t('skill.nameRequired') }]}
+            rules={[{ required: true, message: t('skill.inputSchemaRequired') }]}
           >
             <TextArea rows={4} style={{ fontFamily: 'monospace' }} />
           </Form.Item>

@@ -280,16 +280,20 @@ export default function AdminUsersPage() {
           <Form.Item name="email" label={t('auth.email')} rules={[
             { required: true, message: t('auth.emailRequired') },
             { type: 'email', message: t('auth.emailInvalid') },
+            { max: 255, message: t('common.maxLength', { max: 255 }) },
           ]}>
-            <Input placeholder={t('admin.emailPlaceholder')} />
+            <Input placeholder={t('admin.emailPlaceholder')} maxLength={255} />
           </Form.Item>
           <Form.Item name="name" label={t('auth.name')} rules={[
             { required: true, message: t('auth.nameRequired') },
+            { min: 2, message: t('common.minLength', { min: 2 }) },
+            { max: 100, message: t('common.maxLength', { max: 100 }) },
           ]}>
-            <Input placeholder={t('admin.namePlaceholder')} />
+            <Input placeholder={t('admin.namePlaceholder')} maxLength={100} />
           </Form.Item>
           <Form.Item name="password" label={t('admin.password')} rules={[
-            { min: 8, message: t('auth.passwordTooShort') },
+            { min: 12, message: t('auth.passwordTooShort') },
+            { max: 128, message: t('common.maxLength', { max: 128 }) },
           ]}>
             <Input.Password placeholder={t('admin.passwordPlaceholder')} />
           </Form.Item>

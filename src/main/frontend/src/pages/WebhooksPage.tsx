@@ -351,12 +351,14 @@ const WebhooksPage: React.FC = () => {
                 pattern: /^[a-zA-Z0-9_-]+$/,
                 message: t('webhook.pathPattern'),
               },
+              { max: 500, message: t('common.maxLength', { max: 500 }) },
             ]}
             extra={t('webhook.pathHint')}
           >
             <Input
               addonBefore="/webhook/"
               placeholder={t('webhook.pathPlaceholder')}
+              maxLength={500}
             />
           </Form.Item>
 
