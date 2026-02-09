@@ -96,6 +96,16 @@ public class DagParser {
             return result;
         }
 
+        if (nodes.size() > 1000) {
+            result.addError("Flow exceeds maximum node limit of 1000");
+            return result;
+        }
+
+        if (edges.size() > 5000) {
+            result.addError("Flow exceeds maximum edge limit of 5000");
+            return result;
+        }
+
         // Build adjacency list and in-degree map
         Map<String, Set<String>> adjacency = new HashMap<>();
         Map<String, Integer> inDegree = new HashMap<>();

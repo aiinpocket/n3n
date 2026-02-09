@@ -47,7 +47,8 @@
     "unknown": "不明",
     "selectField": "{{field}}を選択",
     "invalidUrl": "有効なURLを入力してください",
-    "operationFailed": "操作に失敗しました"
+    "operationFailed": "操作に失敗しました",
+    "comingSoon": "近日公開"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -607,6 +608,7 @@
     "testConnection": "接続テスト",
     "connectionSuccess": "接続成功 ({{latency}}ms)",
     "testConnectionFailed": "接続テストに失敗しました",
+    "connectionFailed": "接続に失敗しました",
     "test": "テスト",
     "updateSuccess": "サービスを更新しました",
     "enterBaseUrlFirst": "先にベースURLを入力してください",

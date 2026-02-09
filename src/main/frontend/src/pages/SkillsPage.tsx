@@ -211,7 +211,7 @@ export default function SkillsPage() {
           </Tooltip>
           {!record.isBuiltin && (
             <>
-              <Tooltip title={t('common.edit')}>
+              <Tooltip title={t('common.comingSoon')}>
                 <Button
                   type="link"
                   size="small"
@@ -261,9 +261,11 @@ export default function SkillsPage() {
           </Space>
         }
         extra={
-          <Button type="primary" icon={<PlusOutlined />} disabled>
-            {t('skill.createSkill')}
-          </Button>
+          <Tooltip title={t('common.comingSoon')}>
+            <Button type="primary" icon={<PlusOutlined />} disabled>
+              {t('skill.createSkill')}
+            </Button>
+          </Tooltip>
         }
       >
         <Tabs

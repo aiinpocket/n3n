@@ -80,6 +80,12 @@ public class FormController {
             @RequestBody Map<String, Object> formData,
             HttpServletRequest request) {
 
+        // Validate form data size to prevent oversized payloads
+        if (formData != null && formData.size() > 500) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Form data exceeds maximum field limit"));
+        }
+
         try {
             FormTrigger trigger = formService.getFormTriggerByToken(token);
 

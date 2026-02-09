@@ -47,7 +47,8 @@
     "unknown": "未知",
     "selectField": "選擇{{field}}",
     "invalidUrl": "請輸入有效的網址",
-    "operationFailed": "操作失敗"
+    "operationFailed": "操作失敗",
+    "comingSoon": "即將推出"
   },
   "error": {
     "title": "發生錯誤",
@@ -607,6 +608,7 @@
     "testConnection": "測試連線",
     "connectionSuccess": "連線成功 ({{latency}}ms)",
     "testConnectionFailed": "連線測試失敗",
+    "connectionFailed": "連線失敗",
     "test": "測試",
     "updateSuccess": "服務已更新",
     "enterBaseUrlFirst": "請先輸入服務地址",

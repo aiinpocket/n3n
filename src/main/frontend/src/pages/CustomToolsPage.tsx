@@ -269,9 +269,9 @@ function ToolDetailModal({
             </Button>
           ) : (
             <Space>
-              <Button type="primary" disabled icon={<CheckCircleOutlined />}>
+              <Tag color="success" icon={<CheckCircleOutlined />}>
                 {t('customTools.installed')} (v{plugin.installedVersion})
-              </Button>
+              </Tag>
               <Button
                 danger
                 icon={<DeleteOutlined />}

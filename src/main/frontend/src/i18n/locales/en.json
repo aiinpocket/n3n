@@ -47,7 +47,8 @@
     "unknown": "Unknown",
     "selectField": "Select {{field}}",
     "invalidUrl": "Please enter a valid URL",
-    "operationFailed": "Operation failed"
+    "operationFailed": "Operation failed",
+    "comingSoon": "Coming soon"
   },
   "error": {
     "title": "Something went wrong",
@@ -607,6 +608,7 @@
     "testConnection": "Test Connection",
     "connectionSuccess": "Connection successful ({{latency}}ms)",
     "testConnectionFailed": "Connection test failed",
+    "connectionFailed": "Connection failed",
     "test": "Test",
     "updateSuccess": "Service updated",
     "enterBaseUrlFirst": "Please enter base URL first",
