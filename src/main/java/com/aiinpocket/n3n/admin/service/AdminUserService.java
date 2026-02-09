@@ -221,12 +221,13 @@ public class AdminUserService {
     }
 
     private long countActiveAdmins() {
-        return userRoleRepository.findByRole("ADMIN").stream()
+        List<UUID> adminUserIds = userRoleRepository.findByRole("ADMIN").stream()
             .map(UserRole::getUserId)
             .distinct()
-            .filter(userId -> userRepository.findById(userId)
-                .map(u -> "active".equals(u.getStatus()))
-                .orElse(false))
+            .toList();
+        if (adminUserIds.isEmpty()) return 0;
+        return userRepository.findAllById(adminUserIds).stream()
+            .filter(u -> "active".equals(u.getStatus()))
             .count();
     }
 

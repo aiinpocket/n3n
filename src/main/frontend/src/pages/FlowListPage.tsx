@@ -308,7 +308,7 @@ export default function FlowListPage() {
               ],
             }}
           >
-            <Button type="link" size="small" icon={<MoreOutlined />} />
+            <Button type="link" size="small" icon={<MoreOutlined />} aria-label={t('common.actions')} />
           </Dropdown>
         </Space>
       ),
