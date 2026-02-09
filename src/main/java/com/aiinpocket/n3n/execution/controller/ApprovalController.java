@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.execution.controller;
 
 import com.aiinpocket.n3n.execution.entity.ExecutionApproval;
 import com.aiinpocket.n3n.execution.service.ExecutionApprovalService;
+import com.aiinpocket.n3n.execution.service.ExecutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class ApprovalController {
 
     private final ExecutionApprovalService approvalService;
+    private final ExecutionService executionService;
 
     /**
      * Get all pending approvals for the current user.
@@ -86,6 +89,24 @@ public class ApprovalController {
 
         log.info("Approval action submitted: approvalId={}, action={}, userId={}",
             approvalId, request.action(), userId);
+
+        // Auto-resume the execution if approval is resolved
+        if (approval.isResolved() && !"cancelled".equals(approval.getStatus())) {
+            Map<String, Object> resumeData = new HashMap<>();
+            resumeData.put("approvalId", approval.getId().toString());
+            resumeData.put("approvalStatus", approval.getStatus());
+            if ("approved".equals(approval.getStatus())) {
+                resumeData.put("approvedBy", userId.toString());
+            } else {
+                resumeData.put("rejectedBy", userId.toString());
+            }
+            if (request.comment() != null) {
+                resumeData.put("comment", request.comment());
+            }
+            log.info("Auto-resuming execution after approval: executionId={}, status={}",
+                approval.getExecutionId(), approval.getStatus());
+            executionService.resumeExecution(approval.getExecutionId(), resumeData, userId);
+        }
 
         return ResponseEntity.ok(ApprovalDetail.from(approval,
             approvalService.getActionsForApproval(approvalId)));

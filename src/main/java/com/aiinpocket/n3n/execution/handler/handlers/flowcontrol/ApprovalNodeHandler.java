@@ -72,6 +72,13 @@ public class ApprovalNodeHandler extends AbstractNodeHandler {
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
         String message = getStringConfig(context, "message", "Approval required for workflow execution");
         int requiredApprovers = getIntConfig(context, "requiredApprovers", 1);
+        // Current auth model only allows the execution triggerer to approve,
+        // so cap requiredApprovers at 1 to prevent unresolvable approvals
+        if (requiredApprovers > 1) {
+            log.warn("requiredApprovers={} capped to 1 (single-user approval model), executionId={}",
+                requiredApprovers, context.getExecutionId());
+            requiredApprovers = 1;
+        }
         String approvalMode = getStringConfig(context, "approvalMode", "any");
         int expiresInMinutes = getIntConfig(context, "expiresInMinutes", 0);
         String approvedBranch = getStringConfig(context, "approvedBranch", "approved");

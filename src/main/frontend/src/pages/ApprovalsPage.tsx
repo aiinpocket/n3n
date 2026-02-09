@@ -286,7 +286,7 @@ export default function ApprovalsPage() {
                   {selectedApproval.status}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label={t('approval.mode.any')}>
+              <Descriptions.Item label={t('approval.modeLabel')}>
                 {t(`approval.mode.${selectedApproval.approvalMode}`, { defaultValue: selectedApproval.approvalMode })}
               </Descriptions.Item>
               <Descriptions.Item label={t('approval.approvedCount', { count: selectedApproval.approvedCount })}>
@@ -332,6 +332,8 @@ export default function ApprovalsPage() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={2}
+                maxLength={1000}
+                showCount
               />
             )}
           </Space>
