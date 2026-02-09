@@ -119,7 +119,7 @@ public class FlowController {
     @PostMapping("/{id}/clone")
     public ResponseEntity<FlowResponse> cloneFlow(
             @PathVariable UUID id,
-            @RequestParam(required = false) String name,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 255) String name,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasAccess(id, userId)) {

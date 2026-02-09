@@ -132,7 +132,7 @@ public class AIAssistantController {
      */
     @GetMapping("/installed-nodes")
     public ResponseEntity<List<InstalledNodeInfo>> getInstalledNodes(
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String category,
             Principal principal) {
         UUID userId = getUserId(principal);
         List<InstalledNodeInfo> nodes = aiAssistantService.getInstalledNodes(userId, category);

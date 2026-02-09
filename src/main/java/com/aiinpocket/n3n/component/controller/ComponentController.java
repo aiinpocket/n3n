@@ -28,7 +28,7 @@ public class ComponentController {
 
     @GetMapping
     public ResponseEntity<Page<ComponentResponse>> listComponents(
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String category,
             @PageableDefault(size = 20) Pageable pageable) {
         if (category != null) {
             return ResponseEntity.ok(componentService.listComponentsByCategory(category, pageable));

@@ -30,7 +30,7 @@ public class ActivityController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserActivityResponse>> listAllActivities(
-            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String type,
             @PageableDefault(size = 20) Pageable pageable) {
         if (type != null && !type.isBlank()) {
             return ResponseEntity.ok(activityService.getActivitiesByType(type, pageable)
@@ -46,7 +46,7 @@ public class ActivityController {
      */
     @GetMapping("/my")
     public ResponseEntity<Page<UserActivityResponse>> listMyActivities(
-            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String type,
             @AuthenticationPrincipal UserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
         UUID userId = UUID.fromString(userDetails.getUsername());
