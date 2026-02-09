@@ -199,6 +199,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
 
             if (!"handshake.auth".equals(request.getMethod())) {
                 sendPlainError(session, "HANDSHAKE_ERROR", "Expected handshake.auth request");
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
@@ -209,6 +210,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             if (deviceToken == null || deviceToken.isEmpty()) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Device token required"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
@@ -217,6 +219,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             if (userIdOpt.isEmpty()) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Invalid device token"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
@@ -225,6 +228,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             if (deviceId == null || deviceId.isEmpty()) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Device ID required"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
@@ -233,18 +237,21 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             if (deviceKey.isEmpty()) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Unknown device"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
             if (!deviceKey.get().getUserId().equals(userIdOpt.get())) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Device mismatch"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
             if (deviceKey.get().isRevoked()) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "Device has been revoked"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
@@ -252,6 +259,7 @@ public class SecureGatewayWebSocketHandler extends TextWebSocketHandler {
             if (agentRegistrationService.isDeviceBlocked(deviceId)) {
                 sendPlainResponse(session, GatewayResponse.error(
                     request.getId(), "AUTH_ERROR", "This agent has been blocked"));
+                session.close(CloseStatus.POLICY_VIOLATION);
                 return;
             }
 
