@@ -190,8 +190,12 @@ export const flowApi = {
   /**
    * Import a flow from exported data
    */
-  importFlow: async (data: FlowExportData): Promise<Flow> => {
-    const response = await apiClient.post('/flows/import', data)
+  importFlow: async (data: FlowExportData, newFlowName?: string): Promise<Flow> => {
+    const response = await apiClient.post('/flows/import', {
+      packageData: data,
+      newFlowName: newFlowName || undefined,
+      autoInstallMissingComponents: false,
+    })
     return response.data
   },
 
@@ -265,32 +269,58 @@ export const flowShareApi = {
   },
 }
 
+// Matches backend FlowExportPackage
 export interface FlowExportData {
-  exportVersion: string
+  version: string
   exportedAt: string
+  exportedBy?: string
   flow: {
     name: string
     description: string | null
-  }
-  version: {
-    version: string
-    definition: FlowDefinition
+    definition: Record<string, unknown>
     settings: Record<string, unknown>
   }
-  metadata?: {
-    originalFlowId?: string
-    exportedBy?: string
+  dependencies?: {
+    components: Array<{
+      name: string
+      version: string
+      image?: string
+    }>
+    credentialPlaceholders: Array<{
+      nodeId: string
+      credentialType: string
+      originalName: string
+    }>
   }
+  checksum?: string
 }
 
+// Matches backend FlowImportPreviewResponse
 export interface FlowImportPreview {
-  valid: boolean
-  warnings: string[]
-  errors: string[]
-  flow: {
+  flowName: string
+  description: string | null
+  nodeCount: number
+  edgeCount: number
+  canImport: boolean
+  blockers: string[]
+  componentStatuses: Array<{
     name: string
-    description: string | null
-    nodeCount: number
-    edgeCount: number
-  }
+    version: string
+    image?: string
+    installed: boolean
+    versionMatch: boolean
+    installedVersion?: string
+    canAutoInstall: boolean
+  }>
+  credentialRequirements: Array<{
+    nodeId: string
+    nodeName: string
+    credentialType: string
+    originalCredentialName: string
+    compatibleCredentials: Array<{
+      id: string
+      name: string
+      type: string
+    }>
+  }>
 }

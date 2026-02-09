@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.oauth2.service;
 
 import com.aiinpocket.n3n.base.BaseServiceTest;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.credential.service.EncryptionService;
 import com.aiinpocket.n3n.oauth2.entity.OAuth2Token;
 import com.aiinpocket.n3n.oauth2.repository.OAuth2TokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 class OAuth2TokenServiceTest extends BaseServiceTest {
 
@@ -28,6 +30,9 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private EncryptionService encryptionService;
+
     @InjectMocks
     private OAuth2TokenService tokenService;
 
@@ -36,6 +41,14 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
     @BeforeEach
     void setUp() {
         credentialId = UUID.randomUUID();
+        // By default, encrypt returns "enc:" + input, decrypt returns input without prefix
+        lenient().when(encryptionService.encryptToBase64(anyString()))
+            .thenAnswer(inv -> "enc:" + inv.getArgument(0));
+        lenient().when(encryptionService.decryptFromBase64(anyString()))
+            .thenAnswer(inv -> {
+                String val = inv.getArgument(0);
+                return val.startsWith("enc:") ? val.substring(4) : val;
+            });
     }
 
     @Nested
@@ -43,11 +56,11 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
     class GetAccessToken {
 
         @Test
-        void getAccessToken_validToken_returnsAccessToken() {
+        void getAccessToken_validToken_returnsDecryptedAccessToken() {
             OAuth2Token token = OAuth2Token.builder()
                 .credentialId(credentialId)
                 .provider("google")
-                .accessToken("valid-access-token")
+                .accessToken("enc:valid-access-token")
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
 
@@ -67,11 +80,11 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
         }
 
         @Test
-        void getAccessToken_tokenNoExpiry_returnsAccessToken() {
+        void getAccessToken_tokenNoExpiry_returnsDecryptedAccessToken() {
             OAuth2Token token = OAuth2Token.builder()
                 .credentialId(credentialId)
                 .provider("github")
-                .accessToken("no-expiry-token")
+                .accessToken("enc:no-expiry-token")
                 .expiresAt(null)
                 .build();
 
@@ -132,8 +145,8 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
 
             assertThat(result.getCredentialId()).isEqualTo(credentialId);
             assertThat(result.getProvider()).isEqualTo("google");
-            assertThat(result.getAccessToken()).isEqualTo("access");
-            assertThat(result.getRefreshToken()).isEqualTo("refresh");
+            assertThat(result.getAccessToken()).isEqualTo("enc:access");
+            assertThat(result.getRefreshToken()).isEqualTo("enc:refresh");
             assertThat(result.getTokenType()).isEqualTo("Bearer");
             assertThat(result.getExpiresAt()).isNotNull();
             assertThat(result.getExpiresAt()).isAfter(Instant.now());
@@ -265,8 +278,8 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
             OAuth2Token token = OAuth2Token.builder()
                 .credentialId(credentialId)
                 .provider("custom") // unknown provider so refresh returns original token
-                .accessToken("almost-expired-token")
-                .refreshToken("refresh-token")
+                .accessToken("enc:almost-expired-token")
+                .refreshToken("enc:refresh-token")
                 .expiresAt(Instant.now().plusSeconds(60)) // less than 5 min
                 .build();
 
@@ -285,7 +298,7 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
             OAuth2Token token = OAuth2Token.builder()
                 .credentialId(credentialId)
                 .provider("google")
-                .accessToken("expiring-token")
+                .accessToken("enc:expiring-token")
                 .refreshToken(null)
                 .expiresAt(Instant.now().plusSeconds(60))
                 .build();
@@ -319,7 +332,7 @@ class OAuth2TokenServiceTest extends BaseServiceTest {
 
             assertThat(result.getProvider()).isEqualTo("slack");
             assertThat(result.getScope()).isEqualTo("chat:write");
-            assertThat(result.getRawResponse()).isEqualTo("{\"ok\":true}");
+            assertThat(result.getRawResponse()).isEqualTo("enc:{\"ok\":true}");
             assertThat(result.getTokenType()).isEqualTo("token");
         }
 

@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.oauth2.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.credential.service.EncryptionService;
 import com.aiinpocket.n3n.oauth2.entity.OAuth2Token;
 import com.aiinpocket.n3n.oauth2.repository.OAuth2TokenRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +28,7 @@ public class OAuth2TokenService {
 
     private final OAuth2TokenRepository tokenRepository;
     private final ObjectMapper objectMapper;
+    private final EncryptionService encryptionService;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
         .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
@@ -50,7 +52,7 @@ public class OAuth2TokenService {
             log.warn("Returning expired OAuth2 token for credential {} (refresh may have failed)", credentialId);
         }
 
-        return token.getAccessToken();
+        return decryptToken(token.getAccessToken());
     }
 
     /**
@@ -77,12 +79,12 @@ public class OAuth2TokenService {
         OAuth2Token token = OAuth2Token.builder()
             .credentialId(credentialId)
             .provider(provider)
-            .accessToken(accessToken)
-            .refreshToken(refreshToken)
+            .accessToken(encryptToken(accessToken))
+            .refreshToken(refreshToken != null ? encryptToken(refreshToken) : null)
             .tokenType(tokenType != null ? tokenType : "Bearer")
             .scope(scope)
             .expiresAt(expiresAt)
-            .rawResponse(rawResponse)
+            .rawResponse(rawResponse != null ? encryptToken(rawResponse) : null)
             .build();
 
         return tokenRepository.save(token);
@@ -150,7 +152,7 @@ public class OAuth2TokenService {
 
         RequestBody formBody = new FormBody.Builder()
             .add("grant_type", "refresh_token")
-            .add("refresh_token", token.getRefreshToken())
+            .add("refresh_token", decryptToken(token.getRefreshToken()))
             .add("client_id", clientCredentials.get("clientId"))
             .add("client_secret", clientCredentials.get("clientSecret"))
             .build();
@@ -176,10 +178,10 @@ public class OAuth2TokenService {
             Integer expiresIn = json.has("expires_in") ? json.path("expires_in").asInt() : null;
 
             if (newAccessToken != null) {
-                token.setAccessToken(newAccessToken);
-                token.setRefreshToken(newRefreshToken);
+                token.setAccessToken(encryptToken(newAccessToken));
+                token.setRefreshToken(encryptToken(newRefreshToken));
                 token.setExpiresAt(expiresIn != null ? Instant.now().plusSeconds(expiresIn) : null);
-                token.setRawResponse(responseBody);
+                token.setRawResponse(encryptToken(responseBody));
                 return tokenRepository.save(token);
             }
 
@@ -222,6 +224,28 @@ public class OAuth2TokenService {
             return null;
         }
 
-        return Map.of("client_id", clientId, "client_secret", clientSecret);
+        return Map.of("clientId", clientId, "clientSecret", clientSecret);
+    }
+
+    /**
+     * Encrypt a token value using AES-256-GCM.
+     */
+    private String encryptToken(String plaintext) {
+        if (plaintext == null) return null;
+        return encryptionService.encryptToBase64(plaintext);
+    }
+
+    /**
+     * Decrypt a token value. Handles both encrypted and legacy plaintext tokens.
+     */
+    private String decryptToken(String storedValue) {
+        if (storedValue == null) return null;
+        try {
+            return encryptionService.decryptFromBase64(storedValue);
+        } catch (Exception e) {
+            // Fallback for legacy unencrypted tokens
+            log.debug("Token appears to be unencrypted (legacy), returning as-is");
+            return storedValue;
+        }
     }
 }

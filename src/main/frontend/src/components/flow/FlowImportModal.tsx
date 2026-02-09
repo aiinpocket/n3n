@@ -118,7 +118,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
             key="import"
             type="primary"
             loading={loading}
-            disabled={!preview.valid}
+            disabled={!preview.canImport}
             onClick={handleImport}
           >
             {t('flow.confirmImport')}
@@ -191,48 +191,33 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
       {preview && (
         <Space direction="vertical" style={{ width: '100%' }}>
           <Alert
-            type={preview.valid ? 'success' : 'error'}
-            message={preview.valid ? t('flow.validFormat') : t('flow.invalidFormat')}
+            type={preview.canImport ? 'success' : 'error'}
+            message={preview.canImport ? t('flow.validFormat') : t('flow.invalidFormat')}
             showIcon
           />
 
           <div style={{ marginTop: 16 }}>
-            <Text strong>{t('flow.flowName')}:</Text> {preview.flow.name}
+            <Text strong>{t('flow.flowName')}:</Text> {preview.flowName}
           </div>
-          {preview.flow.description && (
+          {preview.description && (
             <div>
-              <Text strong>{t('common.description')}:</Text> {preview.flow.description}
+              <Text strong>{t('common.description')}:</Text> {preview.description}
             </div>
           )}
           <div>
-            <Text strong>{t('flow.nodeCount')}:</Text> {preview.flow.nodeCount}
+            <Text strong>{t('flow.nodeCount')}:</Text> {preview.nodeCount}
           </div>
           <div>
-            <Text strong>{t('flow.edgeCount')}:</Text> {preview.flow.edgeCount}
+            <Text strong>{t('flow.edgeCount')}:</Text> {preview.edgeCount}
           </div>
 
-          {preview.warnings.length > 0 && (
-            <Alert
-              type="warning"
-              message={t('flow.importWarnings')}
-              description={
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  {preview.warnings.map((w, i) => (
-                    <li key={i}>{w}</li>
-                  ))}
-                </ul>
-              }
-              style={{ marginTop: 16 }}
-            />
-          )}
-
-          {preview.errors.length > 0 && (
+          {preview.blockers && preview.blockers.length > 0 && (
             <Alert
               type="error"
               message={t('flow.importErrors')}
               description={
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  {preview.errors.map((e, i) => (
+                  {preview.blockers.map((e, i) => (
                     <li key={i}>{e}</li>
                   ))}
                 </ul>
