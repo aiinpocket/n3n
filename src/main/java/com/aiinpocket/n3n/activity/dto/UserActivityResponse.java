@@ -14,6 +14,7 @@ public record UserActivityResponse(
         UUID resourceId,
         String resourceName,
         Map<String, Object> details,
+        String ipAddress,
         Instant createdAt
 ) {
     public static UserActivityResponse from(UserActivity entity) {
@@ -25,6 +26,7 @@ public record UserActivityResponse(
                 entity.getResourceId(),
                 entity.getResourceName(),
                 entity.getDetails(),
+                entity.getIpAddress(),
                 entity.getCreatedAt()
         );
     }
