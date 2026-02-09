@@ -330,12 +330,12 @@ public class AgentRegistrationController {
 
     // Token registration request DTO
     public record TokenRegistrationRequest(
-        String token,
-        String deviceId,
-        String deviceName,
-        String platform,
-        String devicePublicKey,
-        String deviceFingerprint
+        @NotBlank(message = "Token must not be blank") String token,
+        @NotBlank(message = "Device ID must not be blank") @Size(max = 255) String deviceId,
+        @NotBlank(message = "Device name must not be blank") @Size(max = 255) String deviceName,
+        @Size(max = 50) String platform,
+        @NotBlank(message = "Device public key must not be blank") String devicePublicKey,
+        @Size(max = 255) String deviceFingerprint
     ) {}
 
     /**

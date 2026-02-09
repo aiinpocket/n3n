@@ -210,6 +210,20 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
           });
         }
         break;
+
+      case 'EXECUTION_WAITING':
+        execution.status = 'waiting';
+        break;
+
+      case 'EXECUTION_RESUMED':
+        execution.status = 'running';
+        break;
+
+      case 'APPROVAL_CREATED':
+      case 'APPROVAL_ACTION':
+      case 'APPROVAL_RESOLVED':
+        // Trigger re-render so ExecutionPage can refresh approval data
+        break;
     }
 
     newExecutions.set(executionId, execution);

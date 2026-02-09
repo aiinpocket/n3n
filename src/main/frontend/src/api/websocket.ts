@@ -9,9 +9,14 @@ export interface ExecutionEvent {
     | 'EXECUTION_COMPLETED'
     | 'EXECUTION_FAILED'
     | 'EXECUTION_CANCELLED'
+    | 'EXECUTION_WAITING'
+    | 'EXECUTION_RESUMED'
     | 'NODE_STARTED'
     | 'NODE_COMPLETED'
-    | 'NODE_FAILED';
+    | 'NODE_FAILED'
+    | 'APPROVAL_CREATED'
+    | 'APPROVAL_ACTION'
+    | 'APPROVAL_RESOLVED';
   executionId: string;
   status: string;
   nodeId?: string;
