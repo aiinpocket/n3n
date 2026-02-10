@@ -84,12 +84,12 @@ public class BackupService {
         if (request.getSftpPath() != null) settings.setSftpPath(request.getSftpPath());
         if (request.getSchedule() != null) settings.setSchedule(request.getSchedule());
 
-        // 敏感欄位：加密後儲存
-        if (request.getAccessKey() != null) settings.setAccessKey(encryptField(request.getAccessKey()));
-        if (request.getSecretKey() != null) settings.setSecretKey(encryptField(request.getSecretKey()));
-        if (request.getServiceAccountJson() != null) settings.setServiceAccountJson(encryptField(request.getServiceAccountJson()));
-        if (request.getSftpPassword() != null) settings.setSftpPassword(encryptField(request.getSftpPassword()));
-        if (request.getSftpPrivateKey() != null) settings.setSftpPrivateKey(encryptField(request.getSftpPrivateKey()));
+        // 敏感欄位：加密後儲存（空字串表示未修改，不覆蓋）
+        if (request.getAccessKey() != null && !request.getAccessKey().isBlank()) settings.setAccessKey(encryptField(request.getAccessKey()));
+        if (request.getSecretKey() != null && !request.getSecretKey().isBlank()) settings.setSecretKey(encryptField(request.getSecretKey()));
+        if (request.getServiceAccountJson() != null && !request.getServiceAccountJson().isBlank()) settings.setServiceAccountJson(encryptField(request.getServiceAccountJson()));
+        if (request.getSftpPassword() != null && !request.getSftpPassword().isBlank()) settings.setSftpPassword(encryptField(request.getSftpPassword()));
+        if (request.getSftpPrivateKey() != null && !request.getSftpPrivateKey().isBlank()) settings.setSftpPrivateKey(encryptField(request.getSftpPrivateKey()));
 
         settings = settingsRepository.save(settings);
         return BackupSettingsResponse.from(settings);
@@ -187,6 +187,7 @@ public class BackupService {
                 .build();
 
         if (errorMessage != null) {
+            history.setFilename(filename != null ? filename : "backup-failed-" + Instant.now().toEpochMilli());
             history.markFailed(errorMessage);
         } else {
             history.setFilename(filename);

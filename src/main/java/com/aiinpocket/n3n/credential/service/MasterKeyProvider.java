@@ -183,17 +183,17 @@ public class MasterKeyProvider {
      * 還原備份時，將 Master Key 持久化到 key file 並更新記憶體中的 master key
      */
     public synchronized void persistRestoredMasterKey(SecretKey key) {
-        persistMasterKeyToFile(key);
+        persistMasterKeyToFileStrict(key);
         this.masterKey = key;
         this.keySource = "restored-from-backup";
         log.info("Master key restored and persisted from backup");
     }
 
     /**
-     * 將 Master Key 持久化到 key file
-     * 後續重啟時 loadMasterKey() 的步驟 3 會直接載入，無需重新生成
+     * 將 Master Key 持久化到 key file（嚴格模式：失敗時拋出異常）
+     * 用於備份還原，必須確保檔案寫入成功才更新記憶體
      */
-    private void persistMasterKeyToFile(SecretKey key) {
+    private void persistMasterKeyToFileStrict(SecretKey key) {
         String targetFile = masterKeyFile;
         if (targetFile == null || targetFile.isBlank()) {
             targetFile = "/data/keys/master.key";
@@ -207,6 +207,18 @@ public class MasterKeyProvider {
             saveKeyToFile(encoded, targetFile);
             log.info("Master key persisted to: {}", targetFile);
         } catch (IOException e) {
+            throw new IllegalStateException("Failed to persist restored master key to file: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 將 Master Key 持久化到 key file（寬鬆模式：失敗只記錄警告）
+     * 用於初始化生成，即使檔案寫入失敗也能繼續使用記憶體中的 key
+     */
+    private void persistMasterKeyToFile(SecretKey key) {
+        try {
+            persistMasterKeyToFileStrict(key);
+        } catch (Exception e) {
             log.warn("Failed to persist master key to file: {}. Key exists in memory only.", e.getMessage());
         }
     }
