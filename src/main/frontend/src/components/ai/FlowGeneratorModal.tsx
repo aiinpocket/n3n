@@ -314,7 +314,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       const response = await aiAssistantApi.clarifyRequirements({
         message: text,
         conversationId: conversationIdRef.current,
-        history: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+        history: updatedMessages
+          .filter(m => m.content.trim().length > 0)
+          .map(m => ({ role: m.role, content: m.content })),
         language: i18n.language || getLocale(),
       })
 
@@ -353,7 +355,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         ...currentMessages,
         {
           role: 'assistant',
-          content: response.message || '',
+          content: response.message || t('flowGenerator.pleaseDescribeMore'),
           suggestions: response.suggestedReplies,
         },
       ])
@@ -1198,38 +1200,30 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         return (
           <Space>
             <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
-            {requirementSummary ? (
-              <>
-                <Button onClick={() => {
-                  setRequirementSummary(null)
-                  setChatMessages(prev => [...prev, {
-                    role: 'user',
-                    content: t('flowGenerator.needMoreChanges'),
-                  }])
-                  // Continue conversation
-                  handleSendMessage(t('flowGenerator.needMoreChanges'))
-                }}>
-                  {t('flowGenerator.editRequirements')}
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<ThunderboltOutlined />}
-                  onClick={handleConfirmAndGenerate}
-                >
-                  {t('flowGenerator.confirmAndGenerate')}
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => {
-                  const desc = buildDescriptionFromChat()
-                  handleGenerateFromDescription(desc)
-                }}
-                disabled={chatMessages.length < 2}
-              >
-                {t('flowGenerator.generateNow')}
+            {requirementSummary && (
+              <Button onClick={() => {
+                setRequirementSummary(null)
+                setChatMessages(prev => [...prev, {
+                  role: 'user',
+                  content: t('flowGenerator.needMoreChanges'),
+                }])
+                // Continue conversation
+                handleSendMessage(t('flowGenerator.needMoreChanges'))
+              }}>
+                {t('flowGenerator.editRequirements')}
               </Button>
             )}
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined />}
+              onClick={requirementSummary ? handleConfirmAndGenerate : () => {
+                const desc = buildDescriptionFromChat()
+                handleGenerateFromDescription(desc)
+              }}
+              disabled={chatMessages.length < 2}
+            >
+              {requirementSummary ? t('flowGenerator.confirmAndGenerate') : t('flowGenerator.generateNow')}
+            </Button>
           </Space>
         )
       case 'preview':

@@ -16,6 +16,7 @@ import {
   DesktopOutlined,
   AppstoreOutlined,
   CloudServerOutlined,
+  CloudUploadOutlined,
   DashboardOutlined,
   FileTextOutlined,
   HistoryOutlined,
@@ -31,6 +32,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from './LanguageSwitcher'
+import RecoveryKeyModal from './security/RecoveryKeyModal'
 
 const { Header, Sider, Content } = Layout
 
@@ -39,7 +41,7 @@ export default function MainLayout() {
   const [shortcutsVisible, setShortcutsVisible] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, logout } = useAuthStore()
+  const { user, logout, showRecoveryKeyModal, recoveryKey, confirmRecoveryKeyBackup } = useAuthStore()
   const { t } = useTranslation()
 
   // Dynamic page title
@@ -68,6 +70,7 @@ export default function MainLayout() {
       '/admin/housekeeping': t('nav.housekeeping'),
       '/approvals': t('nav.approvals'),
       '/schedules': t('nav.schedules'),
+      '/settings/backup': t('nav.cloudBackup'),
     }
     const pageTitle = Object.entries(titles).find(([path]) =>
       path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -221,6 +224,11 @@ export default function MainLayout() {
             key: '/admin/housekeeping',
             icon: <ClearOutlined />,
             label: t('nav.housekeeping'),
+          },
+          {
+            key: '/settings/backup',
+            icon: <CloudUploadOutlined />,
+            label: t('nav.cloudBackup'),
           },
         ] : []),
       ],
@@ -418,6 +426,13 @@ export default function MainLayout() {
           </div>
         ))}
       </Modal>
+
+      {/* Recovery Key Backup Modal - shown on first admin login */}
+      <RecoveryKeyModal
+        open={showRecoveryKeyModal}
+        recoveryKey={recoveryKey || []}
+        onConfirm={confirmRecoveryKeyBackup}
+      />
     </Layout>
   )
 }

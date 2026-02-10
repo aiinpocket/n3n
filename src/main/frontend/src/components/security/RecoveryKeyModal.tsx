@@ -3,6 +3,8 @@ import { Modal, Alert, Button, Space, Input, message } from 'antd';
 import { CopyOutlined, KeyOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';
+import { extractApiError } from '../../utils/errorMessages';
+import logger from '../../utils/logger';
 
 interface Props {
   open: boolean;
@@ -31,7 +33,8 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
       message.success(t('recovery.copiedToClipboard'));
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => setCopied(false), 3000);
-    } catch {
+    } catch (err) {
+      logger.error('Copy to clipboard failed:', err);
       message.error(t('common.copyFailed'));
     }
   };
@@ -53,8 +56,8 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
       await securityApi.confirmRecoveryKeyBackup(verifyInput);
       message.success(t('recovery.backupConfirmed'));
       onConfirm();
-    } catch {
-      message.error(t('recovery.confirmFailed'));
+    } catch (err) {
+      message.error(extractApiError(err, t('recovery.confirmFailed')));
     } finally {
       setLoading(false);
     }

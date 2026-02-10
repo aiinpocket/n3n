@@ -53,6 +53,12 @@ class AuthServiceTest extends BaseServiceTest {
     @Mock
     private ActivityService activityService;
 
+    @Mock
+    private com.aiinpocket.n3n.common.service.EmailService emailService;
+
+    @Mock
+    private com.aiinpocket.n3n.credential.service.MasterKeyProvider masterKeyProvider;
+
     @InjectMocks
     private AuthService authService;
 

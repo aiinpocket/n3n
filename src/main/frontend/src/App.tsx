@@ -39,6 +39,7 @@ const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const HousekeepingPage = lazy(() => import('./pages/HousekeepingPage'))
+const CloudBackupPage = lazy(() => import('./pages/CloudBackupPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
 const SchedulerPage = lazy(() => import('./pages/SchedulerPage'))
 const FormPage = lazy(() => import('./pages/FormPage'))
@@ -228,6 +229,7 @@ function App() {
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="admin/housekeeping" element={<AdminRoute><HousekeepingPage /></AdminRoute>} />
+            <Route path="settings/backup" element={<AdminRoute><CloudBackupPage /></AdminRoute>} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 

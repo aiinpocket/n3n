@@ -36,8 +36,8 @@ export default function MigrateCredentialModal({
     }
 
     const words = recoveryKeyPhrase.trim().split(/\s+/);
-    if (words.length !== 8) {
-      message.error(t('recovery.mustBe8Words'));
+    if (words.length !== 12) {
+      message.error(t('recovery.mustBe12Words'));
       return;
     }
 

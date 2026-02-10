@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.auth.exception.*;
 import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
+import com.aiinpocket.n3n.credential.service.MasterKeyProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final ActivityService activityService;
     private final com.aiinpocket.n3n.common.service.EmailService emailService;
+    private final MasterKeyProvider masterKeyProvider;
 
     private static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
 
@@ -322,12 +324,23 @@ public class AuthService {
 
         saveRefreshToken(user, refreshToken, ipAddress, userAgent);
 
-        return AuthResponse.builder()
+        var builder = AuthResponse.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .expiresIn(jwtService.getAccessTokenExpirationMs() / 1000)
-            .user(UserResponse.from(user, roles))
-            .build();
+            .user(UserResponse.from(user, roles));
+
+        // 首次部署 + Admin 用戶：回傳 Recovery Key 供前端顯示備份 Modal
+        if (masterKeyProvider.needsRecoveryKeySetup() && roles.contains("ADMIN")) {
+            var pendingKey = masterKeyProvider.getPendingRecoveryKey();
+            if (pendingKey != null && pendingKey.getWords() != null && !pendingKey.getWords().isEmpty()) {
+                builder.needsRecoveryKeyBackup(true)
+                       .recoveryKey(pendingKey.getWords());
+                log.info("Recovery key sent to admin user {} for backup", user.getId());
+            }
+        }
+
+        return builder.build();
     }
 
     private void validateUserStatus(User user) {

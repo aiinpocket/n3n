@@ -160,7 +160,7 @@ public class MasterKeyProvider {
         // 5. 首次部署：產生 Recovery Key
         keySource = "recovery-key-derived";
 
-        // 產生新的 Recovery Key（8 個單詞）
+        // 產生新的 Recovery Key（12 個單詞）
         this.pendingRecoveryKey = recoveryKeyService.generate();
         this.needsRecoveryKeySetup = true;
 
@@ -170,7 +170,45 @@ public class MasterKeyProvider {
 
         log.warn("⚠️ New Recovery Key generated. Admin must backup the key on first login.");
         log.info("Recovery Key (masked): {}", pendingRecoveryKey.toMaskedPhrase());
-        return new SecretKeySpec(derivedKey, ALGORITHM);
+
+        SecretKey derivedMasterKey = new SecretKeySpec(derivedKey, ALGORITHM);
+
+        // 持久化到 key file，後續重啟時可直接載入
+        persistMasterKeyToFile(derivedMasterKey);
+
+        return derivedMasterKey;
+    }
+
+    /**
+     * 還原備份時，將 Master Key 持久化到 key file 並更新記憶體中的 master key
+     */
+    public synchronized void persistRestoredMasterKey(SecretKey key) {
+        persistMasterKeyToFile(key);
+        this.masterKey = key;
+        this.keySource = "restored-from-backup";
+        log.info("Master key restored and persisted from backup");
+    }
+
+    /**
+     * 將 Master Key 持久化到 key file
+     * 後續重啟時 loadMasterKey() 的步驟 3 會直接載入，無需重新生成
+     */
+    private void persistMasterKeyToFile(SecretKey key) {
+        String targetFile = masterKeyFile;
+        if (targetFile == null || targetFile.isBlank()) {
+            targetFile = "/data/keys/master.key";
+        }
+        try {
+            Path keyPath = Path.of(targetFile);
+            if (keyPath.getParent() != null) {
+                Files.createDirectories(keyPath.getParent());
+            }
+            String encoded = Base64.getEncoder().encodeToString(key.getEncoded());
+            saveKeyToFile(encoded, targetFile);
+            log.info("Master key persisted to: {}", targetFile);
+        } catch (IOException e) {
+            log.warn("Failed to persist master key to file: {}. Key exists in memory only.", e.getMessage());
+        }
     }
 
     private SecretKey decodeKey(String encodedKey) {

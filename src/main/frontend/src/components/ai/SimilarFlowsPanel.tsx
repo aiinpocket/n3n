@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import logger from '../../utils/logger'
 import { getLocale } from '../../utils/locale'
-import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip, Segmented, Badge } from 'antd'
+import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip } from 'antd'
 import {
   FolderOutlined,
   NodeIndexOutlined,
@@ -9,8 +9,6 @@ import {
   CopyOutlined,
   EyeOutlined,
   StarOutlined,
-  SearchOutlined,
-  RadarChartOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -46,8 +44,6 @@ interface Props {
   onUseAsTemplate?: (flowId: string) => void
   minQueryLength?: number
   maxResults?: number
-  enableSemanticSearch?: boolean
-  defaultSearchMode?: SearchMode
 }
 
 /**
@@ -61,14 +57,12 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
   onUseAsTemplate,
   minQueryLength = 5,
   maxResults = 5,
-  enableSemanticSearch = true,
-  defaultSearchMode = 'semantic',
 }) => {
   const { t } = useTranslation()
   const [flows, setFlows] = useState<SimilarFlow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [searchMode, setSearchMode] = useState<SearchMode>(defaultSearchMode)
+  const searchMode: SearchMode = 'keyword'
   const [searchTime, setSearchTime] = useState<number | null>(null)
 
   // 防抖處理
@@ -87,15 +81,10 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     const startTime = performance.now()
 
     try {
-      const endpoint = mode === 'semantic'
-        ? '/ai-assistant/similar-flows/semantic'
-        : '/ai-assistant/similar-flows'
-
-      const response = await api.get<SimilarFlow[]>(endpoint, {
+      const response = await api.get<SimilarFlow[]>('/ai-assistant/similar-flows', {
         params: {
           query: searchQuery,
           limit: maxResults,
-          mode,
         },
       })
 
@@ -108,26 +97,8 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
       })))
     } catch (err) {
       logger.error('Failed to fetch similar flows:', err)
-      // 如果語義搜尋失敗，嘗試降級到關鍵字搜尋
-      if (mode === 'semantic') {
-        logger.debug('Semantic search failed, falling back to keyword search')
-        try {
-          const fallbackResponse = await api.get<SimilarFlow[]>('/ai-assistant/similar-flows', {
-            params: { query: searchQuery, limit: maxResults },
-          })
-          setFlows(fallbackResponse.data.map(flow => ({
-            ...flow,
-            searchMode: 'keyword',
-          })))
-          setError(null)
-        } catch {
-          setError(t('aiAssistant.loadSimilarFailed'))
-          setFlows([])
-        }
-      } else {
-        setError(t('aiAssistant.loadSimilarFailed'))
-        setFlows([])
-      }
+      setError(t('aiAssistant.loadSimilarFailed'))
+      setFlows([])
     } finally {
       setLoading(false)
     }
@@ -192,34 +163,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
           <FolderOutlined /> {t('aiAssistant.similarFlows')} ({flows.length})
         </Text>
 
-        {/* Search Mode Selector */}
-        {enableSemanticSearch && (
-          <Segmented
-            size="small"
-            value={searchMode}
-            onChange={(value) => setSearchMode(value as SearchMode)}
-            options={[
-              {
-                value: 'semantic',
-                icon: <RadarChartOutlined />,
-                label: (
-                  <Tooltip title={t('aiAssistant.semanticSearchTooltip')}>
-                    <span>{t('aiAssistant.semantic')}</span>
-                  </Tooltip>
-                ),
-              },
-              {
-                value: 'keyword',
-                icon: <SearchOutlined />,
-                label: (
-                  <Tooltip title={t('aiAssistant.keywordSearchTooltip')}>
-                    <span>{t('aiAssistant.keyword')}</span>
-                  </Tooltip>
-                ),
-              },
-            ]}
-          />
-        )}
+        {/* Search uses keyword mode */}
       </div>
 
       {/* Search Stats */}
@@ -227,13 +171,6 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
         <div className={styles.searchStats}>
           <Text type="secondary" style={{ fontSize: 11 }}>
             <ThunderboltOutlined /> {t('aiAssistant.searchTime', { time: searchTime })}
-            {searchMode === 'semantic' && (
-              <Badge
-                status="processing"
-                text={<Text type="secondary" style={{ fontSize: 11 }}>{t('aiAssistant.aiSemanticSearch')}</Text>}
-                style={{ marginLeft: 8 }}
-              />
-            )}
           </Text>
         </div>
       )}

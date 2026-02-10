@@ -242,11 +242,18 @@
             <version>1.17.2</version>
         </dependency>
 
-        <!-- SSHJ for SSH Node -->
+        <!-- SSHJ for SSH Node + SFTP Backup -->
         <dependency>
             <groupId>com.hierynomus</groupId>
             <artifactId>sshj</artifactId>
             <version>0.37.0</version>
+        </dependency>
+
+        <!-- AWS SDK v2 S3 for Cloud Backup (S3 + R2) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.11</version>
         </dependency>
 
         <!-- Quartz for Schedule Trigger -->
