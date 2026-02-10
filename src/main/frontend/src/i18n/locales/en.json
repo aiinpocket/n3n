@@ -2806,5 +2806,25 @@
     "lastModified": "Last Modified",
     "providerNotConfigured": "Please configure a storage provider first",
     "historyLoading": "Loading backup history..."
+  },
+  "cloudSync": {
+    "importTitle": "Cloud Import",
+    "importDescription": "Enter your 12-word recovery key to import data from another N3N instance.",
+    "recoveryKeyLabel": "Recovery Key",
+    "recoveryKeyPlaceholder": "Enter 12-word recovery key phrase...",
+    "wordCountHint": "Current: {{count}} words (need 12 or 8)",
+    "scan": "Scan Remote",
+    "scanning": "Scanning...",
+    "remoteDataFound": "Remote data found",
+    "flows": "Flows",
+    "credentials": "Credentials",
+    "aiProviders": "AI Providers",
+    "importSelected": "Import & Re-encrypt",
+    "importing": "Importing and re-encrypting...",
+    "importSuccess": "Import completed successfully",
+    "importSummary": "Imported: {{flows}} flows, {{credentials}} credentials, {{aiProviders}} AI providers. Skipped: {{skipped}}.",
+    "importErrors": "import errors",
+    "noRemoteData": "No remote data found for this recovery key",
+    "reEncryptNote": "All imported data will be re-encrypted with your current master key and uploaded back to cloud."
   }
 }

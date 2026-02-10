@@ -16,6 +16,7 @@ import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +55,9 @@ class FlowServiceTest extends BaseServiceTest {
 
     @Mock
     private com.aiinpocket.n3n.scheduler.SchedulerService schedulerService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private FlowService flowService;

@@ -2806,5 +2806,25 @@
     "lastModified": "最後修改",
     "providerNotConfigured": "請先設定儲存提供者",
     "historyLoading": "載入備份歷史中..."
+  },
+  "cloudSync": {
+    "importTitle": "雲端匯入",
+    "importDescription": "輸入 12 組助記詞，從另一個 N3N 實例匯入資料。",
+    "recoveryKeyLabel": "助記詞",
+    "recoveryKeyPlaceholder": "輸入 12 組助記詞...",
+    "wordCountHint": "目前：{{count}} 個單詞（需要 12 或 8 個）",
+    "scan": "掃描遠端",
+    "scanning": "掃描中...",
+    "remoteDataFound": "發現遠端資料",
+    "flows": "流程",
+    "credentials": "憑證",
+    "aiProviders": "AI 供應商",
+    "importSelected": "匯入並重新加密",
+    "importing": "匯入並重新加密中...",
+    "importSuccess": "匯入完成",
+    "importSummary": "已匯入：{{flows}} 個流程、{{credentials}} 個憑證、{{aiProviders}} 個 AI 供應商。跳過：{{skipped}} 個。",
+    "importErrors": "個匯入錯誤",
+    "noRemoteData": "此助記詞未找到遠端資料",
+    "reEncryptNote": "所有匯入的資料將使用您當前的主金鑰重新加密，並上傳回雲端。"
   }
 }

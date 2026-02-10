@@ -138,6 +138,38 @@ class CloudStorageFactoryTest {
     }
 
     @Test
+    void createDefault_shouldReturnN3nCloudProvider() {
+        try (CloudStorageProvider provider = factory.createDefault(
+                "https://us-central1-example.cloudfunctions.net/sync",
+                "a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd")) {
+            assertThat(provider).isInstanceOf(N3nCloudProvider.class);
+            assertThat(provider.getProviderType()).isEqualTo("default");
+        }
+    }
+
+    @Test
+    void createDefault_nullGatewayUrl_shouldThrow() {
+        assertThatThrownBy(() -> factory.createDefault(null, "fingerprint"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Gateway URL");
+    }
+
+    @Test
+    void createDefault_emptyGatewayUrl_shouldThrow() {
+        assertThatThrownBy(() -> factory.createDefault("", "fingerprint"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Gateway URL");
+    }
+
+    @Test
+    void createDefault_localhostGateway_shouldThrowSsrf() {
+        assertThatThrownBy(() -> factory.createDefault(
+                "https://localhost:8080/sync", "fingerprint"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("internal addresses");
+    }
+
+    @Test
     void create_r2WithNullRegion_shouldDefaultToAuto() {
         var settings = BackupSettings.builder()
                 .provider("r2")

@@ -7,11 +7,14 @@ import com.aiinpocket.n3n.ai.entity.AiProviderConfig;
 import com.aiinpocket.n3n.ai.provider.*;
 import com.aiinpocket.n3n.ai.repository.AiProviderConfigRepository;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.backup.event.AiProviderSyncEvent;
+import com.aiinpocket.n3n.backup.event.SyncAction;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
 import com.aiinpocket.n3n.credential.service.CredentialService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class AiProviderService {
     private final AiProviderConfigRepository configRepository;
     private final AiProviderFactory providerFactory;
     private final CredentialService credentialService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 列出所有可用的 Provider 類型
@@ -112,6 +116,7 @@ public class AiProviderService {
         config = configRepository.save(config);
         log.info("Created AI provider config: id={}, provider={}, user={}",
                 config.getId(), config.getProvider(), userId);
+        eventPublisher.publishEvent(new AiProviderSyncEvent(config.getId(), SyncAction.UPSERT, config));
 
         return AiProviderConfigResponse.from(config);
     }
@@ -160,6 +165,7 @@ public class AiProviderService {
 
         config = configRepository.save(config);
         log.info("Updated AI provider config: id={}", configId);
+        eventPublisher.publishEvent(new AiProviderSyncEvent(config.getId(), SyncAction.UPSERT, config));
 
         return AiProviderConfigResponse.from(config);
     }
@@ -183,6 +189,7 @@ public class AiProviderService {
 
         configRepository.delete(config);
         log.info("Deleted AI provider config: id={}", configId);
+        eventPublisher.publishEvent(new AiProviderSyncEvent(configId, SyncAction.DELETE, null));
     }
 
     /**

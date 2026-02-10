@@ -1,0 +1,23 @@
+{
+  "name": "n3n-cloud-sync-gateway",
+  "version": "1.0.0",
+  "description": "Cloud Function gateway for N3N cloud sync - namespace-isolated GCS proxy",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npx functions-framework --target=n3nCloudSync",
+    "deploy": "bash deploy.sh"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/storage": "^7.7.0",
+    "@google-cloud/secret-manager": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

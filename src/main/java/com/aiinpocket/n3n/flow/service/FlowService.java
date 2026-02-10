@@ -14,8 +14,11 @@ import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
+import com.aiinpocket.n3n.backup.event.FlowSyncEvent;
+import com.aiinpocket.n3n.backup.event.SyncAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,7 @@ public class FlowService {
     private final ExternalServiceService externalServiceService;
     private final WebhookRepository webhookRepository;
     private final SchedulerService schedulerService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public Page<FlowResponse> listFlows(UUID userId, Pageable pageable) {
@@ -173,6 +177,7 @@ public class FlowService {
 
         flow = flowRepository.save(flow);
         log.info("Flow created: id={}, name={}", flow.getId(), flow.getName());
+        eventPublisher.publishEvent(new FlowSyncEvent(flow.getId(), SyncAction.UPSERT, flow));
 
         return FlowResponse.from(flow);
     }
@@ -194,6 +199,7 @@ public class FlowService {
         }
 
         flow = flowRepository.save(flow);
+        eventPublisher.publishEvent(new FlowSyncEvent(flow.getId(), SyncAction.UPSERT, flow));
         return FlowResponse.from(flow);
     }
 
@@ -210,6 +216,7 @@ public class FlowService {
         flow.setIsDeleted(true);
         flowRepository.save(flow);
         log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated, {} schedules removed", id, schedulesRemoved);
+        eventPublisher.publishEvent(new FlowSyncEvent(id, SyncAction.DELETE, null));
     }
 
     @Transactional

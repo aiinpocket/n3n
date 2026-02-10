@@ -2806,5 +2806,25 @@
     "lastModified": "最終更新",
     "providerNotConfigured": "ストレージプロバイダーを先に設定してください",
     "historyLoading": "バックアップ履歴を読み込み中..."
+  },
+  "cloudSync": {
+    "importTitle": "クラウドインポート",
+    "importDescription": "12語のリカバリキーを入力して、別のN3Nインスタンスからデータをインポートします。",
+    "recoveryKeyLabel": "リカバリキー",
+    "recoveryKeyPlaceholder": "12語のリカバリキーフレーズを入力...",
+    "wordCountHint": "現在：{{count}}語（12語または8語が必要）",
+    "scan": "リモートスキャン",
+    "scanning": "スキャン中...",
+    "remoteDataFound": "リモートデータが見つかりました",
+    "flows": "フロー",
+    "credentials": "認証情報",
+    "aiProviders": "AIプロバイダー",
+    "importSelected": "インポート＆再暗号化",
+    "importing": "インポートと再暗号化中...",
+    "importSuccess": "インポートが完了しました",
+    "importSummary": "インポート：フロー{{flows}}件、認証情報{{credentials}}件、AIプロバイダー{{aiProviders}}件。スキップ：{{skipped}}件。",
+    "importErrors": "件のインポートエラー",
+    "noRemoteData": "このリカバリキーのリモートデータが見つかりません",
+    "reEncryptNote": "インポートされたデータは現在のマスターキーで再暗号化され、クラウドにアップロードされます。"
   }
 }

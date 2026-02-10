@@ -10,11 +10,14 @@ import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.credential.repository.CredentialTypeRepository;
+import com.aiinpocket.n3n.backup.event.CredentialSyncEvent;
+import com.aiinpocket.n3n.backup.event.SyncAction;
 import com.aiinpocket.n3n.oauth2.repository.OAuth2TokenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class CredentialService {
     private final ObjectMapper objectMapper;
     private final ActivityService activityService;
     private final OAuth2TokenRepository oAuth2TokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public Page<CredentialResponse> listCredentials(UUID userId, Pageable pageable) {
@@ -95,6 +99,7 @@ public class CredentialService {
 
         credential = credentialRepository.save(credential);
         log.info("Credential created: id={}, type={}, owner={}", credential.getId(), credential.getType(), userId);
+        eventPublisher.publishEvent(new CredentialSyncEvent(credential.getId(), SyncAction.UPSERT, credential));
 
         return CredentialResponse.from(credential);
     }
@@ -124,6 +129,7 @@ public class CredentialService {
 
         credential = credentialRepository.save(credential);
         log.info("Credential updated: id={}, owner={}", id, userId);
+        eventPublisher.publishEvent(new CredentialSyncEvent(credential.getId(), SyncAction.UPSERT, credential));
         return CredentialResponse.from(credential);
     }
 
@@ -138,6 +144,7 @@ public class CredentialService {
         credentialRepository.delete(credential);
         activityService.logCredentialAccess(userId, credential.getId(), credential.getName(), "delete");
         log.info("Credential deleted: id={}", id);
+        eventPublisher.publishEvent(new CredentialSyncEvent(id, SyncAction.DELETE, null));
     }
 
     public Map<String, Object> getDecryptedData(UUID id, UUID userId) {

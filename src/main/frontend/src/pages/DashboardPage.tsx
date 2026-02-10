@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 import { getLocale } from '../utils/locale'
 import { useAuthStore } from '../stores/authStore'
+import CloudImportSection from '../components/CloudImportSection'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -414,6 +415,9 @@ export default function DashboardPage() {
           </Card>
         </Col>
       </Row>
+
+      {/* Cloud Import */}
+      <CloudImportSection />
     </div>
   )
 }

@@ -20,6 +20,17 @@ public class CloudStorageFactory {
     private final ObjectMapper objectMapper;
 
     /**
+     * 建立 default provider（透過 Cloud Function 閘道）
+     */
+    public CloudStorageProvider createDefault(String gatewayUrl, String fingerprint) {
+        if (gatewayUrl == null || gatewayUrl.isBlank()) {
+            throw new IllegalArgumentException("Gateway URL is required for default provider");
+        }
+        validateEndpoint(gatewayUrl);
+        return new N3nCloudProvider(gatewayUrl, fingerprint, objectMapper);
+    }
+
+    /**
      * 根據設定建立對應的儲存提供者
      */
     public CloudStorageProvider create(BackupSettings settings) {
