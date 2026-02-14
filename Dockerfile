@@ -35,6 +35,9 @@ COPY --from=frontend-build /app/frontend/dist src/main/resources/static
 # Build application (skip frontend plugin since we already built it)
 RUN ./mvnw package -DskipTests -B -Dfrontend.skip=true
 
+# Extract Spring Boot layered JAR (splits into dependencies / app)
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination /app/extracted
+
 # ===========================================
 # Stage 3: Runtime
 # ===========================================
@@ -44,11 +47,12 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup -g 1000 n3n && adduser -u 1000 -G n3n -D n3n
 
-# Copy JAR from build stage
-COPY --from=backend-build /app/target/*.jar app.jar
-
-# Set ownership
-RUN chown -R n3n:n3n /app
+# Copy layered JAR (each layer is a separate Docker layer)
+# Order: least-changing → most-changing (best cache utilization)
+COPY --from=backend-build --chown=n3n:n3n /app/extracted/dependencies/ ./
+COPY --from=backend-build --chown=n3n:n3n /app/extracted/spring-boot-loader/ ./
+COPY --from=backend-build --chown=n3n:n3n /app/extracted/snapshot-dependencies/ ./
+COPY --from=backend-build --chown=n3n:n3n /app/extracted/application/ ./
 
 # Switch to non-root user
 USER n3n
@@ -60,5 +64,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
 
-# Run application
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+# Run with Spring Boot launcher (required for layered JAR)
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "org.springframework.boot.loader.launch.JarLauncher"]

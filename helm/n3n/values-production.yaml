@@ -141,6 +141,8 @@ database:
 
 postgresql:
   enabled: true
+  image:
+    tag: latest
   auth:
     username: n3n
     # Password MUST be set via --set postgresql.auth.password=xxx
@@ -165,6 +167,8 @@ postgresql:
 redis:
   enabled: true
   architecture: standalone
+  image:
+    tag: latest
   auth:
     enabled: false
   master:
