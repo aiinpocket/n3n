@@ -909,7 +909,10 @@
     "createFailed": "Failed to create conversation",
     "flowCreated": "Flow created!",
     "flowCreateFailed": "Failed to create flow",
-    "emptyRecommendation": "AI recommendations will appear here"
+    "emptyRecommendation": "AI recommendations will appear here",
+    "noAiConfig": "AI Provider Not Configured",
+    "noAiConfigDesc": "Set up an AI provider (Claude, OpenAI, Gemini, or Ollama) to start using the AI assistant.",
+    "goToSettings": "AI Settings"
   },
   "skill": {
     "title": "Skills",

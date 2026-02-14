@@ -23,7 +23,9 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { SettingOutlined } from '@ant-design/icons'
 import * as agentApi from '../api/agent'
+import { getConfigs as getAiConfigs } from '../api/ai'
 import type {
   Conversation,
   ConversationDetail,
@@ -47,11 +49,13 @@ const AIAssistantPage: React.FC = () => {
   const [sending, setSending] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [historyVisible, setHistoryVisible] = useState(false)
+  const [hasAiConfig, setHasAiConfig] = useState<boolean | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Fetch conversations on mount
+  // Fetch conversations and check AI config on mount
   useEffect(() => {
     fetchConversations()
+    getAiConfigs().then((configs) => setHasAiConfig(configs.length > 0)).catch(() => setHasAiConfig(false))
   }, [])
 
   // Scroll to bottom when messages change
@@ -190,7 +194,22 @@ const AIAssistantPage: React.FC = () => {
   const lastAiMessage = getLastAiMessage()
 
   return (
-    <div style={{ padding: 24, height: 'calc(100vh - 120px)', display: 'flex', gap: 16 }}>
+    <div style={{ padding: 24, height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {hasAiConfig === false && (
+        <Alert
+          type="warning"
+          showIcon
+          message={t('chat.noAiConfig')}
+          description={t('chat.noAiConfigDesc')}
+          action={
+            <Button size="small" icon={<SettingOutlined />} onClick={() => navigate('/settings/ai')}>
+              {t('chat.goToSettings')}
+            </Button>
+          }
+          style={{ flexShrink: 0 }}
+        />
+      )}
+      <div style={{ flex: 1, display: 'flex', gap: 16, minHeight: 0 }}>
       {/* Main Chat Area */}
       <Card
         style={{ flex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}
@@ -367,6 +386,7 @@ const AIAssistantPage: React.FC = () => {
           locale={{ emptyText: t('chat.noHistory') }}
         />
       </Modal>
+      </div>
     </div>
   )
 }

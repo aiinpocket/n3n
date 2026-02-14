@@ -909,7 +909,10 @@
     "createFailed": "会話の作成に失敗しました",
     "flowCreated": "フローを作成しました！",
     "flowCreateFailed": "フローの作成に失敗しました",
-    "emptyRecommendation": "AIの推薦がここに表示されます"
+    "emptyRecommendation": "AIの推薦がここに表示されます",
+    "noAiConfig": "AIプロバイダーが未設定です",
+    "noAiConfigDesc": "AIアシスタントを使用するには、AIプロバイダー（Claude、OpenAI、Gemini、またはOllama）を設定してください。",
+    "goToSettings": "AI設定へ"
   },
   "skill": {
     "title": "スキル",
