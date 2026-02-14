@@ -11,21 +11,22 @@ on:
   workflow_dispatch:
 
 env:
-  NEXUS_REGISTRY: docker-push.kubeinpocket.com
-  IMAGE_NAME: n3n
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # ============================================================
-  # Stage 1: Build & Push Docker Image to Nexus
+  # Stage 1: Build & Push Docker Image to ghcr.io
   # ============================================================
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     outputs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check skip
         id: skip
@@ -47,25 +48,14 @@ jobs:
       - name: Set up Docker Buildx
         if: steps.skip.outputs.skip == 'false'
         uses: docker/setup-buildx-action@v3
-        with:
-          buildkitd-config-inline: |
-            [registry."docker-push.kubeinpocket.com"]
-              ca=["/etc/docker/certs.d/docker-push.kubeinpocket.com/ca.crt"]
 
-      - name: Trust Cloudflare Origin CA
-        if: steps.skip.outputs.skip == 'false'
-        run: |
-          sudo mkdir -p /etc/docker/certs.d/docker-push.kubeinpocket.com
-          curl -sL https://developers.cloudflare.com/ssl/static/origin_ca_rsa_root.pem | \
-            sudo tee /etc/docker/certs.d/docker-push.kubeinpocket.com/ca.crt > /dev/null
-
-      - name: Login to Nexus
+      - name: Login to GitHub Container Registry
         if: steps.skip.outputs.skip == 'false'
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.NEXUS_REGISTRY }}
-          username: ${{ secrets.NEXUS_USERNAME }}
-          password: ${{ secrets.NEXUS_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         if: steps.skip.outputs.skip == 'false'
@@ -74,8 +64,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
-            ${{ env.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -90,6 +80,8 @@ jobs:
     needs: build
     if: needs.build.outputs.image_tag != ''
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
