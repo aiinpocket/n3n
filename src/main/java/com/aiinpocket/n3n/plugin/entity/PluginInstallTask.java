@@ -74,7 +74,7 @@ public class PluginInstallTask {
      * 安裝來源
      */
     public enum InstallSource {
-        MARKETPLACE,    // 從 N3N Marketplace 安裝
+        BUILTIN,        // 從 N3N 內建工具庫安裝
         DOCKER_HUB,     // 從 Docker Hub 拉取映像
         DOCKER_REGISTRY,// 從私有 Docker Registry
         LOCAL,          // 本地安裝

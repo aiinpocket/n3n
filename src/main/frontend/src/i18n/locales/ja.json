@@ -433,7 +433,10 @@
     "applied": "適用済み",
     "applySuccess": "{{count}}件の提案を適用しました",
     "applyFailed": "提案の適用に失敗しました",
-    "flowOptimized": "フロー最適化を適用しました"
+    "flowOptimized": "フロー最適化を適用しました",
+    "noFlow": "フローが読み込まれていません",
+    "requiresNodes": "分析するには少なくとも1つのノードを追加してください",
+    "serviceHint": "ローカルAIオプティマイザー (Phi-3-Mini) が起動していない可能性があります。最適化なしでフローを公開することもできます。"
   },
   "aiAssistant": {
     "analyzing": "AI分析",
@@ -1809,6 +1812,7 @@
     "needsInstall": "要インストール",
     "available": "利用可能",
     "dockerHub": "Docker Hub",
+    "customTool": "カスタムツール",
     "caution": "注意",
     "searchPlaceholder": "ノードを検索または必要な機能を説明...",
     "noInstalledNodes": "インストール済みのノードがありません",

@@ -298,15 +298,23 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
       open={visible}
       onClose={onClose}
       extra={
-        <Button
-          type="primary"
-          icon={loading ? <Spin size="small" /> : <ThunderboltOutlined />}
-          onClick={handleAnalyze}
-          loading={loading}
-          disabled={!flowDefinition || nodeCount === 0}
+        <Tooltip
+          title={
+            !flowDefinition ? t('optimizer.noFlow') :
+            nodeCount === 0 ? t('optimizer.requiresNodes') :
+            undefined
+          }
         >
-          {loading ? t('optimizer.analyzing') : t('optimizer.analyze')}
-        </Button>
+          <Button
+            type="primary"
+            icon={loading ? <Spin size="small" /> : <ThunderboltOutlined />}
+            onClick={handleAnalyze}
+            loading={loading}
+            disabled={!flowDefinition || nodeCount === 0}
+          >
+            {loading ? t('optimizer.analyzing') : t('optimizer.analyze')}
+          </Button>
+        </Tooltip>
       }
     >
       {/* Flow Info */}
@@ -336,14 +344,16 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
             </div>
           }
         >
-          <Button
-            type="primary"
-            icon={<ThunderboltOutlined />}
-            onClick={handleAnalyze}
-            disabled={nodeCount === 0}
-          >
-            {t('optimizer.startAnalysis')}
-          </Button>
+          <Tooltip title={nodeCount === 0 ? t('optimizer.requiresNodes') : undefined}>
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined />}
+              onClick={handleAnalyze}
+              disabled={nodeCount === 0}
+            >
+              {t('optimizer.startAnalysis')}
+            </Button>
+          </Tooltip>
         </Empty>
       )}
 
@@ -359,9 +369,16 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
       {/* Error */}
       {error && (
         <Alert
-          type="error"
+          type="warning"
           message={t('optimizer.analysisFailed')}
-          description={error}
+          description={
+            <div>
+              <Paragraph style={{ marginBottom: 8 }}>{error}</Paragraph>
+              <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
+                {t('optimizer.serviceHint')}
+              </Paragraph>
+            </div>
+          }
           showIcon
           action={
             <Button size="small" icon={<ReloadOutlined />} onClick={handleAnalyze}>

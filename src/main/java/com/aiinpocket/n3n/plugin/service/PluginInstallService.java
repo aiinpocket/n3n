@@ -105,7 +105,7 @@ public class PluginInstallService {
         task.setUserId(userId);
         task.setPluginId(pluginId);
         task.setNodeType(nodeType);
-        task.setSource(PluginInstallTask.InstallSource.MARKETPLACE);
+        task.setSource(PluginInstallTask.InstallSource.BUILTIN);
         task.setSourceReference(pluginVersion.getVersion());
         task.setStatus(PluginInstallTask.InstallStatus.PENDING);
         task.setCurrentStage("Pending installation");
@@ -188,7 +188,7 @@ public class PluginInstallService {
 
         try {
             switch (task.getSource()) {
-                case MARKETPLACE -> installFromMarketplace(task);
+                case BUILTIN -> installFromBuiltin(task);
                 case DOCKER_HUB, DOCKER_REGISTRY -> installFromDocker(task);
                 case LOCAL -> installLocal(task);
                 default -> throw new UnsupportedOperationException(
@@ -202,12 +202,12 @@ public class PluginInstallService {
     }
 
     /**
-     * 從 Marketplace 安裝
+     * 從內建工具庫安裝
      */
-    private void installFromMarketplace(PluginInstallTask task) {
+    private void installFromBuiltin(PluginInstallTask task) {
         UUID pluginId = task.getPluginId();
         if (pluginId == null) {
-            throw new IllegalStateException("Plugin ID is required for marketplace install");
+            throw new IllegalStateException("Plugin ID is required for builtin install");
         }
 
         updateTaskProgress(task, PluginInstallTask.InstallStatus.PULLING, 10, "Fetching plugin info");
@@ -327,7 +327,7 @@ public class PluginInstallService {
      * 解析安裝來源
      */
     private InstallSourceInfo resolveInstallSource(String nodeType) {
-        // 1. 先從 Marketplace 查找
+        // 1. 先從內建工具庫查找
         List<Plugin> plugins = pluginRepository.findAll();
         for (Plugin plugin : plugins) {
             PluginVersion version = pluginVersionRepository.findLatestByPluginId(plugin.getId())
@@ -342,7 +342,7 @@ public class PluginInstallService {
             for (Map<String, Object> node : nodes) {
                 if (nodeType.equals(node.get("type"))) {
                     return new InstallSourceInfo(
-                        PluginInstallTask.InstallSource.MARKETPLACE,
+                        PluginInstallTask.InstallSource.BUILTIN,
                         version.getVersion(),
                         plugin.getId(),
                         Map.of("pluginName", plugin.getName())

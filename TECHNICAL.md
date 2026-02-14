@@ -246,7 +246,7 @@ Secure credential storage with AES-256-GCM encryption.
 
 #### plugin/
 Custom Docker tools with dynamic node registration and container orchestration.
-- `MarketplaceController` - Custom tool browsing, pull, remove APIs
+- `CustomToolsController` - Custom tool browsing, pull, remove APIs
 - `PluginService` - Tool lifecycle management
 - `PluginNodeRegistrar` - Dynamic registration of plugin nodes
 - `DynamicPluginNodeHandler` - Runtime execution of plugin-defined nodes
@@ -548,13 +548,13 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/marketplace/categories` | List tool categories |
-| GET | `/api/marketplace/plugins` | Search custom tools (with filters) |
-| GET | `/api/marketplace/plugins/installed` | Get installed tools |
-| GET | `/api/marketplace/plugins/{id}` | Get tool details |
-| POST | `/api/marketplace/plugins/{id}/install` | Pull a Docker tool |
-| DELETE | `/api/marketplace/plugins/{id}/uninstall` | Remove a tool |
-| POST | `/api/marketplace/plugins/{id}/update` | Update to latest version |
+| GET | `/api/custom-tools/categories` | List tool categories |
+| GET | `/api/custom-tools/plugins` | Search custom tools (with filters) |
+| GET | `/api/custom-tools/plugins/installed` | Get installed tools |
+| GET | `/api/custom-tools/plugins/{id}` | Get tool details |
+| POST | `/api/custom-tools/plugins/{id}/install` | Pull a Docker tool |
+| DELETE | `/api/custom-tools/plugins/{id}/uninstall` | Remove a tool |
+| POST | `/api/custom-tools/plugins/{id}/update` | Update to latest version |
 
 **Search Query Parameters:**
 - `category` - Filter by category
@@ -829,7 +829,7 @@ CREATE TABLE credentials (
 
 ### Custom Docker Tools Tables
 
-> **Note:** These tables were originally designed for a plugin marketplace. The `pricing`, `price` fields in `plugins` and the `plugin_ratings` table are legacy schema retained for backward compatibility. The current UI ("Custom Docker Tools") only uses free Docker Hub-based tools without ratings.
+> **Note:** The `pricing`, `price` fields in `plugins` and the `plugin_ratings` table are legacy schema retained for backward compatibility. All tools are built-in platform capabilities; Docker Hub pulling is the fallback for tools not found in the built-in catalog.
 
 #### plugins
 ```sql

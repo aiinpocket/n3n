@@ -18,7 +18,7 @@ public class NodeRecommendation {
     private String matchReason;     // AI-generated reason
     private List<String> pros;      // Advantages
     private List<String> cons;      // Considerations
-    private String source;          // marketplace, dockerhub, builtin
+    private String source;          // builtin, dockerhub, custom-tool
     private Double rating;
     private Long downloads;
     private boolean needsInstall;

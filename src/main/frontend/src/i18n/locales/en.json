@@ -433,7 +433,10 @@
     "applied": "Applied",
     "applySuccess": "Successfully applied {{count}} suggestions",
     "applyFailed": "Failed to apply suggestions",
-    "flowOptimized": "Flow optimization applied successfully"
+    "flowOptimized": "Flow optimization applied successfully",
+    "noFlow": "No flow loaded",
+    "requiresNodes": "Add at least one node before analyzing",
+    "serviceHint": "The local AI optimizer (Phi-3-Mini) may not be running. You can still publish your flow without optimization."
   },
   "aiAssistant": {
     "analyzing": "AI Analysis",
@@ -1809,6 +1812,7 @@
     "needsInstall": "Needs Install",
     "available": "Available",
     "dockerHub": "Docker Hub",
+    "customTool": "Custom Tool",
     "caution": "Caution",
     "searchPlaceholder": "Search nodes or describe the functionality you need...",
     "noInstalledNodes": "No installed nodes",

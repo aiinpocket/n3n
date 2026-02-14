@@ -16,21 +16,21 @@ public class NodeRecommendationResponse {
     private List<NodeCategoryInfo> categories;
     private List<InstalledNodeInfo> installedNodes;
     private List<NodeRecommendation> aiRecommendations;
-    private List<NodeRecommendation> marketplaceResults;
+    private List<NodeRecommendation> customToolResults;
     private String error;
 
     public static NodeRecommendationResponse success(
             List<NodeCategoryInfo> categories,
             List<InstalledNodeInfo> installed,
             List<NodeRecommendation> aiRecs,
-            List<NodeRecommendation> marketplace) {
+            List<NodeRecommendation> customTools) {
         return NodeRecommendationResponse.builder()
                 .success(true)
                 .aiAvailable(true)
                 .categories(categories)
                 .installedNodes(installed)
                 .aiRecommendations(aiRecs)
-                .marketplaceResults(marketplace)
+                .customToolResults(customTools)
                 .build();
     }
 
@@ -43,7 +43,7 @@ public class NodeRecommendationResponse {
                 .categories(categories)
                 .installedNodes(installed)
                 .aiRecommendations(List.of())
-                .marketplaceResults(List.of())
+                .customToolResults(List.of())
                 .build();
     }
 

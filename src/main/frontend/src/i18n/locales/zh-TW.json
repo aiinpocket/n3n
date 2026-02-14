@@ -433,7 +433,10 @@
     "applied": "已套用",
     "applySuccess": "已成功套用 {{count}} 項建議",
     "applyFailed": "套用建議失敗",
-    "flowOptimized": "已成功套用流程優化"
+    "flowOptimized": "已成功套用流程優化",
+    "noFlow": "尚未載入流程",
+    "requiresNodes": "請先新增至少一個節點再進行分析",
+    "serviceHint": "本地 AI 優化器 (Phi-3-Mini) 可能未啟動。您仍可直接發布流程而不進行優化。"
   },
   "aiAssistant": {
     "analyzing": "AI 分析",
@@ -1809,6 +1812,7 @@
     "needsInstall": "需安裝",
     "available": "可用",
     "dockerHub": "Docker Hub",
+    "customTool": "自訂工具",
     "caution": "注意",
     "searchPlaceholder": "搜尋節點或描述您需要的功能...",
     "noInstalledNodes": "沒有已安裝的節點",

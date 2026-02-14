@@ -74,7 +74,7 @@ export interface SearchResult {
 
 // API Functions
 export async function getCategories(): Promise<MarketplaceCategory[]> {
-  const response = await apiClient.get<MarketplaceCategory[]>('/marketplace/categories')
+  const response = await apiClient.get<MarketplaceCategory[]>('/custom-tools/categories')
   return response.data
 }
 
@@ -87,42 +87,42 @@ export async function searchPlugins(filters: SearchFilters = {}): Promise<Search
   if (filters.page) params.append('page', filters.page.toString())
   if (filters.pageSize) params.append('pageSize', filters.pageSize.toString())
 
-  const response = await apiClient.get<SearchResult>(`/marketplace/plugins?${params.toString()}`)
+  const response = await apiClient.get<SearchResult>(`/custom-tools/plugins?${params.toString()}`)
   return response.data
 }
 
 export async function getFeaturedPlugins(): Promise<MarketplacePlugin[]> {
-  const response = await apiClient.get<MarketplacePlugin[]>('/marketplace/plugins/featured')
+  const response = await apiClient.get<MarketplacePlugin[]>('/custom-tools/plugins/featured')
   return response.data
 }
 
 export async function getPluginDetail(id: string): Promise<PluginDetail> {
-  const response = await apiClient.get<PluginDetail>(`/marketplace/plugins/${id}`)
+  const response = await apiClient.get<PluginDetail>(`/custom-tools/plugins/${id}`)
   return response.data
 }
 
 export async function installPlugin(id: string): Promise<InstallationResult> {
-  const response = await apiClient.post<InstallationResult>(`/marketplace/plugins/${id}/install`)
+  const response = await apiClient.post<InstallationResult>(`/custom-tools/plugins/${id}/install`)
   return response.data
 }
 
 export async function uninstallPlugin(id: string): Promise<void> {
-  await apiClient.delete(`/marketplace/plugins/${id}/uninstall`)
+  await apiClient.delete(`/custom-tools/plugins/${id}/uninstall`)
 }
 
 export async function updatePlugin(id: string): Promise<InstallationResult> {
-  const response = await apiClient.post<InstallationResult>(`/marketplace/plugins/${id}/update`)
+  const response = await apiClient.post<InstallationResult>(`/custom-tools/plugins/${id}/update`)
   return response.data
 }
 
 export async function getInstalledPlugins(): Promise<MarketplacePlugin[]> {
-  const response = await apiClient.get<MarketplacePlugin[]>('/marketplace/plugins/installed')
+  const response = await apiClient.get<MarketplacePlugin[]>('/custom-tools/plugins/installed')
   return response.data
 }
 
 export async function ratePlugin(id: string, rating: number, review?: string): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.post<{ success: boolean; message: string }>(
-    `/marketplace/plugins/${id}/rate`,
+    `/custom-tools/plugins/${id}/rate`,
     { rating, review }
   )
   return response.data

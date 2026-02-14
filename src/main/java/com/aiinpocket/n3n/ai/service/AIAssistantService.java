@@ -494,7 +494,7 @@ public class AIAssistantService {
                 def.displayName(),
                 def.icon(),
                 builtinCount,  // builtin nodes are always available
-                0  // marketplace nodes - can be enhanced later
+                0  // custom tool nodes - can be enhanced later
             ));
         }
 

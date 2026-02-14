@@ -81,7 +81,7 @@ export interface NodeRecommendation {
   matchReason: string
   pros: string[]
   cons: string[]
-  source: 'builtin' | 'marketplace' | 'dockerhub'
+  source: 'builtin' | 'custom-tool' | 'dockerhub'
   rating?: number
   downloads?: number
   needsInstall: boolean
@@ -102,7 +102,7 @@ export interface NodeRecommendationResponse {
   categories?: NodeCategoryInfo[]
   installedNodes?: InstalledNodeInfo[]
   aiRecommendations?: NodeRecommendation[]
-  marketplaceResults?: NodeRecommendation[]
+  customToolResults?: NodeRecommendation[]
   error?: string
 }
 

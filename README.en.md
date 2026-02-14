@@ -171,7 +171,7 @@ docker compose up -d --build
 - **Flow Validation** - Built-in validation button in editor toolbar to check DAG structure before publishing
 - **Schedule Management** - Cron-based flow triggers with pause/resume/trigger-now support (Quartz integration)
 - **Webhook Testing** - Test triggers directly from the Webhook management page with instant flow activation confirmation
-- **Plugin Ratings** - Custom tool marketplace with community ratings and reviews
+- **Custom Docker Tools** - Pull additional container tools from Docker Hub with community ratings and reviews
 - **Save as Template** - One-click conversion of existing flow versions into reusable templates
 - **Form Triggers** - Create public forms that trigger workflow execution on submission, no login required
 - **Cloud Encrypted Backup** - Auto-encrypt and back up flows, credentials, settings to S3/GCS/R2/SFTP, restore via Recovery Key

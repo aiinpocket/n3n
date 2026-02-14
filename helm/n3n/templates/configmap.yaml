@@ -38,5 +38,9 @@ data:
   DDL_AUTO: {{ .Values.config.ddlAuto | default "update" | quote }}
   # Swagger
   SWAGGER_ENABLED: {{ .Values.config.swaggerEnabled | default "false" | quote }}
+  # Flow Optimizer (local Phi-3-Mini LLM)
+  FLOW_OPTIMIZER_ENABLED: {{ .Values.flowOptimizer.enabled | default true | quote }}
+  FLOW_OPTIMIZER_URL: {{ .Values.flowOptimizer.url | default "http://localhost:8081" | quote }}
+  FLOW_OPTIMIZER_TIMEOUT: {{ .Values.flowOptimizer.timeoutMs | default 30000 | quote }}
   # Actuator endpoints
   ACTUATOR_ENDPOINTS: "health,info,prometheus"

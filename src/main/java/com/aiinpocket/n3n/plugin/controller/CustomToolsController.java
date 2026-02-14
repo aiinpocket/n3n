@@ -19,13 +19,13 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/marketplace")
+@RequestMapping("/api/custom-tools")
 @Tag(name = "Custom Tools", description = "Custom Docker tools - pull additional container tools from Docker Hub")
-public class MarketplaceController {
+public class CustomToolsController {
 
     private final PluginService pluginService;
 
-    public MarketplaceController(@Qualifier("pluginPluginService") PluginService pluginService) {
+    public CustomToolsController(@Qualifier("pluginPluginService") PluginService pluginService) {
         this.pluginService = pluginService;
     }
 

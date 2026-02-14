@@ -95,6 +95,12 @@ config:
   # Swagger/OpenAPI UI
   swaggerEnabled: "false"
 
+# Flow Optimizer (local Phi-3-Mini LLM for flow analysis)
+flowOptimizer:
+  enabled: true
+  url: "http://localhost:8081"
+  timeoutMs: 30000
+
 # Database configuration
 database:
   # Use external database or built-in PostgreSQL
