@@ -151,6 +151,8 @@ postgresql:
   # Fix NFS volume permissions (root-owned dirs → UID 1001)
   volumePermissions:
     enabled: true
+    image:
+      tag: latest
   primary:
     persistence:
       enabled: true
