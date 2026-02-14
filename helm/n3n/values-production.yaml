@@ -114,8 +114,8 @@ config:
   executionRetentionDays: 30
   executionMaxConcurrent: 100
   executionTimeoutMs: 300000
-  # Container orchestration (kubernetes in K8s environment)
-  orchestratorType: kubernetes
+  # Container orchestration (docker until fabric8 client packaging is fixed)
+  orchestratorType: docker
   # DDL auto mode (validate for production, update for initial setup)
   ddlAuto: update
   # Swagger (disabled in production)
