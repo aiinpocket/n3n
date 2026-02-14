@@ -47,6 +47,17 @@ jobs:
       - name: Set up Docker Buildx
         if: steps.skip.outputs.skip == 'false'
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."docker-push.kubeinpocket.com"]
+              ca=["/etc/docker/certs.d/docker-push.kubeinpocket.com/ca.crt"]
+
+      - name: Trust Cloudflare Origin CA
+        if: steps.skip.outputs.skip == 'false'
+        run: |
+          sudo mkdir -p /etc/docker/certs.d/docker-push.kubeinpocket.com
+          curl -sL https://developers.cloudflare.com/ssl/static/origin_ca_rsa_root.pem | \
+            sudo tee /etc/docker/certs.d/docker-push.kubeinpocket.com/ca.crt > /dev/null
 
       - name: Login to Nexus
         if: steps.skip.outputs.skip == 'false'
