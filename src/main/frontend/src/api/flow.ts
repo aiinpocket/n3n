@@ -9,6 +9,7 @@ export interface Flow {
   createdBy: string
   latestVersion: string | null
   publishedVersion: string | null
+  userPermission?: 'owner' | 'admin' | 'edit' | 'view'
 }
 
 export interface FlowVersion {

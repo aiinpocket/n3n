@@ -311,6 +311,7 @@
     "exitPoints": "エグジットポイント",
     "monitorMode": "監視モード",
     "unsaved": "未保存",
+    "viewOnly": "閲覧のみ",
     "unsavedChanges": "未保存の変更",
     "unsavedChangesWarning": "未保存の変更があります。このまま移動しますか？",
     "saving": "保存中",

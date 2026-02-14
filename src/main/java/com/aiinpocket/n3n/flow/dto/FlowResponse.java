@@ -18,6 +18,7 @@ public class FlowResponse {
     private Instant updatedAt;
     private String latestVersion;
     private String publishedVersion;
+    private String userPermission; // owner, admin, edit, view (set by controller)
 
     public static FlowResponse from(Flow flow) {
         return FlowResponse.builder()

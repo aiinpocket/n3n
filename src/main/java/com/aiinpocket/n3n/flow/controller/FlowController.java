@@ -51,10 +51,13 @@ public class FlowController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        if (!flowShareService.hasAccess(id, userId)) {
+        String permission = flowShareService.getUserPermission(id, userId);
+        if (permission == null) {
             throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }
-        return ResponseEntity.ok(flowService.getFlow(id));
+        FlowResponse response = flowService.getFlow(id);
+        response.setUserPermission(permission);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
@@ -74,6 +77,9 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(id, userId)) {
+            if (flowShareService.hasAccess(id, userId)) {
+                throw new org.springframework.security.access.AccessDeniedException("Edit permission required");
+            }
             throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }
         FlowResponse response = flowService.updateFlow(id, request);
@@ -174,6 +180,9 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
+            if (flowShareService.hasAccess(flowId, userId)) {
+                throw new org.springframework.security.access.AccessDeniedException("Edit permission required");
+            }
             throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         FlowResponse flow = flowService.getFlow(flowId);
@@ -189,6 +198,9 @@ public class FlowController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         if (!flowShareService.hasEditAccess(flowId, userId)) {
+            if (flowShareService.hasAccess(flowId, userId)) {
+                throw new org.springframework.security.access.AccessDeniedException("Edit permission required");
+            }
             throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + flowId);
         }
         FlowResponse flow = flowService.getFlow(flowId);

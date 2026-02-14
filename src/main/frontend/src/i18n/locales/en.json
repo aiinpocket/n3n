@@ -311,6 +311,7 @@
     "exitPoints": "Exit Points",
     "monitorMode": "Monitor Mode",
     "unsaved": "Unsaved",
+    "viewOnly": "View Only",
     "unsavedChanges": "Unsaved Changes",
     "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave?",
     "saving": "Saving",

@@ -246,6 +246,21 @@ public class FlowShareService {
         return flowShareRepository.hasEditPermission(flowId, userId);
     }
 
+    /**
+     * 取得用戶對流程的權限等級: owner, admin, edit, view, 或 null
+     */
+    public String getUserPermission(UUID flowId, UUID userId) {
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
+        if (flow == null) {
+            return null;
+        }
+        if (flow.getCreatedBy().equals(userId)) {
+            return "owner";
+        }
+        return flowShareRepository.findPermissionByFlowIdAndUserId(flowId, userId)
+            .orElse(null);
+    }
+
     private boolean hasAdminPermission(UUID flowId, UUID userId) {
         return flowShareRepository.findPermissionByFlowIdAndUserId(flowId, userId)
             .map(p -> "admin".equals(p))

@@ -121,6 +121,10 @@ export default function FlowEditorPage() {
     canRedo,
   } = useFlowEditorStore()
 
+  // Read-only mode (view-only shared flows)
+  const isReadOnly = currentFlow?.userPermission === 'view'
+  const canEdit = !isReadOnly
+
   // Execution mode state
   const [executionMode, setExecutionMode] = useState(false)
   const [activeExecutionId, setActiveExecutionId] = useState<string | null>(
@@ -238,10 +242,10 @@ export default function FlowEditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state])
 
-  // Auto-save with debounce
+  // Auto-save with debounce (disabled in read-only mode)
   useEffect(() => {
     let cancelled = false
-    if (isDirty && !saving) {
+    if (isDirty && !saving && canEdit) {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current)
       }
@@ -260,7 +264,7 @@ export default function FlowEditorPage() {
         clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [isDirty, saving, autoSaveDraft])
+  }, [isDirty, saving, autoSaveDraft, canEdit])
 
   // Warn before closing with unsaved changes
   useEffect(() => {
@@ -276,8 +280,8 @@ export default function FlowEditorPage() {
   // Keyboard shortcuts - use ref to avoid re-registering listener on every state change
   const keyboardHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {})
   keyboardHandlerRef.current = (e: KeyboardEvent) => {
-    // Skip if in execution mode or if target is an input/textarea
-    if (executionMode) return
+    // Skip if in execution mode, read-only mode, or if target is an input/textarea
+    if (executionMode || isReadOnly) return
     const target = e.target as HTMLElement
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       return
@@ -690,7 +694,8 @@ export default function FlowEditorPage() {
                 {isExecuting ? t('execution.running') : executionStatus === 'completed' ? t('execution.completed') : executionStatus === 'failed' ? t('execution.failed') : t('editor.monitorMode')}
               </Tag>
             )}
-            {!executionMode && isDirty && <Tag color="orange">{t('editor.unsaved')}</Tag>}
+            {isReadOnly && <Tag color="blue" icon={<EyeOutlined />}>{t('editor.viewOnly')}</Tag>}
+            {!executionMode && !isReadOnly && isDirty && <Tag color="orange">{t('editor.unsaved')}</Tag>}
             {!executionMode && saving && (
               <Tag icon={<SyncOutlined spin />} color="processing">
                 {t('editor.saving')}
@@ -706,33 +711,39 @@ export default function FlowEditorPage() {
         }
         extra={
           <Space>
-            <Tooltip title={`${t('editor.undo')} (Ctrl+Z)`}>
-              <Button
-                icon={<UndoOutlined />}
-                onClick={() => { undo(); message.info(t('editor.undone')) }}
-                disabled={!canUndo()}
-              />
-            </Tooltip>
-            <Tooltip title={`${t('editor.redo')} (Ctrl+Shift+Z)`}>
-              <Button
-                icon={<RedoOutlined />}
-                onClick={() => { redo(); message.info(t('editor.redone')) }}
-                disabled={!canRedo()}
-              />
-            </Tooltip>
-            <Tooltip title={`${t('editor.copy')} (Ctrl+C)`}>
-              <Button
-                icon={<CopyOutlined />}
-                onClick={() => { copySelectedNodes(); message.info(t('editor.copied')) }}
-                disabled={selectedNodeIds.length === 0}
-              />
-            </Tooltip>
+            {canEdit && (
+              <>
+                <Tooltip title={`${t('editor.undo')} (Ctrl+Z)`}>
+                  <Button
+                    icon={<UndoOutlined />}
+                    onClick={() => { undo(); message.info(t('editor.undone')) }}
+                    disabled={!canUndo()}
+                  />
+                </Tooltip>
+                <Tooltip title={`${t('editor.redo')} (Ctrl+Shift+Z)`}>
+                  <Button
+                    icon={<RedoOutlined />}
+                    onClick={() => { redo(); message.info(t('editor.redone')) }}
+                    disabled={!canRedo()}
+                  />
+                </Tooltip>
+                <Tooltip title={`${t('editor.copy')} (Ctrl+C)`}>
+                  <Button
+                    icon={<CopyOutlined />}
+                    onClick={() => { copySelectedNodes(); message.info(t('editor.copied')) }}
+                    disabled={selectedNodeIds.length === 0}
+                  />
+                </Tooltip>
+              </>
+            )}
             <Tooltip title={t('editor.nodeSearch.title')}>
               <Button icon={<SearchOutlined />} onClick={() => setNodeSearchOpen(true)} aria-label={t('editor.nodeSearch.title')} />
             </Tooltip>
-            <Dropdown menu={addNodeMenu} placement="bottomRight">
-              <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
-            </Dropdown>
+            {canEdit && (
+              <Dropdown menu={addNodeMenu} placement="bottomRight">
+                <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
+              </Dropdown>
+            )}
             <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
               {t('editor.externalServices')}
             </Button>
@@ -794,41 +805,45 @@ export default function FlowEditorPage() {
                 {t('editor.versionHistory')} ({versions.length})
               </Button>
             </Dropdown>
-            <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
-              <Button
-                icon={<SaveOutlined />}
-                onClick={() => {
-                  if (currentVersion?.status === 'draft') {
-                    saveForm.setFieldsValue({ version: currentVersion.version })
-                  }
-                  setSaveModalOpen(true)
-                }}
-                disabled={!isDirty && !!currentVersion}
-                loading={saving}
-              >
-                {t('common.save')}
-              </Button>
-            </Tooltip>
-            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
-              <Button
-                icon={<CheckOutlined />}
-                onClick={handleValidate}
-                disabled={!currentVersion}
-                loading={validating}
-              >
-                {t('editor.validate')}
-              </Button>
-            </Tooltip>
-            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : currentVersion.status === 'published' ? t('flow.published') : ''}>
-              <Button
-                type="primary"
-                icon={<CloudUploadOutlined />}
-                onClick={() => setPublishModalOpen(true)}
-                disabled={!currentVersion || currentVersion.status === 'published'}
-              >
-                {t('flow.publish')}
-              </Button>
-            </Tooltip>
+            {canEdit && (
+              <>
+                <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
+                  <Button
+                    icon={<SaveOutlined />}
+                    onClick={() => {
+                      if (currentVersion?.status === 'draft') {
+                        saveForm.setFieldsValue({ version: currentVersion.version })
+                      }
+                      setSaveModalOpen(true)
+                    }}
+                    disabled={!isDirty && !!currentVersion}
+                    loading={saving}
+                  >
+                    {t('common.save')}
+                  </Button>
+                </Tooltip>
+                <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
+                  <Button
+                    icon={<CheckOutlined />}
+                    onClick={handleValidate}
+                    disabled={!currentVersion}
+                    loading={validating}
+                  >
+                    {t('editor.validate')}
+                  </Button>
+                </Tooltip>
+                <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : currentVersion.status === 'published' ? t('flow.published') : ''}>
+                  <Button
+                    type="primary"
+                    icon={<CloudUploadOutlined />}
+                    onClick={() => setPublishModalOpen(true)}
+                    disabled={!currentVersion || currentVersion.status === 'published'}
+                  >
+                    {t('flow.publish')}
+                  </Button>
+                </Tooltip>
+              </>
+            )}
             {/* Execution Controls */}
             {executionMode ? (
               <Space>
@@ -894,16 +909,16 @@ export default function FlowEditorPage() {
             type: 'custom',
             animated: false,
           }}
-          onNodesChange={executionMode ? undefined : onNodesChange}
-          onEdgesChange={executionMode ? undefined : onEdgesChange}
-          onConnect={executionMode ? undefined : onConnect}
+          onNodesChange={(executionMode || isReadOnly) ? undefined : onNodesChange}
+          onEdgesChange={(executionMode || isReadOnly) ? undefined : onEdgesChange}
+          onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
           isValidConnection={isValidConnection}
-          onNodeClick={executionMode ? undefined : handleNodeClick}
-          onEdgeClick={executionMode ? undefined : handleEdgeClick}
-          onPaneClick={executionMode ? undefined : handlePaneClick}
-          nodesDraggable={!executionMode}
-          nodesConnectable={!executionMode}
-          elementsSelectable={!executionMode}
+          onNodeClick={(executionMode || isReadOnly) ? undefined : handleNodeClick}
+          onEdgeClick={(executionMode || isReadOnly) ? undefined : handleEdgeClick}
+          onPaneClick={(executionMode || isReadOnly) ? undefined : handlePaneClick}
+          nodesDraggable={!executionMode && canEdit}
+          nodesConnectable={!executionMode && canEdit}
+          elementsSelectable={!executionMode && canEdit}
           fitView
         >
           <Controls />
