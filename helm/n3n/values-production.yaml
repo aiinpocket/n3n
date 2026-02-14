@@ -13,7 +13,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/aiinpocket/n3n
   pullPolicy: Always
-  tag: "6df5234"
+  tag: "d1b20ab"
 
 imagePullSecrets:
   - name: ghcr-secret
