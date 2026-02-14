@@ -13,7 +13,6 @@ on:
 env:
   NEXUS_REGISTRY: docker-push.kubeinpocket.com
   IMAGE_NAME: n3n
-  ARGOCD_SERVER: argocd.kubeinpocket.com
 
 jobs:
   # ============================================================
@@ -25,17 +24,32 @@ jobs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check skip
+        id: skip
+        run: |
+          MSG=$(git log -1 --pretty=%B)
+          if echo "$MSG" | grep -q '\[skip ci\]'; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set build variables
+        if: steps.skip.outputs.skip == 'false'
         id: vars
         run: |
           SHA_SHORT=$(git rev-parse --short HEAD)
           echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
+        if: steps.skip.outputs.skip == 'false'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Nexus
+        if: steps.skip.outputs.skip == 'false'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.NEXUS_REGISTRY }}
@@ -43,6 +57,7 @@ jobs:
           password: ${{ secrets.NEXUS_PASSWORD }}
 
       - name: Build and push
+        if: steps.skip.outputs.skip == 'false'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -54,41 +69,56 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ============================================================
-  # Stage 2: Tell ArgoCD to deploy new image
+  # Stage 2: Update image tag in Git → ArgoCD auto-syncs
   # ============================================================
+  # ArgoCD watches helm/n3n/ in this repo.
+  # We just update image.tag in values-production.yaml and push.
+  # ArgoCD detects the change and deploys automatically.
+  # No kubectl, no ArgoCD CLI, no K8s access needed.
   deploy:
     needs: build
+    if: needs.build.outputs.image_tag != ''
     runs-on: ubuntu-latest
-    environment: production
     steps:
-      - name: Install ArgoCD CLI
-        run: |
-          curl -sSL -o /usr/local/bin/argocd \
-            https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x /usr/local/bin/argocd
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update image tag & sync
+      - name: Update image tag in values-production.yaml
         run: |
-          argocd login "${{ env.ARGOCD_SERVER }}" \
-            --grpc-web \
-            --username admin \
-            --password "${{ secrets.ARGOCD_PASSWORD }}"
+          TAG="${{ needs.build.outputs.image_tag }}"
+          sed -i "s/^  tag: .*/  tag: \"${TAG}\"/" helm/n3n/values-production.yaml
+          echo "Updated image.tag to ${TAG}"
+          grep "tag:" helm/n3n/values-production.yaml
 
-          argocd app set n3n -p image.tag=${{ needs.build.outputs.image_tag }}
-          argocd app sync n3n --prune --force
-          argocd app wait n3n --timeout 600
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm/n3n/values-production.yaml
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "deploy: update image tag to ${{ needs.build.outputs.image_tag }} [skip ci]"
+          git push
 
   # ============================================================
-  # Stage 3: Smoke Test
+  # Stage 3: Smoke Test (wait for ArgoCD sync + app startup)
   # ============================================================
   smoke-test:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for ArgoCD sync + app startup
+        run: |
+          echo "Waiting 120s for ArgoCD sync and application startup..."
+          sleep 120
+
       - name: Health check
         run: |
-          sleep 15
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
-            https://n3n.kubeinpocket.com/actuator/health || echo "000")
-          echo "Health: ${STATUS}"
-          [ "${STATUS}" = "200" ] && echo "PASSED" || echo "::warning::Status ${STATUS}"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+              https://n3n.kubeinpocket.com/actuator/health || echo "000")
+            echo "Attempt ${i}: ${STATUS}"
+            [ "${STATUS}" = "200" ] && echo "PASSED" && exit 0
+            sleep 30
+          done
+          echo "::warning::Health check did not return 200 after 5 attempts"
