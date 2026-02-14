@@ -148,6 +148,9 @@ postgresql:
     # Password MUST be set via --set postgresql.auth.password=xxx
     password: ""
     database: n3n
+  # Fix NFS volume permissions (root-owned dirs → UID 1001)
+  volumePermissions:
+    enabled: true
   primary:
     persistence:
       enabled: true
