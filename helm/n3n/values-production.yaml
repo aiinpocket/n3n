@@ -15,7 +15,8 @@ image:
   pullPolicy: Always
   tag: "5633839"
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-secret
 fullnameOverride: "n3n"
 
 serviceAccount:
