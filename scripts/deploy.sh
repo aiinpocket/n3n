@@ -68,11 +68,11 @@ kubectl apply -f "${K8S_DIR}/argocd/n3n-application.yaml"
 # 安裝 ArgoCD CLI
 if ! command -v argocd >/dev/null 2>&1; then
   echo "  安裝 argocd CLI..."
-  if [[ "$(uname -m)" == "arm64" ]] || [[ "$(uname -m)" == "aarch64" ]]; then
-    curl -sSL -o /tmp/argocd "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-arm64"
-  else
-    curl -sSL -o /tmp/argocd "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64"
-  fi
+  OS="linux"
+  [[ "$(uname -s)" == "Darwin" ]] && OS="darwin"
+  ARCH="amd64"
+  [[ "$(uname -m)" == "arm64" ]] || [[ "$(uname -m)" == "aarch64" ]] && ARCH="arm64"
+  curl -sSL -o /tmp/argocd "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-${OS}-${ARCH}"
   chmod +x /tmp/argocd
   sudo mv /tmp/argocd /usr/local/bin/argocd 2>/dev/null || mv /tmp/argocd ~/argocd
 fi
@@ -81,7 +81,6 @@ fi
 echo "  等待 ArgoCD server 就緒..."
 kubectl wait --for=condition=available deployment/argocd-server -n argocd --timeout=120s
 
-# 設定密鑰參數
 kubectl port-forward svc/argocd-server -n argocd 8443:443 &
 PF_PID=$!
 sleep 3
@@ -96,20 +95,10 @@ argocd app set n3n \
   -p database.password="${DB_PASSWORD}" \
   -p image.tag=latest
 
-kill $PF_PID 2>/dev/null || true
-
 echo -e "${GREEN}  Application 已建立${NC}"
 
 # ─── 5. 觸發首次同步 ───
 echo -e "${YELLOW}[5/5] 首次同步...${NC}"
-kubectl port-forward svc/argocd-server -n argocd 8443:443 &
-PF_PID=$!
-sleep 3
-
-argocd login localhost:8443 \
-  --insecure --grpc-web \
-  --username admin --password "${ARGOCD_PASSWORD}" 2>/dev/null
-
 argocd app sync n3n --prune --timeout 600
 
 kill $PF_PID 2>/dev/null || true
