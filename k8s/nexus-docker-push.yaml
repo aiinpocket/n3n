@@ -1,0 +1,59 @@
+# =============================================================
+# Nexus Docker Hosted - Push Endpoint
+# =============================================================
+# 讓外部 CI/CD 可以 push Docker images 到 Nexus docker-hosted
+# 對應 Nexus docker-hosted repository (port 8082)
+#
+# 使用方式：
+#   kubectl apply -f nexus-docker-push.yaml
+#
+# 完成後可以：
+#   docker login docker-push.kubeinpocket.com
+#   docker push docker-push.kubeinpocket.com/n3n:v1
+# =============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-docker-push
+  namespace: nexus
+spec:
+  ports:
+    - name: docker-push
+      port: 8082
+      targetPort: 8082
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: nexus-docker-push
+  namespace: nexus
+subsets:
+  - addresses:
+      - ip: 192.168.30.122
+    ports:
+      - name: docker-push
+        port: 8082
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexus-docker-push
+  namespace: nexus
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: docker-push.kubeinpocket.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexus-docker-push
+                port:
+                  number: 8082

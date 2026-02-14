@@ -67,6 +67,13 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 
+# Persistence for /data (master key, etc.)
+persistence:
+  enabled: false
+  storageClass: ""
+  size: 1Gi
+  accessMode: ReadWriteMany
+
 # Application configuration
 config:
   # JWT secret - MUST be set in production
@@ -81,6 +88,12 @@ config:
   executionRetentionDays: 30
   executionMaxConcurrent: 100
   executionTimeoutMs: 300000
+  # Container orchestration type: docker, kubernetes, auto
+  orchestratorType: docker
+  # JPA DDL auto mode: update, validate, create, create-drop
+  ddlAuto: update
+  # Swagger/OpenAPI UI
+  swaggerEnabled: "false"
 
 # Database configuration
 database:

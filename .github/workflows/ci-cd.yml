@@ -1,0 +1,94 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'agents/**'
+      - '.github/workflows/build-agents.yml'
+  workflow_dispatch:
+
+env:
+  NEXUS_REGISTRY: docker-push.kubeinpocket.com
+  IMAGE_NAME: n3n
+  ARGOCD_SERVER: argocd.kubeinpocket.com
+
+jobs:
+  # ============================================================
+  # Stage 1: Build & Push Docker Image to Nexus
+  # ============================================================
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set build variables
+        id: vars
+        run: |
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Nexus
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.NEXUS_REGISTRY }}
+          username: ${{ secrets.NEXUS_USERNAME }}
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+            ${{ env.NEXUS_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================
+  # Stage 2: Tell ArgoCD to deploy new image
+  # ============================================================
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /usr/local/bin/argocd \
+            https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /usr/local/bin/argocd
+
+      - name: Update image tag & sync
+        run: |
+          argocd login "${{ env.ARGOCD_SERVER }}" \
+            --grpc-web \
+            --username admin \
+            --password "${{ secrets.ARGOCD_PASSWORD }}"
+
+          argocd app set n3n -p image.tag=${{ needs.build.outputs.image_tag }}
+          argocd app sync n3n --prune --force
+          argocd app wait n3n --timeout 600
+
+  # ============================================================
+  # Stage 3: Smoke Test
+  # ============================================================
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        run: |
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            https://n3n.kubeinpocket.com/actuator/health || echo "000")
+          echo "Health: ${STATUS}"
+          [ "${STATUS}" = "200" ] && echo "PASSED" || echo "::warning::Status ${STATUS}"

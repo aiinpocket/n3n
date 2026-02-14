@@ -1,0 +1,36 @@
+# =============================================================
+# ArgoCD Application - N3N Flow Platform
+# =============================================================
+# ArgoCD 監控 Git repo 的 helm/n3n/ 目錄
+# 偵測到變動自動 sync（Helm chart 變更、values 變更）
+# image.tag 由 GitHub Actions 透過 argocd CLI 更新
+# =============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: n3n
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/aiinpocket/n3n.git
+    targetRevision: main
+    path: helm/n3n
+    helm:
+      valueFiles:
+        - values-production.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: n3n
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

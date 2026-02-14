@@ -1,0 +1,208 @@
+# =============================================================
+# N3N Flow Platform - Production Values (kubeinpocket.com)
+# =============================================================
+# 部署到 TaipeiCenter K8s 叢集
+# Domain: https://n3n.kubeinpocket.com
+# Docker Registry: Nexus (192.168.30.122:8082)
+# Storage: NFS (nfs-client StorageClass)
+# TLS: Cloudflare Origin Certificate (自動)
+# =============================================================
+
+replicaCount: 2
+
+image:
+  repository: 192.168.30.122:8082/n3n
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+fullnameOverride: "n3n"
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/actuator/prometheus"
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# =============================================================
+# Ingress - n3n.kubeinpocket.com
+# =============================================================
+# TLS 由 Cloudflare Origin Certificate 自動處理
+# Nginx Ingress Controller 已設定 default-ssl-certificate
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    # File upload support
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # WebSocket / SSE long connection timeout (1 hour)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Required for WebSocket upgrade
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # Session affinity for WebSocket connections
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "N3N_AFFINITY"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-path: "/"
+  hosts:
+    - host: n3n.kubeinpocket.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS is handled by Cloudflare Origin Certificate (default-ssl-certificate)
+  # No need to specify tls section
+  tls: []
+
+# =============================================================
+# Resources
+# =============================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# =============================================================
+# Autoscaling
+# =============================================================
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# =============================================================
+# Application Configuration
+# =============================================================
+config:
+  # JWT secret - MUST be set via --set or GitHub Secret
+  jwtSecret: ""
+  # Encryption key (defaults to jwtSecret if not set)
+  encryptionKey: ""
+  # CORS
+  allowedOrigins: "https://n3n.kubeinpocket.com"
+  # Log level
+  logLevel: INFO
+  # Execution
+  executionRetentionDays: 30
+  executionMaxConcurrent: 100
+  executionTimeoutMs: 300000
+  # Container orchestration (kubernetes in K8s environment)
+  orchestratorType: kubernetes
+  # DDL auto mode (validate for production, update for initial setup)
+  ddlAuto: update
+  # Swagger (disabled in production)
+  swaggerEnabled: "false"
+
+# =============================================================
+# Persistence - Data volume (/data)
+# =============================================================
+# Stores master encryption key and other persistent data
+persistence:
+  enabled: true
+  storageClass: "nfs-client"
+  size: 1Gi
+  accessMode: ReadWriteMany
+
+# =============================================================
+# Database - Built-in PostgreSQL (Bitnami)
+# =============================================================
+database:
+  external: false
+  poolSize: 20
+  minIdle: 5
+
+postgresql:
+  enabled: true
+  auth:
+    username: n3n
+    # Password MUST be set via --set postgresql.auth.password=xxx
+    password: ""
+    database: n3n
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "nfs-client"
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+# =============================================================
+# Redis - Built-in (Bitnami)
+# =============================================================
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      storageClass: "nfs-client"
+      size: 2Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# =============================================================
+# Health Checks
+# =============================================================
+healthCheck:
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 90
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 45
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# =============================================================
+# Monitoring
+# =============================================================
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    path: /actuator/prometheus

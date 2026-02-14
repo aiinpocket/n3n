@@ -64,3 +64,7 @@ agents/windows/**/obj/
 agents/windows/publish/
 agents/windows/*.user
 agents/windows/.vs/
+
+### Helm ###
+helm/*/charts/
+helm/*/Chart.lock

@@ -23,9 +23,20 @@ data:
   REDIS_PORT: "6379"
   {{- end }}
   ALLOWED_ORIGINS: {{ .Values.config.allowedOrigins | quote }}
+  N3N_SERVER_BASE_URL: {{ (index .Values.ingress.hosts 0).host | printf "https://%s" | quote }}
   LOG_LEVEL_ROOT: {{ .Values.config.logLevel | default "INFO" | quote }}
   LOG_LEVEL_APP: {{ .Values.config.logLevel | default "INFO" | quote }}
   LOG_LEVEL_SECURITY: "WARN"
   EXECUTION_RETENTION_DAYS: {{ .Values.config.executionRetentionDays | default 30 | quote }}
   EXECUTION_MAX_CONCURRENT: {{ .Values.config.executionMaxConcurrent | default 100 | quote }}
   EXECUTION_TIMEOUT_MS: {{ .Values.config.executionTimeoutMs | default 300000 | quote }}
+  # Container orchestration
+  ORCHESTRATOR_TYPE: {{ .Values.config.orchestratorType | default "docker" | quote }}
+  # Master key file path
+  MASTER_KEY_FILE: "/data/keys/master.key"
+  # JPA DDL auto mode
+  DDL_AUTO: {{ .Values.config.ddlAuto | default "update" | quote }}
+  # Swagger
+  SWAGGER_ENABLED: {{ .Values.config.swaggerEnabled | default "false" | quote }}
+  # Actuator endpoints
+  ACTUATOR_ENDPOINTS: "health,info,prometheus"
