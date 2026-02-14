@@ -394,7 +394,7 @@ const WebhooksPage: React.FC = () => {
               },
               { max: 500, message: t('common.maxLength', { max: 500 }) },
             ]}
-            extra={t('webhook.pathHint')}
+            extra={`${t('webhook.fullUrl')}: ${window.location.origin}/webhook/`}
           >
             <Input
               addonBefore="/webhook/"

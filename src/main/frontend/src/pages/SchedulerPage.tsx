@@ -388,7 +388,30 @@ const SchedulerPage: React.FC = () => {
               { required: true, message: t('schedule.cronRequired') },
               { max: 100, message: t('common.maxLength', { max: 100 }) },
             ]}
-            extra={t('schedule.cronHint')}
+            extra={
+              <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.cronHint')}</Text>
+                <Space wrap size={[4, 4]}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.presets')}:</Text>
+                  {[
+                    { label: t('schedule.everyMinute'), value: '0 * * * * ?' },
+                    { label: t('schedule.everyHour'), value: '0 0 * * * ?' },
+                    { label: t('schedule.everyDay'), value: '0 0 0 * * ?' },
+                    { label: t('schedule.everyWeekday'), value: '0 0 9 ? * MON-FRI' },
+                    { label: t('schedule.everyMonday'), value: '0 0 9 ? * MON' },
+                    { label: t('schedule.everyMonth'), value: '0 0 0 1 * ?' },
+                  ].map((preset) => (
+                    <Tag
+                      key={preset.value}
+                      style={{ cursor: 'pointer', fontSize: 11 }}
+                      onClick={() => form.setFieldsValue({ cronExpression: preset.value })}
+                    >
+                      {preset.label}
+                    </Tag>
+                  ))}
+                </Space>
+              </Space>
+            }
           >
             <Input placeholder="0 0 * * * ?" maxLength={100} />
           </Form.Item>
@@ -446,7 +469,30 @@ const SchedulerPage: React.FC = () => {
               { required: true, message: t('schedule.cronRequired') },
               { max: 100, message: t('common.maxLength', { max: 100 }) },
             ]}
-            extra={t('schedule.cronHint')}
+            extra={
+              <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.cronHint')}</Text>
+                <Space wrap size={[4, 4]}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.presets')}:</Text>
+                  {[
+                    { label: t('schedule.everyMinute'), value: '0 * * * * ?' },
+                    { label: t('schedule.everyHour'), value: '0 0 * * * ?' },
+                    { label: t('schedule.everyDay'), value: '0 0 0 * * ?' },
+                    { label: t('schedule.everyWeekday'), value: '0 0 9 ? * MON-FRI' },
+                    { label: t('schedule.everyMonday'), value: '0 0 9 ? * MON' },
+                    { label: t('schedule.everyMonth'), value: '0 0 0 1 * ?' },
+                  ].map((preset) => (
+                    <Tag
+                      key={preset.value}
+                      style={{ cursor: 'pointer', fontSize: 11 }}
+                      onClick={() => editForm.setFieldsValue({ cronExpression: preset.value })}
+                    >
+                      {preset.label}
+                    </Tag>
+                  ))}
+                </Space>
+              </Space>
+            }
           >
             <Input maxLength={100} />
           </Form.Item>
