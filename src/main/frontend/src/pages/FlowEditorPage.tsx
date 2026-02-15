@@ -28,6 +28,7 @@ import {
   CheckOutlined,
   WarningOutlined,
   CloseCircleOutlined,
+  ExportOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -60,6 +61,7 @@ import PublishFlowModal from '../components/ai/PublishFlowModal'
 import NodeRecommendationDrawer from '../components/ai/NodeRecommendationDrawer'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
 import AIPanelDrawer from '../components/ai/AIPanelDrawer'
+import FlowExportModal from '../components/flow/FlowExportModal'
 import { useAIAssistantStore } from '../stores/aiAssistantStore'
 import { CommandPalette } from '../components/command'
 import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
@@ -175,6 +177,7 @@ export default function FlowEditorPage() {
   const [flowGeneratorInitialDesc, setFlowGeneratorInitialDesc] = useState<string | undefined>()
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [nodeSearchOpen, setNodeSearchOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
   const [saveForm] = Form.useForm()
   const [validationModalOpen, setValidationModalOpen] = useState(false)
 
@@ -818,6 +821,15 @@ export default function FlowEditorPage() {
                 {t('editor.versionHistory')} ({versions.length})
               </Button>
             </Dropdown>
+            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
+              <Button
+                icon={<ExportOutlined />}
+                onClick={() => setExportModalOpen(true)}
+                disabled={!currentVersion}
+              >
+                {t('flow.export')}
+              </Button>
+            </Tooltip>
             {canEdit && (
               <>
                 <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
@@ -1167,6 +1179,14 @@ export default function FlowEditorPage() {
             setSelectedNodeId(nodeIds[0])
           }
         }}
+      />
+
+      <FlowExportModal
+        visible={exportModalOpen}
+        flowId={id || ''}
+        flowName={currentFlow?.name || ''}
+        version={currentVersion?.version || ''}
+        onClose={() => setExportModalOpen(false)}
       />
 
       {/* Validation Result Modal */}
