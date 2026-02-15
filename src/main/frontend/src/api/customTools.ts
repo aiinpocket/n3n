@@ -1,7 +1,7 @@
 import apiClient from './client'
 
 // Types
-export interface MarketplacePlugin {
+export interface CustomToolPlugin {
   id: string
   name: string
   displayName: string
@@ -25,7 +25,10 @@ export interface MarketplacePlugin {
   updatedAt: string
 }
 
-export interface MarketplaceCategory {
+/** @deprecated Use CustomToolPlugin instead */
+export type MarketplacePlugin = CustomToolPlugin
+
+export interface CustomToolCategory {
   id: string
   name: string
   displayName: string
@@ -34,13 +37,16 @@ export interface MarketplaceCategory {
   count: number
 }
 
+/** @deprecated Use CustomToolCategory instead */
+export type MarketplaceCategory = CustomToolCategory
+
 export interface PluginVersion {
   version: string
   changelog: string
   publishedAt: string
 }
 
-export interface PluginDetail extends MarketplacePlugin {
+export interface PluginDetail extends CustomToolPlugin {
   readme: string
   changelog: string
   configSchema: Record<string, unknown>
@@ -65,16 +71,34 @@ export interface SearchFilters {
 }
 
 export interface SearchResult {
-  plugins: MarketplacePlugin[]
+  plugins: CustomToolPlugin[]
   total: number
   page: number
   pageSize: number
   totalPages: number
 }
 
+// Installation task tracking types
+export interface InstallTask {
+  id: string
+  pluginId: string
+  nodeType: string
+  source: string
+  sourceReference: string
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
+  progressPercent: number | null
+  currentStage: string | null
+  errorMessage: string | null
+  containerId: string | null
+  containerPort: number | null
+  createdAt: string
+  startedAt: string | null
+  completedAt: string | null
+}
+
 // API Functions
-export async function getCategories(): Promise<MarketplaceCategory[]> {
-  const response = await apiClient.get<MarketplaceCategory[]>('/custom-tools/categories')
+export async function getCategories(): Promise<CustomToolCategory[]> {
+  const response = await apiClient.get<CustomToolCategory[]>('/custom-tools/categories')
   return response.data
 }
 
@@ -91,8 +115,8 @@ export async function searchPlugins(filters: SearchFilters = {}): Promise<Search
   return response.data
 }
 
-export async function getFeaturedPlugins(): Promise<MarketplacePlugin[]> {
-  const response = await apiClient.get<MarketplacePlugin[]>('/custom-tools/plugins/featured')
+export async function getFeaturedPlugins(): Promise<CustomToolPlugin[]> {
+  const response = await apiClient.get<CustomToolPlugin[]>('/custom-tools/plugins/featured')
   return response.data
 }
 
@@ -115,8 +139,8 @@ export async function updatePlugin(id: string): Promise<InstallationResult> {
   return response.data
 }
 
-export async function getInstalledPlugins(): Promise<MarketplacePlugin[]> {
-  const response = await apiClient.get<MarketplacePlugin[]>('/custom-tools/plugins/installed')
+export async function getInstalledPlugins(): Promise<CustomToolPlugin[]> {
+  const response = await apiClient.get<CustomToolPlugin[]>('/custom-tools/plugins/installed')
   return response.data
 }
 
@@ -126,4 +150,19 @@ export async function ratePlugin(id: string, rating: number, review?: string): P
     { rating, review }
   )
   return response.data
+}
+
+// Installation task API
+export async function getActiveInstallTasks(): Promise<InstallTask[]> {
+  const response = await apiClient.get<InstallTask[]>('/plugins/install/tasks')
+  return response.data
+}
+
+export async function getInstallTaskStatus(taskId: string): Promise<InstallTask> {
+  const response = await apiClient.get<InstallTask>(`/plugins/install/tasks/${taskId}`)
+  return response.data
+}
+
+export async function cancelInstallTask(taskId: string): Promise<void> {
+  await apiClient.delete(`/plugins/install/tasks/${taskId}`)
 }

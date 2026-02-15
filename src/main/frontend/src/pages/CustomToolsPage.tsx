@@ -33,10 +33,10 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type {
-  MarketplacePlugin,
-  MarketplaceCategory,
+  CustomToolPlugin,
+  CustomToolCategory,
   PluginDetail,
-} from '../api/marketplace'
+} from '../api/customTools'
 import {
   searchPlugins,
   getCategories,
@@ -47,7 +47,7 @@ import {
   uninstallPlugin,
   updatePlugin,
   ratePlugin,
-} from '../api/marketplace'
+} from '../api/customTools'
 import logger from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 
@@ -63,7 +63,7 @@ function ToolCard({
   onViewDetails,
   loading,
 }: {
-  plugin: MarketplacePlugin
+  plugin: CustomToolPlugin
   onInstall: (id: string) => void
   onUninstall: (id: string) => void
   onUpdate: (id: string) => void
@@ -364,15 +364,15 @@ export default function CustomToolsPage() {
   const mountedRef = useRef(true)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [plugins, setPlugins] = useState<MarketplacePlugin[]>([])
-  const [installedPlugins, setInstalledPlugins] = useState<MarketplacePlugin[]>([])
-  const [categories, setCategories] = useState<MarketplaceCategory[]>([])
+  const [plugins, setPlugins] = useState<CustomToolPlugin[]>([])
+  const [installedPlugins, setInstalledPlugins] = useState<CustomToolPlugin[]>([])
+  const [categories, setCategories] = useState<CustomToolCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'name'>('recent')
   const [activeTab, setActiveTab] = useState('browse')
   const [isOffline, setIsOffline] = useState(false)
-  const [featuredPlugins, setFeaturedPlugins] = useState<MarketplacePlugin[]>([])
+  const [featuredPlugins, setFeaturedPlugins] = useState<CustomToolPlugin[]>([])
   const [detailModal, setDetailModal] = useState<{ visible: boolean; plugin: PluginDetail | null }>({
     visible: false,
     plugin: null,
@@ -384,7 +384,7 @@ export default function CustomToolsPage() {
       const [categoriesData, installedData, featuredData] = await Promise.all([
         getCategories(),
         getInstalledPlugins(),
-        getFeaturedPlugins().catch(() => [] as MarketplacePlugin[]),
+        getFeaturedPlugins().catch(() => [] as CustomToolPlugin[]),
       ])
       setCategories(categoriesData)
       setInstalledPlugins(installedData)
