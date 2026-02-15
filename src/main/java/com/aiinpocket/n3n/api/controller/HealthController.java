@@ -26,11 +26,10 @@ public class HealthController {
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("status", "UP");
-        status.put("database", checkDatabase());
-        status.put("redis", checkRedis());
-        return ResponseEntity.ok(status);
+        boolean dbUp = "UP".equals(checkDatabase());
+        boolean redisUp = "UP".equals(checkRedis());
+        String overall = (dbUp && redisUp) ? "UP" : "DOWN";
+        return ResponseEntity.ok(Map.of("status", overall));
     }
 
     private String checkDatabase() {

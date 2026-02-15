@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert, Input } from 'antd'
+import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert, Input, Empty } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -210,6 +210,14 @@ export default function ServiceListPage() {
           showSizeChanger: true,
           showTotal: (total) => t('common.total', { count: total }),
           onChange: (page, size) => fetchServices(page - 1, size),
+        }}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={t('service.noServices')}
+            />
+          ),
         }}
         scroll={{ x: 800 }}
       />
