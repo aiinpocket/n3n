@@ -124,6 +124,9 @@ export default function ExecutionListPage() {
     if (selectedRowKeys.length === 0) return
     Modal.confirm({
       title: t('execution.batchDeleteConfirm', { count: selectedRowKeys.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
       onOk: async () => {
         setBatchDeleting(true)
         try {
@@ -297,6 +300,8 @@ export default function ExecutionListPage() {
               onClick={() => {
                 Modal.confirm({
                   title: t('execution.deleteConfirm'),
+                  okText: t('common.delete'),
+                  cancelText: t('common.cancel'),
                   okType: 'danger',
                   onOk: async () => {
                     try {

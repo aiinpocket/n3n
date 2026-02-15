@@ -137,6 +137,9 @@ export default function FlowListPage() {
     if (selectedRowKeys.length === 0) return
     Modal.confirm({
       title: t('flow.batchDeleteConfirm', { count: selectedRowKeys.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
       onOk: async () => {
         setBatchDeleting(true)
         try {

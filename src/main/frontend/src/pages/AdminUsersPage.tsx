@@ -127,6 +127,8 @@ export default function AdminUsersPage() {
     Modal.confirm({
       title: t('admin.confirmResetPassword'),
       content: t('admin.resetPasswordDesc'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
       onOk: async () => {
         try {
           await adminApi.resetPassword(userId)
