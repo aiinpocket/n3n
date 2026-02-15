@@ -4,7 +4,7 @@ import { Form, Input, Button, Card, Typography, Alert, Space, Steps } from 'antd
 import { MailOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
-import apiClient from '../api/client'
+import { authApi } from '../api/auth'
 import { extractApiError } from '../utils/errorMessages'
 
 const { Title } = Typography
@@ -31,7 +31,7 @@ export default function PasswordResetPage() {
     setError(null)
     setSuccessMessage(null)
     try {
-      await apiClient.post('/auth/forgot-password', { email: values.email })
+      await authApi.forgotPassword(values.email)
       setSuccessMessage(t('auth.resetLinkSent'))
       setCurrentStep(1)
     } catch (err: unknown) {
@@ -46,10 +46,7 @@ export default function PasswordResetPage() {
     setError(null)
     setSuccessMessage(null)
     try {
-      await apiClient.post('/auth/reset-password', {
-        token: values.token,
-        newPassword: values.newPassword,
-      })
+      await authApi.resetPassword(values.token, values.newPassword)
       setSuccessMessage(t('auth.resetSuccess'))
       redirectTimerRef.current = setTimeout(() => {
         navigate('/login')

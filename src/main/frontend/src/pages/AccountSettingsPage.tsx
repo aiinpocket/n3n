@@ -4,7 +4,7 @@ import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, Ed
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import apiClient from '../api/client'
+import { authApi } from '../api/auth'
 import { extractApiError } from '../utils/errorMessages'
 import { securityApi, SecurityStatus } from '../api/security'
 
@@ -33,8 +33,8 @@ export default function AccountSettingsPage() {
   const handleUpdateProfile = async (values: { name: string }) => {
     setProfileLoading(true)
     try {
-      const response = await apiClient.put('/auth/profile', { name: values.name })
-      useAuthStore.setState({ user: response.data })
+      const updatedUser = await authApi.updateProfile(values.name)
+      useAuthStore.setState({ user: updatedUser })
       message.success(t('account.profileUpdated'))
       setEditingProfile(false)
     } catch (error: unknown) {
@@ -47,10 +47,7 @@ export default function AccountSettingsPage() {
   const handleChangePassword = async (values: { currentPassword: string; newPassword: string }) => {
     setLoading(true)
     try {
-      await apiClient.post('/auth/change-password', {
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
-      })
+      await authApi.changePassword(values.currentPassword, values.newPassword)
       message.success(t('account.passwordChanged'))
       form.resetFields()
     } catch (error: unknown) {

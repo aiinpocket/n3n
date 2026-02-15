@@ -22,43 +22,22 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import apiClient from '../api/client'
+import { dashboardApi, type DashboardStats } from '../api/dashboard'
+import { executionApi, type ExecutionResponse } from '../api/execution'
+import { activityApi, type UserActivity } from '../api/activity'
 import { getLocale } from '../utils/locale'
 import { useAuthStore } from '../stores/authStore'
 import CloudImportSection from '../components/CloudImportSection'
 
 const { Title, Text, Paragraph } = Typography
 
-interface StatsData {
-  totalFlows: number
-  totalExecutions: number
-  successfulExecutions: number
-  failedExecutions: number
-  runningExecutions: number
-}
-
-interface RecentActivity {
-  activityType: string
-  targetName: string
-  createdAt: string
-}
-
-interface RecentExecution {
-  id: string
-  flowId?: string
-  flowName: string
-  status: string
-  startedAt: string
-  durationMs: number | null
-}
-
 export default function DashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const userName = useAuthStore((s) => s.user?.name)
-  const [stats, setStats] = useState<StatsData | null>(null)
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
-  const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [recentActivities, setRecentActivities] = useState<UserActivity[]>([])
+  const [recentExecutions, setRecentExecutions] = useState<ExecutionResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
@@ -67,22 +46,22 @@ export default function DashboardPage() {
     setLoadError(false)
     try {
       const [statsRes, execRes, activitiesRes] = await Promise.allSettled([
-        apiClient.get('/dashboard/stats'),
-        apiClient.get('/executions', { params: { size: 5 } }),
-        apiClient.get('/activities/my', { params: { size: 5 } }),
+        dashboardApi.getStats(),
+        executionApi.list(0, 5),
+        activityApi.listMy(0, 5),
       ])
 
       if (statsRes.status === 'fulfilled') {
-        setStats(statsRes.value.data)
+        setStats(statsRes.value)
       }
 
       if (execRes.status === 'fulfilled') {
-        const executions = execRes.value.data.content || []
+        const executions = execRes.value.content || []
         setRecentExecutions(executions)
       }
 
       if (activitiesRes.status === 'fulfilled') {
-        const activities = (activitiesRes.value.data.content || activitiesRes.value.data || []).slice(0, 5)
+        const activities = (activitiesRes.value.content || []).slice(0, 5)
         setRecentActivities(activities)
       }
 
@@ -414,7 +393,7 @@ export default function DashboardPage() {
                     title={<Tag>{t(`activityType.${item.activityType}`, { defaultValue: item.activityType })}</Tag>}
                     description={
                       <Space>
-                        <Text>{item.targetName || '-'}</Text>
+                        <Text>{item.resourceName || '-'}</Text>
                         <Text type="secondary">{item.createdAt ? new Date(item.createdAt).toLocaleString(getLocale()) : '-'}</Text>
                       </Space>
                     }
