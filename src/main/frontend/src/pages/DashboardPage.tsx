@@ -318,7 +318,7 @@ export default function DashboardPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card hoverable onClick={() => navigate('/executions?status=completed')} style={{ cursor: 'pointer' }} role="button" tabIndex={0} aria-label={t('dashboard.successful')}>
             <Statistic
               title={t('dashboard.successful')}
               value={stats?.successfulExecutions || 0}
@@ -327,7 +327,7 @@ export default function DashboardPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card hoverable onClick={() => navigate('/executions?status=failed')} style={{ cursor: 'pointer' }} role="button" tabIndex={0} aria-label={t('dashboard.failed')}>
             <Statistic
               title={t('dashboard.failed')}
               value={stats?.failedExecutions || 0}

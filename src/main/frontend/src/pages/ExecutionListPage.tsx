@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip } from 'antd'
 import {
   ReloadOutlined,
@@ -49,6 +49,7 @@ const STATUS_OPTIONS = ['all', 'pending', 'running', 'completed', 'failed', 'can
 
 export default function ExecutionListPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { t } = useTranslation()
   const [executions, setExecutions] = useState<ExecutionResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -57,7 +58,8 @@ export default function ExecutionListPage() {
     pageSize: 20,
     total: 0,
   })
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const initialStatus = searchParams.get('status') || 'all'
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus)
   const [searchValue, setSearchValue] = useState<string>('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [batchDeleting, setBatchDeleting] = useState(false)
@@ -88,9 +90,9 @@ export default function ExecutionListPage() {
     }
   }, [t])
 
-  // Initial load only
+  // Initial load with URL params
   useEffect(() => {
-    loadExecutions()
+    loadExecutions(1, 20, initialStatus)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
