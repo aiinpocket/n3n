@@ -181,6 +181,10 @@ docker compose up -d --build
 - **Smart Search & Filter** - Credentials, components, approvals, and executions support instant search and category filtering
 - **Column Sorting** - Flow, execution, and scheduler tables support sorting by name, time, and status
 - **Dashboard Deep Links** - Stat cards are clickable and navigate to filtered list pages
+- **External Service Management** - Import OpenAPI specs, auto-generate API call nodes, and manage connections
+- **Component Registry** - Custom component version control with activate/deprecate/rollback management
+- **Activity History Tracking** - Log user actions, webhook triggers, logins, and other events for security auditing
+- **Gateway Pairing Management** - Generate pairing codes to connect local agents, with real-time WebSocket communication
 
 ### Error Handling Routes
 
