@@ -23,6 +23,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   PlayCircleOutlined,
+  CopyOutlined,
   ToolOutlined,
   ApiOutlined,
   CodeOutlined,
@@ -582,7 +583,24 @@ export default function SkillsPage() {
 
             {testResult && (
               <div>
-                <strong>{t('skill.result')}:</strong>
+                <Space style={{ marginBottom: 4 }}>
+                  <strong>{t('skill.result')}:</strong>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<CopyOutlined />}
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(testResult)
+                        message.success(t('common.copied'))
+                      } catch {
+                        message.error(t('common.copyFailed'))
+                      }
+                    }}
+                  >
+                    {t('common.copy')}
+                  </Button>
+                </Space>
                 <pre
                   style={{
                     background: testResult.startsWith('Error') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',

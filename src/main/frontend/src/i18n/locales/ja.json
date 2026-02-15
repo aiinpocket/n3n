@@ -42,6 +42,7 @@
     "deleteFailed": "削除に失敗しました",
     "saveFailed": "保存に失敗しました",
     "loadFailed": "読み込みに失敗しました",
+    "copy": "コピー",
     "copied": "クリップボードにコピーしました",
     "copyFailed": "クリップボードへのコピーに失敗しました",
     "details": "詳細",

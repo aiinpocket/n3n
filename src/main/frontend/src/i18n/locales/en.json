@@ -42,6 +42,7 @@
     "deleteFailed": "Delete failed",
     "saveFailed": "Save failed",
     "loadFailed": "Load failed",
+    "copy": "Copy",
     "copied": "Copied to clipboard",
     "copyFailed": "Failed to copy to clipboard",
     "details": "Details",

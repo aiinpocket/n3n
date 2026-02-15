@@ -42,6 +42,7 @@
     "deleteFailed": "刪除失敗",
     "saveFailed": "儲存失敗",
     "loadFailed": "載入失敗",
+    "copy": "複製",
     "copied": "已複製到剪貼簿",
     "copyFailed": "複製到剪貼簿失敗",
     "details": "詳情",
