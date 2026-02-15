@@ -718,6 +718,7 @@ export default function FlowEditorPage() {
                     icon={<UndoOutlined />}
                     onClick={() => { undo(); message.info(t('editor.undone')) }}
                     disabled={!canUndo()}
+                    aria-label={t('editor.undo')}
                   />
                 </Tooltip>
                 <Tooltip title={`${t('editor.redo')} (Ctrl+Shift+Z)`}>
@@ -725,6 +726,7 @@ export default function FlowEditorPage() {
                     icon={<RedoOutlined />}
                     onClick={() => { redo(); message.info(t('editor.redone')) }}
                     disabled={!canRedo()}
+                    aria-label={t('editor.redo')}
                   />
                 </Tooltip>
                 <Tooltip title={`${t('editor.copy')} (Ctrl+C)`}>
@@ -732,6 +734,7 @@ export default function FlowEditorPage() {
                     icon={<CopyOutlined />}
                     onClick={() => { copySelectedNodes(); message.info(t('editor.copied')) }}
                     disabled={selectedNodeIds.length === 0}
+                    aria-label={t('editor.copy')}
                   />
                 </Tooltip>
               </>

@@ -300,7 +300,7 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card hoverable onClick={() => navigate('/flows')} style={{ cursor: 'pointer' }}>
+          <Card hoverable onClick={() => navigate('/flows')} style={{ cursor: 'pointer' }} role="button" tabIndex={0} aria-label={t('dashboard.totalFlows')}>
             <Statistic
               title={t('dashboard.totalFlows')}
               value={stats?.totalFlows || 0}
@@ -309,7 +309,7 @@ export default function DashboardPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card hoverable onClick={() => navigate('/executions')} style={{ cursor: 'pointer' }}>
+          <Card hoverable onClick={() => navigate('/executions')} style={{ cursor: 'pointer' }} role="button" tabIndex={0} aria-label={t('dashboard.totalExecutions')}>
             <Statistic
               title={t('dashboard.totalExecutions')}
               value={stats?.totalExecutions || 0}
