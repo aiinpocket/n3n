@@ -54,7 +54,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
           label: node.label || (nodeConfig?.label ? t(nodeConfig.label) : node.type),
         },
         style: {
-          backgroundColor: nodeConfig?.color || '#1890ff',
+          backgroundColor: nodeConfig?.color || 'var(--color-info)',
           color: '#fff',
           border: 'none',
           borderRadius: 6,
@@ -75,7 +75,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
       targetHandle: edge.targetHandle,
       type: 'smoothstep',
       animated: true,
-      style: { stroke: '#b1b1b7', strokeWidth: 2 },
+      style: { stroke: 'var(--color-text-muted)', strokeWidth: 2 },
     }))
 
     // Apply auto layout
@@ -102,9 +102,9 @@ export const MiniFlowPreview: React.FC<Props> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: 'var(--color-bg-elevated)',
           borderRadius: 8,
-          color: '#999',
+          color: 'var(--color-text-tertiary)',
         }}
       >
         {t('diff.noNodesToPreview')}

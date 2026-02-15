@@ -239,7 +239,7 @@ export default function NodeConfigPanel({
               {property.title || key}
               {property.description && (
                 <Tooltip title={property.description}>
-                  <InfoCircleOutlined style={{ color: '#999' }} />
+                  <InfoCircleOutlined style={{ color: 'var(--color-text-tertiary)' }} />
                 </Tooltip>
               )}
             </Space>
@@ -257,7 +257,7 @@ export default function NodeConfigPanel({
                 {t('editor.aiGenerateCode')}
               </Button>
             </div>
-            <div style={{ border: '1px solid #d9d9d9', borderRadius: 6 }}>
+            <div style={{ border: '1px solid var(--color-border)', borderRadius: 6 }}>
               <Editor
                 height="200px"
                 language={property.language || 'javascript'}

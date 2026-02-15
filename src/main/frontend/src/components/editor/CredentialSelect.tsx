@@ -101,7 +101,7 @@ export default function CredentialSelect({
             value: cred.id,
             label: (
               <Space>
-                <SafetyOutlined style={{ color: '#52c41a' }} />
+                <SafetyOutlined style={{ color: 'var(--color-success)' }} />
                 <span>{cred.name}</span>
                 {cred.description && (
                   <Text type="secondary" style={{ fontSize: 12 }}>

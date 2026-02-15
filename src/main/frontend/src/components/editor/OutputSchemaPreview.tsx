@@ -202,7 +202,7 @@ function schemaToTreeNodes(
           )}
           <Text
             copyable={{ text: expression }}
-            style={{ fontSize: 10, color: '#999' }}
+            style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}
           >
             {t ? t('outputSchema.copyExpression') : 'Copy'}
           </Text>

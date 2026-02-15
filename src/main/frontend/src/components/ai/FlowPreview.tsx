@@ -176,7 +176,7 @@ const FlowPreview: React.FC<Props> = ({
       source: edge.source,
       target: edge.target,
       animated: true,
-      style: { stroke: '#1890ff' },
+      style: { stroke: 'var(--color-info)' },
     }))
 
     return { nodes: flowNodes, edges: flowEdges }
@@ -190,7 +190,7 @@ const FlowPreview: React.FC<Props> = ({
     return (
       <Empty
         description={t('flowPreview.noFlowGenerated')}
-        image={<ApartmentOutlined style={{ fontSize: 48, color: '#ccc' }} />}
+        image={<ApartmentOutlined style={{ fontSize: 48, color: 'var(--color-text-muted)' }} />}
       />
     )
   }

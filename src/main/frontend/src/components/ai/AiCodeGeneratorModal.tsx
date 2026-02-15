@@ -165,14 +165,14 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
               <div
                 style={{
                   marginTop: 8,
-                  backgroundColor: '#1e1e1e',
+                  backgroundColor: 'var(--color-bg-container)',
                   borderRadius: 8,
                   padding: 16,
                   overflow: 'auto',
                   maxHeight: 300,
                 }}
               >
-                <pre style={{ margin: 0, color: '#d4d4d4', fontSize: 13 }}>
+                <pre style={{ margin: 0, color: 'var(--color-text-primary)', fontSize: 13 }}>
                   <code>{result.code}</code>
                 </pre>
               </div>

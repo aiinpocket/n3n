@@ -235,7 +235,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
             {credentialTypes.map(type => (
               <Option key={type.name} value={type.name}>
                 {type.displayName}
-                {type.description && <span style={{ color: '#999', marginLeft: 8 }}>- {type.description}</span>}
+                {type.description && <span style={{ color: 'var(--color-text-tertiary)', marginLeft: 8 }}>- {type.description}</span>}
               </Option>
             ))}
           </Select>

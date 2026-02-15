@@ -26,7 +26,7 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
       <Avatar
         icon={isUser ? <UserOutlined /> : <RobotOutlined />}
         style={{
-          backgroundColor: isUser ? '#52c41a' : '#1890ff',
+          backgroundColor: isUser ? 'var(--color-success)' : 'var(--color-info)',
           flexShrink: 0,
         }}
       />
@@ -35,7 +35,7 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
           flex: 1,
           maxWidth: '80%',
           padding: 12,
-          background: isUser ? '#e6f7ff' : '#f5f5f5',
+          background: isUser ? 'rgba(59, 130, 246, 0.1)' : 'var(--color-bg-elevated)',
           borderRadius: 8,
         }}
       >
