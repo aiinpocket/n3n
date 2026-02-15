@@ -750,7 +750,10 @@
     "viewDataTitle": "認證資料",
     "viewDataWarning": "此操作將顯示解密後的敏感資料，請確保周圍無人窺視螢幕。",
     "viewDataFailed": "無法載入認證資料",
-    "addCredential": "新增憑證"
+    "addCredential": "新增憑證",
+    "searchPlaceholder": "依名稱或描述搜尋憑證",
+    "allTypes": "所有類型",
+    "noMatchingCredentials": "沒有符合搜尋條件的憑證"
   },
   "component": {
     "title": "元件管理",
@@ -804,7 +807,10 @@
     "image": "映像",
     "dockerImage": "Docker 映像",
     "existing": "現有",
-    "new": "新增"
+    "new": "新增",
+    "searchPlaceholder": "依名稱或描述搜尋",
+    "allCategories": "所有分類",
+    "noMatchingComponents": "沒有符合搜尋條件的元件"
   },
   "ai": {
     "title": "AI 設定",
@@ -1139,7 +1145,8 @@
     "title": "待審批項目",
     "noPending": "沒有待審批的項目",
     "detail": "審批詳情",
-    "actionHistory": "操作歷史"
+    "actionHistory": "操作歷史",
+    "searchPlaceholder": "依訊息或執行 ID 搜尋"
   },
   "monitoring": {
     "title": "系統監控",
@@ -1349,6 +1356,7 @@
     "lastActive": "最後活動",
     "ping": "Ping 測試",
     "noNodes": "沒有已連線的閘道節點",
+    "addAgent": "新增代理裝置",
     "availableCapabilities": "可用功能",
     "invokeSuccess": "指令執行成功",
     "invokeFailed": "指令執行失敗",

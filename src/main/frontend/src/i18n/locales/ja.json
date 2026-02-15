@@ -750,7 +750,10 @@
     "viewDataTitle": "認証データ",
     "viewDataWarning": "復号化された機密データが表示されます。画面を他人に見られないようにしてください。",
     "viewDataFailed": "認証データの読み込みに失敗しました",
-    "addCredential": "認証情報を追加"
+    "addCredential": "認証情報を追加",
+    "searchPlaceholder": "名前または説明で認証情報を検索",
+    "allTypes": "すべてのタイプ",
+    "noMatchingCredentials": "検索条件に一致する認証情報はありません"
   },
   "component": {
     "title": "コンポーネント",
@@ -804,7 +807,10 @@
     "image": "イメージ",
     "dockerImage": "Docker イメージ",
     "existing": "既存",
-    "new": "新規"
+    "new": "新規",
+    "searchPlaceholder": "名前または説明で検索",
+    "allCategories": "すべてのカテゴリ",
+    "noMatchingComponents": "検索条件に一致するコンポーネントはありません"
   },
   "ai": {
     "title": "AI設定",
@@ -1139,7 +1145,8 @@
     "title": "承認待ち",
     "noPending": "承認待ちの項目はありません",
     "detail": "承認詳細",
-    "actionHistory": "アクション履歴"
+    "actionHistory": "アクション履歴",
+    "searchPlaceholder": "メッセージまたは実行IDで検索"
   },
   "monitoring": {
     "title": "システム監視",
@@ -1349,6 +1356,7 @@
     "lastActive": "最終アクティブ",
     "ping": "Ping テスト",
     "noNodes": "接続されたゲートウェイノードはありません",
+    "addAgent": "エージェントデバイスを追加",
     "availableCapabilities": "利用可能な機能",
     "invokeSuccess": "コマンド実行成功",
     "invokeFailed": "コマンド実行失敗",

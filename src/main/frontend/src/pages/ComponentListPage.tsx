@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   Button,
   Card,
@@ -25,6 +25,7 @@ import {
   ReloadOutlined,
   EyeOutlined,
   EditOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { useTranslation } from 'react-i18next'
@@ -98,6 +99,21 @@ export default function ComponentListPage() {
   const [addVersionModalOpen, setAddVersionModalOpen] = useState(false)
   const [versionForm] = Form.useForm()
   const [addingVersion, setAddingVersion] = useState(false)
+
+  // Search and filter
+  const [searchText, setSearchText] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+
+  const filteredComponents = useMemo(() => {
+    return components.filter(c => {
+      const matchesSearch = !searchText ||
+        c.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        (c.displayName && c.displayName.toLowerCase().includes(searchText.toLowerCase())) ||
+        (c.description && c.description.toLowerCase().includes(searchText.toLowerCase()))
+      const matchesCategory = categoryFilter === 'all' || c.category === categoryFilter
+      return matchesSearch && matchesCategory
+    })
+  }, [components, searchText, categoryFilter])
 
   const loadComponents = useCallback(async (page = 1, pageSize = 20) => {
     setLoading(true)
@@ -292,7 +308,7 @@ export default function ComponentListPage() {
       render: (category: string) => (
         <Tag
           style={{
-            backgroundColor: categoryColors[category] || '#666',
+            backgroundColor: categoryColors[category] || 'var(--color-text-tertiary)',
             color: '#fff',
             border: 'none',
           }}
@@ -350,16 +366,39 @@ export default function ComponentListPage() {
           </Space>
         }
       >
+        <Space style={{ marginBottom: 16, width: '100%' }} wrap>
+          <Input
+            placeholder={t('component.searchPlaceholder')}
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 280 }}
+          />
+          <Select
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            style={{ width: 160 }}
+          >
+            <Select.Option value="all">{t('component.allCategories')}</Select.Option>
+            {categories.map((cat) => (
+              <Select.Option key={cat} value={cat}>
+                {cat}
+              </Select.Option>
+            ))}
+          </Select>
+        </Space>
+
         <Table
           columns={columns}
-          dataSource={components}
+          dataSource={filteredComponents}
           rowKey="id"
           loading={loading}
           locale={{
             emptyText: (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={t('component.noComponents')}
+                description={searchText || categoryFilter !== 'all' ? t('component.noMatchingComponents') : t('component.noComponents')}
               />
             )
           }}

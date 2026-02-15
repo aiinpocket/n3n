@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal, Form, Input, Select } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential, credentialApi } from '../api/credential'
@@ -39,10 +39,27 @@ const CredentialListPage: React.FC = () => {
   const [editingCredential, setEditingCredential] = useState<Credential | null>(null)
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editForm] = Form.useForm()
+  const [searchText, setSearchText] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
 
   useEffect(() => {
     fetchCredentials()
   }, [fetchCredentials])
+
+  const credentialTypes = useMemo(() => {
+    const types = new Set(credentials.map(c => c.type))
+    return Array.from(types).sort()
+  }, [credentials])
+
+  const filteredCredentials = useMemo(() => {
+    return credentials.filter(c => {
+      const matchesSearch = !searchText ||
+        c.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        (c.description && c.description.toLowerCase().includes(searchText.toLowerCase()))
+      const matchesType = typeFilter === 'all' || c.type === typeFilter
+      return matchesSearch && matchesType
+    })
+  }, [credentials, searchText, typeFilter])
 
   // Fetch OAuth2 status for all oauth2-type credentials
   const fetchOAuth2Statuses = useCallback(async (creds: Credential[]) => {
@@ -370,6 +387,29 @@ const CredentialListPage: React.FC = () => {
           </Button>
         </div>
 
+        <Space style={{ marginBottom: 16, width: '100%' }} wrap>
+          <Input
+            placeholder={t('credential.searchPlaceholder')}
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 280 }}
+          />
+          <Select
+            value={typeFilter}
+            onChange={setTypeFilter}
+            style={{ width: 180 }}
+          >
+            <Select.Option value="all">{t('credential.allTypes')}</Select.Option>
+            {credentialTypes.map((type) => (
+              <Select.Option key={type} value={type}>
+                {getTypeDisplayName(type)}
+              </Select.Option>
+            ))}
+          </Select>
+        </Space>
+
         <div style={{ marginBottom: 16, padding: 12, background: 'rgba(245, 158, 11, 0.15)', borderRadius: 4, border: '1px solid var(--color-warning)' }}>
           <ExclamationCircleOutlined style={{ color: 'var(--color-warning)', marginRight: 8 }} />
           <span style={{ color: 'var(--color-text-secondary)' }}>
@@ -395,26 +435,28 @@ const CredentialListPage: React.FC = () => {
 
         <Table
           columns={columns}
-          dataSource={credentials}
+          dataSource={filteredCredentials}
           rowKey="id"
           loading={loading}
           locale={{
             emptyText: (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={t('credential.noCredentials')}
+                description={searchText || typeFilter !== 'all' ? t('credential.noMatchingCredentials') : t('credential.noCredentials')}
               >
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormVisible(true)}>
-                  {t('credential.addCredential')}
-                </Button>
+                {!searchText && typeFilter === 'all' && (
+                  <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormVisible(true)}>
+                    {t('credential.addCredential')}
+                  </Button>
+                )}
               </Empty>
             )
           }}
           pagination={{
             current: currentPage + 1,
-            total: totalElements,
+            total: searchText || typeFilter !== 'all' ? filteredCredentials.length : totalElements,
             pageSize: 20,
-            onChange: handlePageChange,
+            onChange: searchText || typeFilter !== 'all' ? undefined : handlePageChange,
             showTotal: (total) => t('common.total', { count: total })
           }}
         />

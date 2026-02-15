@@ -24,6 +24,7 @@ import {
   DesktopOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { gatewayApi, type GatewayNode, type GatewayStats } from '../api/gateway'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
@@ -32,6 +33,7 @@ const { Text } = Typography
 
 export default function GatewayPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [nodes, setNodes] = useState<GatewayNode[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -253,7 +255,15 @@ export default function GatewayPage() {
           rowKey="connectionId"
           loading={loading}
           pagination={false}
-          locale={{ emptyText: <Empty description={t('gateway.noNodes')} /> }}
+          locale={{
+            emptyText: (
+              <Empty description={t('gateway.noNodes')}>
+                <Button type="primary" onClick={() => navigate('/devices')}>
+                  {t('gateway.addAgent')}
+                </Button>
+              </Empty>
+            )
+          }}
         />
 
         {Object.keys(capabilities).length > 0 && (

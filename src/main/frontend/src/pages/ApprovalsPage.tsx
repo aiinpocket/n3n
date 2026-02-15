@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   Card,
   Button,
@@ -21,6 +21,7 @@ import {
   ReloadOutlined,
   ExclamationCircleOutlined,
   EyeOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -41,6 +42,7 @@ export default function ApprovalsPage() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [comment, setComment] = useState('')
   const [submittingIds, setSubmittingIds] = useState<Record<string, boolean>>({})
+  const [searchText, setSearchText] = useState('')
 
   const loadApprovals = useCallback(async () => {
     setLoadError(null)
@@ -58,6 +60,15 @@ export default function ApprovalsPage() {
   useEffect(() => {
     loadApprovals()
   }, [loadApprovals])
+
+  const filteredApprovals = useMemo(() => {
+    if (!searchText) return approvals
+    const lower = searchText.toLowerCase()
+    return approvals.filter(a =>
+      (a.message && a.message.toLowerCase().includes(lower)) ||
+      a.executionId.toLowerCase().includes(lower)
+    )
+  }, [approvals, searchText])
 
   const handleViewDetail = async (approvalId: string) => {
     setDetailModalOpen(true)
@@ -216,6 +227,17 @@ export default function ApprovalsPage() {
           </Button>
         }
       >
+        {approvals.length > 0 && (
+          <Input
+            placeholder={t('approvals.searchPlaceholder')}
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ marginBottom: 16, width: 320 }}
+          />
+        )}
+
         {approvals.length === 0 ? (
           <Empty
             image={<CheckCircleOutlined style={{ fontSize: 48, color: 'var(--color-success)' }} />}
@@ -224,7 +246,7 @@ export default function ApprovalsPage() {
         ) : (
           <Table
             columns={columns}
-            dataSource={approvals}
+            dataSource={filteredApprovals}
             rowKey="id"
             pagination={{ pageSize: 20, showTotal: (total) => t('common.total', { count: total }) }}
             scroll={{ x: 'max-content' }}

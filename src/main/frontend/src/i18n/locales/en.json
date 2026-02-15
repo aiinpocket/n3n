@@ -750,7 +750,10 @@
     "viewDataTitle": "Credential Data",
     "viewDataWarning": "This displays decrypted sensitive data. Make sure no one else can see your screen.",
     "viewDataFailed": "Failed to load credential data",
-    "addCredential": "Add Credential"
+    "addCredential": "Add Credential",
+    "searchPlaceholder": "Search credentials by name or description",
+    "allTypes": "All Types",
+    "noMatchingCredentials": "No credentials match your search"
   },
   "component": {
     "title": "Components",
@@ -804,7 +807,10 @@
     "image": "Image",
     "dockerImage": "Docker Image",
     "existing": "Existing",
-    "new": "New"
+    "new": "New",
+    "searchPlaceholder": "Search by name or description",
+    "allCategories": "All Categories",
+    "noMatchingComponents": "No components match your search"
   },
   "ai": {
     "title": "AI Settings",
@@ -1139,7 +1145,8 @@
     "title": "Pending Approvals",
     "noPending": "No pending approvals",
     "detail": "Approval Detail",
-    "actionHistory": "Action History"
+    "actionHistory": "Action History",
+    "searchPlaceholder": "Search by message or execution ID"
   },
   "monitoring": {
     "title": "System Monitoring",
@@ -1349,6 +1356,7 @@
     "lastActive": "Last Active",
     "ping": "Ping",
     "noNodes": "No connected gateway nodes",
+    "addAgent": "Add Agent Device",
     "availableCapabilities": "Available Capabilities",
     "invokeSuccess": "Command executed successfully",
     "invokeFailed": "Command execution failed",
