@@ -15,23 +15,23 @@ import type { EdgeType } from '../../types'
 // Edge type colors and styles
 const EDGE_STYLES: Record<EdgeType, { color: string; strokeDasharray?: string; labelBg: string }> = {
   success: {
-    color: '#52c41a', // green - success path
+    color: 'var(--color-success)',
     labelBg: 'rgba(82, 196, 26, 0.1)',
   },
   error: {
-    color: '#ff4d4f', // red - error path
-    strokeDasharray: '5,5', // dashed line for error
+    color: 'var(--color-danger)',
+    strokeDasharray: '5,5',
     labelBg: 'rgba(255, 77, 79, 0.1)',
   },
   always: {
-    color: '#1890ff', // blue - always execute
+    color: 'var(--color-info)',
     labelBg: 'rgba(24, 144, 255, 0.1)',
   },
 }
 
 // Default edge style (when edgeType is not set)
 const DEFAULT_EDGE_STYLE = {
-  color: '#b1b1b7',
+  color: 'var(--color-text-muted)',
   labelBg: 'rgba(0, 0, 0, 0.05)',
 }
 
@@ -277,9 +277,9 @@ export function getEdgeStyle(edgeType?: EdgeType) {
 // Edge type options for UI selectors
 // label/description are i18n keys: use t(`edgeConfig.label.${value}`) and t(`edgeConfig.desc.${value}`)
 export const edgeTypeOptions = [
-  { value: 'success', labelKey: 'edgeConfig.label.success', color: '#52c41a', descKey: 'edgeConfig.desc.success' },
-  { value: 'error', labelKey: 'edgeConfig.label.error', color: '#ff4d4f', descKey: 'edgeConfig.desc.error' },
-  { value: 'always', labelKey: 'edgeConfig.label.always', color: '#1890ff', descKey: 'edgeConfig.desc.always' },
+  { value: 'success', labelKey: 'edgeConfig.label.success', color: 'var(--color-success)', descKey: 'edgeConfig.desc.success' },
+  { value: 'error', labelKey: 'edgeConfig.label.error', color: 'var(--color-danger)', descKey: 'edgeConfig.desc.error' },
+  { value: 'always', labelKey: 'edgeConfig.label.always', color: 'var(--color-info)', descKey: 'edgeConfig.desc.always' },
 ]
 
 export default customEdgeTypes

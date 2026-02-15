@@ -119,7 +119,7 @@ const ANIMATION_STYLES = `
 }
 
 .n3n-exec-node:focus-visible {
-  outline: 3px solid #3B82F6;
+  outline: 3px solid var(--color-info);
   outline-offset: 2px;
 }
 
@@ -161,25 +161,25 @@ function getExecutionStyle(status: NodeExecutionStatus, selected: boolean): Reac
       return {
         ...baseStyle,
         animation: 'executionPulse 1.5s ease-in-out infinite',
-        border: '3px solid #1890ff',
+        border: '3px solid var(--color-info)',
       }
     case 'waiting':
       return {
         ...baseStyle,
         animation: 'executionWaiting 2s ease-in-out infinite',
-        border: '3px solid #fa8c16',
+        border: '3px solid var(--color-warning)',
       }
     case 'completed':
       return {
         ...baseStyle,
         animation: 'executionSuccess 1s ease-out forwards',
-        border: '3px solid #52c41a',
+        border: '3px solid var(--color-success)',
       }
     case 'failed':
       return {
         ...baseStyle,
         animation: 'executionFailed 1s ease-in-out 3',
-        border: '3px solid #f5222d',
+        border: '3px solid var(--color-danger)',
       }
     default:
       return {
@@ -192,13 +192,13 @@ function getExecutionStyle(status: NodeExecutionStatus, selected: boolean): Reac
 function getStatusIcon(status: NodeExecutionStatus): React.ReactNode {
   switch (status) {
     case 'running':
-      return <LoadingOutlined spin style={{ color: '#1890ff', marginLeft: 4 }} />
+      return <LoadingOutlined spin style={{ color: 'var(--color-info)', marginLeft: 4 }} />
     case 'waiting':
-      return <PauseCircleOutlined style={{ color: '#fa8c16', marginLeft: 4 }} />
+      return <PauseCircleOutlined style={{ color: 'var(--color-warning)', marginLeft: 4 }} />
     case 'completed':
-      return <CheckCircleOutlined style={{ color: '#52c41a', marginLeft: 4 }} />
+      return <CheckCircleOutlined style={{ color: 'var(--color-success)', marginLeft: 4 }} />
     case 'failed':
-      return <CloseCircleOutlined style={{ color: '#f5222d', marginLeft: 4 }} />
+      return <CloseCircleOutlined style={{ color: 'var(--color-danger)', marginLeft: 4 }} />
     default:
       return null
   }
@@ -207,7 +207,7 @@ function getStatusIcon(status: NodeExecutionStatus): React.ReactNode {
 const ExecutionAwareBaseNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as ExecutionAwareNodeData
   const nodeType = nodeData.nodeType || 'action'
-  const color = nodeColors[nodeType] || '#1890ff'
+  const color = nodeColors[nodeType] || 'var(--color-info)'
   const icon = nodeIcons[nodeType] || <ThunderboltOutlined />
   const isTrigger = nodeType === 'trigger' || nodeType === 'scheduleTrigger' || nodeType === 'webhookTrigger' || nodeType === 'formTrigger'
   const isOutput = nodeType === 'output'
@@ -343,7 +343,7 @@ const ExecutionAwareConditionNode = memo(({ data, selected }: NodeProps) => {
         id="true"
         style={{
           left: '30%',
-          background: '#52c41a',
+          background: 'var(--color-success)',
           border: '2px solid #fff',
           width: 10,
           height: 10,
@@ -355,7 +355,7 @@ const ExecutionAwareConditionNode = memo(({ data, selected }: NodeProps) => {
         id="false"
         style={{
           left: '70%',
-          background: '#f5222d',
+          background: 'var(--color-danger)',
           border: '2px solid #fff',
           width: 10,
           height: 10,

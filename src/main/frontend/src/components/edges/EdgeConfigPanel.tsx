@@ -23,9 +23,9 @@ interface EdgeConfigPanelProps {
 }
 
 const iconMap: Record<EdgeType, React.ReactNode> = {
-  success: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-  error: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
-  always: <SyncOutlined style={{ color: '#1890ff' }} />,
+  success: <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />,
+  error: <CloseCircleOutlined style={{ color: 'var(--color-danger)' }} />,
+  always: <SyncOutlined style={{ color: 'var(--color-info)' }} />,
 }
 
 export default function EdgeConfigPanel({

@@ -65,7 +65,7 @@ const GLOBAL_STYLES = `
   }
 }
 .n3n-node:focus-visible {
-  outline: 3px solid #3B82F6;
+  outline: 3px solid var(--color-info);
   outline-offset: 2px;
 }
 .n3n-handle {
@@ -222,7 +222,7 @@ const BaseNode = memo(({ id, data, selected }: NodeProps) => {
               position: 'absolute',
               top: -8,
               right: -8,
-              background: '#F59E0B',
+              background: 'var(--color-warning)',
               borderRadius: '50%',
               width: 20,
               height: 20,
@@ -368,7 +368,7 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
         aria-label="True branch output"
         style={{
           left: '30%',
-          background: '#16A34A',
+          background: 'var(--color-success)',
           border: '2px solid #fff',
           width: 12,
           height: 12,
@@ -384,7 +384,7 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
         aria-label="False branch output"
         style={{
           left: '70%',
-          background: '#DC2626',
+          background: 'var(--color-danger)',
           border: '2px solid #fff',
           width: 12,
           height: 12,
@@ -526,7 +526,7 @@ const ApprovalNode = memo(({ data, selected }: NodeProps) => {
         aria-label="Approved branch output"
         style={{
           left: '30%',
-          background: '#16A34A',
+          background: 'var(--color-success)',
           border: '2px solid #fff',
           width: 12,
           height: 12,
@@ -542,7 +542,7 @@ const ApprovalNode = memo(({ data, selected }: NodeProps) => {
         aria-label="Rejected branch output"
         style={{
           left: '70%',
-          background: '#DC2626',
+          background: 'var(--color-danger)',
           border: '2px solid #fff',
           width: 12,
           height: 12,
