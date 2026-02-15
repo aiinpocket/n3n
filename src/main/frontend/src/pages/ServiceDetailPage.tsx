@@ -258,6 +258,7 @@ export default function ServiceDetailPage() {
               type="text"
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate('/services')}
+              aria-label={t('common.back')}
             />
             <ApiOutlined />
             {currentService.displayName}

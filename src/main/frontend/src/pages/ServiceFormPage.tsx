@@ -155,6 +155,7 @@ export default function ServiceFormPage() {
             type="text"
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate('/services')}
+            aria-label={t('common.back')}
           />
           {isEdit ? t('service.editService') : t('service.newService')}
         </Space>
