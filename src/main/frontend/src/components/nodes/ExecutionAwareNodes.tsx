@@ -546,7 +546,7 @@ const ExecutionAwareApprovalNode = memo(({ data, selected }: NodeProps) => {
 
   // Show waiting icon when status is 'running' or 'waiting' for approval nodes
   const statusIcon = (executionStatus === 'running' || executionStatus === 'waiting')
-    ? <PauseCircleOutlined style={{ color: '#fa8c16', marginLeft: 4 }} />
+    ? <PauseCircleOutlined style={{ color: 'var(--color-warning)', marginLeft: 4 }} />
     : getStatusIcon(executionStatus)
 
   return (
@@ -594,7 +594,7 @@ const ExecutionAwareApprovalNode = memo(({ data, selected }: NodeProps) => {
         id="approved"
         style={{
           left: '30%',
-          background: '#52c41a',
+          background: 'var(--color-success)',
           border: '2px solid #fff',
           width: 10,
           height: 10,
@@ -606,7 +606,7 @@ const ExecutionAwareApprovalNode = memo(({ data, selected }: NodeProps) => {
         id="rejected"
         style={{
           left: '70%',
-          background: '#f5222d',
+          background: 'var(--color-danger)',
           border: '2px solid #fff',
           width: 10,
           height: 10,
@@ -687,7 +687,7 @@ const ExecutionAwareSwitchNode = memo(({ data, selected }: NodeProps) => {
           id={c.branch}
           style={{
             left: `${((idx + 1) * 100) / (Math.min(cases.length, 4) + 1)}%`,
-            background: idx === cases.length - 1 ? '#9ca3af' : '#3b82f6',
+            background: idx === cases.length - 1 ? 'var(--color-text-muted)' : 'var(--color-info)',
             border: '2px solid #fff',
             width: 8,
             height: 8,

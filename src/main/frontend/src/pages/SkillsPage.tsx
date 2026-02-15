@@ -126,7 +126,7 @@ export default function SkillsPage() {
       }
     } catch (error) {
       setTestResult(extractApiError(error, t('skill.testFailed')))
-      message.error(t('skill.testFailed'))
+      message.error(extractApiError(error, t('skill.testFailed')))
     } finally {
       setTesting(false)
     }
@@ -473,6 +473,7 @@ export default function SkillsPage() {
         open={formModalOpen}
         onCancel={() => { setFormModalOpen(false); form.resetFields(); }}
         onOk={handleFormSubmit}
+        okText={t('common.save')}
         confirmLoading={formSubmitting}
         width={600}
         destroyOnClose

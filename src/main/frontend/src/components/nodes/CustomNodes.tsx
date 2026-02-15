@@ -401,8 +401,8 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
           fontWeight: 500,
         }}
       >
-        <span style={{ color: '#BBF7D0' }}>✓ {t('nodeTypes.condition.true')}</span>
-        <span style={{ color: '#FECACA' }}>✗ {t('nodeTypes.condition.false')}</span>
+        <span style={{ color: 'var(--color-success)' }}>✓ {t('nodeTypes.condition.true')}</span>
+        <span style={{ color: 'var(--color-danger)' }}>✗ {t('nodeTypes.condition.false')}</span>
       </div>
     </div>
   )
@@ -559,8 +559,8 @@ const ApprovalNode = memo(({ data, selected }: NodeProps) => {
           fontWeight: 500,
         }}
       >
-        <span style={{ color: '#BBF7D0' }}>✓ {t('nodeTypes.approval.approved')}</span>
-        <span style={{ color: '#FECACA' }}>✗ {t('nodeTypes.approval.rejected')}</span>
+        <span style={{ color: 'var(--color-success)' }}>✓ {t('nodeTypes.approval.approved')}</span>
+        <span style={{ color: 'var(--color-danger)' }}>✗ {t('nodeTypes.approval.rejected')}</span>
       </div>
     </div>
   )
@@ -636,7 +636,7 @@ const SwitchNode = memo(({ data, selected }: NodeProps) => {
             aria-label={`${c.branch} branch output`}
             style={{
               left: `${((idx + 1) * 100) / (caseCount + 1)}%`,
-              background: isDefault ? '#6B7280' : '#2563EB',
+              background: isDefault ? 'var(--color-text-muted)' : 'var(--color-info)',
               border: '2px solid #fff',
               width: 10,
               height: 10,
@@ -659,7 +659,7 @@ const SwitchNode = memo(({ data, selected }: NodeProps) => {
           <span
             key={c.branch}
             style={{
-              color: c.branch === 'default' ? '#D1D5DB' : '#BFDBFE',
+              color: c.branch === 'default' ? 'var(--color-text-tertiary)' : 'var(--color-info)',
               maxWidth: 40,
               overflow: 'hidden',
               textOverflow: 'ellipsis',

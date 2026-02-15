@@ -128,7 +128,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
         preventScrolling={false}
         proOptions={{ hideAttribution: true }}
       >
-        <Background color="#e5e5e5" gap={16} />
+        <Background color="var(--color-border)" gap={16} />
         <Controls
           showZoom={false}
           showFitView={true}
@@ -136,7 +136,7 @@ export const MiniFlowPreview: React.FC<Props> = ({
           position="bottom-right"
         />
         <MiniMap
-          nodeColor={(node) => (node.style?.backgroundColor as string) || '#1890ff'}
+          nodeColor={(node) => (node.style?.backgroundColor as string) || 'var(--color-info)'}
           maskColor="rgba(0,0,0,0.1)"
           style={{ height: 50, width: 80 }}
           position="bottom-left"

@@ -652,6 +652,7 @@ export default function TemplatePage() {
         open={editModalOpen}
         onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
         onOk={handleEditSubmit}
+        okText={t('common.save')}
         confirmLoading={editSubmitting}
         destroyOnClose
         width={500}

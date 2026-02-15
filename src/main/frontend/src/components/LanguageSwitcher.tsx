@@ -10,7 +10,7 @@ const languages = [
 ]
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
 
   const handleLanguageChange: MenuProps['onClick'] = ({ key }) => {
     i18n.changeLanguage(key)
@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
       menu={{ items, onClick: handleLanguageChange, selectedKeys: [i18n.language] }}
       placement="bottomRight"
     >
-      <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }} role="button" aria-label="Language" tabIndex={0}>
+      <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }} role="button" aria-label={t('language.title')} tabIndex={0}>
         <GlobalOutlined />
         <span>{currentLang.flag}</span>
       </span>

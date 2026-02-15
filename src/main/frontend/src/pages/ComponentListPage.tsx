@@ -127,7 +127,7 @@ export default function ComponentListPage() {
       })
     } catch (error) {
       logger.error('Failed to load components:', error)
-      message.error(t('common.loadFailed'))
+      message.error(extractApiError(error, t('common.loadFailed')))
     } finally {
       setLoading(false)
     }
@@ -209,7 +209,7 @@ export default function ComponentListPage() {
       setVersions(data)
     } catch (error) {
       logger.error('Failed to load versions:', error)
-      message.error(t('component.loadVersionsFailed'))
+      message.error(extractApiError(error, t('component.loadVersionsFailed')))
     } finally {
       setLoadingVersions(false)
     }
@@ -453,6 +453,7 @@ export default function ComponentListPage() {
         open={editModalOpen}
         onCancel={() => { setEditModalOpen(false); editForm.resetFields() }}
         onOk={handleEditSubmit}
+        okText={t('common.save')}
         confirmLoading={editSubmitting}
         destroyOnClose
       >

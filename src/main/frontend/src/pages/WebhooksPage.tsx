@@ -548,6 +548,7 @@ const WebhooksPage: React.FC = () => {
         open={editModalOpen}
         onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
         onOk={handleEditSubmit}
+        okText={t('common.save')}
         confirmLoading={editSubmitting}
         destroyOnClose
       >

@@ -84,7 +84,7 @@ export default function ExecutionListPage() {
     } catch (error) {
       if (requestId !== fetchRequestIdRef.current) return
       logger.error('Failed to load executions:', error)
-      message.error(t('common.loadFailed'))
+      message.error(extractApiError(error, t('common.loadFailed')))
     } finally {
       if (requestId === fetchRequestIdRef.current) setLoading(false)
     }

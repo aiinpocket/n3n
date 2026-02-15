@@ -143,7 +143,7 @@ export default function ExecutionPage() {
           setLoading(false)
         } catch (error) {
           logger.error('Failed to load flow:', error)
-          message.error(t('common.loadFailed'))
+          message.error(extractApiError(error, t('common.loadFailed')))
           navigate('/flows')
         }
       }
