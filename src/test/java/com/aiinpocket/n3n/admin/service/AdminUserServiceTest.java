@@ -95,6 +95,47 @@ class AdminUserServiceTest extends BaseServiceTest {
 
             assertThat(result.getContent()).isEmpty();
         }
+
+        @Test
+        void listUsers_withSearch_usesSearchQuery() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<User> page = new PageImpl<>(List.of(testUser));
+            UserRole role = UserRole.builder().userId(userId).role("USER").build();
+
+            when(userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    "test", "test", pageable)).thenReturn(page);
+            when(userRoleRepository.findByUserIdIn(List.of(userId))).thenReturn(List.of(role));
+
+            Page<UserResponse> result = adminUserService.listUsers(pageable, "test");
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getEmail()).isEqualTo("test@example.com");
+            verify(userRepository, never()).findAll(pageable);
+        }
+
+        @Test
+        void listUsers_withBlankSearch_returnsAll() {
+            Pageable pageable = PageRequest.of(0, 10);
+            when(userRepository.findAll(pageable)).thenReturn(Page.empty());
+
+            adminUserService.listUsers(pageable, "   ");
+
+            verify(userRepository).findAll(pageable);
+            verify(userRepository, never()).findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    any(), any(), any());
+        }
+
+        @Test
+        void listUsers_withSearchTrimsWhitespace() {
+            Pageable pageable = PageRequest.of(0, 10);
+            when(userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    "admin", "admin", pageable)).thenReturn(Page.empty());
+
+            adminUserService.listUsers(pageable, "  admin  ");
+
+            verify(userRepository).findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    "admin", "admin", pageable);
+        }
     }
 
     @Nested
