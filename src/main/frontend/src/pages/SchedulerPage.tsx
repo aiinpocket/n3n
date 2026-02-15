@@ -378,6 +378,7 @@ const SchedulerPage: React.FC = () => {
               rowKey="id"
               loading={loading}
               pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+              scroll={{ x: 1000 }}
             />
           </>
         )}

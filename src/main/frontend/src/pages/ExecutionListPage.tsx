@@ -393,6 +393,7 @@ export default function ExecutionListPage() {
         pagination={pagination}
         onChange={handleTableChange}
         size="middle"
+        scroll={{ x: 1000 }}
       />
     </Card>
   )

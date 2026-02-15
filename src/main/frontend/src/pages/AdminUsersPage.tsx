@@ -294,6 +294,7 @@ export default function AdminUsersPage() {
             onChange: (p) => loadUsers(p - 1),
             showTotal: (total) => t('common.total', { count: total }),
           }}
+          scroll={{ x: 800 }}
         />
       </Card>
 

@@ -388,7 +388,7 @@ const WebhooksPage: React.FC = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               allowClear
-              style={{ width: 300, marginBottom: 16 }}
+              style={{ maxWidth: 400, marginBottom: 16 }}
             />
             <Table
               columns={columns}
@@ -396,6 +396,7 @@ const WebhooksPage: React.FC = () => {
               rowKey="id"
               loading={isLoading}
               pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+              scroll={{ x: 1000 }}
             />
           </>
         )}

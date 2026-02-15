@@ -388,6 +388,7 @@ export default function ExecutionPage() {
               {t(`execution.${executionData.status.toLowerCase()}`, { defaultValue: executionData.status.toUpperCase() })}
             </Tag>
             {isConnected && <Tag color="green">{t('execution.realtime')}</Tag>}
+            {!isConnected && isRunning && <Tag color="orange">{t('execution.disconnected')}</Tag>}
           </Space>
         }
         extra={
