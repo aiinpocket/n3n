@@ -83,7 +83,7 @@ function ToolCard({
         <div
           style={{
             height: 100,
-            background: 'linear-gradient(135deg, var(--color-primary) 0%, #0D9488 100%)',
+            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-active) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -569,7 +569,7 @@ export default function CustomToolsPage() {
                 {featuredPlugins.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
                     <Title level={5} style={{ marginBottom: 12 }}>
-                      <FireOutlined style={{ color: '#F59E0B', marginRight: 8 }} />
+                      <FireOutlined style={{ color: 'var(--color-warning)', marginRight: 8 }} />
                       {t('customTools.featured')}
                     </Title>
                     <Row gutter={[16, 16]}>

@@ -602,6 +602,7 @@
   },
   "service": {
     "title": "外部サービス",
+    "searchPlaceholder": "名前やプロトコルで検索...",
     "newService": "新規サービス登録",
     "editService": "サービスを編集",
     "deleteService": "サービスを削除",
@@ -841,6 +842,8 @@
     "testConnection": "接続テスト",
     "testSuccess": "接続成功！",
     "testFailed": "接続失敗：{{message}}",
+    "latency": "レイテンシー",
+    "modelCount": "モデル数",
     "setAsDefault": "デフォルトに設定",
     "setAsDefaultSuccess": "デフォルトに設定しました",
     "isDefault": "デフォルト",
@@ -929,6 +932,7 @@
   },
   "skill": {
     "title": "スキル",
+    "searchPlaceholder": "名前や説明で検索...",
     "name": "スキル名",
     "identifier": "識別名",
     "category": "カテゴリ",
@@ -978,6 +982,7 @@
   "webhook": {
     "title": "Webhooks",
     "description": "Webhookを使用すると、外部システムがHTTPリクエストでフローの実行をトリガーできます。",
+    "searchPlaceholder": "名前、フロー、メソッドで検索...",
     "create": "Webhookを作成",
     "createTitle": "新しいWebhookを作成",
     "createSuccess": "Webhookを作成しました",

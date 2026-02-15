@@ -663,7 +663,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                 width: 28,
                 height: 28,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #8B5CF6, #14B8A6)',
+                background: 'linear-gradient(135deg, var(--color-ai), var(--color-primary))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -740,7 +740,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               width: 28,
               height: 28,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #8B5CF6, #14B8A6)',
+              background: 'linear-gradient(135deg, var(--color-ai), var(--color-primary))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1257,7 +1257,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     <Modal
       title={
         <Space>
-          <ThunderboltOutlined style={{ color: '#8B5CF6' }} />
+          <ThunderboltOutlined style={{ color: 'var(--color-ai)' }} />
           <span>{t('flowGenerator.title')}</span>
         </Space>
       }

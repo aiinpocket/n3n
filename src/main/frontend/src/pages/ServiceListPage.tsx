@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons'
+import { useEffect, useState, useMemo } from 'react'
+import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert, Input } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'
@@ -13,6 +13,17 @@ export default function ServiceListPage() {
   const { t } = useTranslation()
   const { services, totalElements, isLoading, error, currentPage, pageSize, fetchServices, deleteService, testConnection, clearError } = useServiceStore()
   const [testingId, setTestingId] = useState<string | null>(null)
+  const [searchText, setSearchText] = useState('')
+
+  const filteredServices = useMemo(() => {
+    if (!searchText) return services
+    const lower = searchText.toLowerCase()
+    return services.filter(s =>
+      s.displayName.toLowerCase().includes(lower) ||
+      s.name.toLowerCase().includes(lower) ||
+      (s.protocol && s.protocol.toLowerCase().includes(lower))
+    )
+  }, [services, searchText])
 
   useEffect(() => {
     fetchServices()
@@ -70,6 +81,7 @@ export default function ServiceListPage() {
       title: t('service.serviceName'),
       dataIndex: 'displayName',
       key: 'displayName',
+      sorter: (a: ExternalService, b: ExternalService) => a.displayName.localeCompare(b.displayName),
       render: (name: string, record: ExternalService) => (
         <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/services/${record.id}`)}>{name}</Button>
       ),
@@ -178,9 +190,17 @@ export default function ServiceListPage() {
           }
         />
       )}
+      <Input
+        placeholder={t('service.searchPlaceholder')}
+        prefix={<SearchOutlined />}
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        allowClear
+        style={{ width: 300, marginBottom: 16 }}
+      />
       <Table
         columns={columns}
-        dataSource={services}
+        dataSource={filteredServices}
         rowKey="id"
         loading={isLoading}
         pagination={{

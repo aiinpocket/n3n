@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Card,
   Table,
@@ -31,6 +31,7 @@ import {
   BellOutlined,
   DatabaseOutlined,
   ReloadOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { extractApiError } from '../utils/errorMessages'
@@ -74,6 +75,7 @@ export default function SkillsPage() {
   const [testing, setTesting] = useState(false)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [form] = Form.useForm()
+  const [searchText, setSearchText] = useState('')
 
   const {
     skills,
@@ -373,12 +375,23 @@ export default function SkillsPage() {
     },
   ]
 
-  const filteredSkills =
-    activeTab === 'all'
-      ? skills
-      : activeTab === 'builtin'
-      ? builtinSkills
-      : skills.filter((s) => s.category === activeTab)
+  const filteredSkills = useMemo(() => {
+    let list =
+      activeTab === 'all'
+        ? skills
+        : activeTab === 'builtin'
+        ? builtinSkills
+        : skills.filter((s) => s.category === activeTab)
+    if (searchText) {
+      const lower = searchText.toLowerCase()
+      list = list.filter(s =>
+        s.displayName.toLowerCase().includes(lower) ||
+        s.name.toLowerCase().includes(lower) ||
+        (s.description && s.description.toLowerCase().includes(lower))
+      )
+    }
+    return list
+  }, [activeTab, skills, builtinSkills, searchText])
 
   return (
     <>
@@ -428,6 +441,15 @@ export default function SkillsPage() {
             }
           />
         )}
+
+        <Input
+          placeholder={t('skill.searchPlaceholder')}
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          allowClear
+          style={{ width: 300, marginBottom: 16 }}
+        />
 
         <Table
           columns={columns}

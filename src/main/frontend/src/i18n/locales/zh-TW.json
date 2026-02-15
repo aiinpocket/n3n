@@ -602,6 +602,7 @@
   },
   "service": {
     "title": "外部服務",
+    "searchPlaceholder": "搜尋名稱或協定...",
     "newService": "註冊新服務",
     "editService": "編輯服務",
     "deleteService": "刪除服務",
@@ -841,6 +842,8 @@
     "testConnection": "測試連線",
     "testSuccess": "連線成功！",
     "testFailed": "連線失敗：{{message}}",
+    "latency": "延遲",
+    "modelCount": "模型數",
     "setAsDefault": "設為預設",
     "setAsDefaultSuccess": "已設為預設",
     "isDefault": "預設",
@@ -929,6 +932,7 @@
   },
   "skill": {
     "title": "技能",
+    "searchPlaceholder": "搜尋名稱或描述...",
     "name": "技能名稱",
     "identifier": "識別名稱",
     "category": "分類",
@@ -978,6 +982,7 @@
   "webhook": {
     "title": "Webhooks",
     "description": "Webhook 允許外部系統透過 HTTP 請求觸發流程執行。",
+    "searchPlaceholder": "搜尋名稱、流程或方法...",
     "create": "建立 Webhook",
     "createTitle": "建立新的 Webhook",
     "createSuccess": "Webhook 建立成功",

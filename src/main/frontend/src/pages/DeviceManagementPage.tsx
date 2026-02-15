@@ -285,7 +285,7 @@ const DeviceManagementPage: React.FC = () => {
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <div style={{ textAlign: 'center' }}>
                 <AppleOutlined style={{ fontSize: 48, color: 'var(--color-text-tertiary)', marginRight: 24 }} />
-                <WindowsOutlined style={{ fontSize: 48, color: '#0078d4' }} />
+                <WindowsOutlined style={{ fontSize: 48, color: 'var(--color-info)' }} />
               </div>
               <Button
                 type="primary"

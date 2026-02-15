@@ -602,6 +602,7 @@
   },
   "service": {
     "title": "External Services",
+    "searchPlaceholder": "Search by name or protocol...",
     "newService": "Register New Service",
     "editService": "Edit Service",
     "deleteService": "Delete Service",
@@ -841,6 +842,8 @@
     "testConnection": "Test Connection",
     "testSuccess": "Connection successful!",
     "testFailed": "Connection failed: {{message}}",
+    "latency": "Latency",
+    "modelCount": "Models",
     "setAsDefault": "Set as Default",
     "setAsDefaultSuccess": "Set as default",
     "isDefault": "Default",
@@ -929,6 +932,7 @@
   },
   "skill": {
     "title": "Skills",
+    "searchPlaceholder": "Search by name or description...",
     "name": "Skill Name",
     "identifier": "Identifier",
     "category": "Category",
@@ -978,6 +982,7 @@
   "webhook": {
     "title": "Webhooks",
     "description": "Webhooks allow external systems to trigger flow executions via HTTP requests.",
+    "searchPlaceholder": "Search by name, flow, or method...",
     "create": "Create Webhook",
     "createTitle": "Create New Webhook",
     "createSuccess": "Webhook created successfully",

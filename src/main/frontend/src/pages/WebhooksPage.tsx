@@ -26,6 +26,7 @@ import {
   LinkOutlined,
   ThunderboltOutlined,
   EditOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useWebhookStore } from '../stores/webhookStore'
@@ -46,6 +47,7 @@ const WebhooksPage: React.FC = () => {
   const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editForm] = Form.useForm()
+  const [searchText, setSearchText] = useState('')
 
   const {
     webhooks,
@@ -65,6 +67,17 @@ const WebhooksPage: React.FC = () => {
     flows.forEach((f) => map.set(f.id, f.name))
     return map
   }, [flows])
+
+  const filteredWebhooks = useMemo(() => {
+    if (!searchText) return webhooks
+    const lower = searchText.toLowerCase()
+    return webhooks.filter(w =>
+      w.name.toLowerCase().includes(lower) ||
+      (flowNameMap.get(w.flowId) || '').toLowerCase().includes(lower) ||
+      w.method.toLowerCase().includes(lower) ||
+      (w.webhookUrl && w.webhookUrl.toLowerCase().includes(lower))
+    )
+  }, [webhooks, searchText, flowNameMap])
 
   useEffect(() => {
     fetchWebhooks()
@@ -195,6 +208,7 @@ const WebhooksPage: React.FC = () => {
       title: t('webhook.name'),
       dataIndex: 'name',
       key: 'name',
+      sorter: (a: Webhook, b: Webhook) => a.name.localeCompare(b.name),
       render: (name: string) => (
         <Space>
           <ApiOutlined />
@@ -367,13 +381,23 @@ const WebhooksPage: React.FC = () => {
             </Button>
           </Empty>
         ) : (
-          <Table
-            columns={columns}
-            dataSource={webhooks}
-            rowKey="id"
-            loading={isLoading}
-            pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
-          />
+          <>
+            <Input
+              placeholder={t('webhook.searchPlaceholder')}
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              style={{ width: 300, marginBottom: 16 }}
+            />
+            <Table
+              columns={columns}
+              dataSource={filteredWebhooks}
+              rowKey="id"
+              loading={isLoading}
+              pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+            />
+          </>
         )}
       </Card>
 

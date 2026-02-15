@@ -75,7 +75,14 @@ const AISettingsPage: React.FC = () => {
   useEffect(() => {
     if (testResult && testingId) {
       if (testResult.success) {
-        message.success(t('ai.testSuccess'))
+        const details: string[] = [t('ai.testSuccess')]
+        if (testResult.latencyMs !== undefined) {
+          details.push(`${t('ai.latency')}: ${testResult.latencyMs}ms`)
+        }
+        if (testResult.modelCount !== undefined) {
+          details.push(`${t('ai.modelCount')}: ${testResult.modelCount}`)
+        }
+        message.success(details.join(' | '))
       } else {
         message.error(t('ai.testFailed', { message: testResult.message }))
       }

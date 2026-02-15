@@ -7,6 +7,7 @@ import type {
   AiModel,
   CreateAiProviderRequest,
   UpdateAiProviderRequest,
+  TestConnectionResponse,
 } from '../api/ai'
 
 interface AiState {
@@ -24,7 +25,7 @@ interface AiState {
   modelsLoading: boolean
 
   // 連線測試
-  testResult: { success: boolean; message: string } | null
+  testResult: TestConnectionResponse | null
   testLoading: boolean
 
   // 錯誤
