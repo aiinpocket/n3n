@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Card, Switch, Radio, Form, Input, InputNumber, Button, Table, Space, Tag, Modal,
-  Spin, Alert, Typography, Divider, message,
+  Spin, Alert, Typography, Divider, message, Badge,
 } from 'antd'
 import {
   CloudUploadOutlined, CloudDownloadOutlined, ApiOutlined,
   ReloadOutlined, SafetyCertificateOutlined, HistoryOutlined,
-  SaveOutlined,
+  SaveOutlined, SyncOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import backupApi, { BackupSettings, BackupHistory, RemoteBackupInfo } from '../api/backup'
+import { cloudSyncApi, type CloudSyncStatus } from '../api/cloudSync'
 import { extractApiError } from '../utils/errorMessages'
 import logger from '../utils/logger'
 
@@ -27,6 +28,7 @@ export default function CloudBackupPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
 
   const [settings, setSettings] = useState<BackupSettings | null>(null)
+  const [syncStatus, setSyncStatus] = useState<CloudSyncStatus | null>(null)
   const [history, setHistory] = useState<BackupHistory[]>([])
   const [remoteBackups, setRemoteBackups] = useState<RemoteBackupInfo[]>([])
   const [recoveryKeyInput, setRecoveryKeyInput] = useState('')
@@ -70,10 +72,20 @@ export default function CloudBackupPage() {
     }
   }, [])
 
+  const fetchSyncStatus = useCallback(async () => {
+    try {
+      const res = await cloudSyncApi.getStatus()
+      setSyncStatus(res.data)
+    } catch {
+      // Non-critical, ignore
+    }
+  }, [])
+
   useEffect(() => {
     fetchSettings()
     fetchHistory()
-  }, [fetchSettings, fetchHistory])
+    fetchSyncStatus()
+  }, [fetchSettings, fetchHistory, fetchSyncStatus])
 
   const handleToggleEnabled = async (enabled: boolean) => {
     try {
@@ -262,6 +274,28 @@ export default function CloudBackupPage() {
           />
         </div>
       </Card>
+
+      {/* 同步狀態 */}
+      {syncStatus && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space>
+            <SyncOutlined style={{ color: 'var(--color-primary)' }} />
+            <Text strong>{t('backup.syncStatus')}</Text>
+            <Badge
+              status={syncStatus.enabled ? 'success' : 'default'}
+              text={syncStatus.enabled ? t('backup.syncEnabled') : t('backup.syncDisabled')}
+            />
+            {syncStatus.provider && (
+              <Tag>{syncStatus.provider.toUpperCase()}</Tag>
+            )}
+            {syncStatus.fingerprint && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {t('backup.fingerprint')}: {syncStatus.fingerprint.substring(0, 12)}...
+              </Text>
+            )}
+          </Space>
+        </Card>
+      )}
 
       {/* 儲存設定 */}
       <Card title={t('backup.storageSettings')} style={{ marginBottom: 16 }}>

@@ -14,6 +14,7 @@ import {
   Statistic,
   Row,
   Col,
+  Modal,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -22,10 +23,12 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   DesktopOutlined,
+  LinkOutlined,
+  CopyOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { gatewayApi, type GatewayNode, type GatewayStats } from '../api/gateway'
+import { gatewayApi, type GatewayNode, type GatewayStats, type PairingCodeResponse } from '../api/gateway'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 
@@ -39,6 +42,9 @@ export default function GatewayPage() {
   const [error, setError] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<Record<string, unknown>>({})
   const [stats, setStats] = useState<GatewayStats | null>(null)
+  const [pairingCode, setPairingCode] = useState<PairingCodeResponse | null>(null)
+  const [pairingModalOpen, setPairingModalOpen] = useState(false)
+  const [generatingCode, setGeneratingCode] = useState(false)
 
   const fetchStats = useCallback(async () => {
     try {
@@ -76,6 +82,30 @@ export default function GatewayPage() {
     fetchCapabilities()
     fetchStats()
   }, [fetchNodes, fetchCapabilities, fetchStats])
+
+  const handleGeneratePairingCode = async () => {
+    setGeneratingCode(true)
+    try {
+      const result = await gatewayApi.generatePairingCode()
+      setPairingCode(result)
+      setPairingModalOpen(true)
+    } catch (err) {
+      message.error(extractApiError(err, t('gateway.pairingCodeFailed')))
+    } finally {
+      setGeneratingCode(false)
+    }
+  }
+
+  const handleCopyPairingCode = async () => {
+    if (pairingCode) {
+      try {
+        await navigator.clipboard.writeText(pairingCode.pairingCode)
+        message.success(t('gateway.pairingCodeCopied'))
+      } catch {
+        message.error(t('common.copyFailed'))
+      }
+    }
+  }
 
   const handleInvoke = async (connectionId: string, capability: string) => {
     try {
@@ -203,9 +233,18 @@ export default function GatewayPage() {
           </Space>
         }
         extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchNodes} loading={loading}>
-            {t('common.refresh')}
-          </Button>
+          <Space>
+            <Button
+              icon={<LinkOutlined />}
+              onClick={handleGeneratePairingCode}
+              loading={generatingCode}
+            >
+              {t('gateway.generatePairingCode')}
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={fetchNodes} loading={loading}>
+              {t('common.refresh')}
+            </Button>
+          </Space>
         }
       >
         {stats && (
@@ -281,6 +320,49 @@ export default function GatewayPage() {
           </Card>
         )}
       </Card>
+
+      <Modal
+        title={t('gateway.pairingCodeTitle')}
+        open={pairingModalOpen}
+        onCancel={() => { setPairingModalOpen(false); setPairingCode(null) }}
+        footer={[
+          <Button key="close" onClick={() => { setPairingModalOpen(false); setPairingCode(null) }}>
+            {t('common.close')}
+          </Button>,
+          <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleCopyPairingCode}>
+            {t('gateway.copyPairingCode')}
+          </Button>,
+        ]}
+      >
+        {pairingCode && (
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Alert
+              type="info"
+              showIcon
+              message={t('gateway.pairingCodeInstructions')}
+            />
+            <div style={{
+              textAlign: 'center',
+              padding: 24,
+              background: 'var(--color-bg-elevated)',
+              borderRadius: 8,
+              border: '1px solid var(--color-border)',
+            }}>
+              <Text style={{
+                fontSize: 32,
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                letterSpacing: 4,
+              }}>
+                {pairingCode.pairingCode}
+              </Text>
+            </div>
+            <Text type="secondary" style={{ textAlign: 'center', display: 'block' }}>
+              {t('gateway.pairingCodeExpiry', { seconds: pairingCode.expiresInSeconds })}
+            </Text>
+          </Space>
+        )}
+      </Modal>
     </div>
   )
 }

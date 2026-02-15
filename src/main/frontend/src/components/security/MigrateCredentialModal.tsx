@@ -66,7 +66,7 @@ export default function MigrateCredentialModal({
     <Modal
       title={
         <Space>
-          <KeyOutlined style={{ color: '#faad14' }} />
+          <KeyOutlined style={{ color: 'var(--color-warning)' }} />
           <span>{t('recovery.migrateTitle')}</span>
         </Space>
       }

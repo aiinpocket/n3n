@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin } from 'antd'
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -8,8 +8,10 @@ import {
   CheckCircleOutlined,
   StopOutlined,
   SearchOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { Descriptions } from 'antd'
 import { useAuthStore } from '../stores/authStore'
 import { adminApi, type AdminUser } from '../api/admin'
 import { extractApiError } from '../utils/errorMessages'
@@ -33,6 +35,9 @@ export default function AdminUsersPage() {
   const [rolesLoading, setRolesLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [detailUser, setDetailUser] = useState<AdminUser | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   const loadUsers = useCallback(async (p = 0, search?: string) => {
     setLoading(true)
@@ -105,6 +110,20 @@ export default function AdminUsersPage() {
     }
   }
 
+  const handleViewUser = async (userId: string) => {
+    setDetailLoading(true)
+    setDetailModalOpen(true)
+    try {
+      const user = await adminApi.getUser(userId)
+      setDetailUser(user)
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('common.loadFailed')))
+      setDetailModalOpen(false)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
   const handleResetPassword = async (userId: string) => {
     Modal.confirm({
       title: t('admin.confirmResetPassword'),
@@ -132,8 +151,11 @@ export default function AdminUsersPage() {
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record: AdminUser) => (
-        <div>
-          <div style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{name}</div>
+        <div
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleViewUser(record.id)}
+        >
+          <div style={{ fontWeight: 500, color: 'var(--color-primary)' }}>{name}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{record.email}</div>
         </div>
       ),
@@ -177,6 +199,15 @@ export default function AdminUsersPage() {
         const isSelf = currentUser?.id === record.id
         return (
           <Space size="small">
+            <Tooltip title={t('admin.viewDetail')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => handleViewUser(record.id)}
+                aria-label={t('admin.viewDetail')}
+              />
+            </Tooltip>
             {!isSelf && (
               <Tooltip title={t('admin.editRoles')}>
                 <Button
@@ -330,6 +361,55 @@ export default function AdminUsersPage() {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* User Detail Modal */}
+      <Modal
+        title={t('admin.userDetail')}
+        open={detailModalOpen}
+        onCancel={() => { setDetailModalOpen(false); setDetailUser(null) }}
+        footer={[
+          <Button key="close" onClick={() => { setDetailModalOpen(false); setDetailUser(null) }}>
+            {t('common.close')}
+          </Button>,
+        ]}
+        width={560}
+      >
+        {detailLoading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>
+            <Spin />
+          </div>
+        ) : detailUser && (
+          <Descriptions column={1} bordered size="small">
+            <Descriptions.Item label={t('admin.userName')}>{detailUser.name}</Descriptions.Item>
+            <Descriptions.Item label={t('auth.email')}>{detailUser.email}</Descriptions.Item>
+            <Descriptions.Item label={t('admin.roles')}>
+              <Space size={4}>
+                {detailUser.roles?.map(role => (
+                  <Tag key={role} color={role === 'ADMIN' ? 'gold' : 'blue'}>{role}</Tag>
+                ))}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('common.status')}>
+              <Tag color={statusColors[detailUser.status] || 'default'}>
+                {t(`admin.status.${detailUser.status}`, { defaultValue: detailUser.status })}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('admin.emailVerified')}>
+              {detailUser.emailVerified ? (
+                <Tag color="success">{t('common.yes')}</Tag>
+              ) : (
+                <Tag color="warning">{t('common.no')}</Tag>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('common.createdAt')}>
+              {detailUser.createdAt ? new Date(detailUser.createdAt).toLocaleString(getLocale()) : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('admin.lastLogin')}>
+              {detailUser.lastLoginAt ? new Date(detailUser.lastLoginAt).toLocaleString(getLocale()) : '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
 
       {/* Edit Roles Modal */}

@@ -70,7 +70,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
       maskClosable={false}
       title={
         <Space>
-          <KeyOutlined style={{ color: '#faad14' }} />
+          <KeyOutlined style={{ color: 'var(--color-warning)' }} />
           <span>{t('recovery.backupTitle')}</span>
         </Space>
       }

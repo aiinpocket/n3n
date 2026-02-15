@@ -27,6 +27,11 @@ export interface CreateUserRequest {
 }
 
 export const adminApi = {
+  getUser: async (id: string): Promise<AdminUser> => {
+    const response = await apiClient.get(`/admin/users/${id}`)
+    return response.data
+  },
+
   listUsers: async (page = 0, size = 20, search?: string): Promise<PageResponse<AdminUser>> => {
     const params: Record<string, unknown> = { page, size }
     if (search) params.search = search

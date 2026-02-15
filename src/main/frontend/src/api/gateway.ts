@@ -29,6 +29,11 @@ export interface GatewayStats {
   uptime: string
 }
 
+export interface PairingCodeResponse {
+  pairingCode: string
+  expiresInSeconds: number
+}
+
 export const gatewayApi = {
   listNodes: async (): Promise<GatewayNode[]> => {
     const response = await apiClient.get<GatewayNode[]>('/gateway/nodes')
@@ -52,6 +57,11 @@ export const gatewayApi = {
 
   getStats: async (): Promise<GatewayStats> => {
     const response = await apiClient.get<GatewayStats>('/gateway/stats')
+    return response.data
+  },
+
+  generatePairingCode: async (): Promise<PairingCodeResponse> => {
+    const response = await apiClient.post<PairingCodeResponse>('/gateway/pairing-code')
     return response.data
   },
 }

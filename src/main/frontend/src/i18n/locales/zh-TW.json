@@ -1377,7 +1377,14 @@
     "stats": "統計資訊",
     "totalNodes": "已連線節點",
     "totalInvocations": "總呼叫次數",
-    "uptime": "運行時間"
+    "uptime": "運行時間",
+    "generatePairingCode": "產生配對碼",
+    "pairingCodeTitle": "代理配對碼",
+    "pairingCodeInstructions": "請在代理裝置上輸入此配對碼以連接到此 N3N 實例。",
+    "pairingCodeExpiry": "此配對碼將在 {{seconds}} 秒後過期。",
+    "pairingCodeCopied": "配對碼已複製到剪貼簿",
+    "pairingCodeFailed": "產生配對碼失敗",
+    "copyPairingCode": "複製配對碼"
   },
   "agent": {
     "status": {
@@ -1843,7 +1850,10 @@
       "active": "啟用",
       "suspended": "已停權",
       "blocked": "已封鎖"
-    }
+    },
+    "viewDetail": "檢視詳情",
+    "userDetail": "使用者詳情",
+    "emailVerified": "電子郵件已驗證"
   },
   "nodeRecommendation": {
     "title": "智慧節點推薦",
@@ -2857,7 +2867,11 @@
     "createdAt": "建立時間",
     "lastModified": "最後修改",
     "providerNotConfigured": "請先設定儲存提供者",
-    "historyLoading": "載入備份歷史中..."
+    "historyLoading": "載入備份歷史中...",
+    "syncStatus": "同步狀態",
+    "syncEnabled": "同步已啟用",
+    "syncDisabled": "同步未啟用",
+    "fingerprint": "指紋"
   },
   "cloudSync": {
     "importTitle": "雲端匯入",

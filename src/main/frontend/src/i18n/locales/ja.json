@@ -1377,7 +1377,14 @@
     "stats": "統計",
     "totalNodes": "接続ノード数",
     "totalInvocations": "合計呼び出し数",
-    "uptime": "稼働時間"
+    "uptime": "稼働時間",
+    "generatePairingCode": "ペアリングコード生成",
+    "pairingCodeTitle": "エージェントペアリングコード",
+    "pairingCodeInstructions": "エージェントデバイスでこのコードを入力して、このN3Nインスタンスとペアリングしてください。",
+    "pairingCodeExpiry": "このコードは{{seconds}}秒後に期限切れになります。",
+    "pairingCodeCopied": "ペアリングコードをクリップボードにコピーしました",
+    "pairingCodeFailed": "ペアリングコードの生成に失敗しました",
+    "copyPairingCode": "コードをコピー"
   },
   "agent": {
     "status": {
@@ -1843,7 +1850,10 @@
       "active": "有効",
       "suspended": "一時停止",
       "blocked": "ブロック"
-    }
+    },
+    "viewDetail": "詳細を表示",
+    "userDetail": "ユーザー詳細",
+    "emailVerified": "メール認証済み"
   },
   "nodeRecommendation": {
     "title": "スマートノード推薦",
@@ -2857,7 +2867,11 @@
     "createdAt": "作成日時",
     "lastModified": "最終更新",
     "providerNotConfigured": "ストレージプロバイダーを先に設定してください",
-    "historyLoading": "バックアップ履歴を読み込み中..."
+    "historyLoading": "バックアップ履歴を読み込み中...",
+    "syncStatus": "同期ステータス",
+    "syncEnabled": "同期有効",
+    "syncDisabled": "同期無効",
+    "fingerprint": "フィンガープリント"
   },
   "cloudSync": {
     "importTitle": "クラウドインポート",

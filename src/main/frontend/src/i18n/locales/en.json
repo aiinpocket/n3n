@@ -1377,7 +1377,14 @@
     "stats": "Statistics",
     "totalNodes": "Connected Nodes",
     "totalInvocations": "Total Invocations",
-    "uptime": "Uptime"
+    "uptime": "Uptime",
+    "generatePairingCode": "Generate Pairing Code",
+    "pairingCodeTitle": "Agent Pairing Code",
+    "pairingCodeInstructions": "Enter this code on the agent device to pair it with this N3N instance.",
+    "pairingCodeExpiry": "This code expires in {{seconds}} seconds.",
+    "pairingCodeCopied": "Pairing code copied to clipboard",
+    "pairingCodeFailed": "Failed to generate pairing code",
+    "copyPairingCode": "Copy Code"
   },
   "agent": {
     "status": {
@@ -1843,7 +1850,10 @@
       "active": "Active",
       "suspended": "Suspended",
       "blocked": "Blocked"
-    }
+    },
+    "viewDetail": "View Details",
+    "userDetail": "User Details",
+    "emailVerified": "Email Verified"
   },
   "nodeRecommendation": {
     "title": "Smart Node Recommendation",
@@ -2857,7 +2867,11 @@
     "createdAt": "Created At",
     "lastModified": "Last Modified",
     "providerNotConfigured": "Please configure a storage provider first",
-    "historyLoading": "Loading backup history..."
+    "historyLoading": "Loading backup history...",
+    "syncStatus": "Sync Status",
+    "syncEnabled": "Sync Active",
+    "syncDisabled": "Sync Inactive",
+    "fingerprint": "Fingerprint"
   },
   "cloudSync": {
     "importTitle": "Cloud Import",
