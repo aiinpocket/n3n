@@ -223,15 +223,6 @@ export const flowApi = {
     return response.data
   },
 
-  getPublishedVersion: async (flowId: string): Promise<FlowVersion> => {
-    const response = await apiClient.get(`/flows/${flowId}/versions/published`)
-    return response.data
-  },
-
-  validateDefinition: async (definition: Record<string, unknown>): Promise<FlowValidationResponse> => {
-    const response = await apiClient.post('/flows/validate', definition)
-    return response.data
-  },
 }
 
 // Matches backend FlowExportPackage

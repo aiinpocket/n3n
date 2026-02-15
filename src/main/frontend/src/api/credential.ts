@@ -110,11 +110,6 @@ export const credentialApi = {
     return response.data
   },
 
-  // List only my own credentials
-  listMine: async (): Promise<Credential[]> => {
-    const response = await apiClient.get('/credentials/mine')
-    return response.data
-  },
 }
 
 export default credentialApi

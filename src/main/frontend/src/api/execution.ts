@@ -107,13 +107,6 @@ export const executionApi = {
     return response.data;
   },
 
-  listByFlow: async (flowId: string, page = 0, size = 20): Promise<Page<ExecutionResponse>> => {
-    const response = await apiClient.get<Page<ExecutionResponse>>(`/executions/by-flow/${flowId}`, {
-      params: { page, size },
-    });
-    return response.data;
-  },
-
   get: async (id: string): Promise<ExecutionResponse> => {
     const response = await apiClient.get<ExecutionResponse>(`/executions/${id}`);
     return response.data;

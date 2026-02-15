@@ -108,11 +108,6 @@ export const skillApi = {
     return response.data
   },
 
-  // Get skill by name
-  getByName: async (name: string): Promise<Skill> => {
-    const response = await apiClient.get(`/skills/name/${name}`)
-    return response.data
-  },
 }
 
 export default skillApi
