@@ -200,6 +200,7 @@ const SchedulerPage: React.FC = () => {
       title: t('schedule.name'),
       dataIndex: 'name',
       key: 'name',
+      sorter: (a: Schedule, b: Schedule) => a.name.localeCompare(b.name),
       render: (name: string) => (
         <Space>
           <ClockCircleOutlined />
@@ -211,6 +212,7 @@ const SchedulerPage: React.FC = () => {
       title: t('schedule.flow'),
       dataIndex: 'flowName',
       key: 'flowName',
+      sorter: (a: Schedule, b: Schedule) => (a.flowName || '').localeCompare(b.flowName || ''),
       render: (name: string | null, record: Schedule) => {
         if (!name) return <Text type="secondary">-</Text>
         return (
@@ -254,6 +256,7 @@ const SchedulerPage: React.FC = () => {
       dataIndex: 'nextRunAt',
       key: 'nextRunAt',
       width: 180,
+      sorter: (a: Schedule, b: Schedule) => new Date(a.nextRunAt || 0).getTime() - new Date(b.nextRunAt || 0).getTime(),
       render: (time: string | null) =>
         time ? new Date(time).toLocaleString(getLocale()) : <Text type="secondary">-</Text>,
     },
@@ -262,6 +265,7 @@ const SchedulerPage: React.FC = () => {
       dataIndex: 'lastRunAt',
       key: 'lastRunAt',
       width: 180,
+      sorter: (a: Schedule, b: Schedule) => new Date(a.lastRunAt || 0).getTime() - new Date(b.lastRunAt || 0).getTime(),
       render: (time: string | null) =>
         time ? new Date(time).toLocaleString(getLocale()) : <Text type="secondary">-</Text>,
     },

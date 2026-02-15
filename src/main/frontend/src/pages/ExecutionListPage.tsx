@@ -187,6 +187,7 @@ export default function ExecutionListPage() {
       title: t('execution.flowName'),
       dataIndex: 'flowName',
       key: 'flowName',
+      sorter: (a: ExecutionResponse, b: ExecutionResponse) => (a.flowName || '').localeCompare(b.flowName || ''),
       render: (name: string, record: ExecutionResponse) => {
         if (!name) return '-'
         if (record.flowId) {
@@ -225,6 +226,7 @@ export default function ExecutionListPage() {
       dataIndex: 'startedAt',
       key: 'startedAt',
       width: 180,
+      sorter: (a: ExecutionResponse, b: ExecutionResponse) => new Date(a.startedAt || 0).getTime() - new Date(b.startedAt || 0).getTime(),
       render: (time: string) => (time ? new Date(time).toLocaleString(getLocale()) : '-'),
     },
     {
@@ -232,6 +234,7 @@ export default function ExecutionListPage() {
       dataIndex: 'durationMs',
       key: 'durationMs',
       width: 100,
+      sorter: (a: ExecutionResponse, b: ExecutionResponse) => (a.durationMs || 0) - (b.durationMs || 0),
       render: (ms: number) => formatDuration(ms),
     },
     {

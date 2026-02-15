@@ -203,6 +203,7 @@ export default function FlowListPage() {
       title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
+      sorter: (a: Flow, b: Flow) => a.name.localeCompare(b.name),
       render: (name: string, record: Flow) => (
         <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/flows/${record.id}/edit`)}>{name}</Button>
       ),
@@ -217,12 +218,18 @@ export default function FlowListPage() {
       title: t('flow.latestVersion'),
       dataIndex: 'latestVersion',
       key: 'latestVersion',
+      sorter: (a: Flow, b: Flow) => (a.latestVersion || '').localeCompare(b.latestVersion || ''),
       render: (version: string | null) => version || '-',
     },
     {
       title: t('flow.publishedVersion'),
       dataIndex: 'publishedVersion',
       key: 'publishedVersion',
+      sorter: (a: Flow, b: Flow) => {
+        const aVal = a.publishedVersion ? 1 : 0
+        const bVal = b.publishedVersion ? 1 : 0
+        return aVal - bVal
+      },
       render: (version: string | null) =>
         version ? <Tag color="green">{version}</Tag> : <Tag>{t('common.notPublished')}</Tag>,
     },
@@ -230,6 +237,8 @@ export default function FlowListPage() {
       title: t('common.updatedAt'),
       dataIndex: 'updatedAt',
       key: 'updatedAt',
+      defaultSortOrder: 'descend' as const,
+      sorter: (a: Flow, b: Flow) => new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime(),
       render: (date: string | null) => date ? new Date(date).toLocaleString(getLocale()) : '-',
     },
     {
@@ -321,6 +330,7 @@ export default function FlowListPage() {
       title: t('common.name'),
       dataIndex: 'flowName',
       key: 'flowName',
+      sorter: (a: FlowShare, b: FlowShare) => (a.flowName || '').localeCompare(b.flowName || ''),
       render: (name: string, record: FlowShare) => (
         <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/flows/${record.flowId}/edit`)}>{name || record.flowId}</Button>
       ),
@@ -336,6 +346,7 @@ export default function FlowListPage() {
       title: t('flow.owner'),
       dataIndex: 'sharedByName',
       key: 'sharedByName',
+      sorter: (a: FlowShare, b: FlowShare) => (a.sharedByName || '').localeCompare(b.sharedByName || ''),
       render: (name: string) => name || '-',
     },
     {
@@ -352,6 +363,8 @@ export default function FlowListPage() {
       title: t('common.updatedAt'),
       dataIndex: 'sharedAt',
       key: 'sharedAt',
+      defaultSortOrder: 'descend' as const,
+      sorter: (a: FlowShare, b: FlowShare) => new Date(a.sharedAt || 0).getTime() - new Date(b.sharedAt || 0).getTime(),
       render: (date: string) => date ? new Date(date).toLocaleString(getLocale()) : '-',
     },
     {
