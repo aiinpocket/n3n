@@ -185,7 +185,17 @@ export default function ExecutionListPage() {
       title: t('execution.flowName'),
       dataIndex: 'flowName',
       key: 'flowName',
-      render: (name: string) => name || '-',
+      render: (name: string, record: ExecutionResponse) => {
+        if (!name) return '-'
+        if (record.flowId) {
+          return (
+            <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/flows/${record.flowId}/edit`)}>
+              {name}
+            </Button>
+          )
+        }
+        return name
+      },
     },
     {
       title: t('flow.version'),
@@ -226,7 +236,18 @@ export default function ExecutionListPage() {
       title: t('execution.triggerType'),
       dataIndex: 'triggerType',
       key: 'triggerType',
-      width: 100,
+      width: 120,
+      render: (type: string) => {
+        if (!type) return '-'
+        const colorMap: Record<string, string> = {
+          manual: 'blue',
+          scheduler: 'purple',
+          webhook: 'cyan',
+          api: 'geekblue',
+          retry: 'orange',
+        }
+        return <Tag color={colorMap[type?.toLowerCase()] || 'default'}>{t(`execution.trigger_${type?.toLowerCase()}`, { defaultValue: type })}</Tag>
+      },
     },
     {
       title: t('common.actions'),

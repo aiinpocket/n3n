@@ -1030,7 +1030,7 @@ public class ExecutionService {
             if (version != null) {
                 Flow flow = flowsMap.get(version.getFlowId());
                 if (flow != null) {
-                    return ExecutionResponse.from(execution, flow.getName(), version.getVersion());
+                    return ExecutionResponse.from(execution, flow.getId(), flow.getName(), version.getVersion());
                 }
             }
             return ExecutionResponse.from(execution);
@@ -1042,7 +1042,7 @@ public class ExecutionService {
         if (version != null) {
             Flow flow = flowRepository.findById(version.getFlowId()).orElse(null);
             if (flow != null) {
-                return ExecutionResponse.from(execution, flow.getName(), version.getVersion());
+                return ExecutionResponse.from(execution, flow.getId(), flow.getName(), version.getVersion());
             }
         }
         return ExecutionResponse.from(execution);

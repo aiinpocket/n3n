@@ -160,8 +160,12 @@ export default function AccountSettingsPage() {
                 message={t('account.recoveryKeyNotSet')}
                 description={t('account.recoveryKeyNotSetDesc')}
                 action={
-                  <Button size="small" type="primary" onClick={() => navigate('/credentials')}>
-                    {t('account.setupRecoveryKey')}
+                  <Button size="small" type="primary" onClick={() => {
+                    const { logout } = useAuthStore.getState()
+                    logout()
+                    navigate('/login')
+                  }}>
+                    {t('account.reLoginToBackup')}
                   </Button>
                 }
               />

@@ -38,6 +38,7 @@ public class ExecutionResponse {
     private Map<String, Object> resumeCondition;
 
     // Extended fields from joins
+    private UUID flowId;
     private String flowName;
     private String flowVersion;
 
@@ -72,8 +73,9 @@ public class ExecutionResponse {
             .build();
     }
 
-    public static ExecutionResponse from(Execution e, String flowName, String flowVersion) {
+    public static ExecutionResponse from(Execution e, UUID flowId, String flowName, String flowVersion) {
         ExecutionResponse resp = from(e);
+        resp.setFlowId(flowId);
         resp.setFlowName(flowName);
         resp.setFlowVersion(flowVersion);
         return resp;

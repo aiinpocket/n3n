@@ -44,6 +44,7 @@ interface RecentActivity {
 
 interface RecentExecution {
   id: string
+  flowId?: string
   flowName: string
   status: string
   startedAt: string
@@ -375,7 +376,15 @@ export default function DashboardPage() {
                   ]}
                 >
                   <List.Item.Meta
-                    title={item.flowName || item.id.substring(0, 8)}
+                    title={
+                      item.flowName && item.flowId ? (
+                        <Button type="link" size="small" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(`/flows/${item.flowId}/edit`)}>
+                          {item.flowName}
+                        </Button>
+                      ) : (
+                        item.flowName || item.id.substring(0, 8)
+                      )
+                    }
                     description={
                       <Space>
                         <Tag icon={statusIcons[item.status]} color={statusColors[item.status] || 'default'}>{t(`execution.${item.status}`, { defaultValue: item.status })}</Tag>

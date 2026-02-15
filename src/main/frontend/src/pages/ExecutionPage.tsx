@@ -421,7 +421,15 @@ export default function ExecutionPage() {
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Descriptions bordered column={2}>
             <Descriptions.Item label={t('execution.executionId')}>{executionData.id}</Descriptions.Item>
-            <Descriptions.Item label={t('execution.flowName')}>{executionData.flowName || '-'}</Descriptions.Item>
+            <Descriptions.Item label={t('execution.flowName')}>
+              {executionData.flowName && executionData.flowId ? (
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/flows/${executionData.flowId}/edit`)}>
+                  {executionData.flowName}
+                </Button>
+              ) : (
+                executionData.flowName || '-'
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label={t('flow.version')}>{executionData.flowVersion || '-'}</Descriptions.Item>
             <Descriptions.Item label={t('execution.triggerType')}>{executionData.triggerType}</Descriptions.Item>
             <Descriptions.Item label={t('execution.startTime')}>{executionData.startedAt ? new Date(executionData.startedAt).toLocaleString(getLocale()) : '-'}</Descriptions.Item>

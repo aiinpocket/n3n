@@ -10,6 +10,7 @@ export interface CreateExecutionRequest {
 export interface ExecutionResponse {
   id: string;
   flowVersionId: string;
+  flowId?: string;
   flowName?: string;
   flowVersion?: string;
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'waiting' | 'paused';

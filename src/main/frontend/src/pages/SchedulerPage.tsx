@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Table,
@@ -51,6 +52,7 @@ const TIMEZONES = [
 
 const SchedulerPage: React.FC = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -197,7 +199,14 @@ const SchedulerPage: React.FC = () => {
       title: t('schedule.flow'),
       dataIndex: 'flowName',
       key: 'flowName',
-      render: (name: string | null) => name || <Text type="secondary">-</Text>,
+      render: (name: string | null, record: Schedule) => {
+        if (!name) return <Text type="secondary">-</Text>
+        return (
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/flows/${record.flowId}/edit`)}>
+            {name}
+          </Button>
+        )
+      },
     },
     {
       title: t('schedule.cronExpression'),

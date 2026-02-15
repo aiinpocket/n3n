@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Table,
@@ -37,6 +38,7 @@ const { Text, Paragraph } = Typography
 
 const WebhooksPage: React.FC = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [form] = Form.useForm()
@@ -57,6 +59,12 @@ const WebhooksPage: React.FC = () => {
   } = useWebhookStore()
 
   const { flows, fetchFlows } = useFlowListStore()
+
+  const flowNameMap = useMemo(() => {
+    const map = new Map<string, string>()
+    flows.forEach((f) => map.set(f.id, f.name))
+    return map
+  }, [flows])
 
   useEffect(() => {
     fetchWebhooks()
@@ -179,6 +187,22 @@ const WebhooksPage: React.FC = () => {
           <Text strong>{name}</Text>
         </Space>
       ),
+    },
+    {
+      title: t('webhook.flow'),
+      dataIndex: 'flowId',
+      key: 'flowId',
+      render: (flowId: string) => {
+        const name = flowNameMap.get(flowId)
+        if (name) {
+          return (
+            <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/flows/${flowId}/edit`)}>
+              {name}
+            </Button>
+          )
+        }
+        return <Text type="secondary">{flowId?.substring(0, 8) || '-'}</Text>
+      },
     },
     {
       title: t('webhook.method'),
