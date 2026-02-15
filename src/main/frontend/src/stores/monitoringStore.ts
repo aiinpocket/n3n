@@ -15,6 +15,7 @@ interface MonitoringState {
   fetchFlowStats: () => Promise<void>
   fetchHealthStatus: () => Promise<void>
   fetchAll: () => Promise<void>
+  clearError: () => void
 }
 
 export const useMonitoringStore = create<MonitoringState>((set) => ({
@@ -69,4 +70,6 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
       set({ loading: false, error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
     }
   },
+
+  clearError: () => set({ error: null }),
 }))

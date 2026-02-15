@@ -66,6 +66,7 @@ interface FlowEditorState {
   unpinNodeData: (nodeId: string) => Promise<void>
   isNodePinned: (nodeId: string) => boolean
   getNodePinnedData: (nodeId: string) => Record<string, unknown> | null
+  clearError: () => void
 }
 
 export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
@@ -607,4 +608,6 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
     const { pinnedData } = get()
     return (pinnedData[nodeId] as Record<string, unknown>) || null
   },
+
+  clearError: () => set({ error: null }),
 }))

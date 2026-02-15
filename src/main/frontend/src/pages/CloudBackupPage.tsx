@@ -413,6 +413,7 @@ export default function CloudBackupPage() {
                 columns={remoteColumns}
                 rowKey="filename"
                 size="small"
+                loading={searchingRemote}
                 pagination={false}
                 rowSelection={{
                   type: 'radio',
