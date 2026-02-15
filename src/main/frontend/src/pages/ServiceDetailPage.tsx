@@ -348,6 +348,7 @@ export default function ServiceDetailPage() {
             rowKey="id"
             pagination={{ pageSize: 10 }}
             size="small"
+            scroll={{ x: 600 }}
           />
         </Card>
       </Card>

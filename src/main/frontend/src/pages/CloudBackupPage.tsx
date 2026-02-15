@@ -418,6 +418,7 @@ export default function CloudBackupPage() {
                   type: 'radio',
                   onChange: (_, rows) => setSelectedRestore(rows[0]?.filename || null),
                 }}
+                scroll={{ x: 600 }}
               />
               <Button
                 type="primary"
@@ -443,6 +444,7 @@ export default function CloudBackupPage() {
           size="small"
           loading={historyLoading}
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 600 }}
         />
       </Card>
     </div>

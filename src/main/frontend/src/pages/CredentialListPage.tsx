@@ -459,6 +459,7 @@ const CredentialListPage: React.FC = () => {
             onChange: searchText || typeFilter !== 'all' ? undefined : handlePageChange,
             showTotal: (total) => t('common.total', { count: total })
           }}
+          scroll={{ x: 900 }}
         />
       </Card>
 

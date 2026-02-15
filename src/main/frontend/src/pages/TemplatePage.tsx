@@ -31,6 +31,7 @@ import {
   TagOutlined,
   CrownOutlined,
   PlusOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -123,6 +124,7 @@ function TemplateCard({
                   type="text"
                   icon={<EditOutlined />}
                   onClick={() => onEdit(template)}
+                  aria-label={t('common.edit')}
                 />
               </Tooltip>,
               <Button
@@ -131,6 +133,7 @@ function TemplateCard({
                 danger
                 icon={<DeleteOutlined />}
                 onClick={() => onDelete(template.id)}
+                aria-label={t('common.delete')}
               />,
             ]
           : []),
@@ -452,9 +455,14 @@ export default function TemplatePage() {
             <Text type="secondary">{t('template.description')}</Text>
           </div>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
-          {t('template.create')}
-        </Button>
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={() => loadTemplates(currentPage, selectedCategory, searchQuery)}>
+            {t('common.refresh')}
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
+            {t('template.create')}
+          </Button>
+        </Space>
       </div>
 
       {error && (

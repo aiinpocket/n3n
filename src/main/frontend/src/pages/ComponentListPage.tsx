@@ -404,6 +404,7 @@ export default function ComponentListPage() {
           }}
           pagination={pagination}
           onChange={handleTableChange}
+          scroll={{ x: 900 }}
         />
       </Card>
 

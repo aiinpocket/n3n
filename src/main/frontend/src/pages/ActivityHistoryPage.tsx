@@ -21,6 +21,7 @@ import {
   UnlockOutlined,
   UserOutlined,
   SettingOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { activityApi, UserActivity, Page } from '../api/activity'
@@ -389,6 +390,11 @@ export default function ActivityHistoryPage() {
             <HistoryOutlined />
             {t('activity.title')}
           </Space>
+        }
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={() => fetchActivities(currentPage, 20, typeFilter)}>
+            {t('common.refresh')}
+          </Button>
         }
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>

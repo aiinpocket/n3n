@@ -211,6 +211,7 @@ export default function ServiceListPage() {
           showTotal: (total) => t('common.total', { count: total }),
           onChange: (page, size) => fetchServices(page - 1, size),
         }}
+        scroll={{ x: 800 }}
       />
     </Card>
   )

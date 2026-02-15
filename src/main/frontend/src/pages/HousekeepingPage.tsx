@@ -285,6 +285,7 @@ export default function HousekeepingPage() {
             onChange: (p) => loadJobPage(p - 1),
           }}
           size="small"
+          scroll={{ x: 700 }}
         />
       </Card>
     </Space>

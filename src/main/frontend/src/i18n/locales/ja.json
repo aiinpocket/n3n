@@ -312,6 +312,8 @@
     "exitPoints": "エグジットポイント",
     "monitorMode": "監視モード",
     "unsaved": "未保存",
+    "autoSaveFailed": "保存失敗",
+    "autoSaveFailedTip": "自動保存に失敗しました。変更を失わないように手動で保存してください。",
     "viewOnly": "閲覧のみ",
     "unsavedChanges": "未保存の変更",
     "unsavedChangesWarning": "未保存の変更があります。このまま移動しますか？",

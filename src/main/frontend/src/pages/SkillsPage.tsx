@@ -338,6 +338,7 @@ export default function SkillsPage() {
               size="small"
               icon={<PlayCircleOutlined />}
               onClick={() => openTestModal(record)}
+              aria-label={t('skill.test')}
             />
           </Tooltip>
           {!record.isBuiltin && (
@@ -348,6 +349,7 @@ export default function SkillsPage() {
                   size="small"
                   icon={<EditOutlined />}
                   onClick={() => openEditModal(record)}
+                  aria-label={t('skill.editSkill')}
                 />
               </Tooltip>
               <Popconfirm
@@ -366,6 +368,7 @@ export default function SkillsPage() {
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
+                  aria-label={t('common.delete')}
                 />
               </Popconfirm>
             </>
@@ -460,6 +463,7 @@ export default function SkillsPage() {
           locale={{
             emptyText: <Empty description={t('skill.noSkills')} />,
           }}
+          scroll={{ x: 800 }}
         />
       </Card>
 

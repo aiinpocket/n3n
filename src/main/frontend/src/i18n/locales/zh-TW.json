@@ -312,6 +312,8 @@
     "exitPoints": "出口節點",
     "monitorMode": "監控模式",
     "unsaved": "未儲存",
+    "autoSaveFailed": "儲存失敗",
+    "autoSaveFailedTip": "自動儲存失敗，請手動儲存以避免遺失變更。",
     "viewOnly": "僅供檢視",
     "unsavedChanges": "未儲存的變更",
     "unsavedChangesWarning": "您有未儲存的變更，確定要離開嗎？",

@@ -312,6 +312,8 @@
     "exitPoints": "Exit Points",
     "monitorMode": "Monitor Mode",
     "unsaved": "Unsaved",
+    "autoSaveFailed": "Save Failed",
+    "autoSaveFailedTip": "Auto-save failed. Please save manually to avoid losing changes.",
     "viewOnly": "View Only",
     "unsavedChanges": "Unsaved Changes",
     "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave?",

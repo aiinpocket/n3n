@@ -328,6 +328,7 @@ const WebhooksPage: React.FC = () => {
               type="link"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
+              aria-label={t('common.edit')}
             />
           </Tooltip>
           <Tooltip title={t('common.delete')}>

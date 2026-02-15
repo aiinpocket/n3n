@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, message, Result } from 'antd'
+import { extractApiError } from '../utils/errorMessages'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -90,8 +91,8 @@ export default function DashboardPage() {
         message.error(t('dashboard.loadFailed'))
         setLoadError(true)
       }
-    } catch {
-      message.error(t('dashboard.loadFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('dashboard.loadFailed')))
       setLoadError(true)
     } finally {
       setLoading(false)

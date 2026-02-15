@@ -254,6 +254,7 @@ const DeviceManagementPage: React.FC = () => {
         dataSource={registrations}
         rowKey="id"
         pagination={false}
+        scroll={{ x: 800 }}
       />
     )
   }

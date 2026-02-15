@@ -255,6 +255,7 @@ export default function GatewayPage() {
           rowKey="connectionId"
           loading={loading}
           pagination={false}
+          scroll={{ x: 800 }}
           locale={{
             emptyText: (
               <Empty description={t('gateway.noNodes')}>

@@ -125,6 +125,9 @@ export default function FlowEditorPage() {
   const isReadOnly = currentFlow?.userPermission === 'view'
   const canEdit = !isReadOnly
 
+  // Auto-save failure tracking
+  const [autoSaveFailed, setAutoSaveFailed] = useState(false)
+
   // Execution mode state
   const [executionMode, setExecutionMode] = useState(false)
   const [activeExecutionId, setActiveExecutionId] = useState<string | null>(
@@ -253,8 +256,9 @@ export default function FlowEditorPage() {
         if (cancelled) return
         try {
           await autoSaveDraft()
+          setAutoSaveFailed(false)
         } catch {
-          // Silent fail for auto-save — user can manually save
+          setAutoSaveFailed(true)
         }
       }, AUTO_SAVE_DELAY)
     }
@@ -549,6 +553,7 @@ export default function FlowEditorPage() {
   const handleSave = async (values: { version: string }) => {
     try {
       await saveVersion(values.version)
+      setAutoSaveFailed(false)
       message.success(t('editor.versionSaved'))
       setSaveModalOpen(false)
       saveForm.resetFields()
@@ -695,7 +700,12 @@ export default function FlowEditorPage() {
               </Tag>
             )}
             {isReadOnly && <Tag color="blue" icon={<EyeOutlined />}>{t('editor.viewOnly')}</Tag>}
-            {!executionMode && !isReadOnly && isDirty && <Tag color="orange">{t('editor.unsaved')}</Tag>}
+            {!executionMode && !isReadOnly && isDirty && !autoSaveFailed && <Tag color="orange">{t('editor.unsaved')}</Tag>}
+            {!executionMode && !isReadOnly && autoSaveFailed && (
+              <Tooltip title={t('editor.autoSaveFailedTip')}>
+                <Tag color="error" icon={<WarningOutlined />}>{t('editor.autoSaveFailed')}</Tag>
+              </Tooltip>
+            )}
             {!executionMode && saving && (
               <Tag icon={<SyncOutlined spin />} color="processing">
                 {t('editor.saving')}
@@ -889,8 +899,8 @@ export default function FlowEditorPage() {
                     setExecutionMode(true)
                     try {
                       await startExecution()
-                    } catch {
-                      message.error(t('execution.executeFailed'))
+                    } catch (error) {
+                      message.error(extractApiError(error, t('execution.executeFailed')))
                       setExecutionMode(false)
                     }
                   }}
@@ -1298,8 +1308,8 @@ export default function FlowEditorPage() {
             setExecutionMode(true)
             try {
               await startExecution()
-            } catch {
-              message.error(t('execution.executeFailed'))
+            } catch (error) {
+              message.error(extractApiError(error, t('execution.executeFailed')))
               setExecutionMode(false)
             }
           }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
@@ -191,10 +191,21 @@ export default function FlowListPage() {
       message.success(t('share.removeSuccess'))
       const data = await flowShareApi.getShares(shareFlow.id)
       setShares(data)
-    } catch {
-      message.error(t('share.removeFailed'))
+    } catch (error) {
+      message.error(extractApiError(error, t('share.removeFailed')))
     } finally {
       setShareActionLoading(false)
+    }
+  }
+
+  const handleUpdateSharePermission = async (shareId: string, permission: string) => {
+    if (!shareFlow) return
+    try {
+      await flowShareApi.updatePermission(shareFlow.id, shareId, permission)
+      setShares(prev => prev.map(s => s.id === shareId ? { ...s, permission: permission as FlowShare['permission'] } : s))
+      message.success(t('share.permissionUpdated'))
+    } catch (error) {
+      message.error(extractApiError(error, t('common.updateFailed')))
     }
   }
 
@@ -424,6 +435,9 @@ export default function FlowListPage() {
               style={{ width: 250 }}
               enterButton={<SearchOutlined />}
             />
+            <Button icon={<ReloadOutlined />} onClick={() => fetchFlows(currentPage, pageSize, searchQuery)}>
+              {t('common.refresh')}
+            </Button>
             <Button
               icon={<UploadOutlined />}
               onClick={() => setImportModalOpen(true)}
@@ -534,6 +548,7 @@ export default function FlowListPage() {
                       />
                     ),
                   }}
+                  scroll={{ x: 900 }}
                 />
                 </>
               ),
@@ -551,6 +566,7 @@ export default function FlowListPage() {
                     emptyText: t('share.noShares'),
                   }}
                   pagination={{ pageSize: 20, showTotal: (total) => t('common.total', { count: total }) }}
+                  scroll={{ x: 800 }}
                 />
               ),
             },
@@ -684,9 +700,16 @@ export default function FlowListPage() {
                 <List.Item.Meta
                   title={item.userEmail || item.invitedEmail || item.userName}
                   description={
-                    <Tag color={item.permission === 'edit' ? 'blue' : 'default'}>
-                      {t(`share.${item.permission}`)}
-                    </Tag>
+                    <Select
+                      size="small"
+                      value={item.permission}
+                      onChange={(value) => handleUpdateSharePermission(item.id, value)}
+                      style={{ width: 90 }}
+                      options={[
+                        { value: 'view', label: t('share.view') },
+                        { value: 'edit', label: t('share.edit') },
+                      ]}
+                    />
                   }
                 />
               </List.Item>
