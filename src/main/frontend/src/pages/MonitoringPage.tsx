@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, Card, Row, Col, Statistic, Progress, Badge, Button, Switch, Space, Typography } from 'antd'
 import {
   ReloadOutlined,
@@ -40,18 +40,16 @@ export default function MonitoringPage() {
   const { systemMetrics, flowStats, healthStatus, loading, error, fetchAll } = useMonitoringStore()
   const [autoRefresh, setAutoRefresh] = useState(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const fetchAllRef = useRef(fetchAll)
+  fetchAllRef.current = fetchAll
 
-  const loadData = useCallback(() => {
+  useEffect(() => {
     fetchAll()
   }, [fetchAll])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
     if (autoRefresh) {
-      intervalRef.current = setInterval(loadData, 10000) // 10s
+      intervalRef.current = setInterval(() => fetchAllRef.current(), 10000)
     }
     return () => {
       if (intervalRef.current) {
@@ -59,7 +57,7 @@ export default function MonitoringPage() {
         intervalRef.current = null
       }
     }
-  }, [autoRefresh, loadData])
+  }, [autoRefresh])
 
   const heapPercent = systemMetrics && systemMetrics.heapMax > 0
     ? Math.round((systemMetrics.heapUsed / systemMetrics.heapMax) * 100)
@@ -84,7 +82,7 @@ export default function MonitoringPage() {
               <Text type="secondary">{t('monitoring.autoRefresh')}</Text>
               <Switch size="small" checked={autoRefresh} onChange={setAutoRefresh} />
             </Space>
-            <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
+            <Button icon={<ReloadOutlined />} onClick={fetchAll} loading={loading}>
               {t('monitoring.refresh')}
             </Button>
           </Space>
@@ -98,7 +96,7 @@ export default function MonitoringPage() {
             showIcon
             closable
             style={{ marginBottom: 16 }}
-            action={<Button size="small" onClick={loadData}>{t('common.retry')}</Button>}
+            action={<Button size="small" onClick={fetchAll}>{t('common.retry')}</Button>}
           />
         )}
         {/* JVM Metrics */}

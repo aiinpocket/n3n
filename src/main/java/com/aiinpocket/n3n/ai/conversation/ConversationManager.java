@@ -61,8 +61,9 @@ public class ConversationManager {
 
     /**
      * Add a message to conversation.
+     * Note: LLM summarization (network I/O) may occur; runs outside long-lived transaction.
+     * The final save via repository is independently transactional.
      */
-    @Transactional
     public Conversation addMessage(UUID conversationId, UUID userId, String role, String content, Map<String, Object> metadata) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));

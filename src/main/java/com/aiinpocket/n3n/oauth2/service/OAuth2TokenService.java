@@ -39,7 +39,6 @@ public class OAuth2TokenService {
     /**
      * Get a valid access token for a credential, refreshing if necessary.
      */
-    @Transactional
     public String getAccessToken(UUID credentialId) {
         OAuth2Token token = tokenRepository.findByCredentialId(credentialId)
             .orElseThrow(() -> new ResourceNotFoundException("OAuth2 token not found for credential: " + credentialId));
@@ -92,8 +91,8 @@ public class OAuth2TokenService {
 
     /**
      * Exchange authorization code for tokens.
+     * Note: HTTP call happens outside transaction; saveToken() has its own @Transactional.
      */
-    @Transactional
     public OAuth2Token exchangeCode(UUID credentialId, String provider,
                                      String code, String tokenUrl,
                                      String clientId, String clientSecret,
@@ -139,8 +138,8 @@ public class OAuth2TokenService {
 
     /**
      * Refresh an expired token.
+     * Note: HTTP call happens first; DB save via repository is independently transactional.
      */
-    @Transactional
     public OAuth2Token refreshToken(OAuth2Token token) {
         String tokenUrl = getTokenUrlForProvider(token.getProvider());
         Map<String, String> clientCredentials = getClientCredentialsForProvider(token.getProvider());

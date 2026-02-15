@@ -73,7 +73,10 @@ public class ExternalServiceService {
         return ServiceDetailResponse.from(service, endpoints);
     }
 
-    @Transactional
+    /**
+     * Create a new external service. OpenAPI schema parsing (network I/O) runs outside
+     * a long-lived transaction; individual repository saves are independently transactional.
+     */
     public ServiceResponse createService(CreateServiceRequest request, UUID userId) {
         if (serviceRepository.existsByNameAndCreatedByAndIsDeletedFalse(request.getName(), userId)) {
             throw new IllegalArgumentException("Service with name '" + request.getName() + "' already exists");
@@ -171,7 +174,10 @@ public class ExternalServiceService {
         log.info("Deleted external service: id={}, name={}", id, service.getName());
     }
 
-    @Transactional
+    /**
+     * Refresh OpenAPI schema. Network fetch runs outside transaction;
+     * endpoint updates are individually transactional via repository.
+     */
     public Map<String, Object> refreshSchema(UUID id, UUID userId) {
         ExternalService service = findServiceWithOwnerCheck(id, userId);
 
