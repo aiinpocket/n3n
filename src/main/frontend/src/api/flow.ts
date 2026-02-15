@@ -217,6 +217,21 @@ export const flowApi = {
   unpinNodeData: async (flowId: string, version: string, nodeId: string): Promise<void> => {
     await apiClient.delete(`/flows/${flowId}/versions/${version}/pin/${nodeId}`)
   },
+
+  batchDelete: async (ids: string[]): Promise<{ deleted: number; total: number }> => {
+    const response = await apiClient.delete('/flows/batch', { data: { ids } })
+    return response.data
+  },
+
+  getPublishedVersion: async (flowId: string): Promise<FlowVersion> => {
+    const response = await apiClient.get(`/flows/${flowId}/versions/published`)
+    return response.data
+  },
+
+  validateDefinition: async (definition: Record<string, unknown>): Promise<FlowValidationResponse> => {
+    const response = await apiClient.post('/flows/validate', definition)
+    return response.data
+  },
 }
 
 // Matches backend FlowExportPackage

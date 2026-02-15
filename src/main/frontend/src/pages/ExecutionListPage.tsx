@@ -18,7 +18,6 @@ import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse } from '../api/execution'
 import { useAllExecutions } from '../hooks/useExecutionMonitor'
-import apiClient from '../api/client'
 import logger from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale, formatDuration } from '../utils/locale'
@@ -128,8 +127,8 @@ export default function ExecutionListPage() {
       onOk: async () => {
         setBatchDeleting(true)
         try {
-          const resp = await apiClient.delete('/executions/batch', { data: { ids: selectedRowKeys } })
-          message.success(t('execution.batchDeleteSuccess', { count: resp.data.deleted }))
+          const resp = await executionApi.batchDelete(selectedRowKeys as string[])
+          message.success(t('execution.batchDeleteSuccess', { count: resp.deleted }))
           setSelectedRowKeys([])
           loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
         } catch (error) {
@@ -301,7 +300,7 @@ export default function ExecutionListPage() {
                   okType: 'danger',
                   onOk: async () => {
                     try {
-                      await apiClient.delete(`/executions/batch`, { data: { ids: [record.id] } })
+                      await executionApi.batchDelete([record.id])
                       message.success(t('common.success'))
                       loadExecutions(pagination.current, pagination.pageSize, statusFilter, searchValue)
                     } catch (error) {

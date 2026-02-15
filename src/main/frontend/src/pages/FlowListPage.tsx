@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
 import type { Flow } from '../api/flow'
+import { flowApi } from '../api/flow'
 import { flowShareApi } from '../api/flowShare'
 import type { FlowShare } from '../api/flowShare'
-import apiClient from '../api/client'
 import FlowExportModal from '../components/flow/FlowExportModal'
 import FlowImportModal from '../components/flow/FlowImportModal'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
@@ -140,8 +140,8 @@ export default function FlowListPage() {
       onOk: async () => {
         setBatchDeleting(true)
         try {
-          const resp = await apiClient.delete('/flows/batch', { data: { ids: selectedRowKeys } })
-          message.success(t('flow.batchDeleteSuccess', { count: resp.data.deleted }))
+          const resp = await flowApi.batchDelete(selectedRowKeys as string[])
+          message.success(t('flow.batchDeleteSuccess', { count: resp.deleted }))
           setSelectedRowKeys([])
           fetchFlows()
         } catch (error) {

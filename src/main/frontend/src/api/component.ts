@@ -127,4 +127,9 @@ export const componentApi = {
     );
     return response.data;
   },
+
+  getByName: async (name: string): Promise<ComponentResponse> => {
+    const response = await apiClient.get<ComponentResponse>(`/components/by-name/${name}`);
+    return response.data;
+  },
 };

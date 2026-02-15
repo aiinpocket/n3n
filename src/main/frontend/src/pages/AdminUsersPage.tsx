@@ -11,22 +11,11 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
-import apiClient from '../api/client'
+import { adminApi, type AdminUser } from '../api/admin'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 
 const { Title } = Typography
-
-interface AdminUser {
-  id: string
-  email: string
-  name: string
-  status: string
-  emailVerified: boolean
-  lastLoginAt: string | null
-  createdAt: string
-  roles: string[]
-}
 
 export default function AdminUsersPage() {
   const { t } = useTranslation()
@@ -48,12 +37,10 @@ export default function AdminUsersPage() {
   const loadUsers = useCallback(async (p = 0, search?: string) => {
     setLoading(true)
     try {
-      const params: Record<string, unknown> = { page: p, size: 20 }
       const q = search !== undefined ? search : searchText
-      if (q) params.search = q
-      const res = await apiClient.get('/admin/users', { params })
-      setUsers(res.data.content || [])
-      setTotal(res.data.totalElements || 0)
+      const res = await adminApi.listUsers(p, 20, q || undefined)
+      setUsers(res.content || [])
+      setTotal(res.totalElements || 0)
       setPage(p)
     } catch (error: unknown) {
       message.error(extractApiError(error, t('common.loadFailed')))
@@ -81,7 +68,7 @@ export default function AdminUsersPage() {
   const handleCreateUser = async (values: { email: string; name: string; password?: string; roles: string[] }) => {
     setCreateLoading(true)
     try {
-      await apiClient.post('/admin/users', values)
+      await adminApi.createUser(values)
       message.success(t('admin.userCreated'))
       setCreateModalOpen(false)
       createForm.resetFields()
@@ -95,7 +82,7 @@ export default function AdminUsersPage() {
 
   const handleStatusChange = async (userId: string, status: string) => {
     try {
-      await apiClient.patch(`/admin/users/${userId}/status`, null, { params: { status } })
+      await adminApi.updateStatus(userId, status)
       message.success(t('admin.statusUpdated'))
       loadUsers(page)
     } catch (error: unknown) {
@@ -107,7 +94,7 @@ export default function AdminUsersPage() {
     if (!selectedUser) return
     setRolesLoading(true)
     try {
-      await apiClient.put(`/admin/users/${selectedUser.id}/roles`, { roles: values.roles })
+      await adminApi.updateRoles(selectedUser.id, values.roles)
       message.success(t('admin.rolesUpdated'))
       setRolesModalOpen(false)
       loadUsers(page)
@@ -124,7 +111,7 @@ export default function AdminUsersPage() {
       content: t('admin.resetPasswordDesc'),
       onOk: async () => {
         try {
-          await apiClient.post(`/admin/users/${userId}/reset-password`)
+          await adminApi.resetPassword(userId)
           message.success(t('admin.passwordReset'))
         } catch (error: unknown) {
           message.error(extractApiError(error, t('common.updateFailed')))

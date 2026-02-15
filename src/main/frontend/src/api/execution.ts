@@ -183,4 +183,9 @@ export const executionApi = {
     const response = await apiClient.post(`/executions/${executionId}/approval`, { action, comment });
     return response.data;
   },
+
+  batchDelete: async (ids: string[]): Promise<{ deleted: number; total: number }> => {
+    const response = await apiClient.delete('/executions/batch', { data: { ids } });
+    return response.data;
+  },
 };
