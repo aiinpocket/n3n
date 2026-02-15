@@ -317,6 +317,13 @@ export default function ServiceDetailPage() {
           <Descriptions.Item label={t('service.endpointCount')}>
             {currentService.endpoints.length}
           </Descriptions.Item>
+          {currentService.healthCheck && Object.keys(currentService.healthCheck).length > 0 && (
+            <Descriptions.Item label={t('service.healthCheck')}>
+              <Text code style={{ fontSize: 12 }}>
+                {JSON.stringify(currentService.healthCheck, null, 2)}
+              </Text>
+            </Descriptions.Item>
+          )}
           {currentService.description && (
             <Descriptions.Item label={t('common.description')} span={2}>
               {currentService.description}
