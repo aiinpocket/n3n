@@ -217,14 +217,16 @@ public class FormController {
         }
 
         return formService.getFormTriggerByFlowAndNode(flowId, nodeId)
-            .map(trigger -> ResponseEntity.ok(Map.of(
-                "formUrl", "/forms/" + trigger.getFormToken(),
-                "formToken", trigger.getFormToken(),
-                "isActive", trigger.getIsActive(),
-                "expiresAt", trigger.getExpiresAt() != null ? trigger.getExpiresAt().toString() : null,
-                "submissionCount", trigger.getSubmissionCount(),
-                "maxSubmissions", trigger.getMaxSubmissions()
-            )))
+            .map(trigger -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("formUrl", "/forms/" + trigger.getFormToken());
+                result.put("formToken", trigger.getFormToken());
+                result.put("isActive", trigger.getIsActive());
+                result.put("expiresAt", trigger.getExpiresAt() != null ? trigger.getExpiresAt().toString() : null);
+                result.put("submissionCount", trigger.getSubmissionCount());
+                result.put("maxSubmissions", trigger.getMaxSubmissions());
+                return ResponseEntity.ok(result);
+            })
             .orElse(ResponseEntity.notFound().build());
     }
 

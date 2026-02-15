@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { getLocale } from '../utils/locale'
-import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge } from 'antd'
+import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select } from 'antd'
 import { useTranslation } from 'react-i18next'
 import {
   SaveOutlined,
@@ -29,6 +29,7 @@ import {
   WarningOutlined,
   CloseCircleOutlined,
   ExportOutlined,
+  BookOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -69,6 +70,7 @@ import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
 import { extractApiError } from '../utils/errorMessages'
 import { formApi } from '../api/form'
+import { templateApi } from '../api/template'
 
 const { Text } = Typography
 
@@ -178,7 +180,10 @@ export default function FlowEditorPage() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [nodeSearchOpen, setNodeSearchOpen] = useState(false)
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
+  const [templateSaving, setTemplateSaving] = useState(false)
   const [saveForm] = Form.useForm()
+  const [templateForm] = Form.useForm()
   const [validationModalOpen, setValidationModalOpen] = useState(false)
 
   // Edge configuration state
@@ -209,6 +214,26 @@ export default function FlowEditorPage() {
       message.error(extractApiError(err, t('form.formUrlFailed')))
     }
   }, [id, nodes, t])
+
+  // Save current flow as template
+  const handleSaveAsTemplate = useCallback(async (values: { name: string; description: string; category: string }) => {
+    if (!id || !currentVersion) return
+    setTemplateSaving(true)
+    try {
+      await templateApi.createFromFlow(id, currentVersion.version, {
+        name: values.name,
+        description: values.description,
+        category: values.category,
+      })
+      message.success(t('flow.saveAsTemplateSuccess'))
+      setTemplateModalOpen(false)
+      templateForm.resetFields()
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('flow.saveAsTemplateFailed')))
+    } finally {
+      setTemplateSaving(false)
+    }
+  }, [id, currentVersion, t, templateForm])
 
   // Load flow on mount
   useEffect(() => {
@@ -830,6 +855,21 @@ export default function FlowEditorPage() {
                 {t('flow.export')}
               </Button>
             </Tooltip>
+            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
+              <Button
+                icon={<BookOutlined />}
+                onClick={() => {
+                  templateForm.setFieldsValue({
+                    name: currentFlow?.name || '',
+                    description: currentFlow?.description || '',
+                  })
+                  setTemplateModalOpen(true)
+                }}
+                disabled={!currentVersion}
+              >
+                {t('flow.saveAsTemplate')}
+              </Button>
+            </Tooltip>
             {canEdit && (
               <>
                 <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
@@ -1188,6 +1228,67 @@ export default function FlowEditorPage() {
         version={currentVersion?.version || ''}
         onClose={() => setExportModalOpen(false)}
       />
+
+      {/* Save as Template Modal */}
+      <Modal
+        title={t('flow.saveAsTemplate')}
+        open={templateModalOpen}
+        onCancel={() => {
+          setTemplateModalOpen(false)
+          templateForm.resetFields()
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form form={templateForm} layout="vertical" onFinish={handleSaveAsTemplate}>
+          <Form.Item
+            name="name"
+            label={t('template.templateName')}
+            rules={[
+              { required: true, message: t('template.templateNameRequired') },
+              { max: 255, message: t('common.maxLength', { max: 255 }) },
+            ]}
+          >
+            <Input placeholder={t('template.templateNamePlaceholder')} maxLength={255} />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t('flow.flowDescription')}
+          >
+            <Input.TextArea rows={3} placeholder={t('template.templateDescPlaceholder')} maxLength={2000} showCount />
+          </Form.Item>
+          <Form.Item
+            name="category"
+            label={t('template.category')}
+            initialValue="automation"
+          >
+            <Select
+              options={[
+                { value: 'automation', label: t('template.categories.automation') },
+                { value: 'data', label: t('template.categories.data') },
+                { value: 'integration', label: t('template.categories.integration') },
+                { value: 'notification', label: t('template.categories.notification') },
+                { value: 'monitoring', label: t('template.categories.monitoring') },
+                { value: 'ai', label: t('template.categories.ai') },
+                { value: 'utility', label: t('template.categories.utility') },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button onClick={() => {
+                setTemplateModalOpen(false)
+                templateForm.resetFields()
+              }}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="primary" htmlType="submit" loading={templateSaving} icon={<BookOutlined />}>
+                {t('flow.saveAsTemplate')}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Validation Result Modal */}
       <Modal
