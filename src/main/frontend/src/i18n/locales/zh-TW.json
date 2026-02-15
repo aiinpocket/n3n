@@ -350,6 +350,7 @@
     "loadNodeTypeFailed": "無法載入節點類型資訊",
     "aiGenerateCode": "AI 生成程式碼",
     "enterField": "輸入 {{field}}...",
+    "jsonArrayHint": "請輸入 JSON 陣列格式，例如 [{\"name\": \"field1\", \"type\": \"text\"}]",
     "noExtraConfig": "此節點類型沒有額外設定選項",
     "handlerNotFound": "節點處理器未安裝",
     "handlerNotFoundDesc": "節點類型 \"{{type}}\" 的處理器不可用。您可能需要從「自訂工具」安裝對應的外掛程式。",

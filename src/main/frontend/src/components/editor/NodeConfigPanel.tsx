@@ -337,16 +337,17 @@ export default function NodeConfigPanel({
       )
     }
 
-    // TextArea for long text or object type
-    if (property.type === 'object' || property.format === 'textarea') {
+    // TextArea for long text, object, or array type (JSON editing)
+    if (property.type === 'object' || property.type === 'array' || property.format === 'textarea') {
       return (
         <Form.Item
           key={key}
           name={key}
           label={property.title || key}
           tooltip={property.description}
+          help={property.type === 'array' ? t('editor.jsonArrayHint') : undefined}
         >
-          <TextArea rows={4} placeholder={t('editor.enterField', { field: property.title || key })} />
+          <TextArea rows={property.type === 'array' ? 8 : 4} placeholder={t('editor.enterField', { field: property.title || key })} />
         </Form.Item>
       )
     }

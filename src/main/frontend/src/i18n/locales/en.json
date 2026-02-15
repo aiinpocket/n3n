@@ -350,6 +350,7 @@
     "loadNodeTypeFailed": "Failed to load node type info",
     "aiGenerateCode": "AI Generate Code",
     "enterField": "Enter {{field}}...",
+    "jsonArrayHint": "Enter JSON array format, e.g. [{\"name\": \"field1\", \"type\": \"text\"}]",
     "noExtraConfig": "No additional configuration options for this node type",
     "handlerNotFound": "Node handler not installed",
     "handlerNotFoundDesc": "The handler for node type \"{{type}}\" is not available. You may need to install the corresponding plugin from Custom Tools.",

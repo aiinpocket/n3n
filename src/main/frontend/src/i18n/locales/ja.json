@@ -350,6 +350,7 @@
     "loadNodeTypeFailed": "ノードタイプ情報の読み込みに失敗しました",
     "aiGenerateCode": "AIでコード生成",
     "enterField": "{{field}}を入力...",
+    "jsonArrayHint": "JSON配列形式で入力してください。例: [{\"name\": \"field1\", \"type\": \"text\"}]",
     "noExtraConfig": "このノードタイプには追加設定オプションがありません",
     "handlerNotFound": "ノードハンドラーが未インストール",
     "handlerNotFoundDesc": "ノードタイプ \"{{type}}\" のハンドラーが利用できません。カスタムツールから対応プラグインのインストールが必要な場合があります。",
