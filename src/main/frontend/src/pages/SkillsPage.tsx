@@ -269,6 +269,7 @@ export default function SkillsPage() {
       title: t('skill.name'),
       dataIndex: 'displayName',
       key: 'displayName',
+      sorter: (a: Skill, b: Skill) => a.displayName.localeCompare(b.displayName),
       render: (text: string, record: Skill) => (
         <Space>
           {categoryIcons[record.category] || <ToolOutlined />}
@@ -289,6 +290,7 @@ export default function SkillsPage() {
       title: t('skill.category'),
       dataIndex: 'category',
       key: 'category',
+      sorter: (a: Skill, b: Skill) => a.category.localeCompare(b.category),
       render: (category: string) => (
         <Tag color={categoryColors[category] || 'default'}>{category}</Tag>
       ),
@@ -520,6 +522,15 @@ export default function SkillsPage() {
                 </Select.Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="icon"
+            label={t('skill.icon')}
+            tooltip={t('skill.iconTooltip')}
+            rules={[{ max: 100, message: t('common.maxLength', { max: 100 }) }]}
+          >
+            <Input placeholder="🔧" maxLength={100} />
           </Form.Item>
 
           {!editingSkill && (

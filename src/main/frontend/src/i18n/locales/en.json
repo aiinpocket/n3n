@@ -666,6 +666,8 @@
     "authConfig": "Auth Config (JSON)",
     "authConfigTooltip": "Configure authentication based on the auth type",
     "example": "Example",
+    "healthCheck": "Health Check",
+    "healthCheckTooltip": "Configure health check endpoint and interval for this service",
     "updateService": "Update Service",
     "createService": "Create Service",
     "descriptionPlaceholder": "Describe the purpose of this service",
@@ -976,6 +978,8 @@
     "visibility": "Visibility",
     "visibilityPrivate": "Private",
     "visibilityPublic": "Public",
+    "icon": "Icon",
+    "iconTooltip": "Emoji or icon identifier for this skill",
     "createSuccess": "Skill created successfully",
     "createFailed": "Failed to create skill",
     "updateSuccess": "Skill updated successfully",
@@ -1078,7 +1082,9 @@
     "empty": "No Schedules yet",
     "createFirst": "Create your first Schedule",
     "nextRun": "Next Run",
-    "lastRun": "Last Run"
+    "lastRun": "Last Run",
+    "inputData": "Input Data",
+    "inputDataTooltip": "JSON data to pass as input when the flow is triggered by this schedule"
   },
   "language": {
     "title": "Language",

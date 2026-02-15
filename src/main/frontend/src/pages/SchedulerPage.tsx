@@ -85,10 +85,11 @@ const SchedulerPage: React.FC = () => {
     fetchFlows(0, 200)
   }, [loadSchedules, fetchFlows])
 
-  const handleCreate = async (values: CreateScheduleRequest) => {
+  const handleCreate = async (values: CreateScheduleRequest & { input?: string }) => {
     setCreating(true)
     try {
-      await schedulerApi.create(values)
+      const payload = { ...values, input: values.input ? JSON.parse(values.input) : undefined }
+      await schedulerApi.create(payload)
       message.success(t('common.createSuccess'))
       setIsModalOpen(false)
       form.resetFields()
@@ -175,6 +176,7 @@ const SchedulerPage: React.FC = () => {
       name: record.name,
       cronExpression: record.cronExpression,
       timezone: record.timezone,
+      input: record.input ? JSON.stringify(record.input, null, 2) : '',
     })
     setEditModalOpen(true)
   }
@@ -183,7 +185,8 @@ const SchedulerPage: React.FC = () => {
     try {
       const values = await editForm.validateFields()
       setEditSubmitting(true)
-      await schedulerApi.update(editingSchedule!.id, values)
+      const payload = { ...values, input: values.input ? JSON.parse(values.input) : undefined }
+      await schedulerApi.update(editingSchedule!.id, payload)
       message.success(t('common.updateSuccess'))
       setEditModalOpen(false)
       setEditingSchedule(null)
@@ -477,6 +480,25 @@ const SchedulerPage: React.FC = () => {
             </Select>
           </Form.Item>
 
+          <Form.Item
+            name="input"
+            label={t('schedule.inputData')}
+            tooltip={t('schedule.inputDataTooltip')}
+            rules={[{
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+                try { JSON.parse(value); return Promise.resolve(); }
+                catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+              },
+            }]}
+          >
+            <Input.TextArea
+              rows={4}
+              style={{ fontFamily: 'monospace' }}
+              placeholder={'{\n  "key": "value"\n}'}
+            />
+          </Form.Item>
+
           <Form.Item>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
               <Button onClick={() => setIsModalOpen(false)}>
@@ -553,6 +575,25 @@ const SchedulerPage: React.FC = () => {
                 </Select.Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="input"
+            label={t('schedule.inputData')}
+            tooltip={t('schedule.inputDataTooltip')}
+            rules={[{
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+                try { JSON.parse(value); return Promise.resolve(); }
+                catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+              },
+            }]}
+          >
+            <Input.TextArea
+              rows={4}
+              style={{ fontFamily: 'monospace' }}
+              placeholder={'{\n  "key": "value"\n}'}
+            />
           </Form.Item>
         </Form>
       </Modal>

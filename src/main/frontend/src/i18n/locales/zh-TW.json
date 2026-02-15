@@ -666,6 +666,8 @@
     "authConfig": "認證配置 (JSON)",
     "authConfigTooltip": "根據認證類型設定對應的配置",
     "example": "範例",
+    "healthCheck": "健康檢查",
+    "healthCheckTooltip": "設定此服務的健康檢查端點和間隔時間",
     "updateService": "更新服務",
     "createService": "建立服務",
     "descriptionPlaceholder": "描述此服務的用途",
@@ -976,6 +978,8 @@
     "visibility": "可見性",
     "visibilityPrivate": "私人",
     "visibilityPublic": "公開",
+    "icon": "圖示",
+    "iconTooltip": "此技能的 Emoji 或圖示標識",
     "createSuccess": "技能建立成功",
     "createFailed": "技能建立失敗",
     "updateSuccess": "技能更新成功",
@@ -1078,7 +1082,9 @@
     "empty": "尚無排程",
     "createFirst": "建立您的第一個排程",
     "nextRun": "下次執行",
-    "lastRun": "上次執行"
+    "lastRun": "上次執行",
+    "inputData": "輸入資料",
+    "inputDataTooltip": "排程觸發流程時傳入的 JSON 輸入資料"
   },
   "language": {
     "title": "語言",

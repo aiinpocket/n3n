@@ -666,6 +666,8 @@
     "authConfig": "認証設定 (JSON)",
     "authConfigTooltip": "認証タイプに応じた設定を行います",
     "example": "例",
+    "healthCheck": "ヘルスチェック",
+    "healthCheckTooltip": "このサービスのヘルスチェックエンドポイントと間隔を設定",
     "updateService": "サービスを更新",
     "createService": "サービスを作成",
     "descriptionPlaceholder": "このサービスの用途を説明",
@@ -976,6 +978,8 @@
     "visibility": "公開範囲",
     "visibilityPrivate": "プライベート",
     "visibilityPublic": "パブリック",
+    "icon": "アイコン",
+    "iconTooltip": "このスキルの絵文字またはアイコン識別子",
     "createSuccess": "スキルの作成に成功しました",
     "createFailed": "スキルの作成に失敗しました",
     "updateSuccess": "スキルの更新に成功しました",
@@ -1078,7 +1082,9 @@
     "empty": "スケジュールがありません",
     "createFirst": "最初のスケジュールを作成",
     "nextRun": "次回実行",
-    "lastRun": "前回実行"
+    "lastRun": "前回実行",
+    "inputData": "入力データ",
+    "inputDataTooltip": "スケジュールでフローをトリガーする際に渡すJSON入力データ"
   },
   "language": {
     "title": "言語",

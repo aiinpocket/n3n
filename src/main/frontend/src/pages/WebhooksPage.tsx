@@ -237,6 +237,7 @@ const WebhooksPage: React.FC = () => {
       dataIndex: 'method',
       key: 'method',
       width: 100,
+      sorter: (a: Webhook, b: Webhook) => a.method.localeCompare(b.method),
       render: (method: string) => {
         const colors: Record<string, string> = {
           GET: 'green',

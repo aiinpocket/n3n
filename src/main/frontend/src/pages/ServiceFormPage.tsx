@@ -58,6 +58,7 @@ export default function ServiceFormPage() {
         schemaUrl: currentService.schemaUrl,
         authType: currentService.authType || 'none',
         authConfig: currentService.authConfig ? JSON.stringify(currentService.authConfig, null, 2) : '',
+        healthCheck: currentService.healthCheck ? JSON.stringify(currentService.healthCheck, null, 2) : '',
       })
     }
   }, [currentService, isEdit, form])
@@ -76,6 +77,17 @@ export default function ServiceFormPage() {
         }
       }
 
+      let healthCheck: Record<string, unknown> | undefined
+      if (values.healthCheck) {
+        try {
+          healthCheck = JSON.parse(values.healthCheck as string)
+        } catch {
+          message.error(t('component.jsonFormatError'))
+          setLoading(false)
+          return
+        }
+      }
+
       if (isEdit && id) {
         const updateData: UpdateServiceRequest = {
           displayName: values.displayName as string,
@@ -84,6 +96,7 @@ export default function ServiceFormPage() {
           schemaUrl: values.schemaUrl as string,
           authType: values.authType as string,
           authConfig,
+          healthCheck,
         }
         await updateService(id, updateData)
         message.success(t('service.updateSuccess'))
@@ -98,6 +111,7 @@ export default function ServiceFormPage() {
           schemaUrl: values.schemaUrl as string,
           authType: values.authType as string,
           authConfig,
+          healthCheck,
         }
         const service = await createService(createData)
         message.success(t('common.createSuccess'))
@@ -330,6 +344,25 @@ export default function ServiceFormPage() {
           ]}
           style={{ marginBottom: 24 }}
         />
+
+        <Form.Item
+          name="healthCheck"
+          label={t('service.healthCheck')}
+          tooltip={t('service.healthCheckTooltip')}
+          rules={[{
+            validator: (_, value) => {
+              if (!value) return Promise.resolve();
+              try { JSON.parse(value); return Promise.resolve(); }
+              catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+            },
+          }]}
+        >
+          <TextArea
+            rows={3}
+            style={{ fontFamily: 'monospace' }}
+            placeholder={'{\n  "path": "/health",\n  "intervalSeconds": 30\n}'}
+          />
+        </Form.Item>
 
         <Divider />
 
