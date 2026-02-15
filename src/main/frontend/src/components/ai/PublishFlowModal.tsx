@@ -25,6 +25,7 @@ import {
   type OptimizationSuggestion,
 } from '../../api/aiAssistant'
 import logger from '../../utils/logger'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Text, Paragraph, Title } = Typography
 
@@ -150,7 +151,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       }, 1500)
     } catch (err) {
       logger.error('Publish failed:', err)
-      message.error(t('flow.publishFailed'))
+      message.error(extractApiError(err, t('flow.publishFailed')))
       setStep('review')
     } finally {
       setApplying(false)
@@ -167,7 +168,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       }, 1500)
     } catch (err) {
       logger.error('Publish failed:', err)
-      message.error(t('flow.publishFailed'))
+      message.error(extractApiError(err, t('flow.publishFailed')))
       setStep('review')
     }
   }

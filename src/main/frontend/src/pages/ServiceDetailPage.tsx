@@ -72,8 +72,8 @@ export default function ServiceDetailPage() {
     try {
       const result = await refreshSchema(id)
       message.success(t('service.schemaUpdated', { added: result.addedEndpoints, updated: result.updatedEndpoints }))
-    } catch {
-      message.error(t('service.schemaUpdateFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('service.schemaUpdateFailed')))
     } finally {
       setRefreshing(false)
     }

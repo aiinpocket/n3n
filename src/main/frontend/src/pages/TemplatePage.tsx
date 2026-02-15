@@ -193,6 +193,7 @@ export default function TemplatePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('browse')
   const [error, setError] = useState<string | null>(null)
+  const [myLoading, setMyLoading] = useState(false)
 
   // Pagination state
   const [totalElements, setTotalElements] = useState(0)
@@ -249,10 +250,13 @@ export default function TemplatePage() {
   // Load my templates
   const loadMyTemplates = useCallback(async () => {
     try {
+      setMyLoading(true)
       const data = await templateApi.getMine()
       setMyTemplates(data)
     } catch (err) {
       logger.error('Failed to load my templates:', err)
+    } finally {
+      setMyLoading(false)
     }
   }, [])
 
@@ -393,8 +397,8 @@ export default function TemplatePage() {
   }
 
   // Render template grid
-  const renderTemplateGrid = (items: Template[], showDelete: boolean) => {
-    if (loading && items.length === 0) {
+  const renderTemplateGrid = (items: Template[], showDelete: boolean, isLoading = loading) => {
+    if (isLoading && items.length === 0) {
       return (
         <div style={{ textAlign: 'center', padding: 80 }}>
           <Spin size="large" />
@@ -536,7 +540,7 @@ export default function TemplatePage() {
                 {t('template.myTemplates')}
               </span>
             ),
-            children: renderTemplateGrid(myTemplates, true),
+            children: renderTemplateGrid(myTemplates, true, myLoading),
           },
         ]}
       />

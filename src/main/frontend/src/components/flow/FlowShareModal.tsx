@@ -3,6 +3,7 @@ import { Modal, Form, Input, Select, Button, Table, Space, Tag, message, Popconf
 import { UserOutlined, MailOutlined, DeleteOutlined, ShareAltOutlined, EyeOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { flowShareApi, FlowShare, ShareFlowRequest } from '../../api/flowShare'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Text } = Typography
 const { Option } = Select
@@ -32,8 +33,8 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
     try {
       const data = await flowShareApi.getShares(flowId)
       setShares(data)
-    } catch {
-      message.error(t('share.loadFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('share.loadFailed')))
     } finally {
       setLoading(false)
     }
@@ -65,10 +66,9 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       message.success(t('share.success'))
       form.resetFields()
       fetchShares()
-    } catch (error) {
-      if (error instanceof Error) {
-        message.error(t('share.shareFailed'))
-      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'errorFields' in err) return
+      message.error(extractApiError(err, t('share.shareFailed')))
     } finally {
       setSharing(false)
     }
@@ -79,8 +79,8 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       await flowShareApi.updatePermission(flowId, shareId, permission)
       message.success(t('share.permissionUpdated'))
       fetchShares()
-    } catch {
-      message.error(t('share.updateFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('share.updateFailed')))
     }
   }
 
@@ -89,8 +89,8 @@ const FlowShareModal: React.FC<FlowShareModalProps> = ({
       await flowShareApi.removeShare(flowId, shareId)
       message.success(t('share.removed'))
       fetchShares()
-    } catch {
-      message.error(t('share.removeFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('share.removeFailed')))
     }
   }
 

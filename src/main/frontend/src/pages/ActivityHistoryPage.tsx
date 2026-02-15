@@ -28,6 +28,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useNavigate } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 import { getLocale } from '../utils/locale'
+import { extractApiError } from '../utils/errorMessages'
 
 const { Text } = Typography
 
@@ -234,8 +235,8 @@ export default function ActivityHistoryPage() {
       setActivities(result.content)
       setTotalElements(result.totalElements)
       setCurrentPage(result.number)
-    } catch {
-      message.error(t('common.loadFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('common.loadFailed')))
     } finally {
       setLoading(false)
     }

@@ -3,6 +3,7 @@ import { Modal, Button, Space, Radio, message, Typography } from 'antd'
 import { DownloadOutlined, CopyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { flowApi } from '../../api/flow'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Text } = Typography
 
@@ -51,8 +52,8 @@ const FlowExportModal: React.FC<FlowExportModalProps> = ({
         message.success(t('flow.copiedToClipboard'))
         onClose()
       }
-    } catch {
-      message.error(t('flow.exportFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.exportFailed')))
     } finally {
       setLoading(false)
     }

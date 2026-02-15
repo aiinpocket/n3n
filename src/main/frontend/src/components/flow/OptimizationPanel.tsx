@@ -39,6 +39,7 @@ import {
 } from '../../api/optimizer'
 import { aiAssistantApi } from '../../api/aiAssistant'
 import type { FlowDefinition } from '../../api/flow'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Text, Paragraph } = Typography
 
@@ -150,9 +151,9 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
       } else {
         message.error(response.error || t('optimizer.applyFailed'))
       }
-    } catch {
+    } catch (err) {
       if (!mountedRef.current) return
-      message.error(t('optimizer.applyFailed'))
+      message.error(extractApiError(err, t('optimizer.applyFailed')))
     } finally {
       setApplying(false)
     }

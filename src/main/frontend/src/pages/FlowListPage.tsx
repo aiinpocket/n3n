@@ -553,6 +553,7 @@ export default function FlowListPage() {
           form.resetFields()
         }}
         footer={null}
+        destroyOnClose
       >
         <Form
           form={form}
@@ -616,6 +617,7 @@ export default function FlowListPage() {
         onCancel={() => { setShareModalOpen(false); setShareFlow(null); setShares([]) }}
         footer={null}
         width={500}
+        destroyOnClose
       >
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Space.Compact style={{ width: '100%' }}>
@@ -711,6 +713,7 @@ export default function FlowListPage() {
           setTemplateFlow(null)
         }}
         footer={null}
+        destroyOnClose
       >
         <Form form={templateForm} layout="vertical" onFinish={handleSaveAsTemplate}>
           <Form.Item
