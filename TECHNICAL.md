@@ -185,6 +185,7 @@ com.aiinpocket.n3n/
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
 ├── skill/           # Skill management and execution
+├── backup/          # Cloud backup & restore (AES-256-GCM encrypted)
 ├── template/        # Flow templates (frontend UI at /templates)
 └── webhook/         # Webhook triggers
 ```
@@ -283,6 +284,20 @@ Real-time log streaming and historical log query.
 System metrics and health monitoring (admin-only).
 - `MonitoringController` - Metrics endpoints (JVM, flow stats, health)
 - `MetricsAggregationService` - Aggregates system and flow execution metrics
+
+#### service/
+External service management for API integrations.
+- `ExternalServiceController` - Full CRUD for services and endpoints, schema refresh, connection test
+- `ExternalServiceService` - Service lifecycle and endpoint management
+- Supports OpenAPI/Swagger schema import
+
+#### backup/
+Cloud backup and restore with AES-256-GCM encryption (admin-only).
+- `BackupController` - Settings, create backup, restore, history, remote listing
+- `CloudSyncController` - Cross-instance data sync (scan, import, status)
+- `BackupService` - Encrypted backup creation and restoration
+- `CloudStorageFactory` - S3/GCS/Azure storage provider abstraction
+- Field-level encryption for sensitive backup settings
 
 #### optimizer/
 Flow optimization suggestions via local LLM.
@@ -641,11 +656,48 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 | GET | `/api/logs` | Query historical logs with filters (level, source, keyword) |
 | GET | `/api/logs/stream` | Stream real-time logs via SSE (Server-Sent Events) |
 
+### External Services
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/services` | List services (paginated) |
+| GET | `/api/services/{id}` | Get service details |
+| POST | `/api/services` | Create service |
+| PUT | `/api/services/{id}` | Update service |
+| DELETE | `/api/services/{id}` | Delete service |
+| POST | `/api/services/{id}/refresh-schema` | Refresh service schema |
+| GET | `/api/services/{id}/endpoints` | List service endpoints |
+| POST | `/api/services/{id}/endpoints` | Create endpoint |
+| PUT | `/api/services/{serviceId}/endpoints/{endpointId}` | Update endpoint |
+| DELETE | `/api/services/{serviceId}/endpoints/{endpointId}` | Delete endpoint |
+| POST | `/api/services/{id}/test` | Test service connection |
+| GET | `/api/services/{serviceId}/endpoints/{endpointId}/schema` | Get endpoint schema |
+
 ### Activity History
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/activities` | List user activity history (paginated) |
+
+### Cloud Backup (Admin role required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/backup/settings` | Get backup settings |
+| PUT | `/api/admin/backup/settings` | Update backup settings |
+| POST | `/api/admin/backup/test-connection` | Test cloud storage connection |
+| POST | `/api/admin/backup/create` | Create encrypted backup |
+| GET | `/api/admin/backup/history` | List backup history (paginated) |
+| POST | `/api/admin/backup/list-remote` | List remote backups |
+| POST | `/api/admin/backup/restore` | Restore from backup |
+
+### Cloud Sync
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/cloud-sync/scan` | Scan remote sync data |
+| POST | `/api/cloud-sync/import` | Import remote data with re-encryption |
+| GET | `/api/cloud-sync/status` | Get cloud sync status |
 
 ### Flow Optimizer
 

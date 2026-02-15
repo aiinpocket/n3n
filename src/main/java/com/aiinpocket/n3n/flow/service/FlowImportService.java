@@ -22,6 +22,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
@@ -111,6 +113,9 @@ public class FlowImportService {
         // 驗證 checksum
         validateChecksum(pkg);
 
+        // 驗證憑證所有權
+        validateCredentialAccess(request.getCredentialMappings(), userId);
+
         // 決定流程名稱
         String flowName = request.getNewFlowName() != null
                 ? request.getNewFlowName()
@@ -167,6 +172,22 @@ public class FlowImportService {
         log.info("Flow imported: flowId={}, name={}, by={}", flow.getId(), flowName, userId);
 
         return FlowResponse.from(flow, "1.0.0", null);
+    }
+
+    /**
+     * 驗證使用者是否有權存取指定的憑證
+     */
+    private void validateCredentialAccess(Map<String, UUID> credentialMappings, UUID userId) {
+        if (credentialMappings == null || credentialMappings.isEmpty()) {
+            return;
+        }
+
+        Set<UUID> credentialIds = new HashSet<>(credentialMappings.values());
+        for (UUID credentialId : credentialIds) {
+            if (!credentialRepository.isAccessibleByUser(credentialId, userId)) {
+                throw new AccessDeniedException("Credential not accessible: " + credentialId);
+            }
+        }
     }
 
     /**

@@ -31,6 +31,8 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.*;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -530,6 +532,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Credential Test").createdBy(userId).build();
 
+            when(credentialRepository.isAccessibleByUser(newCredId, userId)).thenReturn(true);
             when(flowRepository.existsByNameAndIsDeletedFalse("Credential Test")).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -602,6 +605,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Mapping Test").createdBy(userId).build();
 
+            when(credentialRepository.isAccessibleByUser(credId, userId)).thenReturn(true);
             when(flowRepository.existsByNameAndIsDeletedFalse("Mapping Test")).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -613,6 +617,26 @@ class FlowImportServiceTest extends BaseServiceTest {
             verify(importRepository).save(importCaptor.capture());
             Map<String, String> mappings = importCaptor.getValue().getCredentialMappings();
             assertThat(mappings).containsEntry("node1", credId.toString());
+        }
+
+        @Test
+        @DisplayName("Inaccessible credential mapping throws AccessDeniedException")
+        void inaccessibleCredential_throwsAccessDenied() throws Exception {
+            UUID otherCredId = UUID.randomUUID();
+            FlowExportPackage pkg = createValidPackage();
+            FlowImportRequest request = FlowImportRequest.builder()
+                    .packageData(pkg)
+                    .newFlowName("Denied Test")
+                    .credentialMappings(Map.of("node1", otherCredId))
+                    .build();
+
+            when(credentialRepository.isAccessibleByUser(otherCredId, userId)).thenReturn(false);
+
+            assertThatThrownBy(() -> flowImportService.importFlow(request, userId))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessageContaining("Credential not accessible");
+
+            verify(flowRepository, never()).save(any());
         }
 
         @Test

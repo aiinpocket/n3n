@@ -34,4 +34,13 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
     List<Credential> findByOwnerId(UUID ownerId);
 
     List<Credential> findByOwnerIdAndKeyVersionLessThan(UUID ownerId, Integer keyVersion);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Credential c
+        WHERE c.id = :credentialId
+        AND (c.ownerId = :userId
+             OR c.visibility = 'shared'
+             OR c.id IN (SELECT cs.credentialId FROM CredentialShare cs WHERE cs.userId = :userId))
+        """)
+    boolean isAccessibleByUser(@Param("credentialId") UUID credentialId, @Param("userId") UUID userId);
 }
