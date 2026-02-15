@@ -539,16 +539,45 @@ export default function SkillsPage() {
           <Form.Item
             name="inputSchema"
             label={t('skill.inputSchema')}
-            rules={[{ required: true, message: t('skill.inputSchemaRequired') }]}
+            rules={[
+              { required: true, message: t('skill.inputSchemaRequired') },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  try { JSON.parse(value); return Promise.resolve(); }
+                  catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+                },
+              },
+            ]}
           >
             <TextArea rows={4} style={{ fontFamily: 'monospace' }} />
           </Form.Item>
 
-          <Form.Item name="outputSchema" label={t('skill.outputSchema')}>
+          <Form.Item
+            name="outputSchema"
+            label={t('skill.outputSchema')}
+            rules={[{
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+                try { JSON.parse(value); return Promise.resolve(); }
+                catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+              },
+            }]}
+          >
             <TextArea rows={3} style={{ fontFamily: 'monospace' }} placeholder="{}" />
           </Form.Item>
 
-          <Form.Item name="implementationConfig" label={t('skill.implementationConfig')}>
+          <Form.Item
+            name="implementationConfig"
+            label={t('skill.implementationConfig')}
+            rules={[{
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+                try { JSON.parse(value); return Promise.resolve(); }
+                catch { return Promise.reject(new Error(t('common.invalidJson'))); }
+              },
+            }]}
+          >
             <TextArea rows={3} style={{ fontFamily: 'monospace' }} placeholder="{}" />
           </Form.Item>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions } from 'antd'
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -11,7 +11,6 @@ import {
   EyeOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { Descriptions } from 'antd'
 import { useAuthStore } from '../stores/authStore'
 import { adminApi, type AdminUser } from '../api/admin'
 import { extractApiError } from '../utils/errorMessages'

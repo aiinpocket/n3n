@@ -500,9 +500,12 @@ const WebhooksPage: React.FC = () => {
                   <Form.Item
                     name={['authConfig', 'secret']}
                     label={t('webhook.secret')}
-                    rules={[{ required: true, message: t('webhook.secretRequired') }]}
+                    rules={[
+                      { required: true, message: t('webhook.secretRequired') },
+                      { max: 500, message: t('common.maxLength', { max: 500 }) },
+                    ]}
                   >
-                    <Input.Password placeholder={t('webhook.secretPlaceholder')} />
+                    <Input.Password placeholder={t('webhook.secretPlaceholder')} maxLength={500} />
                   </Form.Item>
                 );
               }
@@ -512,16 +515,22 @@ const WebhooksPage: React.FC = () => {
                     <Form.Item
                       name={['authConfig', 'headerName']}
                       label={t('webhook.headerName')}
-                      rules={[{ required: true, message: t('webhook.headerNameRequired') }]}
+                      rules={[
+                        { required: true, message: t('webhook.headerNameRequired') },
+                        { max: 255, message: t('common.maxLength', { max: 255 }) },
+                      ]}
                     >
-                      <Input placeholder="X-API-Key" />
+                      <Input placeholder="X-API-Key" maxLength={255} />
                     </Form.Item>
                     <Form.Item
                       name={['authConfig', 'apiKey']}
                       label={t('webhook.apiKey')}
-                      rules={[{ required: true, message: t('webhook.apiKeyRequired') }]}
+                      rules={[
+                        { required: true, message: t('webhook.apiKeyRequired') },
+                        { max: 500, message: t('common.maxLength', { max: 500 }) },
+                      ]}
                     >
-                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} />
+                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} maxLength={500} />
                     </Form.Item>
                   </>
                 );
@@ -575,19 +584,31 @@ const WebhooksPage: React.FC = () => {
               const authType = getFieldValue('authType');
               if (authType === 'signature') {
                 return (
-                  <Form.Item name={['authConfig', 'secret']} label={t('webhook.secret')}>
-                    <Input.Password placeholder={t('webhook.secretPlaceholder')} />
+                  <Form.Item
+                    name={['authConfig', 'secret']}
+                    label={t('webhook.secret')}
+                    rules={[{ max: 500, message: t('common.maxLength', { max: 500 }) }]}
+                  >
+                    <Input.Password placeholder={t('webhook.secretPlaceholder')} maxLength={500} />
                   </Form.Item>
                 );
               }
               if (authType === 'apiKey') {
                 return (
                   <>
-                    <Form.Item name={['authConfig', 'headerName']} label={t('webhook.headerName')}>
-                      <Input placeholder="X-API-Key" />
+                    <Form.Item
+                      name={['authConfig', 'headerName']}
+                      label={t('webhook.headerName')}
+                      rules={[{ max: 255, message: t('common.maxLength', { max: 255 }) }]}
+                    >
+                      <Input placeholder="X-API-Key" maxLength={255} />
                     </Form.Item>
-                    <Form.Item name={['authConfig', 'apiKey']} label={t('webhook.apiKey')}>
-                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} />
+                    <Form.Item
+                      name={['authConfig', 'apiKey']}
+                      label={t('webhook.apiKey')}
+                      rules={[{ max: 500, message: t('common.maxLength', { max: 500 }) }]}
+                    >
+                      <Input.Password placeholder={t('webhook.apiKeyPlaceholder')} maxLength={500} />
                     </Form.Item>
                   </>
                 );

@@ -215,6 +215,10 @@ export default function ServiceFormPage() {
           name="schemaUrl"
           label={t('service.schemaUrl')}
           tooltip={t('service.schemaUrlTooltip')}
+          rules={[
+            { type: 'url', message: t('service.invalidUrl') },
+            { max: 2000, message: t('common.maxLength', { max: 2000 }) },
+          ]}
         >
           <Input placeholder={t('service.schemaUrlPlaceholder')} maxLength={2000} />
         </Form.Item>
