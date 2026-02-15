@@ -125,7 +125,19 @@ const SchedulerPage: React.FC = () => {
     try {
       const result = await schedulerApi.trigger(schedule.id)
       if (result.success) {
-        message.success(t('schedule.triggerSuccess'))
+        const key = `schedule-trigger-${Date.now()}`
+        message.success({
+          content: (
+            <span>
+              {t('schedule.triggerSuccess')}{' '}
+              <Button type="link" size="small" style={{ padding: 0 }} onClick={() => { navigate('/executions'); message.destroy(key) }}>
+                {t('schedule.viewExecutions')}
+              </Button>
+            </span>
+          ),
+          key,
+          duration: 5,
+        })
       } else {
         message.error(t('schedule.triggerFailed'))
       }

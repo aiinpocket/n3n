@@ -137,7 +137,21 @@ const WebhooksPage: React.FC = () => {
     try {
       const result = await testWebhook(webhook.id)
       if (result.success) {
-        message.success(t('webhook.testSuccess', { executionId: result.executionId }))
+        const key = `webhook-test-${Date.now()}`
+        message.success({
+          content: (
+            <span>
+              {t('webhook.testSuccess', { executionId: result.executionId?.substring(0, 8) })}{' '}
+              {result.executionId && (
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => { navigate(`/executions/${result.executionId}`); message.destroy(key) }}>
+                  {t('webhook.viewExecution')}
+                </Button>
+              )}
+            </span>
+          ),
+          key,
+          duration: 5,
+        })
       } else {
         message.error(t('webhook.testFailed'))
       }
