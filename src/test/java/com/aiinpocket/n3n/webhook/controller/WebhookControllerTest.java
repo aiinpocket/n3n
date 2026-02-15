@@ -474,7 +474,7 @@ class WebhookControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
         assertThat(result.getBody().get("success")).isEqualTo(false);
-        assertThat(result.getBody().get("error")).isEqualTo("No published version available for flow");
+        assertThat(result.getBody().get("error")).isEqualTo("Webhook test failed: invalid state");
     }
 
     @Test

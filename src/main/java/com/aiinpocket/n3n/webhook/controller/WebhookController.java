@@ -105,7 +105,7 @@ public class WebhookController {
         } catch (IllegalStateException e) {
             return ResponseEntity.ok(Map.of(
                     "success", false,
-                    "error", e.getMessage()));
+                    "error", "Webhook test failed: invalid state"));
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of(
                     "success", false,

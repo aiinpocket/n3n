@@ -176,7 +176,7 @@ docker compose up -d --build
 - **Form Triggers** - Create public forms that trigger workflow execution on submission, no login required
 - **Cloud Encrypted Backup** - Auto-encrypt and back up flows, credentials, settings to S3/GCS/R2/SFTP, restore via Recovery Key
 - **Multi-language Support** - Full English, Traditional Chinese, and Japanese interface (2,400+ translation keys)
-- **OpenAPI Documentation** - Built-in Swagger UI with 280+ fully documented API endpoints
+- **OpenAPI Documentation** - Built-in Swagger UI with 260+ fully documented API endpoints
 - **Keyboard Shortcuts** - 16 editor shortcuts (save, publish, undo, AI assistant, etc.) with complete help modal
 - **Smart Search & Filter** - Credentials, components, approvals, and executions support instant search and category filtering
 - **Column Sorting** - Flow, execution, and scheduler tables support sorting by name, time, and status
