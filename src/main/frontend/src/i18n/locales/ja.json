@@ -930,7 +930,9 @@
     "emptyRecommendation": "AIの推薦がここに表示されます",
     "noAiConfig": "AIプロバイダーが未設定です",
     "noAiConfigDesc": "AIアシスタントを使用するには、AIプロバイダー（Claude、OpenAI、Gemini、またはOllama）を設定してください。",
-    "goToSettings": "AI設定へ"
+    "goToSettings": "AI設定へ",
+    "deleteConfirm": "この会話を削除しますか？",
+    "searchHistory": "会話を検索..."
   },
   "skill": {
     "title": "スキル",

@@ -930,7 +930,9 @@
     "emptyRecommendation": "AI recommendations will appear here",
     "noAiConfig": "AI Provider Not Configured",
     "noAiConfigDesc": "Set up an AI provider (Claude, OpenAI, Gemini, or Ollama) to start using the AI assistant.",
-    "goToSettings": "AI Settings"
+    "goToSettings": "AI Settings",
+    "deleteConfirm": "Delete this conversation?",
+    "searchHistory": "Search conversations..."
   },
   "skill": {
     "title": "Skills",

@@ -930,7 +930,9 @@
     "emptyRecommendation": "AI 會在這裡顯示推薦的元件和流程預覽",
     "noAiConfig": "尚未設定 AI 提供者",
     "noAiConfigDesc": "請先設定 AI 提供者（Claude、OpenAI、Gemini 或 Ollama）才能使用 AI 助手。",
-    "goToSettings": "前往 AI 設定"
+    "goToSettings": "前往 AI 設定",
+    "deleteConfirm": "確定刪除此對話？",
+    "searchHistory": "搜尋對話..."
   },
   "skill": {
     "title": "技能",

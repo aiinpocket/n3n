@@ -20,6 +20,8 @@ import {
   RobotOutlined,
   PlusOutlined,
   HistoryOutlined,
+  DeleteOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -50,6 +52,7 @@ const AIAssistantPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [historyVisible, setHistoryVisible] = useState(false)
   const [hasAiConfig, setHasAiConfig] = useState<boolean | null>(null)
+  const [historySearch, setHistorySearch] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fetch conversations and check AI config on mount
@@ -192,6 +195,34 @@ const AIAssistantPage: React.FC = () => {
   }
 
   const lastAiMessage = getLastAiMessage()
+
+  const handleDeleteConversation = async (convId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    Modal.confirm({
+      title: t('chat.deleteConfirm'),
+      okType: 'danger',
+      okText: t('common.delete'),
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        try {
+          await agentApi.archiveConversation(convId)
+          message.success(t('common.success'))
+          if (currentConversation?.id === convId) {
+            setCurrentConversation(null)
+          }
+          await fetchConversations()
+        } catch (err) {
+          message.error(extractApiError(err, t('common.deleteFailed')))
+        }
+      },
+    })
+  }
+
+  const filteredConversations = historySearch
+    ? conversations.filter(c =>
+        c.title.toLowerCase().includes(historySearch.toLowerCase())
+      )
+    : conversations
 
   return (
     <div style={{ padding: 24, height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -356,12 +387,20 @@ const AIAssistantPage: React.FC = () => {
       <Modal
         title={t('chat.history')}
         open={historyVisible}
-        onCancel={() => setHistoryVisible(false)}
+        onCancel={() => { setHistoryVisible(false); setHistorySearch('') }}
         footer={null}
         width={500}
       >
+        <Input
+          placeholder={t('chat.searchHistory')}
+          prefix={<SearchOutlined />}
+          value={historySearch}
+          onChange={(e) => setHistorySearch(e.target.value)}
+          allowClear
+          style={{ marginBottom: 12 }}
+        />
         <List
-          dataSource={conversations}
+          dataSource={filteredConversations}
           renderItem={(conv) => (
             <List.Item
               style={{ cursor: 'pointer' }}
@@ -374,6 +413,15 @@ const AIAssistantPage: React.FC = () => {
                 ) : (
                   <Tag>{conv.status}</Tag>
                 ),
+                <Button
+                  key="delete"
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={(e) => handleDeleteConversation(conv.id, e)}
+                  aria-label={t('common.delete')}
+                />,
               ]}
             >
               <List.Item.Meta
