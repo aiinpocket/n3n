@@ -48,29 +48,29 @@
 }
 
 .userMessage .messageAvatar {
-  background: #1890ff;
+  background: var(--color-info);
   color: white;
 }
 
 .assistantMessage .messageAvatar {
-  background: #8B5CF6;
+  background: var(--color-ai);
   color: white;
 }
 
 .messageContent {
-  background: #f5f5f5;
+  background: var(--color-bg-elevated);
   padding: 12px 16px;
   border-radius: 12px;
   word-break: break-word;
 }
 
 .userMessage .messageContent {
-  background: #e6f7ff;
+  background: rgba(59, 130, 246, 0.1);
   border-bottom-right-radius: 4px;
 }
 
 .assistantMessage .messageContent {
-  background: #f9f0ff;
+  background: rgba(139, 92, 246, 0.1);
   border-bottom-left-radius: 4px;
 }
 
@@ -159,7 +159,7 @@
 
 .suggestions li {
   margin: 4px 0;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .quickActions {
@@ -172,9 +172,9 @@
 
 /* Pending Changes */
 .pendingChanges {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border);
   padding: 8px;
-  background: #fafafa;
+  background: var(--color-bg-hover);
 }
 
 /* Error Alert */
@@ -184,9 +184,9 @@
 
 /* Input Area */
 .inputArea {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border);
   padding: 12px;
-  background: #fff;
+  background: var(--color-bg-elevated);
 }
 
 .inputArea :global(.ant-input-textarea) {
@@ -215,7 +215,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .historyItem {
@@ -224,43 +224,14 @@
 }
 
 .historyItem:hover {
-  background: #f5f5f5;
+  background: var(--color-bg-hover);
 }
 
 .historyItem.active {
-  background: #e6f7ff;
+  background: rgba(59, 130, 246, 0.1);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .messageContent {
-    background: #1f1f1f;
-  }
-
-  .userMessage .messageContent {
-    background: #111d2c;
-  }
-
-  .assistantMessage .messageContent {
-    background: #120338;
-  }
-
-  .pendingChanges {
-    background: #141414;
-  }
-
-  .inputArea {
-    background: #1f1f1f;
-  }
-
-  .historyItem:hover {
-    background: #262626;
-  }
-
-  .historyItem.active {
-    background: #111d2c;
-  }
-}
+/* Dark mode overrides no longer needed - using CSS variables and theme-agnostic rgba colors */
 
 /* Scrollbar styling */
 .messagesArea::-webkit-scrollbar {
@@ -272,10 +243,10 @@
 }
 
 .messagesArea::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
+  background: var(--color-border);
   border-radius: 3px;
 }
 
 .messagesArea::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+  background: var(--color-border-hover);
 }

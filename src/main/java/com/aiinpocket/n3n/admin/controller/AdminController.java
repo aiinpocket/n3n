@@ -31,8 +31,9 @@ public class AdminController {
 
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponse>> listUsers(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(adminUserService.listUsers(pageable));
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(adminUserService.listUsers(pageable, search));
     }
 
     @GetMapping("/users/{id}")

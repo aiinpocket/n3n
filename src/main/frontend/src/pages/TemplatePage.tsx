@@ -82,8 +82,8 @@ function TemplateCard({
           style={{
             height: 80,
             background: template.isOfficial
-              ? 'linear-gradient(135deg, var(--color-primary) 0%, #0D9488 100%)'
-              : 'linear-gradient(135deg, #334155 0%, #1E293B 100%)',
+              ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-active) 100%)'
+              : 'linear-gradient(135deg, var(--color-bg-hover) 0%, var(--color-bg-elevated) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

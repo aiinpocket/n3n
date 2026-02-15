@@ -1834,6 +1834,7 @@
     "emailPlaceholder": "user@example.com",
     "password": "パスワード（任意）",
     "passwordPlaceholder": "空欄の場合は自動生成",
+    "searchPlaceholder": "名前またはメールで検索...",
     "status": {
       "active": "有効",
       "suspended": "一時停止",

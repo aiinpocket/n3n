@@ -605,7 +605,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               position: 'absolute',
               right: 50,
               bottom: 12,
-              color: '#ff4d4f',
+              color: 'var(--color-danger)',
               fontSize: 12,
               display: 'flex',
               alignItems: 'center',
@@ -1033,8 +1033,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         <Card title={t('flowGenerator.generatedPreview')} size="small" style={{ marginBottom: 16 }}>
           <MiniFlowPreview nodes={nodes} edges={edges} height={220} />
 
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
-            <Space split={<span style={{ color: '#d9d9d9' }}>|</span>}>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+            <Space split={<span style={{ color: 'var(--color-text-muted)' }}>|</span>}>
               <Text type="secondary">
                 {t('flowGenerator.nodesLabel')}: <Text strong>{nodes.length}</Text> {t('flowGenerator.unit')}
               </Text>

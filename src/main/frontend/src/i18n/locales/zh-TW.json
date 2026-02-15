@@ -1834,6 +1834,7 @@
     "emailPlaceholder": "user@example.com",
     "password": "密碼（選填）",
     "passwordPlaceholder": "留空則自動產生",
+    "searchPlaceholder": "搜尋姓名或電子郵件...",
     "status": {
       "active": "啟用",
       "suspended": "已停權",

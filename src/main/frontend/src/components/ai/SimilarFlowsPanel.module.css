@@ -1,7 +1,7 @@
 .container {
   margin-top: 16px;
   padding: 12px;
-  background: #fafafa;
+  background: var(--color-bg-hover);
   border-radius: 8px;
 }
 
@@ -42,18 +42,18 @@
 
 .flowCard {
   width: 100%;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .flowCard:hover {
-  border-color: #8B5CF6;
+  border-color: var(--color-ai);
   box-shadow: 0 2px 8px rgba(114, 46, 209, 0.15);
 }
 
 .flowCard:focus-within {
-  border-color: #8B5CF6;
+  border-color: var(--color-ai);
   outline: 2px solid rgba(114, 46, 209, 0.3);
   outline-offset: 2px;
 }
@@ -74,7 +74,7 @@
 }
 
 .templateIcon {
-  color: #faad14;
+  color: var(--color-warning);
   flex-shrink: 0;
 }
 
@@ -132,7 +132,7 @@
   display: flex;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border);
 }
 
 .flowActions button {
@@ -141,23 +141,7 @@
   font-size: 12px;
 }
 
-/* Dark mode */
-:global(.dark) .container {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-:global(.dark) .flowCard {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-:global(.dark) .flowCard:hover {
-  border-color: #8B5CF6;
-}
-
-:global(.dark) .flowActions {
-  border-color: rgba(255, 255, 255, 0.1);
-}
+/* Dark mode overrides no longer needed - using CSS variables */
 
 /* Accessibility: Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
@@ -172,7 +156,7 @@
 
 /* Focus visible for keyboard navigation */
 .flowActions button:focus-visible {
-  outline: 2px solid #8B5CF6;
+  outline: 2px solid var(--color-ai);
   outline-offset: 2px;
   border-radius: 4px;
 }

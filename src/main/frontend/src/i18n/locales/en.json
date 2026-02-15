@@ -1834,6 +1834,7 @@
     "emailPlaceholder": "user@example.com",
     "password": "Password (optional)",
     "passwordPlaceholder": "Leave empty to auto-generate",
+    "searchPlaceholder": "Search by name or email...",
     "status": {
       "active": "Active",
       "suspended": "Suspended",

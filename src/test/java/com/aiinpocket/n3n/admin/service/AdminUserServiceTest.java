@@ -79,7 +79,7 @@ class AdminUserServiceTest extends BaseServiceTest {
             when(userRepository.findAll(pageable)).thenReturn(page);
             when(userRoleRepository.findByUserIdIn(List.of(userId))).thenReturn(List.of(role));
 
-            Page<UserResponse> result = adminUserService.listUsers(pageable);
+            Page<UserResponse> result = adminUserService.listUsers(pageable, null);
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getEmail()).isEqualTo("test@example.com");
@@ -91,7 +91,7 @@ class AdminUserServiceTest extends BaseServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             when(userRepository.findAll(pageable)).thenReturn(Page.empty());
 
-            Page<UserResponse> result = adminUserService.listUsers(pageable);
+            Page<UserResponse> result = adminUserService.listUsers(pageable, null);
 
             assertThat(result.getContent()).isEmpty();
         }

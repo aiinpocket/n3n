@@ -1,5 +1,5 @@
 .container {
-  background: #fafafa;
+  background: var(--color-bg-hover);
   border-radius: 8px;
   padding: 12px;
 }
@@ -29,9 +29,9 @@
   display: flex;
   gap: 10px;
   padding: 8px;
-  background: #fff;
+  background: var(--color-bg-elevated);
   border-radius: 6px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border);
 }
 
 .changeIcon {
@@ -75,7 +75,7 @@
   display: block;
   font-size: 12px;
   margin-top: 4px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-tertiary);
 }
 
 .beforeAfter {
@@ -84,22 +84,22 @@
   gap: 8px;
   margin-top: 6px;
   padding: 6px 8px;
-  background: #fafafa;
+  background: var(--color-bg-hover);
   border-radius: 4px;
   font-size: 12px;
 }
 
 .before {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-tertiary);
 }
 
 .arrow {
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .after {
-  color: #52c41a;
+  color: var(--color-success);
 }
 
 .moreChanges {
@@ -108,16 +108,4 @@
   font-size: 12px;
 }
 
-/* Dark mode */
-:global(.dark) .container {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-:global(.dark) .changeItem {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-:global(.dark) .beforeAfter {
-  background: rgba(255, 255, 255, 0.04);
-}
+/* Dark mode overrides no longer needed - using CSS variables */

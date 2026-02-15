@@ -17,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #8B5CF6 0%, #eb2f96 100%);
+  background: linear-gradient(135deg, var(--color-ai) 0%, #eb2f96 100%);
   border-radius: 50%;
   box-shadow: 0 4px 20px rgba(114, 46, 209, 0.3);
 }
@@ -56,7 +56,7 @@
 
 .description {
   margin: 8px 0 0 0 !important;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-tertiary);
 }
 
 .progressArea {
@@ -77,7 +77,7 @@
 
 .thoughtsArea {
   text-align: left;
-  background: #fafafa;
+  background: var(--color-bg-hover);
   border-radius: 8px;
   padding: 16px;
   margin-top: 16px;
@@ -107,13 +107,13 @@
 
 .thoughtIcon {
   margin-top: 4px;
-  color: #8B5CF6;
+  color: var(--color-ai);
   flex-shrink: 0;
 }
 
 .cursor {
   animation: blink 1s step-end infinite;
-  color: #8B5CF6;
+  color: var(--color-ai);
 }
 
 @keyframes blink {
@@ -130,13 +130,9 @@
   background: transparent;
 }
 
-:global(.dark) .thoughtsArea {
-  background: rgba(255, 255, 255, 0.04);
-}
+/* Dark mode override no longer needed - using CSS variables */
 
-:global(.dark) .description {
-  color: rgba(255, 255, 255, 0.45);
-}
+/* Dark mode description override no longer needed - using CSS variables */
 
 /* Accessibility: Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {

@@ -41,8 +41,15 @@ public class AdminUserService {
     private final ActivityService activityService;
     private final EmailService emailService;
 
-    public Page<UserResponse> listUsers(Pageable pageable) {
-        Page<User> userPage = userRepository.findAll(pageable);
+    public Page<UserResponse> listUsers(Pageable pageable, String search) {
+        Page<User> userPage;
+        if (search != null && !search.isBlank()) {
+            String trimmed = search.trim();
+            userPage = userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    trimmed, trimmed, pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
 
         // Batch load roles for all users in the page (avoids N+1)
         List<UUID> userIds = userPage.getContent().stream().map(User::getId).toList();

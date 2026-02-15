@@ -185,14 +185,14 @@ const OptimizationPanel: React.FC<OptimizationPanelProps> = ({
         size="small"
         style={{
           marginBottom: 12,
-          borderLeft: `3px solid ${isApplied ? '#22C55E' : getSuggestionTypeColor(suggestion.type)}`,
+          borderLeft: `3px solid ${isApplied ? 'var(--color-success)' : getSuggestionTypeColor(suggestion.type)}`,
           opacity: isApplied ? 0.7 : 1,
         }}
         bodyStyle={{ padding: 12 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <Space>
-            <span style={{ color: isApplied ? '#22C55E' : getSuggestionTypeColor(suggestion.type), fontSize: 16 }}>
+            <span style={{ color: isApplied ? 'var(--color-success)' : getSuggestionTypeColor(suggestion.type), fontSize: 16 }}>
               {isApplied ? <CheckCircleOutlined /> : getSuggestionIcon(suggestion.type)}
             </span>
             <Text strong style={isApplied ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>

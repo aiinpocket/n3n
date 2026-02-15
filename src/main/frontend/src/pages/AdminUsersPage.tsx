@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm } from 'antd'
 import {
   UserAddOutlined,
@@ -7,6 +7,7 @@ import {
   EditOutlined,
   CheckCircleOutlined,
   StopOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -41,11 +42,16 @@ export default function AdminUsersPage() {
   const [rolesForm] = Form.useForm()
   const [createLoading, setCreateLoading] = useState(false)
   const [rolesLoading, setRolesLoading] = useState(false)
+  const [searchText, setSearchText] = useState('')
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const loadUsers = useCallback(async (p = 0) => {
+  const loadUsers = useCallback(async (p = 0, search?: string) => {
     setLoading(true)
     try {
-      const res = await apiClient.get('/admin/users', { params: { page: p, size: 20 } })
+      const params: Record<string, unknown> = { page: p, size: 20 }
+      const q = search !== undefined ? search : searchText
+      if (q) params.search = q
+      const res = await apiClient.get('/admin/users', { params })
       setUsers(res.data.content || [])
       setTotal(res.data.totalElements || 0)
       setPage(p)
@@ -54,7 +60,21 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [t])
+  }, [t, searchText])
+
+  const handleSearch = useCallback((value: string) => {
+    setSearchText(value)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => {
+      loadUsers(0, value)
+    }, 300)
+  }, [loadUsers])
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => { loadUsers() }, [loadUsers])
 
@@ -254,6 +274,14 @@ export default function AdminUsersPage() {
       </div>
 
       <Card>
+        <Input
+          prefix={<SearchOutlined />}
+          placeholder={t('admin.searchPlaceholder')}
+          value={searchText}
+          onChange={(e) => handleSearch(e.target.value)}
+          allowClear
+          style={{ marginBottom: 16, maxWidth: 400 }}
+        />
         <Table
           dataSource={users}
           columns={columns}

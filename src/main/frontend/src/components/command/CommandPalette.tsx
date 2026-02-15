@@ -247,11 +247,11 @@ export default function CommandPalette({
       }}
       centered
     >
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #334155' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
         <Input
           autoFocus
           placeholder={t('command.placeholder')}
-          prefix={<SearchOutlined style={{ color: '#64748B' }} />}
+          prefix={<SearchOutlined style={{ color: 'var(--color-text-tertiary)' }} />}
           suffix={
             <Text type="secondary" style={{ fontSize: 12 }}>
               {t('command.escClose')}
@@ -293,14 +293,14 @@ export default function CommandPalette({
                         padding: '10px 16px',
                         cursor: 'pointer',
                         background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                        borderLeft: isSelected ? '2px solid #6366F1' : '2px solid transparent',
+                        borderLeft: isSelected ? '2px solid var(--color-info)' : '2px solid transparent',
                         transition: 'all 0.15s',
                       }}
                       onMouseEnter={() => setSelectedIndex(globalIndex)}
                     >
                       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                         <Space>
-                          <span style={{ color: '#6366F1', fontSize: 16 }}>{cmd.icon}</span>
+                          <span style={{ color: 'var(--color-info)', fontSize: 16 }}>{cmd.icon}</span>
                           <div>
                             <Text strong>{cmd.name}</Text>
                             {cmd.description && (
@@ -313,9 +313,9 @@ export default function CommandPalette({
                         {cmd.shortcut && (
                           <Tag
                             style={{
-                              background: '#1E293B',
-                              border: '1px solid #334155',
-                              color: '#94A3B8',
+                              background: 'var(--color-bg-elevated)',
+                              border: '1px solid var(--color-border)',
+                              color: 'var(--color-text-secondary)',
                               fontFamily: 'monospace',
                               fontSize: 11,
                             }}
@@ -336,7 +336,7 @@ export default function CommandPalette({
       <div
         style={{
           padding: '8px 16px',
-          borderTop: '1px solid #334155',
+          borderTop: '1px solid var(--color-border)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -344,10 +344,10 @@ export default function CommandPalette({
       >
         <Space size="large">
           <Text type="secondary" style={{ fontSize: 11 }}>
-            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>↑↓</kbd> {t('command.navigate')}
+            <kbd style={{ background: 'var(--color-bg-elevated)', padding: '2px 6px', borderRadius: 4 }}>↑↓</kbd> {t('command.navigate')}
           </Text>
           <Text type="secondary" style={{ fontSize: 11 }}>
-            <kbd style={{ background: '#1E293B', padding: '2px 6px', borderRadius: 4 }}>Enter</kbd> {t('command.execute')}
+            <kbd style={{ background: 'var(--color-bg-elevated)', padding: '2px 6px', borderRadius: 4 }}>Enter</kbd> {t('command.execute')}
           </Text>
         </Space>
         <Text type="secondary" style={{ fontSize: 11 }}>

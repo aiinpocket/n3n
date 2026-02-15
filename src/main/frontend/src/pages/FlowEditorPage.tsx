@@ -1164,9 +1164,9 @@ export default function FlowEditorPage() {
         title={
           <Space>
             {validationResult?.valid ? (
-              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+              <CheckCircleOutlined style={{ color: 'var(--color-success)' }} />
             ) : (
-              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+              <CloseCircleOutlined style={{ color: 'var(--color-danger)' }} />
             )}
             {t('editor.validationResult')}
           </Space>
@@ -1188,7 +1188,7 @@ export default function FlowEditorPage() {
             )}
             {validationResult.errors.length > 0 && (
               <div>
-                <Text strong style={{ color: '#ff4d4f', display: 'block', marginBottom: 8 }}>
+                <Text strong style={{ color: 'var(--color-danger)', display: 'block', marginBottom: 8 }}>
                   <CloseCircleOutlined /> {t('editor.validationErrors')} ({validationResult.errors.length})
                 </Text>
                 {validationResult.errors.map((err, i) => (
@@ -1198,7 +1198,7 @@ export default function FlowEditorPage() {
             )}
             {validationResult.warnings.length > 0 && (
               <div>
-                <Text strong style={{ color: '#faad14', display: 'block', marginBottom: 8 }}>
+                <Text strong style={{ color: 'var(--color-warning)', display: 'block', marginBottom: 8 }}>
                   <WarningOutlined /> {t('editor.validationWarnings')} ({validationResult.warnings.length})
                 </Text>
                 {validationResult.warnings.map((warn, i) => (
