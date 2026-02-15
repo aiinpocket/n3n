@@ -2751,7 +2751,13 @@
     "deleteSelected": "Delete Selected",
     "selectAll": "Select All",
     "copy": "Copy",
+    "cut": "Cut",
     "paste": "Paste",
+    "duplicate": "Duplicate Node",
+    "publishFlow": "Publish Flow",
+    "aiAssistant": "AI Assistant",
+    "nodeSearch": "Node Search",
+    "optimization": "Optimization Panel",
     "panCanvas": "Pan Canvas",
     "zoom": "Zoom In / Out"
   },

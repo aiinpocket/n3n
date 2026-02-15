@@ -2751,7 +2751,13 @@
     "deleteSelected": "刪除選取項目",
     "selectAll": "全選",
     "copy": "複製",
+    "cut": "剪下",
     "paste": "貼上",
+    "duplicate": "複製節點",
+    "publishFlow": "發佈流程",
+    "aiAssistant": "AI 助手",
+    "nodeSearch": "節點搜尋",
+    "optimization": "優化面板",
     "panCanvas": "平移畫布",
     "zoom": "縮放"
   },

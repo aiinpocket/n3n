@@ -2751,7 +2751,13 @@
     "deleteSelected": "選択項目を削除",
     "selectAll": "すべて選択",
     "copy": "コピー",
+    "cut": "切り取り",
     "paste": "貼り付け",
+    "duplicate": "ノードを複製",
+    "publishFlow": "フローを公開",
+    "aiAssistant": "AIアシスタント",
+    "nodeSearch": "ノード検索",
+    "optimization": "最適化パネル",
     "panCanvas": "キャンバスをパン",
     "zoom": "ズームイン / ズームアウト"
   },

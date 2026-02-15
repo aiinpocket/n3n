@@ -409,14 +409,20 @@ export default function MainLayout() {
         width={480}
       >
         {[
-          { key: 'Ctrl/⌘ + K', action: t('shortcuts.commandPalette') },
           { key: 'Ctrl/⌘ + S', action: t('shortcuts.saveFlow') },
+          { key: 'Ctrl/⌘ + Shift + P', action: t('shortcuts.publishFlow') },
           { key: 'Ctrl/⌘ + Z', action: t('shortcuts.undo') },
           { key: 'Ctrl/⌘ + Shift + Z', action: t('shortcuts.redo') },
-          { key: 'Delete / Backspace', action: t('shortcuts.deleteSelected') },
-          { key: 'Ctrl/⌘ + A', action: t('shortcuts.selectAll') },
           { key: 'Ctrl/⌘ + C', action: t('shortcuts.copy') },
+          { key: 'Ctrl/⌘ + X', action: t('shortcuts.cut') },
           { key: 'Ctrl/⌘ + V', action: t('shortcuts.paste') },
+          { key: 'Ctrl/⌘ + D', action: t('shortcuts.duplicate') },
+          { key: 'Ctrl/⌘ + A', action: t('shortcuts.selectAll') },
+          { key: 'Delete / Backspace', action: t('shortcuts.deleteSelected') },
+          { key: 'Ctrl/⌘ + K', action: t('shortcuts.commandPalette') },
+          { key: 'Ctrl/⌘ + F', action: t('shortcuts.nodeSearch') },
+          { key: 'Ctrl/⌘ + I', action: t('shortcuts.aiAssistant') },
+          { key: 'Ctrl/⌘ + Alt + O', action: t('shortcuts.optimization') },
           { key: 'Space (drag)', action: t('shortcuts.panCanvas') },
           { key: 'Scroll', action: t('shortcuts.zoom') },
         ].map(({ key, action }) => (
