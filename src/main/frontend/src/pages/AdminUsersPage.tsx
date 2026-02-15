@@ -415,8 +415,9 @@ export default function AdminUsersPage() {
       <Modal
         title={t('admin.editRoles')}
         open={rolesModalOpen}
-        onCancel={() => setRolesModalOpen(false)}
+        onCancel={() => { setRolesModalOpen(false); rolesForm.resetFields() }}
         footer={null}
+        destroyOnClose
       >
         <Form form={rolesForm} layout="vertical" onFinish={handleUpdateRoles}>
           <Form.Item name="roles" label={t('admin.roles')} rules={[
@@ -429,7 +430,7 @@ export default function AdminUsersPage() {
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button onClick={() => setRolesModalOpen(false)}>
+              <Button onClick={() => { setRolesModalOpen(false); rolesForm.resetFields() }}>
                 {t('common.cancel')}
               </Button>
               <Button type="primary" htmlType="submit" loading={rolesLoading}>
