@@ -1037,6 +1037,7 @@
   "schedule": {
     "title": "スケジュール",
     "description": "スケジュールを使用して、Cron式に基づいてフロー実行を自動的にトリガーできます。",
+    "searchPlaceholder": "名前やフローで検索...",
     "create": "スケジュール作成",
     "createTitle": "新規スケジュール作成",
     "name": "名前",

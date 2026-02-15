@@ -1037,6 +1037,7 @@
   "schedule": {
     "title": "Schedules",
     "description": "Schedules allow you to automatically trigger flow executions on a cron-based schedule.",
+    "searchPlaceholder": "Search by name or flow...",
     "create": "Create Schedule",
     "createTitle": "Create New Schedule",
     "name": "Name",

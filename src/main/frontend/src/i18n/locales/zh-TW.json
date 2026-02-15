@@ -1037,6 +1037,7 @@
   "schedule": {
     "title": "排程管理",
     "description": "排程可讓您根據 Cron 表達式自動定期觸發流程執行。",
+    "searchPlaceholder": "搜尋名稱或流程...",
     "create": "建立排程",
     "createTitle": "建立新排程",
     "name": "名稱",

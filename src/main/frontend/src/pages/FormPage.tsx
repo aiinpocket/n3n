@@ -288,7 +288,7 @@ export default function FormPage() {
       case 'success':
         return (
           <Result
-            icon={<CheckCircleOutlined style={{ color: 'var(--color-primary)' }} />}
+            icon={<CheckCircleOutlined style={{ color: 'var(--color-success)' }} />}
             title={t('form.submitSuccess')}
             subTitle={submitResponse?.message}
             extra={

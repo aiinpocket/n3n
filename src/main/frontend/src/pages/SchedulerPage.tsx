@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -25,6 +25,7 @@ import {
   PlayCircleOutlined,
   ThunderboltOutlined,
   EditOutlined,
+  SearchOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { schedulerApi } from '../api/scheduler'
@@ -63,6 +64,7 @@ const SchedulerPage: React.FC = () => {
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editForm] = Form.useForm()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [searchText, setSearchText] = useState('')
 
   const { flows, fetchFlows } = useFlowListStore()
 
@@ -194,6 +196,16 @@ const SchedulerPage: React.FC = () => {
       setEditSubmitting(false)
     }
   }
+
+  const filteredSchedules = useMemo(() => {
+    if (!searchText) return schedules
+    const lower = searchText.toLowerCase()
+    return schedules.filter(s =>
+      s.name.toLowerCase().includes(lower) ||
+      (s.flowName && s.flowName.toLowerCase().includes(lower)) ||
+      (s.cronExpression && s.cronExpression.toLowerCase().includes(lower))
+    )
+  }, [schedules, searchText])
 
   const columns: ColumnsType<Schedule> = [
     {
@@ -351,13 +363,23 @@ const SchedulerPage: React.FC = () => {
             </Button>
           </Empty>
         ) : (
-          <Table
-            columns={columns}
-            dataSource={schedules}
-            rowKey="id"
-            loading={loading}
-            pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
-          />
+          <>
+            <Input
+              placeholder={t('schedule.searchPlaceholder')}
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              style={{ width: 300, marginBottom: 16 }}
+            />
+            <Table
+              columns={columns}
+              dataSource={filteredSchedules}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+            />
+          </>
         )}
       </Card>
 
