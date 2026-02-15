@@ -45,7 +45,7 @@ public class FormController {
      * This returns the form schema for rendering.
      */
     @GetMapping("/{token}")
-    public ResponseEntity<?> getFormByToken(@PathVariable String token) {
+    public ResponseEntity<?> getFormByToken(@PathVariable @Size(max = 255) String token) {
         try {
             FormTrigger trigger = formService.getFormTriggerByToken(token);
 
@@ -79,7 +79,7 @@ public class FormController {
      */
     @PostMapping("/{token}/submit")
     public ResponseEntity<?> submitForm(
-            @PathVariable String token,
+            @PathVariable @Size(max = 255) String token,
             @RequestBody Map<String, Object> formData,
             HttpServletRequest request) {
 

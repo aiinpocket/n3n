@@ -26,22 +26,26 @@ public class ComponentService {
     private final ComponentRepository componentRepository;
     private final ComponentVersionRepository componentVersionRepository;
 
+    @Transactional(readOnly = true)
     public Page<ComponentResponse> listComponents(Pageable pageable) {
         Page<Component> page = componentRepository.findByIsDeletedFalse(pageable);
         return enrichComponentPage(page);
     }
 
+    @Transactional(readOnly = true)
     public Page<ComponentResponse> listComponentsByCategory(String category, Pageable pageable) {
         Page<Component> page = componentRepository.findByCategoryAndIsDeletedFalse(category, pageable);
         return enrichComponentPage(page);
     }
 
+    @Transactional(readOnly = true)
     public ComponentResponse getComponent(UUID id) {
         Component component = componentRepository.findByIdAndIsDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Component not found: " + id));
         return enrichComponent(component);
     }
 
+    @Transactional(readOnly = true)
     public ComponentResponse getComponentByName(String name) {
         Component component = componentRepository.findByNameAndIsDeletedFalse(name)
             .orElseThrow(() -> new ResourceNotFoundException("Component not found: " + name));
@@ -103,6 +107,7 @@ public class ComponentService {
 
     // Version management
 
+    @Transactional(readOnly = true)
     public List<ComponentVersionResponse> listVersions(UUID componentId) {
         if (componentRepository.findByIdAndIsDeletedFalse(componentId).isEmpty()) {
             throw new ResourceNotFoundException("Component not found: " + componentId);
@@ -114,12 +119,14 @@ public class ComponentService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public ComponentVersionResponse getVersion(UUID componentId, String version) {
         ComponentVersion v = componentVersionRepository.findByComponentIdAndVersion(componentId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
         return ComponentVersionResponse.from(v);
     }
 
+    @Transactional(readOnly = true)
     public ComponentVersionResponse getActiveVersion(UUID componentId) {
         ComponentVersion v = componentVersionRepository.findByComponentIdAndStatus(componentId, "active")
             .orElseThrow(() -> new ResourceNotFoundException("No active version for component: " + componentId));

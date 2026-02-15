@@ -42,6 +42,7 @@ public class PluginService {
     /**
      * Get all categories with plugin counts.
      */
+    @Transactional(readOnly = true)
     public List<PluginCategoryDto> getCategories() {
         return pluginRepository.countByCategory().stream()
                 .map(row -> PluginCategoryDto.fromName((String) row[0], (Long) row[1]))
@@ -51,6 +52,7 @@ public class PluginService {
     /**
      * Search plugins with filters.
      */
+    @Transactional(readOnly = true)
     public PluginSearchResult searchPlugins(
             String category,
             String pricing,
@@ -93,6 +95,7 @@ public class PluginService {
     /**
      * Get featured plugins.
      */
+    @Transactional(readOnly = true)
     public List<PluginDto> getFeaturedPlugins(UUID userId) {
         // For now, return top 6 by download count
         List<Plugin> plugins = pluginRepository.findAll(
@@ -107,6 +110,7 @@ public class PluginService {
     /**
      * Get plugin details.
      */
+    @Transactional(readOnly = true)
     public PluginDetailDto getPluginDetail(UUID pluginId, UUID userId) {
         Plugin plugin = pluginRepository.findById(pluginId)
                 .orElseThrow(() -> new ResourceNotFoundException("Plugin not found: " + pluginId));
@@ -135,6 +139,7 @@ public class PluginService {
     /**
      * Get installed plugins for a user.
      */
+    @Transactional(readOnly = true)
     public List<PluginDto> getInstalledPlugins(UUID userId) {
         List<PluginInstallation> installations = pluginInstallationRepository.findByUserIdWithDetails(userId);
         if (installations.isEmpty()) {

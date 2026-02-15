@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.webhook.controller;
 import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.webhook.service.WebhookService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class WebhookTriggerController {
 
     @GetMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handleGet(
-            @PathVariable String path,
+            @PathVariable @Size(max = 255) String path,
             @RequestParam(required = false) Map<String, String> params,
             @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
             HttpServletRequest request) {
@@ -34,7 +35,7 @@ public class WebhookTriggerController {
 
     @PostMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handlePost(
-            @PathVariable String path,
+            @PathVariable @Size(max = 255) String path,
             @RequestBody(required = false) Map<String, Object> body,
             @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
             HttpServletRequest request) {
@@ -43,7 +44,7 @@ public class WebhookTriggerController {
 
     @PutMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handlePut(
-            @PathVariable String path,
+            @PathVariable @Size(max = 255) String path,
             @RequestBody(required = false) Map<String, Object> body,
             @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
             HttpServletRequest request) {
@@ -52,7 +53,7 @@ public class WebhookTriggerController {
 
     @DeleteMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handleDelete(
-            @PathVariable String path,
+            @PathVariable @Size(max = 255) String path,
             @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
             HttpServletRequest request) {
         return handleWebhook(path, "DELETE", Map.of(), signature, request);
