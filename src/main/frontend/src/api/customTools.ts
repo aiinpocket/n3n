@@ -152,6 +152,23 @@ export async function ratePlugin(id: string, rating: number, review?: string): P
   return response.data
 }
 
+// Plugin installation API
+export async function installMissingNodes(nodeTypes: string[]): Promise<{ success: boolean; message: string; taskIds: string[] }> {
+  const response = await apiClient.post<{ success: boolean; message: string; taskIds: string[] }>(
+    '/plugins/install/missing',
+    { nodeTypes }
+  )
+  return response.data
+}
+
+export async function installPluginById(pluginId: string, version?: string): Promise<{ success: boolean; message: string; taskId: string }> {
+  const response = await apiClient.post<{ success: boolean; message: string; taskId: string }>(
+    `/plugins/install/${pluginId}`,
+    version ? { version } : {}
+  )
+  return response.data
+}
+
 // Installation task API
 export async function getActiveInstallTasks(): Promise<InstallTask[]> {
   const response = await apiClient.get<InstallTask[]>('/plugins/install/tasks')

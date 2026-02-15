@@ -91,6 +91,8 @@ export default function FlowListPage() {
   const handleDelete = (id: string) => {
     Modal.confirm({
       title: t('flow.deleteConfirm'),
+      okText: t('common.delete'),
+      cancelText: t('common.cancel'),
       okType: 'danger',
       onOk: async () => {
         try {

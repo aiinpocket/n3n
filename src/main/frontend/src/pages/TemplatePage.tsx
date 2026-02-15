@@ -559,6 +559,8 @@ export default function TemplatePage() {
         open={createModalOpen}
         onCancel={() => { setCreateModalOpen(false); createForm.resetFields(); }}
         onOk={() => createForm.submit()}
+        okText={t('common.create')}
+        cancelText={t('common.cancel')}
         confirmLoading={createSubmitting}
         width={500}
         destroyOnClose

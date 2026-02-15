@@ -328,6 +328,7 @@ const AISettingsPage: React.FC = () => {
             dataSource={configs}
             rowKey="id"
             pagination={false}
+            scroll={{ x: 800 }}
             locale={{
               emptyText: (
                 <div style={{ padding: 40 }}>

@@ -102,9 +102,21 @@ export const skillApi = {
     await apiClient.delete(`/skills/${id}`)
   },
 
+  // Get skill by name
+  getByName: async (name: string): Promise<Skill> => {
+    const response = await apiClient.get(`/skills/name/${encodeURIComponent(name)}`)
+    return response.data
+  },
+
   // Execute skill (for testing)
   execute: async (id: string, input: Record<string, unknown>): Promise<ExecuteSkillResponse> => {
     const response = await apiClient.post(`/skills/${id}/execute`, { input })
+    return response.data
+  },
+
+  // Execute skill by name
+  executeByName: async (name: string, input: Record<string, unknown>): Promise<ExecuteSkillResponse> => {
+    const response = await apiClient.post(`/skills/name/${encodeURIComponent(name)}/execute`, { input })
     return response.data
   },
 
