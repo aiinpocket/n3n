@@ -185,8 +185,12 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
         })
-        // Clear persisted store data from localStorage (sync, before async store resets)
-        localStorage.removeItem('n3n-ai-assistant')
+        // Clear all n3n-prefixed persisted store data from localStorage (sync, before async store resets)
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('n3n-') && key !== 'n3n-auth') {
+            localStorage.removeItem(key)
+          }
+        })
         // Clear all other stores to prevent data leakage between sessions
         resetAllStores()
       },

@@ -254,6 +254,7 @@
     "pleaseEnterContent": "請輸入內容",
     "invalidJsonFormat": "無效的 JSON 格式",
     "invalidJsonFile": "無效的 JSON 檔案",
+    "fileTooLarge": "檔案過大（最大 10MB）",
     "importPreviewFailed": "預覽失敗",
     "aiCreate": "AI 建立",
     "emptyTitle": "開始建立您的第一個工作流程",

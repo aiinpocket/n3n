@@ -183,7 +183,7 @@ public class FilterNodeHandler extends AbstractNodeHandler {
             case "regex":
                 if (fieldValue == null || compareValue == null) return false;
                 try {
-                    return fieldValue.toString().matches(compareValue.toString());
+                    return safeRegexMatch(fieldValue.toString(), compareValue.toString());
                 } catch (java.util.regex.PatternSyntaxException e) {
                     log.warn("Invalid regex pattern in filter: {}", compareValue);
                     return false;
@@ -193,6 +193,19 @@ public class FilterNodeHandler extends AbstractNodeHandler {
                 log.warn("Unknown filter operator: {}", operator);
                 return true;
         }
+    }
+
+    private static final int MAX_REGEX_LENGTH = 500;
+
+    /**
+     * Safe regex match with pattern length limit to prevent ReDoS attacks.
+     */
+    private boolean safeRegexMatch(String input, String pattern) {
+        if (pattern.length() > MAX_REGEX_LENGTH) {
+            log.warn("Regex pattern too long ({} chars), max allowed: {}", pattern.length(), MAX_REGEX_LENGTH);
+            return false;
+        }
+        return input.matches(pattern);
     }
 
     private int compareNumbers(Object a, Object b) {

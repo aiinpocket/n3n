@@ -254,6 +254,7 @@
     "pleaseEnterContent": "内容を入力してください",
     "invalidJsonFormat": "無効なJSON形式",
     "invalidJsonFile": "無効なJSONファイル",
+    "fileTooLarge": "ファイルが大きすぎます（最大10MB）",
     "importPreviewFailed": "プレビュー失敗",
     "aiCreate": "AI 作成",
     "emptyTitle": "最初のワークフローを作成しましょう",

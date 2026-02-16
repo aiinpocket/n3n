@@ -32,6 +32,8 @@ import java.util.*;
 @Slf4j
 public class SwitchNodeHandler extends AbstractNodeHandler {
 
+    private static final int MAX_REGEX_LENGTH = 500;
+
     @Override
     public String getType() {
         return "switch";
@@ -191,6 +193,10 @@ public class SwitchNodeHandler extends AbstractNodeHandler {
 
             case "matches":
                 try {
+                    if (strCompare.length() > MAX_REGEX_LENGTH) {
+                        log.warn("Regex pattern too long ({} chars), max allowed: {}", strCompare.length(), MAX_REGEX_LENGTH);
+                        return false;
+                    }
                     return strValue.matches(strCompare);
                 } catch (Exception e) {
                     log.warn("Invalid regex pattern: {}", strCompare);

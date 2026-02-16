@@ -254,6 +254,7 @@
     "pleaseEnterContent": "Please enter content",
     "invalidJsonFormat": "Invalid JSON format",
     "invalidJsonFile": "Invalid JSON file",
+    "fileTooLarge": "File is too large (max 10MB)",
     "importPreviewFailed": "Preview failed",
     "aiCreate": "AI Create",
     "emptyTitle": "Create Your First Workflow",

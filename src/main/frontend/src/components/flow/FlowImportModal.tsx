@@ -46,7 +46,13 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
     }
   }
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
   const handleFileUpload = (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      message.error(t('flow.fileTooLarge'))
+      return false
+    }
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
