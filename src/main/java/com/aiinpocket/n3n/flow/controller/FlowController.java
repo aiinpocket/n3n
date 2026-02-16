@@ -46,6 +46,17 @@ public class FlowController {
         return ResponseEntity.ok(flowService.listFlows(userId, pageable));
     }
 
+    /**
+     * List flows the user can edit (owned + shared with edit/admin permission).
+     * Used by scheduler and webhook UI for flow selection dropdowns.
+     */
+    @GetMapping("/editable")
+    public ResponseEntity<List<FlowResponse>> listEditableFlows(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(flowService.listEditableFlows(userId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<FlowResponse> getFlow(
             @PathVariable UUID id,

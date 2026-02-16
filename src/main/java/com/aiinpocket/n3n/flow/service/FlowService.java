@@ -48,6 +48,33 @@ public class FlowService {
         return toFlowResponsePage(flowPage);
     }
 
+    /**
+     * List flows the user can edit (owned + shared with edit/admin permission).
+     */
+    @Transactional(readOnly = true)
+    public List<FlowResponse> listEditableFlows(UUID userId) {
+        // Get user's own flows
+        List<Flow> ownedFlows = flowRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId);
+
+        // Get shared flows with edit/admin permission
+        List<UUID> sharedFlowIds = flowShareRepository.findByUserId(userId).stream()
+            .filter(share -> "edit".equals(share.getPermission()) || "admin".equals(share.getPermission()))
+            .map(com.aiinpocket.n3n.flow.entity.FlowShare::getFlowId)
+            .toList();
+        List<Flow> sharedFlows = sharedFlowIds.isEmpty()
+            ? List.of()
+            : flowRepository.findByIdInAndIsDeletedFalse(new HashSet<>(sharedFlowIds)).stream().toList();
+
+        // Combine and deduplicate
+        Map<UUID, Flow> flowMap = new LinkedHashMap<>();
+        ownedFlows.forEach(f -> flowMap.put(f.getId(), f));
+        sharedFlows.forEach(f -> flowMap.putIfAbsent(f.getId(), f));
+
+        return flowMap.values().stream()
+            .map(FlowResponse::from)
+            .toList();
+    }
+
     @Transactional(readOnly = true)
     public Page<FlowResponse> searchFlows(UUID userId, String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {

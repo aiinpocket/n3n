@@ -20,6 +20,8 @@ public interface FlowRepository extends JpaRepository<Flow, UUID> {
 
     Page<Flow> findByCreatedByAndIsDeletedFalse(UUID createdBy, Pageable pageable);
 
+    List<Flow> findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(UUID createdBy);
+
     Optional<Flow> findByIdAndIsDeletedFalse(UUID id);
 
     boolean existsByNameAndIsDeletedFalse(String name);

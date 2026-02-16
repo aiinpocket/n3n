@@ -135,8 +135,10 @@ public class ComponentService {
 
     @Transactional
     public ComponentVersionResponse createVersion(UUID componentId, CreateVersionRequest request, UUID userId) {
-        if (componentRepository.findByIdAndIsDeletedFalse(componentId).isEmpty()) {
-            throw new ResourceNotFoundException("Component not found: " + componentId);
+        Component component = componentRepository.findByIdAndIsDeletedFalse(componentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Component not found: " + componentId));
+        if (!component.getCreatedBy().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
         }
 
         if (componentVersionRepository.existsByComponentIdAndVersion(componentId, request.getVersion())) {

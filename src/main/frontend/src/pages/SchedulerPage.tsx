@@ -30,7 +30,8 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import { schedulerApi } from '../api/scheduler'
 import type { Schedule, CreateScheduleRequest } from '../api/scheduler'
-import { useFlowListStore } from '../stores/flowListStore'
+import { flowApi } from '../api/flow'
+import type { Flow } from '../api/flow'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 
@@ -65,8 +66,7 @@ const SchedulerPage: React.FC = () => {
   const [editForm] = Form.useForm()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
-
-  const { flows, fetchFlows } = useFlowListStore()
+  const [editableFlows, setEditableFlows] = useState<Flow[]>([])
 
   const loadSchedules = useCallback(async () => {
     setLoading(true)
@@ -80,10 +80,19 @@ const SchedulerPage: React.FC = () => {
     }
   }, [t])
 
+  const loadEditableFlows = useCallback(async () => {
+    try {
+      const data = await flowApi.listEditableFlows()
+      setEditableFlows(data)
+    } catch {
+      // Flow list loading failure is non-critical
+    }
+  }, [])
+
   useEffect(() => {
     loadSchedules()
-    fetchFlows(0, 200)
-  }, [loadSchedules, fetchFlows])
+    loadEditableFlows()
+  }, [loadSchedules, loadEditableFlows])
 
   const handleCreate = async (values: CreateScheduleRequest & { input?: string }) => {
     setCreating(true)
@@ -413,7 +422,7 @@ const SchedulerPage: React.FC = () => {
               showSearch
               optionFilterProp="children"
             >
-              {flows.map((flow) => (
+              {editableFlows.map((flow) => (
                 <Select.Option key={flow.id} value={flow.id}>
                   {flow.name}
                 </Select.Option>

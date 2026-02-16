@@ -109,6 +109,11 @@ export const flowApi = {
     return response.data
   },
 
+  listEditableFlows: async (): Promise<Flow[]> => {
+    const response = await apiClient.get('/flows/editable')
+    return response.data
+  },
+
   getFlow: async (id: string): Promise<Flow> => {
     const response = await apiClient.get(`/flows/${id}`)
     return response.data

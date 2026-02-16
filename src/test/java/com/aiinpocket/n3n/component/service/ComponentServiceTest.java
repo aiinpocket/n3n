@@ -390,7 +390,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setImage("registry.io/comp:3.0.0");
             request.setInterfaceDef(Map.of("inputs", List.of()));
 
-            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(testComponent));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "3.0.0")).thenReturn(false);
             when(componentVersionRepository.save(any(ComponentVersion.class))).thenAnswer(inv -> {
                 ComponentVersion v = inv.getArgument(0);
@@ -414,7 +414,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setImage("registry.io/comp:1.0.0");
             request.setInterfaceDef(Map.of("inputs", List.of()));
 
-            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(testComponent));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "1.0.0")).thenReturn(true);
 
             assertThatThrownBy(() -> componentService.createVersion(componentId, request, userId))
@@ -444,7 +444,7 @@ class ComponentServiceTest extends BaseServiceTest {
             request.setInterfaceDef(Map.of());
             request.setResources(customResources);
 
-            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(new Component()));
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(testComponent));
             when(componentVersionRepository.existsByComponentIdAndVersion(componentId, "3.0.0")).thenReturn(false);
             when(componentVersionRepository.save(any(ComponentVersion.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -453,6 +453,20 @@ class ComponentServiceTest extends BaseServiceTest {
             verify(componentVersionRepository).save(argThat(v ->
                 "1Gi".equals(v.getResources().get("memory"))
             ));
+        }
+
+        @Test
+        void createVersion_notOwner_throwsAccessDenied() {
+            CreateVersionRequest request = new CreateVersionRequest();
+            request.setVersion("3.0.0");
+            request.setImage("img");
+            request.setInterfaceDef(Map.of());
+
+            when(componentRepository.findByIdAndIsDeletedFalse(componentId)).thenReturn(Optional.of(testComponent));
+
+            UUID otherUserId = UUID.randomUUID();
+            assertThatThrownBy(() -> componentService.createVersion(componentId, request, otherUserId))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
         }
 
         @Test
