@@ -107,7 +107,14 @@ docker compose up -d
 
 ### 3. 使い始める
 
-> **初回起動には時間がかかります**：サービスの起動には約60-90秒かかります。その間、ブラウザに「接続できません」と表示される場合があります。`docker compose ps` で全コンテナが `running (healthy)` と表示されてからブラウザを開いてください。
+> **初回起動には時間がかかります**：初回はすべてのDockerイメージのダウンロードが必要なため、5〜15分かかることがあります（ネットワーク速度による）。2回目以降の再起動は60〜90秒で完了します。以下のコマンドで進捗を確認できます：
+> ```bash
+> # 起動状況をリアルタイムで確認
+> docker compose logs -f app
+> # 全コンテナのステータス確認
+> docker compose ps
+> ```
+> ログに `Started N3nApplication` と表示されたら、ブラウザでアクセスできます。
 
 ブラウザを開いて、次のアドレスにアクセス：**http://localhost:8080**
 
@@ -217,6 +224,47 @@ docker compose exec postgres psql -U n3n
 # 方法2：開発モードを使用（全ポート公開）
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
+
+### データベースバックアップの復元方法
+
+```bash
+# SQLバックアップからの復元
+docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
+```
+
+### メモリが足りない場合
+
+PCのメモリが8GB未満の場合、Flow Optimizerを無効にして2〜4GBを節約できます：
+
+```bash
+# .envで設定
+FLOW_OPTIMIZER_ENABLED=false
+
+# サービスを再起動
+docker compose up -d
+```
+
+---
+
+## 本番デプロイセキュリティチェックリスト
+
+N3Nを公開環境にデプロイする前に、以下のセキュリティ設定を完了してください：
+
+```bash
+# 1. 環境変数テンプレートをコピー
+cp .env.example .env
+
+# 2. .envを編集して以下を設定
+```
+
+| 設定項目 | 説明 | 例 |
+|----------|------|-----|
+| `POSTGRES_PASSWORD` | DBパスワード（デフォルトの`n3n`を変更） | ランダムパスワード |
+| `REDIS_PASSWORD` | Redisパスワード（デフォルト：なし） | ランダムパスワード |
+| `ALLOWED_ORIGINS` | ドメイン名（localhostを変更） | `https://n3n.example.com` |
+| `N3N_PORT` | 公開ポート | `8080`（デフォルト） |
+
+> **パスワード生成**: `openssl rand -base64 24` でランダムパスワードを生成できます。
 
 ---
 

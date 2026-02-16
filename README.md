@@ -107,7 +107,14 @@ docker compose up -d
 
 ### 3. 開始使用
 
-> **首次啟動需要等待**：服務啟動約需 60-90 秒，期間瀏覽器可能顯示「無法連線」。可用 `docker compose ps` 確認所有容器狀態為 `running (healthy)` 後再開啟瀏覽器。
+> **首次啟動需要等待**：首次啟動需下載所有 Docker 映像檔，可能需要 5-15 分鐘（取決於網路速度）。後續重啟僅需 60-90 秒。可用以下指令追蹤進度：
+> ```bash
+> # 追蹤啟動進度
+> docker compose logs -f app
+> # 確認所有容器已就緒
+> docker compose ps
+> ```
+> 當看到 `Started N3nApplication` 字樣時，即可開啟瀏覽器。
 
 打開瀏覽器，前往：**http://localhost:8080**
 
@@ -223,6 +230,47 @@ docker compose exec postgres psql -U n3n
 # 方法二：使用開發模式覆蓋（暴露所有端口）
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
+
+### 如何還原資料庫備份？
+
+```bash
+# 從 SQL 備份還原
+docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
+```
+
+### 記憶體不足怎麼辦？
+
+如果你的電腦記憶體不到 8 GB，可以停用 Flow Optimizer 節省 2-4 GB：
+
+```bash
+# 在 .env 中設定
+FLOW_OPTIMIZER_ENABLED=false
+
+# 重啟服務
+docker compose up -d
+```
+
+---
+
+## 生產部署安全檢查清單
+
+將 N3N 部署到可公開存取的環境前，請先完成以下安全設定：
+
+```bash
+# 1. 複製環境變數範本
+cp .env.example .env
+
+# 2. 編輯 .env 設定以下項目
+```
+
+| 項目 | 說明 | 範例 |
+|------|------|------|
+| `POSTGRES_PASSWORD` | 資料庫密碼（取代預設的 `n3n`） | 使用隨機密碼 |
+| `REDIS_PASSWORD` | Redis 密碼（預設無密碼） | 使用隨機密碼 |
+| `ALLOWED_ORIGINS` | 你的域名（取代 localhost） | `https://n3n.example.com` |
+| `N3N_PORT` | 對外連接埠 | `8080`（預設） |
+
+> **密碼產生器**：可用 `openssl rand -base64 24` 產生隨機密碼。
 
 ---
 

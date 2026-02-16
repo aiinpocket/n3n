@@ -23,6 +23,7 @@ const CredentialListPage: React.FC = () => {
     currentPage,
     fetchCredentials,
     deleteCredential,
+    updateCredential,
     testCredential,
     clearError
   } = useCredentialStore()
@@ -193,12 +194,11 @@ const CredentialListPage: React.FC = () => {
     try {
       const values = await editForm.validateFields()
       setEditSubmitting(true)
-      await credentialApi.update(editingCredential!.id, values)
+      await updateCredential(editingCredential!.id, values)
       message.success(t('common.updateSuccess'))
       setEditModalOpen(false)
       setEditingCredential(null)
       editForm.resetFields()
-      fetchCredentials()
     } catch (err) {
       if (err && typeof err === 'object' && 'errorFields' in err) return
       message.error(extractApiError(err, t('common.saveFailed')))

@@ -107,7 +107,14 @@ docker compose up -d
 
 ### 3. Start Using
 
-> **First startup takes time**: Services need about 60-90 seconds to start. Your browser may show "Unable to connect" during this time. Use `docker compose ps` to confirm all containers show `running (healthy)` before opening the browser.
+> **First startup takes time**: The initial startup requires downloading all Docker images and may take 5-15 minutes (depending on network speed). Subsequent restarts only take 60-90 seconds. You can track progress with:
+> ```bash
+> # Follow startup progress
+> docker compose logs -f app
+> # Check all container status
+> docker compose ps
+> ```
+> When you see `Started N3nApplication` in the logs, the service is ready.
 
 Open your browser and go to: **http://localhost:8080**
 
@@ -223,6 +230,47 @@ docker compose exec postgres psql -U n3n
 # Method 2: Use development mode (exposes all ports)
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
+
+### How to restore a database backup?
+
+```bash
+# Restore from SQL backup
+docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
+```
+
+### Not enough memory?
+
+If your computer has less than 8 GB of memory, you can disable the Flow Optimizer to save 2-4 GB:
+
+```bash
+# Set in .env
+FLOW_OPTIMIZER_ENABLED=false
+
+# Restart services
+docker compose up -d
+```
+
+---
+
+## Production Deployment Security Checklist
+
+Before deploying N3N to a publicly accessible environment, complete these security settings:
+
+```bash
+# 1. Copy the environment variable template
+cp .env.example .env
+
+# 2. Edit .env to configure the following
+```
+
+| Setting | Description | Example |
+|---------|-------------|---------|
+| `POSTGRES_PASSWORD` | Database password (replace default `n3n`) | Use a random password |
+| `REDIS_PASSWORD` | Redis password (default: none) | Use a random password |
+| `ALLOWED_ORIGINS` | Your domain (replace localhost) | `https://n3n.example.com` |
+| `N3N_PORT` | Public port | `8080` (default) |
+
+> **Password generator**: Use `openssl rand -base64 24` to generate random passwords.
 
 ---
 
