@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.admin.dto.CreateUserRequest;
 import com.aiinpocket.n3n.admin.dto.UserResponse;
 import com.aiinpocket.n3n.auth.entity.User;
 import com.aiinpocket.n3n.auth.entity.UserRole;
+import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
@@ -37,6 +38,7 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final ActivityService activityService;
     private final EmailService emailService;
@@ -234,6 +236,21 @@ public class AdminUserService {
 
         // Send password reset email
         emailService.sendPasswordReset(user.getEmail(), newPassword);
+    }
+
+    /**
+     * Revoke all refresh tokens for a user, forcing re-authentication on all devices.
+     */
+    @Transactional
+    public void revokeUserSessions(UUID userId, UUID adminId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        refreshTokenRepository.revokeAllByUserId(userId, java.time.Instant.now());
+
+        log.info("Admin {} revoked all sessions for user: {}", adminId, userId);
+        activityService.logActivity(adminId, ActivityService.SESSION_REVOKE, "user", userId,
+                user.getEmail(), java.util.Map.of("action", "admin_revoke_sessions"));
     }
 
     private void validateRoles(Set<String> roles) {

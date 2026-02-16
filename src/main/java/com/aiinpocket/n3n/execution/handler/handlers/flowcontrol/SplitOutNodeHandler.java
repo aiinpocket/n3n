@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SplitOutNodeHandler extends AbstractNodeHandler {
 
+    private static final int MAX_SPLIT_ITEMS = 100_000;
+
     @Override
     public String getType() {
         return "splitOut";
@@ -89,6 +91,12 @@ public class SplitOutNodeHandler extends AbstractNodeHandler {
         }
 
         log.debug("Split into {} items", items.size());
+
+        // Guard against excessive splits that could exhaust memory
+        if (items.size() > MAX_SPLIT_ITEMS) {
+            return NodeExecutionResult.failure(
+                "Split output exceeds maximum of " + MAX_SPLIT_ITEMS + " items (got " + items.size() + ")");
+        }
 
         // Create output with items (optionally batched)
         List<Map<String, Object>> outputItems = new ArrayList<>();

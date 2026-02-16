@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.housekeeping.service;
 
 import com.aiinpocket.n3n.activity.repository.UserActivityRepository;
+import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.common.logging.LogContext;
 import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.entity.NodeExecution;
@@ -50,6 +51,7 @@ public class HousekeepingService {
     private final NodeExecutionHistoryRepository nodeExecutionHistoryRepository;
     private final HousekeepingJobRepository jobRepository;
     private final UserActivityRepository userActivityRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final AtomicBoolean cleanupRunning = new AtomicBoolean(false);
 
     /**
@@ -156,6 +158,12 @@ public class HousekeepingService {
                 if (properties.getActivityRetentionDays() > 0) {
                     int activityDeleted = cleanupOldActivities();
                     log.info("HOUSEKEEPING_ACTIVITIES deleted={}", activityDeleted);
+                }
+
+                // Cleanup expired/revoked refresh tokens
+                if (properties.getTokenRetentionDays() > 0) {
+                    int tokensDeleted = cleanupOldRefreshTokens();
+                    log.info("HOUSEKEEPING_TOKENS deleted={}", tokensDeleted);
                 }
 
                 // Update job
@@ -314,6 +322,24 @@ public class HousekeepingService {
         log.info("CLEANUP_ACTIVITIES cutoffDate={}", cutoffDate);
 
         return userActivityRepository.deleteByCreatedAtBefore(cutoffDate);
+    }
+
+    /**
+     * Cleanup expired and revoked refresh tokens.
+     */
+    @Transactional
+    public int cleanupOldRefreshTokens() {
+        if (properties.getTokenRetentionDays() <= 0) {
+            return 0;
+        }
+
+        Instant cutoffDate = Instant.now().minus(properties.getTokenRetentionDays(), ChronoUnit.DAYS);
+        log.info("CLEANUP_TOKENS cutoffDate={}", cutoffDate);
+
+        int expired = refreshTokenRepository.deleteExpiredTokensBefore(cutoffDate);
+        int revoked = refreshTokenRepository.deleteRevokedTokensBefore(cutoffDate);
+
+        return expired + revoked;
     }
 
     /**

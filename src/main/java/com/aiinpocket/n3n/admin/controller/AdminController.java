@@ -77,4 +77,13 @@ public class AdminController {
         adminUserService.resetUserPassword(id, adminId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/users/{id}/revoke-sessions")
+    public ResponseEntity<Void> revokeUserSessions(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID adminId = UUID.fromString(userDetails.getUsername());
+        adminUserService.revokeUserSessions(id, adminId);
+        return ResponseEntity.ok().build();
+    }
 }

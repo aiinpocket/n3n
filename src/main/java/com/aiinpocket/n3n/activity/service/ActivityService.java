@@ -43,6 +43,7 @@ public class ActivityService {
     public static final String USER_DELETE = "USER_DELETE";
     public static final String USER_LOCK = "USER_LOCK";
     public static final String USER_UNLOCK = "USER_UNLOCK";
+    public static final String SESSION_REVOKE = "SESSION_REVOKE";
 
     // ===== Flow Activity Types =====
     public static final String FLOW_CREATE = "FLOW_CREATE";

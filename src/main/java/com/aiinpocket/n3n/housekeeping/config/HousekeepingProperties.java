@@ -51,4 +51,10 @@ public class HousekeepingProperties {
      * Default: 90 days. 0 means keep forever.
      */
     private int activityRetentionDays = 90;
+
+    /**
+     * Number of days to retain expired/revoked refresh tokens.
+     * Default: 30 days. 0 means keep forever.
+     */
+    private int tokenRetentionDays = 30;
 }
