@@ -21,7 +21,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -253,6 +255,97 @@ public class FormController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    // ===== Authenticated Form Trigger Management Endpoints =====
+
+    /**
+     * List all form triggers for the current user.
+     */
+    @GetMapping("/triggers")
+    public ResponseEntity<List<FormTriggerResponse>> listMyFormTriggers(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        List<FormTrigger> triggers = formService.getFormTriggersForUser(userId);
+        return ResponseEntity.ok(triggers.stream().map(FormTriggerResponse::from).toList());
+    }
+
+    /**
+     * List form triggers for a specific flow.
+     */
+    @GetMapping("/triggers/flow/{flowId}")
+    public ResponseEntity<List<FormTriggerResponse>> getFormTriggersForFlow(
+            @PathVariable UUID flowId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        List<FormTrigger> triggers = formService.getFormTriggersForFlow(flowId);
+        return ResponseEntity.ok(triggers.stream().map(FormTriggerResponse::from).toList());
+    }
+
+    /**
+     * Get a specific form trigger by ID.
+     */
+    @GetMapping("/triggers/{triggerId}")
+    public ResponseEntity<FormTriggerResponse> getFormTrigger(
+            @PathVariable UUID triggerId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FormTrigger trigger = formService.getFormTrigger(triggerId);
+        if (!trigger.getCreatedBy().equals(userId) && !flowShareService.hasAccess(trigger.getFlowId(), userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(FormTriggerResponse.from(trigger));
+    }
+
+    /**
+     * Deactivate a form trigger.
+     */
+    @PostMapping("/triggers/{triggerId}/deactivate")
+    public ResponseEntity<Void> deactivateFormTrigger(
+            @PathVariable UUID triggerId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FormTrigger trigger = formService.getFormTrigger(triggerId);
+        if (!trigger.getCreatedBy().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        formService.deactivateFormTrigger(triggerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Reactivate a form trigger.
+     */
+    @PostMapping("/triggers/{triggerId}/activate")
+    public ResponseEntity<FormTriggerResponse> activateFormTrigger(
+            @PathVariable UUID triggerId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FormTrigger trigger = formService.getFormTrigger(triggerId);
+        if (!trigger.getCreatedBy().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        formService.activateFormTrigger(triggerId);
+        return ResponseEntity.ok(FormTriggerResponse.from(formService.getFormTrigger(triggerId)));
+    }
+
+    /**
+     * Regenerate form token.
+     */
+    @PostMapping("/triggers/{triggerId}/regenerate-token")
+    public ResponseEntity<FormTriggerResponse> regenerateFormToken(
+            @PathVariable UUID triggerId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FormTrigger trigger = formService.getFormTrigger(triggerId);
+        if (!trigger.getCreatedBy().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        FormTrigger updated = formService.regenerateFormToken(triggerId);
+        return ResponseEntity.ok(FormTriggerResponse.from(updated));
+    }
+
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
@@ -280,6 +373,30 @@ public class FormController {
         @NotBlank @Size(max = 100) String nodeId,
         @NotNull Map<String, Object> formData
     ) {}
+
+    public record FormTriggerResponse(
+        UUID id,
+        UUID flowId,
+        String nodeId,
+        String formToken,
+        boolean isActive,
+        Instant expiresAt,
+        int maxSubmissions,
+        int submissionCount,
+        Map<String, Object> config,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        public static FormTriggerResponse from(FormTrigger t) {
+            return new FormTriggerResponse(
+                t.getId(), t.getFlowId(), t.getNodeId(), t.getFormToken(),
+                t.getIsActive(), t.getExpiresAt(),
+                t.getMaxSubmissions() != null ? t.getMaxSubmissions() : 0,
+                t.getSubmissionCount() != null ? t.getSubmissionCount() : 0,
+                t.getConfig(), t.getCreatedAt(), t.getUpdatedAt()
+            );
+        }
+    }
 
     public record FormDefinitionResponse(
         String token,

@@ -27,6 +27,20 @@ export interface FormSubmitResponse {
   redirectUrl?: string
 }
 
+export interface FormTrigger {
+  id: string
+  flowId: string
+  nodeId: string
+  formToken: string
+  isActive: boolean
+  expiresAt: string | null
+  maxSubmissions: number
+  submissionCount: number
+  config: Record<string, unknown> | null
+  createdAt: string
+  updatedAt: string
+}
+
 export const formApi = {
   // Get form definition (public, no auth)
   getForm: async (token: string): Promise<FormDefinition> => {
@@ -51,6 +65,43 @@ export const formApi = {
     const response = await apiClient.get<{ formUrl: string; formToken: string; isActive: boolean }>(`/forms/flow/${flowId}/url`, {
       params: { nodeId },
     })
+    return response.data
+  },
+
+  // ===== Form Trigger Management (authenticated) =====
+
+  // List all form triggers for current user
+  listMyTriggers: async (): Promise<FormTrigger[]> => {
+    const response = await apiClient.get<FormTrigger[]>('/forms/triggers')
+    return response.data
+  },
+
+  // List form triggers for a specific flow
+  listTriggersForFlow: async (flowId: string): Promise<FormTrigger[]> => {
+    const response = await apiClient.get<FormTrigger[]>(`/forms/triggers/flow/${flowId}`)
+    return response.data
+  },
+
+  // Get a specific form trigger
+  getTrigger: async (triggerId: string): Promise<FormTrigger> => {
+    const response = await apiClient.get<FormTrigger>(`/forms/triggers/${triggerId}`)
+    return response.data
+  },
+
+  // Deactivate a form trigger
+  deactivateTrigger: async (triggerId: string): Promise<void> => {
+    await apiClient.post(`/forms/triggers/${triggerId}/deactivate`)
+  },
+
+  // Activate a form trigger
+  activateTrigger: async (triggerId: string): Promise<FormTrigger> => {
+    const response = await apiClient.post<FormTrigger>(`/forms/triggers/${triggerId}/activate`)
+    return response.data
+  },
+
+  // Regenerate form token
+  regenerateToken: async (triggerId: string): Promise<FormTrigger> => {
+    const response = await apiClient.post<FormTrigger>(`/forms/triggers/${triggerId}/regenerate-token`)
     return response.data
   },
 }

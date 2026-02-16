@@ -106,6 +106,14 @@ public class FormService {
     }
 
     /**
+     * Get all form triggers created by a user.
+     */
+    @Transactional(readOnly = true)
+    public List<FormTrigger> getFormTriggersForUser(UUID userId) {
+        return formTriggerRepository.findByCreatedByOrderByCreatedAtDesc(userId);
+    }
+
+    /**
      * Deactivate a form trigger.
      */
     @Transactional
@@ -115,6 +123,19 @@ public class FormService {
             trigger.setUpdatedAt(Instant.now());
             formTriggerRepository.save(trigger);
             log.info("Deactivated form trigger: id={}", triggerId);
+        });
+    }
+
+    /**
+     * Activate a form trigger.
+     */
+    @Transactional
+    public void activateFormTrigger(UUID triggerId) {
+        formTriggerRepository.findById(triggerId).ifPresent(trigger -> {
+            trigger.setIsActive(true);
+            trigger.setUpdatedAt(Instant.now());
+            formTriggerRepository.save(trigger);
+            log.info("Activated form trigger: id={}", triggerId);
         });
     }
 
