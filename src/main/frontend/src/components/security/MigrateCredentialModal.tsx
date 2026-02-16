@@ -53,7 +53,7 @@ export default function MigrateCredentialModal({
         onSuccess();
         onClose();
       } else {
-        message.error(result.message || t('recovery.migrateFailed'));
+        message.error(t('recovery.migrateFailed'));
       }
     } catch (error: unknown) {
       message.error(extractApiError(error, t('recovery.migrateFailedCheckKey')));

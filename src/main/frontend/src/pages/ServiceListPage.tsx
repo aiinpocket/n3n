@@ -45,7 +45,7 @@ export default function ServiceListPage() {
       if (result.success) {
         message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
-        message.warning(result.message || t('service.connectionFailed'))
+        message.warning(t('service.connectionFailed'))
       }
     } catch (error) {
       message.error(extractApiError(error, t('service.testConnectionFailed')))
@@ -215,8 +215,14 @@ export default function ServiceListPage() {
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t('service.noServices')}
-            />
+              description={searchText ? t('common.noMatchingResults') : t('service.noServices')}
+            >
+              {!searchText && (
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/services/new')}>
+                  {t('service.newService')}
+                </Button>
+              )}
+            </Empty>
           ),
         }}
         scroll={{ x: 800 }}

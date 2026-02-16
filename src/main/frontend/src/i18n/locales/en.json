@@ -31,6 +31,7 @@
     "createdAt": "Created At",
     "updatedAt": "Updated At",
     "total": "Total {{count}} items",
+    "noMatchingResults": "No matching results",
     "maxLength": "Maximum {{max}} characters",
     "maxItems": "Maximum {{max}} items",
     "minLength": "Minimum {{min}} characters",
@@ -859,6 +860,7 @@
     "testConnection": "Test Connection",
     "testSuccess": "Connection successful!",
     "testFailed": "Connection failed: {{message}}",
+    "connectionFailed": "Connection failed",
     "latency": "Latency",
     "modelCount": "Models",
     "setAsDefault": "Set as Default",
@@ -1872,6 +1874,7 @@
   "admin": {
     "title": "User Management",
     "createUser": "Create User",
+    "noUsers": "No users found",
     "userName": "User",
     "roles": "Roles",
     "lastLogin": "Last Login",

@@ -156,7 +156,7 @@ const CredentialListPage: React.FC = () => {
       if (result.success) {
         message.success(t('credential.testSuccess'))
       } else {
-        message.error(result.message || t('credential.testFailed', { message: t('common.error') }))
+        message.error(t('credential.connectionFailed'))
       }
     } catch (error) {
       message.error(extractApiError(error, t('credential.testFailed', { message: t('common.error') })))

@@ -241,7 +241,7 @@ export default function ServiceFormPage() {
         {testResult && (
           <Alert
             type={testResult.success ? 'success' : 'error'}
-            message={testResult.message}
+            message={testResult.success ? t('common.success') : t('service.connectionFailed')}
             showIcon
             style={{ marginBottom: 16 }}
           />

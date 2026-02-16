@@ -91,7 +91,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       if (result.success) {
         message.success(t('credential.testSuccess'))
       } else {
-        message.error(result.message || t('credential.testFailed'))
+        message.error(t('credential.connectionFailed'))
       }
     } catch {
       // Validation failed - don't show error, just let form show validation errors

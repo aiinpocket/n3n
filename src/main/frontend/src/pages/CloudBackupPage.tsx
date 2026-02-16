@@ -136,9 +136,7 @@ export default function CloudBackupPage() {
       if (res.data.status === 'completed') {
         message.success(t('backup.backupCreated'))
       } else {
-        message.error(res.data.errorMessage
-          ? `${t('backup.backupFailed')}: ${res.data.errorMessage}`
-          : t('backup.backupFailed'))
+        message.error(t('backup.backupFailed'))
       }
       fetchHistory()
     } catch (err) {

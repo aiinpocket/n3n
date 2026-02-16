@@ -84,7 +84,7 @@ const AISettingsPage: React.FC = () => {
         }
         message.success(details.join(' | '))
       } else {
-        message.error(t('ai.testFailed', { message: testResult.message }))
+        message.error(t('ai.connectionFailed'))
       }
       setTestingId(null)
       clearTestResult()

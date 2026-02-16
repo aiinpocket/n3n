@@ -31,6 +31,7 @@
     "createdAt": "作成日時",
     "updatedAt": "更新日時",
     "total": "全{{count}}件",
+    "noMatchingResults": "一致する結果がありません",
     "maxLength": "最大{{max}}文字",
     "maxItems": "最大{{max}}項目",
     "minLength": "最小{{min}}文字",
@@ -859,6 +860,7 @@
     "testConnection": "接続テスト",
     "testSuccess": "接続成功！",
     "testFailed": "接続失敗：{{message}}",
+    "connectionFailed": "接続失敗",
     "latency": "レイテンシー",
     "modelCount": "モデル数",
     "setAsDefault": "デフォルトに設定",
@@ -1872,6 +1874,7 @@
   "admin": {
     "title": "ユーザー管理",
     "createUser": "ユーザーを作成",
+    "noUsers": "ユーザーが見つかりません",
     "userName": "ユーザー",
     "roles": "ロール",
     "lastLogin": "最終ログイン",

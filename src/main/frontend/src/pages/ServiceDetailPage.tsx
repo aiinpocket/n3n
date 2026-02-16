@@ -87,7 +87,7 @@ export default function ServiceDetailPage() {
       if (result.success) {
         message.success(t('service.connectionSuccess', { latency: result.latencyMs }))
       } else {
-        message.error(result.message || t('service.connectionFailed'))
+        message.error(t('service.connectionFailed'))
       }
     } catch (error) {
       message.error(extractApiError(error, t('service.connectionFailed')))

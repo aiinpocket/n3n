@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions, Empty } from 'antd'
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -344,6 +344,20 @@ export default function AdminUsersPage() {
             showSizeChanger: true,
           }}
           scroll={{ x: 800 }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={searchText ? t('common.noMatchingResults') : t('admin.noUsers')}
+              >
+                {!searchText && (
+                  <Button type="primary" icon={<UserAddOutlined />} onClick={() => setCreateModalOpen(true)}>
+                    {t('admin.createUser')}
+                  </Button>
+                )}
+              </Empty>
+            ),
+          }}
         />
       </Card>
 
