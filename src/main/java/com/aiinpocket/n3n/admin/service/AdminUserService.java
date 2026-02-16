@@ -84,6 +84,9 @@ public class AdminUserService {
         String password = request.getPassword();
         if (password == null || password.isEmpty()) {
             password = generateRandomPassword();
+        } else {
+            // Validate password strength (same rules as user registration)
+            validatePasswordStrength(password);
         }
 
         // Create user
@@ -243,5 +246,23 @@ public class AdminUserService {
         byte[] bytes = new byte[12];
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    /**
+     * Validate password strength: at least 8 chars, with at least 3 of 4 criteria
+     * (uppercase, lowercase, digit, special char). Same rules as user registration.
+     */
+    private void validatePasswordStrength(String password) {
+        if (password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters");
+        }
+        int criteria = 0;
+        if (password.matches(".*[A-Z].*")) criteria++;
+        if (password.matches(".*[a-z].*")) criteria++;
+        if (password.matches(".*\\d.*")) criteria++;
+        if (password.matches(".*[^a-zA-Z0-9].*")) criteria++;
+        if (criteria < 3) {
+            throw new IllegalArgumentException("Password must meet at least 3 of 4 criteria: uppercase, lowercase, digit, special character");
+        }
     }
 }

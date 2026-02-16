@@ -173,11 +173,11 @@ class AdminUserServiceTest extends BaseServiceTest {
             CreateUserRequest request = new CreateUserRequest();
             request.setEmail("new@example.com");
             request.setName("New User");
-            request.setPassword("securePassword123");
+            request.setPassword("SecurePass123!");
             request.setRoles(Set.of("USER"));
 
             when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
-            when(passwordEncoder.encode("securePassword123")).thenReturn("encoded-pass");
+            when(passwordEncoder.encode("SecurePass123!")).thenReturn("encoded-pass");
             when(userRepository.save(any(User.class))).thenAnswer(inv -> {
                 User u = inv.getArgument(0);
                 u.setId(UUID.randomUUID());
@@ -188,9 +188,9 @@ class AdminUserServiceTest extends BaseServiceTest {
 
             assertThat(result.getEmail()).isEqualTo("new@example.com");
             assertThat(result.getName()).isEqualTo("New User");
-            verify(passwordEncoder).encode("securePassword123");
+            verify(passwordEncoder).encode("SecurePass123!");
             verify(userRoleRepository).save(argThat(r -> "USER".equals(r.getRole())));
-            verify(emailService).sendUserInvitation(eq("new@example.com"), eq("New User"), eq("securePassword123"));
+            verify(emailService).sendUserInvitation(eq("new@example.com"), eq("New User"), eq("SecurePass123!"));
             verify(activityService).logActivity(eq(adminId), eq(ActivityService.USER_CREATE), any(), any(), any(), any());
         }
 
@@ -234,7 +234,7 @@ class AdminUserServiceTest extends BaseServiceTest {
             CreateUserRequest request = new CreateUserRequest();
             request.setEmail("new@example.com");
             request.setName("Multi Role User");
-            request.setPassword("pass1234");
+            request.setPassword("Pass1234!");
             request.setRoles(Set.of("USER", "ADMIN"));
 
             when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
