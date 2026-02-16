@@ -1436,6 +1436,8 @@
     "backupTitle": "備份您的 Recovery Key",
     "importantWarning": "重要：此 Recovery Key 只會顯示一次",
     "writeDownInstructions": "請將這 12 個單詞抄寫在紙上並妥善保管。遺失此 Key 將無法還原您的加密資料。",
+    "downloadAsFile": "下載為檔案",
+    "downloadSuccess": "Recovery Key 已下載",
     "backupDoneVerify": "我已經備份完成，進行驗證",
     "verifyPrompt": "請輸入您剛才備份的 Recovery Key 以驗證",
     "verifyDescription": "輸入 12 個單詞，以空格分隔",

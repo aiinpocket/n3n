@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Modal, Alert, Button, Space, Input, message } from 'antd';
-import { CopyOutlined, KeyOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { CopyOutlined, KeyOutlined, CheckCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';
 import { extractApiError } from '../../utils/errorMessages';
@@ -25,6 +25,24 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
+
+  const handleDownload = () => {
+    const content = [
+      `N3N Recovery Key - ${new Date().toISOString().split('T')[0]}`,
+      '',
+      recoveryKey.map((word, i) => `${i + 1}. ${word}`).join('\n'),
+      '',
+      t('recovery.importantWarning'),
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'n3n-recovery-key.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    message.success(t('recovery.downloadSuccess'));
+  };
 
   const handleCopy = async () => {
     try {
@@ -127,13 +145,22 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
           </div>
 
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Button
-              icon={copied ? <CheckCircleOutlined /> : <CopyOutlined />}
-              onClick={handleCopy}
-              block
-            >
-              {copied ? t('recovery.copied') : t('recovery.copyToClipboard')}
-            </Button>
+            <Space style={{ width: '100%' }}>
+              <Button
+                icon={copied ? <CheckCircleOutlined /> : <CopyOutlined />}
+                onClick={handleCopy}
+                style={{ flex: 1 }}
+              >
+                {copied ? t('recovery.copied') : t('recovery.copyToClipboard')}
+              </Button>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleDownload}
+                style={{ flex: 1 }}
+              >
+                {t('recovery.downloadAsFile')}
+              </Button>
+            </Space>
 
             <Button
               type="primary"

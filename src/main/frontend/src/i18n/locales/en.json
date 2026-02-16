@@ -1436,6 +1436,8 @@
     "backupTitle": "Backup Your Recovery Key",
     "importantWarning": "Important: This Recovery Key will only be displayed once",
     "writeDownInstructions": "Write down these 12 words on paper and store them safely. If you lose this key, you will not be able to recover your encrypted data.",
+    "downloadAsFile": "Download as File",
+    "downloadSuccess": "Recovery key downloaded",
     "backupDoneVerify": "I have backed up, proceed to verify",
     "verifyPrompt": "Enter your Recovery Key to verify the backup",
     "verifyDescription": "Enter 12 words separated by spaces",

@@ -1436,6 +1436,8 @@
     "backupTitle": "Recovery Key をバックアップ",
     "importantWarning": "重要：この Recovery Key は一度だけ表示されます",
     "writeDownInstructions": "この12個の単語を紙に書き留めて安全に保管してください。このキーを紛失すると、暗号化データを復元できなくなります。",
+    "downloadAsFile": "ファイルとしてダウンロード",
+    "downloadSuccess": "リカバリーキーをダウンロードしました",
     "backupDoneVerify": "バックアップ完了、検証に進む",
     "verifyPrompt": "バックアップした Recovery Key を入力して検証",
     "verifyDescription": "12個の単語をスペースで区切って入力",
