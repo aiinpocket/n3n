@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AICodeController {
 
     private final AIAssistantService aiAssistantService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     /**
      * 生成程式碼
@@ -40,6 +41,9 @@ public class AICodeController {
         log.info("Code generation request: language={}, description length={}",
             request.getLanguage(),
             request.getDescription() != null ? request.getDescription().length() : 0);
+
+        // Rate limit: 5 code generation requests per minute per user
+        ipRateLimiter.checkAllowed("ai-code-generate", user.getId().toString(), 5, 60);
 
         try {
             GenerateCodeResponse response = aiAssistantService.generateCode(request, user.getId());

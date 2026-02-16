@@ -37,6 +37,9 @@ class ExecutionControllerTest {
     @Mock
     private ExecutionService executionService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private ExecutionController executionController;
 

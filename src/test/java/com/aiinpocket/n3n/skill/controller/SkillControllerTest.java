@@ -26,6 +26,9 @@ class SkillControllerTest {
     @Mock
     private SkillService skillService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private SkillController skillController;
 

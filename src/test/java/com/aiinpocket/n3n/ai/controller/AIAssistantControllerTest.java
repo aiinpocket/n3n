@@ -49,6 +49,9 @@ class AIAssistantControllerTest {
     @Mock
     private ConversationManager conversationManager;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private AIAssistantController controller;
 

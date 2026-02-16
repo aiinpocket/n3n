@@ -38,6 +38,7 @@ public class AIAssistantController {
     private final SimilarFlowsService similarFlowsService;
     private final FlowShareService flowShareService;
     private final ConversationManager conversationManager;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     /**
      * AI 對話串流 API
@@ -54,6 +55,8 @@ public class AIAssistantController {
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
         UUID userId = requireUserId(principal);
+        // Rate limit: 20 AI chat requests per minute per user
+        ipRateLimiter.checkAllowed("ai-chat", userId.toString(), 20, 60);
         return aiAssistantService.chatStream(request, userId)
             .map(chunk -> ServerSentEvent.<ChatStreamChunk>builder()
                 .data(chunk)
@@ -73,6 +76,8 @@ public class AIAssistantController {
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
         UUID userId = requireUserId(principal);
+        // Rate limit: shares counter with chat/stream
+        ipRateLimiter.checkAllowed("ai-chat", userId.toString(), 20, 60);
         ChatResponse response = aiAssistantService.chat(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -168,6 +173,8 @@ public class AIAssistantController {
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
 
         UUID userId = requireUserId(principal);
+        // Rate limit: 5 flow generation requests per minute per user
+        ipRateLimiter.checkAllowed("ai-generate-flow", userId.toString(), 5, 60);
         GenerateFlowResponse response = aiAssistantService.generateFlow(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -194,6 +201,8 @@ public class AIAssistantController {
             request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(50, request.getUserInput().length())) + "..." : "null");
 
         UUID userId = requireUserId(principal);
+        // Rate limit: shares counter with generate-flow
+        ipRateLimiter.checkAllowed("ai-generate-flow", userId.toString(), 5, 60);
         return aiAssistantService.generateFlowStream(request, userId)
             .map(chunk -> ServerSentEvent.<FlowGenerationChunk>builder()
                 .data(chunk)

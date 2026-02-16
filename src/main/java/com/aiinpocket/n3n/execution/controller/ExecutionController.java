@@ -36,6 +36,7 @@ public class ExecutionController {
             "pending", "running", "completed", "failed", "cancelled", "waiting", "paused");
 
     private final ExecutionService executionService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     @GetMapping
     public ResponseEntity<Page<ExecutionResponse>> listExecutions(
@@ -102,6 +103,8 @@ public class ExecutionController {
             @Valid @RequestBody CreateExecutionRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        // Rate limit: 10 flow executions per minute per user
+        ipRateLimiter.checkAllowed("execution-create", userId.toString(), 10, 60);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(executionService.createExecution(request, userId));
     }

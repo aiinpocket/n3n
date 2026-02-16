@@ -23,6 +23,8 @@ import java.util.UUID;
 @Tag(name = "Skills", description = "Skill management and execution")
 public class SkillController {
 
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     private final SkillService skillService;
 
     /**
@@ -131,6 +133,8 @@ public class SkillController {
             @Valid @RequestBody ExecuteSkillRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        // Rate limit: 10 skill executions per minute per user
+        ipRateLimiter.checkAllowed("skill-execute", userId.toString(), 10, 60);
         SkillResult result = skillService.executeSkill(id, request.getInput(), userId);
 
         if (result.isSuccess()) {
@@ -156,6 +160,8 @@ public class SkillController {
             @Valid @RequestBody ExecuteSkillRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        // Rate limit: shares counter with executeSkill
+        ipRateLimiter.checkAllowed("skill-execute", userId.toString(), 10, 60);
         SkillResult result = skillService.executeSkillByName(name, request.getInput(), userId);
 
         if (result.isSuccess()) {
