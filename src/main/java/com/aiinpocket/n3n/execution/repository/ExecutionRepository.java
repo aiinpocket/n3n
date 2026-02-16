@@ -18,6 +18,8 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
 
     Page<Execution> findByFlowVersionIdOrderByStartedAtDesc(UUID flowVersionId, Pageable pageable);
 
+    Page<Execution> findByFlowVersionIdAndTriggeredByOrderByStartedAtDesc(UUID flowVersionId, UUID triggeredBy, Pageable pageable);
+
     Page<Execution> findByTriggeredByOrderByStartedAtDesc(UUID triggeredBy, Pageable pageable);
 
     List<Execution> findByFlowVersionIdAndStatus(UUID flowVersionId, String status);

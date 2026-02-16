@@ -171,14 +171,40 @@ class ExecutionServiceTest extends BaseServiceTest {
             when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
             when(flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
                     .thenReturn(List.of(draft, testVersion));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId))
+                    .thenReturn(Optional.of(testFlow));
             when(executionRepository.findByFlowVersionIdOrderByStartedAtDesc(testVersion.getId(), pageable))
                     .thenReturn(Page.empty());
 
             // When
             executionService.listExecutionsByFlow(flowId, userId, pageable);
 
-            // Then
+            // Then — owner sees all executions
             verify(executionRepository).findByFlowVersionIdOrderByStartedAtDesc(testVersion.getId(), pageable);
+        }
+
+        @Test
+        void listExecutionsByFlow_sharedUser_seesOnlyOwnExecutions() {
+            // Given
+            UUID sharedUserId = UUID.randomUUID();
+            Pageable pageable = PageRequest.of(0, 10);
+
+            when(flowShareService.hasAccess(flowId, sharedUserId)).thenReturn(true);
+            when(flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
+                    .thenReturn(List.of(testVersion));
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId))
+                    .thenReturn(Optional.of(testFlow));
+            when(executionRepository.findByFlowVersionIdAndTriggeredByOrderByStartedAtDesc(
+                    testVersion.getId(), sharedUserId, pageable))
+                    .thenReturn(Page.empty());
+
+            // When
+            executionService.listExecutionsByFlow(flowId, sharedUserId, pageable);
+
+            // Then — shared user only sees their own executions
+            verify(executionRepository).findByFlowVersionIdAndTriggeredByOrderByStartedAtDesc(
+                    testVersion.getId(), sharedUserId, pageable);
+            verify(executionRepository, never()).findByFlowVersionIdOrderByStartedAtDesc(any(), any());
         }
     }
 

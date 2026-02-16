@@ -76,9 +76,9 @@ persistence:
 
 # Application configuration
 config:
-  # JWT secret - MUST be set in production
+  # JWT secret - auto-generated if not set; set explicitly for multi-replica consistency
   jwtSecret: ""
-  # Encryption key for credentials
+  # Master encryption key for credentials (maps to N3N_MASTER_KEY env var)
   encryptionKey: ""
   # Allowed CORS origins (comma-separated)
   allowedOrigins: "https://n3n.local"

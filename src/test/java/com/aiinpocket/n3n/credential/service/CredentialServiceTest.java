@@ -177,6 +177,8 @@ class CredentialServiceTest extends BaseServiceTest {
         void getCredential_asOwner_returnsCredential() {
             when(credentialRepository.findById(credentialId))
                     .thenReturn(Optional.of(privateCredential));
+            when(credentialRepository.isAccessibleByUser(credentialId, userId))
+                    .thenReturn(true);
 
             CredentialResponse result = credentialService.getCredential(credentialId, userId);
 
@@ -190,6 +192,8 @@ class CredentialServiceTest extends BaseServiceTest {
         void getCredential_sharedToNonOwner_returnsCredential() {
             when(credentialRepository.findById(sharedCredential.getId()))
                     .thenReturn(Optional.of(sharedCredential));
+            when(credentialRepository.isAccessibleByUser(sharedCredential.getId(), otherUserId))
+                    .thenReturn(true);
 
             CredentialResponse result = credentialService.getCredential(
                     sharedCredential.getId(), otherUserId);
@@ -203,6 +207,8 @@ class CredentialServiceTest extends BaseServiceTest {
         void getCredential_privateNotOwner_throwsException() {
             when(credentialRepository.findById(credentialId))
                     .thenReturn(Optional.of(privateCredential));
+            when(credentialRepository.isAccessibleByUser(credentialId, otherUserId))
+                    .thenReturn(false);
 
             assertThatThrownBy(() -> credentialService.getCredential(credentialId, otherUserId))
                     .isInstanceOf(ResourceNotFoundException.class)

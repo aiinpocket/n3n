@@ -57,8 +57,8 @@ public class CredentialService {
         Credential credential = credentialRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));
 
-        // Check access
-        if (!credential.getOwnerId().equals(userId) && Status.Visibility.PRIVATE.equals(credential.getVisibility())) {
+        // Check access: owner, shared visibility, or explicit share record
+        if (!credentialRepository.isAccessibleByUser(id, userId)) {
             throw new ResourceNotFoundException("Credential not found: " + id);
         }
 

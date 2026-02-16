@@ -94,7 +94,14 @@ public class ExecutionService {
             .findFirst()
             .orElse(versions.get(0));
 
-        Page<Execution> page = executionRepository.findByFlowVersionIdOrderByStartedAtDesc(published.getId(), pageable);
+        // Flow owner sees all executions; shared users only see their own
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
+        Page<Execution> page;
+        if (flow != null && flow.getCreatedBy().equals(userId)) {
+            page = executionRepository.findByFlowVersionIdOrderByStartedAtDesc(published.getId(), pageable);
+        } else {
+            page = executionRepository.findByFlowVersionIdAndTriggeredByOrderByStartedAtDesc(published.getId(), userId, pageable);
+        }
         return enrichExecutionPage(page);
     }
 

@@ -290,6 +290,7 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 | `DATABASE_PASSWORD` | `n3n` | 資料庫密碼 |
 | `REDIS_HOST` | `localhost` | Redis 主機 |
 | `REDIS_PORT` | `6379` | Redis 連接埠 |
+| `REDIS_PASSWORD` | （空） | Redis 密碼（設定後自動啟用認證） |
 
 ### 安全設定
 
