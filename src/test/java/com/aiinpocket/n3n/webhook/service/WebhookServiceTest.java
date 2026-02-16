@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.execution.dto.ExecutionResponse;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
@@ -33,6 +34,9 @@ class WebhookServiceTest extends BaseServiceTest {
 
     @Mock
     private FlowVersionRepository flowVersionRepository;
+
+    @Mock
+    private FlowShareService flowShareService;
 
     @InjectMocks
     private WebhookService webhookService;
@@ -67,7 +71,8 @@ class WebhookServiceTest extends BaseServiceTest {
         webhook.setCreatedBy(userId);
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
-        when(webhookRepository.findByFlowIdOrderByCreatedAtDesc(flowId))
+        when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
+        when(webhookRepository.findByFlowIdAndCreatedByOrderByCreatedAtDesc(flowId, userId))
                 .thenReturn(List.of(webhook));
 
         // When
@@ -76,6 +81,18 @@ class WebhookServiceTest extends BaseServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getFlowId()).isEqualTo(flowId);
+    }
+
+    @Test
+    void listWebhooksForFlow_noAccess_throwsAccessDenied() {
+        // Given
+        UUID flowId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(flowShareService.hasAccess(flowId, userId)).thenReturn(false);
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.listWebhooksForFlow(flowId, userId))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
     }
 
     // ========== Get Tests ==========
@@ -115,14 +132,16 @@ class WebhookServiceTest extends BaseServiceTest {
     void createWebhook_validRequest_createsWebhook() {
         // Given
         UUID userId = UUID.randomUUID();
+        UUID flowId = UUID.randomUUID();
         CreateWebhookRequest request = new CreateWebhookRequest();
-        request.setFlowId(UUID.randomUUID());
+        request.setFlowId(flowId);
         request.setName("Test Webhook");
         request.setPath("test-hook");
         request.setMethod("POST");
 
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
+        when(flowShareService.getUserPermission(flowId, userId)).thenReturn("owner");
         when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);
@@ -140,14 +159,52 @@ class WebhookServiceTest extends BaseServiceTest {
     }
 
     @Test
+    void createWebhook_noFlowAccess_throwsAccessDenied() {
+        // Given
+        UUID userId = UUID.randomUUID();
+        UUID flowId = UUID.randomUUID();
+        CreateWebhookRequest request = new CreateWebhookRequest();
+        request.setFlowId(flowId);
+        request.setName("Test Webhook");
+        request.setPath("test-hook");
+
+        when(flowShareService.getUserPermission(flowId, userId)).thenReturn(null);
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.createWebhook(request, userId))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        verify(webhookRepository, never()).save(any());
+    }
+
+    @Test
+    void createWebhook_viewOnlyAccess_throwsAccessDenied() {
+        // Given
+        UUID userId = UUID.randomUUID();
+        UUID flowId = UUID.randomUUID();
+        CreateWebhookRequest request = new CreateWebhookRequest();
+        request.setFlowId(flowId);
+        request.setName("Test Webhook");
+        request.setPath("test-hook");
+
+        when(flowShareService.getUserPermission(flowId, userId)).thenReturn("view");
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.createWebhook(request, userId))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        verify(webhookRepository, never()).save(any());
+    }
+
+    @Test
     void createWebhook_duplicatePath_throwsException() {
         // Given
         UUID userId = UUID.randomUUID();
+        UUID flowId = UUID.randomUUID();
         CreateWebhookRequest request = new CreateWebhookRequest();
-        request.setFlowId(UUID.randomUUID());
+        request.setFlowId(flowId);
         request.setName("Test Webhook");
         request.setPath("existing-path");
 
+        when(flowShareService.getUserPermission(flowId, userId)).thenReturn("owner");
         when(webhookRepository.existsByPathAndMethod("existing-path", "POST")).thenReturn(true);
 
         // When/Then
@@ -160,14 +217,16 @@ class WebhookServiceTest extends BaseServiceTest {
     void createWebhook_nullMethod_defaultsToPost() {
         // Given
         UUID userId = UUID.randomUUID();
+        UUID flowId = UUID.randomUUID();
         CreateWebhookRequest request = new CreateWebhookRequest();
-        request.setFlowId(UUID.randomUUID());
+        request.setFlowId(flowId);
         request.setName("Test Webhook");
         request.setPath("test-hook");
         request.setMethod(null);
 
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
+        when(flowShareService.getUserPermission(flowId, userId)).thenReturn("edit");
         when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);

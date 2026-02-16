@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.execution.dto.CreateExecutionRequest;
 import com.aiinpocket.n3n.execution.service.ExecutionService;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import com.aiinpocket.n3n.webhook.dto.CreateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
@@ -33,6 +34,7 @@ public class WebhookService {
     private final WebhookRepository webhookRepository;
     private final ExecutionService executionService;
     private final FlowVersionRepository flowVersionRepository;
+    private final FlowShareService flowShareService;
     private final ObjectMapper objectMapper;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -46,9 +48,12 @@ public class WebhookService {
     }
 
     public List<WebhookResponse> listWebhooksForFlow(UUID flowId, UUID userId) {
-        return webhookRepository.findByFlowIdOrderByCreatedAtDesc(flowId)
+        // Validate user has access to the flow
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied to flow: " + flowId);
+        }
+        return webhookRepository.findByFlowIdAndCreatedByOrderByCreatedAtDesc(flowId, userId)
             .stream()
-            .filter(w -> userId.equals(w.getCreatedBy()))
             .map(w -> WebhookResponse.from(w, baseUrl))
             .toList();
     }
@@ -69,6 +74,12 @@ public class WebhookService {
 
     @Transactional
     public WebhookResponse createWebhook(CreateWebhookRequest request, UUID userId) {
+        // Validate user has EDIT access to the flow (prevents IDOR)
+        String permission = flowShareService.getUserPermission(request.getFlowId(), userId);
+        if (permission == null || "view".equals(permission)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied to flow: " + request.getFlowId());
+        }
+
         String method = request.getMethod() != null ? request.getMethod().toUpperCase() : "POST";
         if (webhookRepository.existsByPathAndMethod(request.getPath(), method)) {
             throw new IllegalArgumentException("Webhook path already exists for method " + method + ": " + request.getPath());

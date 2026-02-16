@@ -18,6 +18,8 @@ public interface WebhookRepository extends JpaRepository<Webhook, UUID> {
 
     List<Webhook> findByFlowIdOrderByCreatedAtDesc(UUID flowId);
 
+    List<Webhook> findByFlowIdAndCreatedByOrderByCreatedAtDesc(UUID flowId, UUID createdBy);
+
     List<Webhook> findByCreatedByOrderByCreatedAtDesc(UUID createdBy);
 
     boolean existsByPath(String path);
