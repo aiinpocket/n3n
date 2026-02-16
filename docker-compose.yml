@@ -18,10 +18,10 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       # JWT Secret 自動產生，無需設定
       # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
-      # CORS
-      ALLOWED_ORIGINS: http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000
-      # Flow Optimizer
-      FLOW_OPTIMIZER_ENABLED: "true"
+      # CORS（生產環境請在 .env 中設定你的域名）
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000}
+      # Flow Optimizer（記憶體不足時可在 .env 中設為 false）
+      FLOW_OPTIMIZER_ENABLED: ${FLOW_OPTIMIZER_ENABLED:-true}
       FLOW_OPTIMIZER_URL: http://flow-optimizer:8081
     volumes:
       - app_data:/data
