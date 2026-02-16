@@ -20,6 +20,7 @@ import java.util.UUID;
  * WebSocket channel interceptor that:
  * 1. Sets user Principal on CONNECT (required for convertAndSendToUser)
  * 2. Validates SUBSCRIBE destinations to prevent unauthorized access
+ * 3. Blocks client SEND to broker topics (only backend may publish)
  */
 @Component
 @RequiredArgsConstructor
@@ -47,6 +48,8 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
                     validateUserTopicSubscription(accessor, destination);
                 }
             }
+        } else if (StompCommand.SEND.equals(accessor.getCommand())) {
+            validateSendDestination(accessor);
         }
 
         return message;
@@ -113,6 +116,21 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
         if (!userId.toString().equals(topicUserId)) {
             log.warn("User {} attempted to subscribe to another user's topic: {}", userId, destination);
             throw new MessagingException("Access denied: cannot subscribe to another user's topic");
+        }
+    }
+
+    /**
+     * Block clients from sending messages directly to broker topics.
+     * Only the backend (via SimpMessagingTemplate) should publish to /topic/ and /queue/.
+     * Clients have no legitimate SEND destinations since there are no @MessageMapping handlers.
+     */
+    private void validateSendDestination(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        if (destination != null && (destination.startsWith("/topic/") || destination.startsWith("/queue/"))) {
+            Principal user = accessor.getUser();
+            String userId = user != null ? user.getName() : "unknown";
+            log.warn("User {} attempted to SEND to broker destination: {}", userId, destination);
+            throw new MessagingException("Forbidden: clients cannot publish to broker topics");
         }
     }
 
