@@ -343,6 +343,7 @@
     "noVersion": "請先儲存版本以進行測試",
     "testDraft": "測試草稿",
     "testDraftHint": "測試草稿版本 — 結果不會影響已發布的流程",
+    "canvasAriaLabel": "流程編輯畫布 — 拖曳連接節點，點擊選取",
     "executeAndMonitor": "執行並監控",
     "saveVersion": "儲存版本",
     "versionNumber": "版本號",

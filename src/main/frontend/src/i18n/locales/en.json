@@ -343,6 +343,7 @@
     "noVersion": "Save a version first to test",
     "testDraft": "Test Draft",
     "testDraftHint": "Testing draft version — results will not affect published flow",
+    "canvasAriaLabel": "Flow editor canvas — drag to connect nodes, click to select",
     "executeAndMonitor": "Execute & Monitor",
     "saveVersion": "Save Version",
     "versionNumber": "Version Number",

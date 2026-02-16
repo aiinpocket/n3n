@@ -994,6 +994,7 @@ export default function FlowEditorPage() {
           edges={edges}
           nodeTypes={memoizedNodeTypes}
           edgeTypes={customEdgeTypes}
+          aria-label={t('editor.canvasAriaLabel')}
           defaultEdgeOptions={{
             type: 'custom',
             animated: false,

@@ -174,8 +174,14 @@ export default function FlowListPage() {
     }
   }
 
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
   const handleShareFlow = async () => {
     if (!shareFlow || !shareEmail) return
+    if (!isValidEmail(shareEmail)) {
+      message.warning(t('share.invalidEmail'))
+      return
+    }
     setShareActionLoading(true)
     try {
       await flowShareApi.share(shareFlow.id, { email: shareEmail, permission: sharePermission })

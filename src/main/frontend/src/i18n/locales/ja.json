@@ -343,6 +343,7 @@
     "noVersion": "テストするにはまずバージョンを保存してください",
     "testDraft": "ドラフトをテスト",
     "testDraftHint": "ドラフトバージョンをテスト中 — 公開フローには影響しません",
+    "canvasAriaLabel": "フローエディタキャンバス — ドラッグで接続、クリックで選択",
     "executeAndMonitor": "実行して監視",
     "saveVersion": "バージョンを保存",
     "versionNumber": "バージョン番号",
