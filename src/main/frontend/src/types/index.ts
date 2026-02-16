@@ -96,6 +96,7 @@ export interface NodeExecution {
   completedAt: string | null
   durationMs: number | null
   errorMessage: string | null
+  errorStack: string | null
 }
 
 export type NodeStatus =

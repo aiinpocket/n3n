@@ -30,6 +30,8 @@ import {
   DatabaseOutlined,
   ExclamationCircleOutlined,
   FileTextOutlined,
+  CopyOutlined,
+  CodeOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
@@ -95,6 +97,7 @@ export default function ExecutionPage() {
   const [approvalComment, setApprovalComment] = useState('')
   const [submittingApproval, setSubmittingApproval] = useState(false)
   const [executionOutput, setExecutionOutput] = useState<Record<string, unknown> | null>(null)
+  const [expandedErrorNode, setExpandedErrorNode] = useState<string | null>(null)
 
   const { execution, isConnected } = useExecutionMonitor(id)
   const { startExecution, cancelExecution } = useExecutionActions()
@@ -527,7 +530,48 @@ export default function ExecutionPage() {
                       </Space>
                       {node.errorMessage && (
                         <div style={{ marginTop: 4 }}>
-                          <Text type="danger">{node.errorMessage}</Text>
+                          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                            <Space>
+                              <Text type="danger">{node.errorMessage}</Text>
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<CopyOutlined />}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(node.errorMessage || '')
+                                  message.success(t('common.copied'))
+                                }}
+                                aria-label={t('execution.copyError')}
+                              />
+                            </Space>
+                            {node.errorStack && (
+                              <>
+                                <Button
+                                  type="link"
+                                  size="small"
+                                  icon={<CodeOutlined />}
+                                  onClick={() => setExpandedErrorNode(expandedErrorNode === node.nodeId ? null : node.nodeId)}
+                                >
+                                  {expandedErrorNode === node.nodeId ? t('execution.hideErrorStack') : t('execution.showErrorStack')}
+                                </Button>
+                                {expandedErrorNode === node.nodeId && (
+                                  <pre style={{
+                                    background: 'var(--color-bg-elevated)',
+                                    color: 'var(--color-text-primary)',
+                                    padding: 12,
+                                    borderRadius: 6,
+                                    overflow: 'auto',
+                                    maxHeight: 300,
+                                    fontSize: 12,
+                                    lineHeight: 1.5,
+                                    margin: 0,
+                                  }}>
+                                    {node.errorStack}
+                                  </pre>
+                                )}
+                              </>
+                            )}
+                          </Space>
                         </div>
                       )}
                     </div>
