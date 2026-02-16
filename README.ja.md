@@ -107,6 +107,8 @@ docker compose up -d
 
 ### 3. 使い始める
 
+> **初回起動には時間がかかります**：サービスの起動には約60-90秒かかります。その間、ブラウザに「接続できません」と表示される場合があります。`docker compose ps` で全コンテナが `running (healthy)` と表示されてからブラウザを開いてください。
+
 ブラウザを開いて、次のアドレスにアクセス：**http://localhost:8080**
 
 初回セットアップでは以下をガイドします：
@@ -157,7 +159,19 @@ docker compose ps
 
 ### 起動に失敗した場合は？
 
-Dockerが実行中であることを確認してから、再試行してください：
+まずログを確認して原因を特定してください：
+```bash
+# リアルタイムログを表示
+docker compose logs -f app
+
+# 全サービスの状態を確認
+docker compose ps
+
+# データベース移行ログを確認（DB問題の場合）
+docker compose logs postgres
+```
+
+問題が解決しない場合は、再起動してください：
 ```bash
 docker compose down
 docker compose up -d
@@ -181,10 +195,16 @@ docker compose down
 ### 最新バージョンに更新するには？
 
 ```bash
+# 推奨：事前にデータベースをバックアップ（念のため）
+docker compose exec postgres pg_dump -U n3n n3n > backup_$(date +%Y%m%d).sql
+
+# 更新して再起動
 git pull
 docker compose down
 docker compose up -d --build
 ```
+
+> **データの安全性**：更新は通常データに影響しません（Flywayがデータベース移行を自動処理します）が、バックアップは常に良い習慣です。
 
 ### データベースにアクセスするには（開発用）？
 

@@ -107,6 +107,8 @@ docker compose up -d
 
 ### 3. Start Using
 
+> **First startup takes time**: Services need about 60-90 seconds to start. Your browser may show "Unable to connect" during this time. Use `docker compose ps` to confirm all containers show `running (healthy)` before opening the browser.
+
 Open your browser and go to: **http://localhost:8080**
 
 First-time setup will guide you through:
@@ -159,7 +161,19 @@ docker compose ps
 
 ### What if startup fails?
 
-Make sure Docker is running, then retry:
+First check the logs to find the cause:
+```bash
+# View real-time logs
+docker compose logs -f app
+
+# Check all service status
+docker compose ps
+
+# Check database migration logs (if database issue)
+docker compose logs postgres
+```
+
+If the issue persists, restart:
 ```bash
 docker compose down
 docker compose up -d
@@ -187,10 +201,16 @@ docker compose down
 ### How to update to the latest version?
 
 ```bash
+# Recommended: back up the database first (just in case)
+docker compose exec postgres pg_dump -U n3n n3n > backup_$(date +%Y%m%d).sql
+
+# Update and restart
 git pull
 docker compose down
 docker compose up -d --build
 ```
+
+> **Data safety**: Updates usually don't affect your data (Flyway handles database migrations automatically), but backing up is always a good idea.
 
 ### How to access the database (for development)?
 

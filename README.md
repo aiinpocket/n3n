@@ -107,6 +107,8 @@ docker compose up -d
 
 ### 3. 開始使用
 
+> **首次啟動需要等待**：服務啟動約需 60-90 秒，期間瀏覽器可能顯示「無法連線」。可用 `docker compose ps` 確認所有容器狀態為 `running (healthy)` 後再開啟瀏覽器。
+
 打開瀏覽器，前往：**http://localhost:8080**
 
 首次使用會引導你：
@@ -159,7 +161,19 @@ docker compose ps
 
 ### 啟動失敗怎麼辦？
 
-確認 Docker 正在運行，然後重試：
+先查看日誌找出原因：
+```bash
+# 查看即時日誌
+docker compose logs -f app
+
+# 查看所有服務狀態
+docker compose ps
+
+# 查看資料庫遷移日誌（如果是資料庫問題）
+docker compose logs postgres
+```
+
+如果仍無法解決，重新啟動：
 ```bash
 docker compose down
 docker compose up -d
@@ -187,10 +201,16 @@ docker compose down
 ### 如何更新到最新版本？
 
 ```bash
+# 建議先備份資料庫（以防萬一）
+docker compose exec postgres pg_dump -U n3n n3n > backup_$(date +%Y%m%d).sql
+
+# 更新並重啟
 git pull
 docker compose down
 docker compose up -d --build
 ```
+
+> **資料安全**：更新通常不會影響資料（Flyway 自動處理資料庫遷移），但備份總是好的。
 
 ### 如何存取資料庫（開發用）？
 
