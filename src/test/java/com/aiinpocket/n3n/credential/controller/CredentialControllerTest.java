@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.credential.controller;
 
 import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
@@ -45,6 +46,9 @@ class CredentialControllerTest {
     @Mock
     private ActivityService activityService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private CredentialController credentialController;
 
@@ -53,6 +57,12 @@ class CredentialControllerTest {
                 .password("test")
                 .authorities("ROLE_USER")
                 .build();
+    }
+
+    private HttpServletRequest mockHttpRequest() {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        lenient().when(req.getRemoteAddr()).thenReturn("127.0.0.1");
+        return req;
     }
 
     private CredentialResponse sampleCredentialResponse() {
@@ -485,7 +495,7 @@ class CredentialControllerTest {
         var testResult = ConnectionTestResult.success("PostgreSQL connection successful", 42L, "PostgreSQL 15.2");
         when(connectionTestService.testConnection(eq("postgres"), any())).thenReturn(testResult);
 
-        var result = credentialController.testConnection(request, user);
+        var result = credentialController.testConnection(request, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -505,7 +515,7 @@ class CredentialControllerTest {
         var testResult = ConnectionTestResult.failure("Connection test failed", 5000L);
         when(connectionTestService.testConnection(eq("redis"), any())).thenReturn(testResult);
 
-        var result = credentialController.testConnection(request, user);
+        var result = credentialController.testConnection(request, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -525,7 +535,7 @@ class CredentialControllerTest {
         var testResult = ConnectionTestResult.failure("Unsupported credential type: unknown-db", 1L);
         when(connectionTestService.testConnection(eq("unknown-db"), any())).thenReturn(testResult);
 
-        var result = credentialController.testConnection(request, user);
+        var result = credentialController.testConnection(request, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -543,7 +553,7 @@ class CredentialControllerTest {
         var testResult = ConnectionTestResult.success("MongoDB connection successful", 85L, "MongoDB 7.0.4");
         when(connectionTestService.testSavedCredential(eq(credentialId), any(UUID.class))).thenReturn(testResult);
 
-        var result = credentialController.testSavedCredential(credentialId, user);
+        var result = credentialController.testSavedCredential(credentialId, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -559,7 +569,7 @@ class CredentialControllerTest {
         when(connectionTestService.testSavedCredential(eq(credentialId), any(UUID.class)))
                 .thenThrow(new ResourceNotFoundException("Credential not found"));
 
-        assertThatThrownBy(() -> credentialController.testSavedCredential(credentialId, user))
+        assertThatThrownBy(() -> credentialController.testSavedCredential(credentialId, user, mockHttpRequest()))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Credential not found");
     }
@@ -572,7 +582,7 @@ class CredentialControllerTest {
         var testResult = ConnectionTestResult.failure("Connection test failed", 10000L);
         when(connectionTestService.testSavedCredential(eq(credentialId), any(UUID.class))).thenReturn(testResult);
 
-        var result = credentialController.testSavedCredential(credentialId, user);
+        var result = credentialController.testSavedCredential(credentialId, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();

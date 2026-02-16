@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.backup.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.backup.dto.request.ImportSyncRequest;
 import com.aiinpocket.n3n.backup.dto.request.ScanRemoteRequest;
 import com.aiinpocket.n3n.backup.dto.response.CloudSyncImportResult;
@@ -8,6 +9,7 @@ import com.aiinpocket.n3n.backup.dto.response.CloudSyncStatus;
 import com.aiinpocket.n3n.backup.service.CloudSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +31,14 @@ import java.util.UUID;
 public class CloudSyncController {
 
     private final CloudSyncService cloudSyncService;
+    private final IpRateLimiter ipRateLimiter;
 
     @PostMapping("/scan")
     @Operation(summary = "掃描遠端同步資料")
     public ResponseEntity<CloudSyncManifest> scan(
-            @Valid @RequestBody ScanRemoteRequest request) {
+            @Valid @RequestBody ScanRemoteRequest request,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("cloud-sync-scan", httpRequest.getRemoteAddr(), 5, 60);
         return ResponseEntity.ok(
                 cloudSyncService.listRemoteEntities(request.getRecoveryKeyPhrase()));
     }
@@ -42,7 +47,9 @@ public class CloudSyncController {
     @Operation(summary = "匯入遠端資料並重新加密")
     public ResponseEntity<CloudSyncImportResult> importEntities(
             @Valid @RequestBody ImportSyncRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("cloud-sync-import", httpRequest.getRemoteAddr(), 3, 60);
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(
                 cloudSyncService.importFromRecoveryKey(

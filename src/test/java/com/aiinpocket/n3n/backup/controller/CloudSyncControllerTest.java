@@ -1,11 +1,13 @@
 package com.aiinpocket.n3n.backup.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.backup.dto.request.ImportSyncRequest;
 import com.aiinpocket.n3n.backup.dto.request.ScanRemoteRequest;
 import com.aiinpocket.n3n.backup.dto.response.CloudSyncImportResult;
 import com.aiinpocket.n3n.backup.dto.response.CloudSyncManifest;
 import com.aiinpocket.n3n.backup.dto.response.CloudSyncStatus;
 import com.aiinpocket.n3n.backup.service.CloudSyncService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +23,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,8 +33,17 @@ class CloudSyncControllerTest {
     @Mock
     private CloudSyncService cloudSyncService;
 
+    @Mock
+    private IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private CloudSyncController cloudSyncController;
+
+    private HttpServletRequest mockHttpRequest() {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        lenient().when(req.getRemoteAddr()).thenReturn("127.0.0.1");
+        return req;
+    }
 
     private UserDetails testUser() {
         return User.withUsername(UUID.randomUUID().toString())
@@ -53,7 +66,7 @@ class CloudSyncControllerTest {
         var request = new ScanRemoteRequest();
         request.setRecoveryKeyPhrase("test phrase");
 
-        var result = cloudSyncController.scan(request);
+        var result = cloudSyncController.scan(request, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -78,7 +91,7 @@ class CloudSyncControllerTest {
         var request = new ImportSyncRequest();
         request.setRecoveryKeyPhrase("test phrase");
 
-        var result = cloudSyncController.importEntities(request, testUser());
+        var result = cloudSyncController.importEntities(request, testUser(), mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();

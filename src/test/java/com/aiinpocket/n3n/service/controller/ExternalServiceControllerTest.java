@@ -1,8 +1,10 @@
 package com.aiinpocket.n3n.service.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +34,9 @@ class ExternalServiceControllerTest {
 
     @Mock
     private ExternalServiceService serviceService;
+
+    @Mock
+    private IpRateLimiter ipRateLimiter;
 
     @InjectMocks
     private ExternalServiceController controller;
@@ -116,6 +121,12 @@ class ExternalServiceControllerTest {
         request.setDescription("Updated description");
         request.setStatus("active");
         return request;
+    }
+
+    private HttpServletRequest mockHttpRequest() {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        lenient().when(req.getRemoteAddr()).thenReturn("127.0.0.1");
+        return req;
     }
 
     private CreateEndpointRequest sampleCreateEndpointRequest() {
@@ -504,7 +515,7 @@ class ExternalServiceControllerTest {
         );
         when(serviceService.refreshSchema(eq(serviceId), any(UUID.class))).thenReturn(schemaResult);
 
-        var result = controller.refreshSchema(serviceId, user);
+        var result = controller.refreshSchema(serviceId, user, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -521,7 +532,7 @@ class ExternalServiceControllerTest {
         when(serviceService.refreshSchema(eq(serviceId), any(UUID.class)))
                 .thenThrow(new IllegalArgumentException("Service does not have a schema URL configured"));
 
-        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user))
+        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user, mockHttpRequest()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("schema URL");
     }
@@ -533,7 +544,7 @@ class ExternalServiceControllerTest {
         when(serviceService.refreshSchema(eq(serviceId), any(UUID.class)))
                 .thenThrow(new ResourceNotFoundException("Service not found: " + serviceId));
 
-        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user))
+        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user, mockHttpRequest()))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Service not found");
     }
@@ -545,7 +556,7 @@ class ExternalServiceControllerTest {
         when(serviceService.refreshSchema(eq(serviceId), any(UUID.class)))
                 .thenThrow(new org.springframework.security.access.AccessDeniedException("Access denied"));
 
-        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user))
+        assertThatThrownBy(() -> controller.refreshSchema(serviceId, user, mockHttpRequest()))
                 .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
     }
 
@@ -557,7 +568,7 @@ class ExternalServiceControllerTest {
         when(serviceService.refreshSchema(eq(serviceId), eq(userId)))
                 .thenReturn(Map.of("message", "ok", "addedEndpoints", 0, "updatedEndpoints", 0, "totalEndpoints", 0));
 
-        controller.refreshSchema(serviceId, user);
+        controller.refreshSchema(serviceId, user, mockHttpRequest());
 
         verify(serviceService).refreshSchema(eq(serviceId), eq(userId));
     }

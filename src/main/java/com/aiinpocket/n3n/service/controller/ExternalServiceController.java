@@ -1,7 +1,9 @@
 package com.aiinpocket.n3n.service.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class ExternalServiceController {
 
     private final ExternalServiceService serviceService;
+    private final IpRateLimiter ipRateLimiter;
 
     @GetMapping
     public ResponseEntity<Page<ServiceResponse>> listServices(
@@ -72,7 +75,9 @@ public class ExternalServiceController {
     @PostMapping("/{id}/refresh-schema")
     public ResponseEntity<Map<String, Object>> refreshSchema(
             @PathVariable UUID id,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("service-refresh", httpRequest.getRemoteAddr(), 5, 60);
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(serviceService.refreshSchema(id, userId));
     }

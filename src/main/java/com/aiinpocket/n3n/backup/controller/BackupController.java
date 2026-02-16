@@ -5,8 +5,10 @@ import com.aiinpocket.n3n.backup.dto.request.RestoreBackupRequest;
 import com.aiinpocket.n3n.backup.dto.request.UpdateBackupSettingsRequest;
 import com.aiinpocket.n3n.backup.dto.response.*;
 import com.aiinpocket.n3n.backup.service.BackupService;
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class BackupController {
 
     private final BackupService backupService;
+    private final IpRateLimiter ipRateLimiter;
 
     @GetMapping("/settings")
     @Operation(summary = "取得備份設定")
@@ -45,7 +48,8 @@ public class BackupController {
 
     @PostMapping("/test-connection")
     @Operation(summary = "測試儲存連線")
-    public ResponseEntity<TestConnectionResponse> testConnection() {
+    public ResponseEntity<TestConnectionResponse> testConnection(HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("backup-test", httpRequest.getRemoteAddr(), 10, 60);
         boolean success = backupService.testConnection();
         return ResponseEntity.ok(TestConnectionResponse.builder()
                 .success(success)
@@ -56,7 +60,9 @@ public class BackupController {
     @PostMapping("/create")
     @Operation(summary = "建立備份")
     public ResponseEntity<BackupHistoryResponse> createBackup(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("backup-create", httpRequest.getRemoteAddr(), 3, 60);
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(backupService.createBackup(userId));
     }
@@ -78,7 +84,9 @@ public class BackupController {
     @Operation(summary = "還原備份")
     public ResponseEntity<RestoreBackupResponse> restoreBackup(
             @Valid @RequestBody RestoreBackupRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("backup-restore", httpRequest.getRemoteAddr(), 2, 60);
         UUID userId = UUID.fromString(userDetails.getUsername());
         backupService.restoreBackup(
                 request.getRecoveryKeyPhrase(),

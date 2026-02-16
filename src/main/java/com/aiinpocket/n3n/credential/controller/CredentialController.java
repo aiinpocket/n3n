@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.credential.controller;
 
 import com.aiinpocket.n3n.activity.service.ActivityService;
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.dto.CreateCredentialRequest;
 import com.aiinpocket.n3n.credential.dto.CredentialResponse;
@@ -9,6 +10,7 @@ import com.aiinpocket.n3n.credential.dto.TestCredentialRequest;
 import com.aiinpocket.n3n.credential.entity.CredentialType;
 import com.aiinpocket.n3n.credential.service.ConnectionTestService;
 import com.aiinpocket.n3n.credential.service.CredentialService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,7 @@ public class CredentialController {
     private final CredentialService credentialService;
     private final ConnectionTestService connectionTestService;
     private final ActivityService activityService;
+    private final IpRateLimiter ipRateLimiter;
 
     @GetMapping
     public ResponseEntity<Page<CredentialResponse>> listCredentials(
@@ -120,7 +123,9 @@ public class CredentialController {
     @PostMapping("/test")
     public ResponseEntity<ConnectionTestResult> testConnection(
             @Valid @RequestBody TestCredentialRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("credential-test", httpRequest.getRemoteAddr(), 5, 60);
         ConnectionTestResult result = connectionTestService.testConnection(
                 request.getType(), request.getData());
         return ResponseEntity.ok(result);
@@ -133,7 +138,9 @@ public class CredentialController {
     @PostMapping("/{id}/test")
     public ResponseEntity<ConnectionTestResult> testSavedCredential(
             @PathVariable UUID id,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest httpRequest) {
+        ipRateLimiter.checkAllowed("credential-test", httpRequest.getRemoteAddr(), 5, 60);
         UUID userId = UUID.fromString(userDetails.getUsername());
         ConnectionTestResult result = connectionTestService.testSavedCredential(id, userId);
         return ResponseEntity.ok(result);

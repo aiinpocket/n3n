@@ -214,7 +214,8 @@ public class CloudSyncService {
                     remoteEntities.add(new RemoteEntity(file.filename(), data));
                 } catch (Exception e) {
                     failed++;
-                    errors.add("Download failed: " + file.filename() + " - " + e.getMessage());
+                    log.warn("Download failed: {} - {}", file.filename(), e.getMessage());
+                    errors.add("Download failed: " + file.filename());
                 }
             }
         } catch (Exception e) {

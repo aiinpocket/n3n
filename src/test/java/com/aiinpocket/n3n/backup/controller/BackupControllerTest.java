@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.backup.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.backup.dto.request.ListRemoteRequest;
 import com.aiinpocket.n3n.backup.dto.request.RestoreBackupRequest;
 import com.aiinpocket.n3n.backup.dto.request.UpdateBackupSettingsRequest;
@@ -7,6 +8,7 @@ import com.aiinpocket.n3n.backup.dto.response.BackupHistoryResponse;
 import com.aiinpocket.n3n.backup.dto.response.BackupSettingsResponse;
 import com.aiinpocket.n3n.backup.dto.response.RemoteBackupInfo;
 import com.aiinpocket.n3n.backup.service.BackupService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,8 +34,17 @@ class BackupControllerTest {
     @Mock
     private BackupService backupService;
 
+    @Mock
+    private IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private BackupController backupController;
+
+    private HttpServletRequest mockHttpRequest() {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        lenient().when(req.getRemoteAddr()).thenReturn("127.0.0.1");
+        return req;
+    }
 
     private UserDetails testUser() {
         return User.withUsername(UUID.randomUUID().toString())
@@ -79,7 +90,7 @@ class BackupControllerTest {
     void testConnection_success_returnsOkWithTrue() {
         when(backupService.testConnection()).thenReturn(true);
 
-        var result = backupController.testConnection();
+        var result = backupController.testConnection(mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -91,7 +102,7 @@ class BackupControllerTest {
     void testConnection_failure_returnsOkWithFalse() {
         when(backupService.testConnection()).thenReturn(false);
 
-        var result = backupController.testConnection();
+        var result = backupController.testConnection(mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -108,7 +119,7 @@ class BackupControllerTest {
                 .build();
         when(backupService.createBackup(any())).thenReturn(history);
 
-        var result = backupController.createBackup(testUser());
+        var result = backupController.createBackup(testUser(), mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -152,7 +163,7 @@ class BackupControllerTest {
 
         doNothing().when(backupService).restoreBackup(any(), any(), any());
 
-        var result = backupController.restoreBackup(request, testUser());
+        var result = backupController.restoreBackup(request, testUser(), mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
