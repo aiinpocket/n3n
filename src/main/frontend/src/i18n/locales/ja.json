@@ -1002,6 +1002,7 @@
     "enabled": "有効",
     "disabled": "無効",
     "noSkills": "スキルがありません",
+    "createFirst": "最初のスキルを作成",
     "displayName": "表示名",
     "displayNameRequired": "表示名を入力してください",
     "nameIdentifier": "識別名",

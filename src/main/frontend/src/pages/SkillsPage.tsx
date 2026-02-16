@@ -477,7 +477,13 @@ export default function SkillsPage() {
           loading={isLoading}
           pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => t('common.total', { count: total }) }}
           locale={{
-            emptyText: <Empty description={t('skill.noSkills')} />,
+            emptyText: (
+              <Empty description={t('skill.noSkills')}>
+                <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+                  {t('skill.createFirst')}
+                </Button>
+              </Empty>
+            ),
           }}
           scroll={{ x: 800 }}
         />

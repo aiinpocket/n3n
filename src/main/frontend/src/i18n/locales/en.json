@@ -1002,6 +1002,7 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "noSkills": "No skills available",
+    "createFirst": "Create Your First Skill",
     "displayName": "Display Name",
     "displayNameRequired": "Please enter a display name",
     "nameIdentifier": "Name Identifier",

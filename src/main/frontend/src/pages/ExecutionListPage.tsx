@@ -417,7 +417,11 @@ export default function ExecutionListPage() {
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={t('execution.noExecutions')}
-            />
+            >
+              <Button type="primary" onClick={() => navigate('/flows')}>
+                {t('execution.goToFlows')}
+              </Button>
+            </Empty>
           )
         }}
         pagination={pagination}

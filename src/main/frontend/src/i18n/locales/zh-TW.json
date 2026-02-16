@@ -1002,6 +1002,7 @@
     "enabled": "啟用",
     "disabled": "停用",
     "noSkills": "尚無技能",
+    "createFirst": "建立您的第一個技能",
     "displayName": "顯示名稱",
     "displayNameRequired": "請輸入顯示名稱",
     "nameIdentifier": "識別名稱",
