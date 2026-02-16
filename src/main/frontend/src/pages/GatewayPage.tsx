@@ -99,7 +99,7 @@ export default function GatewayPage() {
   const handleCopyPairingCode = async () => {
     if (pairingCode) {
       try {
-        await navigator.clipboard.writeText(pairingCode.pairingCode)
+        await navigator.clipboard.writeText(pairingCode.code)
         message.success(t('gateway.pairingCodeCopied'))
       } catch {
         message.error(t('common.copyFailed'))
@@ -354,7 +354,7 @@ export default function GatewayPage() {
                 fontWeight: 700,
                 letterSpacing: 4,
               }}>
-                {pairingCode.pairingCode}
+                {pairingCode.code}
               </Text>
             </div>
             <Text type="secondary" style={{ textAlign: 'center', display: 'block' }}>

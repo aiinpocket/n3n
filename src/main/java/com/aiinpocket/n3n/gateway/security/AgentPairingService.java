@@ -220,9 +220,10 @@ public class AgentPairingService {
     /**
      * Revoke all devices for a user
      */
-    public void revokeAllDevices(UUID userId) {
-        deviceKeyStore.revokeAllForUser(userId);
+    public int revokeAllDevices(UUID userId) {
+        int count = deviceKeyStore.revokeAllForUser(userId);
         log.info("All devices revoked for user: {}", userId);
+        return count;
     }
 
     /**

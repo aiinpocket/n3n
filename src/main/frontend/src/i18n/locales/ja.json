@@ -2885,6 +2885,8 @@
     "sftpPrivateKey": "SFTP秘密鍵",
     "sftpPath": "SFTPパス",
     "alreadySet": "（設定済み）",
+    "schedule": "自動バックアップスケジュール",
+    "scheduleHint": "自動バックアップのCron式（例：'0 2 * * *' で毎日午前2時）。空欄で自動バックアップを無効にします。",
     "saveSettings": "設定を保存",
     "settingsSaved": "設定を保存しました",
     "testConnection": "接続テスト",

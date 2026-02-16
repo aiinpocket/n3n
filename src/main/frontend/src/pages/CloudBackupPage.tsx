@@ -51,6 +51,7 @@ export default function CloudBackupPage() {
         sftpPort: res.data.sftpPort || 22,
         sftpUsername: res.data.sftpUsername,
         sftpPath: res.data.sftpPath,
+        schedule: res.data.schedule,
       })
     } catch (err) {
       logger.error('Failed to fetch backup settings:', err)
@@ -375,6 +376,11 @@ export default function CloudBackupPage() {
               </Form.Item>
             </>
           )}
+
+          <Divider />
+          <Form.Item name="schedule" label={t('backup.schedule')} extra={t('backup.scheduleHint')}>
+            <Input placeholder="0 2 * * *" />
+          </Form.Item>
 
           <Space>
             <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveSettings} loading={saving}>

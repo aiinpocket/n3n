@@ -130,12 +130,13 @@ public class DeviceKeyStore {
     /**
      * Revoke all device keys for a user
      */
-    public void revokeAllForUser(UUID userId) {
+    public int revokeAllForUser(UUID userId) {
         List<DeviceKey> keys = getDeviceKeysForUser(userId);
         for (DeviceKey key : keys) {
             deleteDeviceKey(key.getDeviceId());
         }
         log.info("Revoked {} device keys for user: {}", keys.size(), userId);
+        return keys.size();
     }
 
     // Data classes

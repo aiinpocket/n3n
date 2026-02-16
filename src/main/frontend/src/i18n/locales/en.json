@@ -2885,6 +2885,8 @@
     "sftpPrivateKey": "SFTP Private Key",
     "sftpPath": "SFTP Path",
     "alreadySet": "(already configured)",
+    "schedule": "Auto Backup Schedule",
+    "scheduleHint": "Cron expression for automatic backups (e.g., '0 2 * * *' for daily at 2 AM). Leave empty to disable.",
     "saveSettings": "Save Settings",
     "settingsSaved": "Settings saved successfully",
     "testConnection": "Test Connection",

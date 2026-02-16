@@ -30,7 +30,7 @@ export interface GatewayStats {
 }
 
 export interface PairingCodeResponse {
-  pairingCode: string
+  code: string
   expiresInSeconds: number
 }
 

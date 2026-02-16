@@ -223,9 +223,9 @@ public class AgentPairingController {
 
         try {
             UUID userId = UUID.fromString(userDetails.getUsername());
-            pairingService.revokeAllDevices(userId);
+            int revokedCount = pairingService.revokeAllDevices(userId);
 
-            return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.ok(Map.of("success", true, "revokedCount", revokedCount));
 
         } catch (Exception e) {
             log.error("Failed to revoke devices", e);

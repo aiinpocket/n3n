@@ -2885,6 +2885,8 @@
     "sftpPrivateKey": "SFTP 私鑰",
     "sftpPath": "SFTP 路徑",
     "alreadySet": "（已設定）",
+    "schedule": "自動備份排程",
+    "scheduleHint": "自動備份的 Cron 表達式（例如 '0 2 * * *' 表示每天凌晨 2 點）。留空則停用自動備份。",
     "saveSettings": "儲存設定",
     "settingsSaved": "設定已儲存",
     "testConnection": "測試連線",
