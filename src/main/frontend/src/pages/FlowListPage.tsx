@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined, ReloadOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined, ReloadOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useFlowListStore } from '../stores/flowListStore'
@@ -288,6 +288,12 @@ export default function FlowListPage() {
                   icon: <ShareAltOutlined />,
                   label: t('share.share'),
                   onClick: () => handleOpenShare(record),
+                },
+                {
+                  key: 'executions',
+                  icon: <HistoryOutlined />,
+                  label: t('flow.viewExecutions'),
+                  onClick: () => navigate(`/executions?flowId=${record.id}`),
                 },
                 {
                   key: 'clone',

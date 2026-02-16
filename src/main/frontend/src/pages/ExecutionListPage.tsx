@@ -58,6 +58,7 @@ export default function ExecutionListPage() {
     total: 0,
   })
   const initialStatus = searchParams.get('status') || 'all'
+  const flowIdFilter = searchParams.get('flowId') || undefined
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus)
   const [searchValue, setSearchValue] = useState<string>('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
@@ -72,7 +73,9 @@ export default function ExecutionListPage() {
     const requestId = ++fetchRequestIdRef.current
     setLoading(true)
     try {
-      const data = await executionApi.list(page - 1, size, status, search)
+      const data = flowIdFilter
+        ? await executionApi.listByFlow(flowIdFilter, page - 1, size)
+        : await executionApi.list(page - 1, size, status, search)
       if (requestId !== fetchRequestIdRef.current) return // Stale response
       setExecutions(data.content)
       setPagination({
@@ -87,7 +90,7 @@ export default function ExecutionListPage() {
     } finally {
       if (requestId === fetchRequestIdRef.current) setLoading(false)
     }
-  }, [t])
+  }, [t, flowIdFilter])
 
   // Initial load with URL params
   useEffect(() => {
@@ -327,6 +330,11 @@ export default function ExecutionListPage() {
       title={
         <Space>
           <span>{t('execution.title')}</span>
+          {flowIdFilter && (
+            <Tag closable onClose={() => navigate('/executions')} color="blue">
+              {t('flow.viewExecutions')}
+            </Tag>
+          )}
           {isConnected && <Tag color="green">{t('execution.realtime')}</Tag>}
         </Space>
       }

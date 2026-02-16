@@ -177,6 +177,13 @@ export const executionApi = {
     return response.data;
   },
 
+  listByFlow: async (flowId: string, page = 0, size = 20): Promise<Page<ExecutionResponse>> => {
+    const response = await apiClient.get<Page<ExecutionResponse>>(`/executions/by-flow/${flowId}`, {
+      params: { page, size },
+    });
+    return response.data;
+  },
+
   batchDelete: async (ids: string[]): Promise<{ deleted: number; total: number }> => {
     const response = await apiClient.delete('/executions/batch', { data: { ids } });
     return response.data;
