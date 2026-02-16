@@ -832,6 +832,61 @@ class ExecutionServiceTest extends BaseServiceTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Invalid flow definition");
         }
+
+        @Test
+        void createExecution_withDraftVersion_succeeds() {
+            // Given
+            CreateExecutionRequest request = new CreateExecutionRequest();
+            request.setFlowId(flowId);
+            request.setVersion("2.0.0-draft");
+
+            FlowVersion draftVersion = TestDataFactory.createFlowVersion(flowId, "2.0.0-draft");
+            // status is "draft" by default from createFlowVersion
+
+            DagParser.ParseResult parseResult = new DagParser.ParseResult();
+            parseResult.setValid(true);
+            parseResult.setErrors(List.of());
+            parseResult.setWarnings(List.of());
+            parseResult.setEntryPoints(List.of("node1"));
+            parseResult.setExitPoints(List.of("node2"));
+            parseResult.setExecutionOrder(List.of("node1", "node2"));
+            parseResult.setDependencies(Map.of());
+
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowVersionRepository.findByFlowIdAndVersion(flowId, "2.0.0-draft"))
+                    .thenReturn(Optional.of(draftVersion));
+            when(dagParser.parse(any())).thenReturn(parseResult);
+            when(executionRepository.save(any(Execution.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(flowVersionRepository.findById(draftVersion.getId())).thenReturn(Optional.of(draftVersion));
+            when(flowRepository.findById(flowId)).thenReturn(Optional.of(testFlow));
+
+            // When
+            ExecutionResponse result = executionService.createExecution(request, userId);
+
+            // Then
+            assertThat(result.getStatus()).isEqualTo("pending");
+            verify(stateManager).initExecution(any(UUID.class), any());
+        }
+
+        @Test
+        void createExecution_withDeprecatedVersion_throwsException() {
+            // Given
+            CreateExecutionRequest request = new CreateExecutionRequest();
+            request.setFlowId(flowId);
+            request.setVersion("0.5.0");
+
+            FlowVersion deprecatedVersion = TestDataFactory.createFlowVersion(flowId, "0.5.0");
+            deprecatedVersion.setStatus("deprecated");
+
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
+            when(flowVersionRepository.findByFlowIdAndVersion(flowId, "0.5.0"))
+                    .thenReturn(Optional.of(deprecatedVersion));
+
+            // When/Then
+            assertThatThrownBy(() -> executionService.createExecution(request, userId))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("is deprecated and cannot be executed");
+        }
     }
 
     @Nested
