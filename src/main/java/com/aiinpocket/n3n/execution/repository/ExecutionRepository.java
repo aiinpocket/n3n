@@ -93,6 +93,17 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
     List<Execution> findTop1000ByStatusAndStartedAtBefore(String status, Instant before);
 
     /**
+     * Find all executions with a given status (for startup recovery).
+     * Limited to 1000 to prevent unbounded query.
+     */
+    List<Execution> findTop1000ByStatus(String status);
+
+    /**
+     * Count running executions for a specific user (for per-user concurrent limit).
+     */
+    long countByStatusAndTriggeredBy(String status, UUID triggeredBy);
+
+    /**
      * Check if an execution exists and is owned by the given user.
      */
     boolean existsByIdAndTriggeredBy(UUID id, UUID triggeredBy);

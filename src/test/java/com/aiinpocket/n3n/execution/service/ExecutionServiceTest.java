@@ -106,6 +106,7 @@ class ExecutionServiceTest extends BaseServiceTest {
 
         // Set @Value fields not injected by Mockito
         ReflectionTestUtils.setField(executionService, "maxConcurrentExecutions", 100);
+        ReflectionTestUtils.setField(executionService, "maxConcurrentPerUser", 10);
         ReflectionTestUtils.setField(executionService, "executionTimeoutMs", 300000L);
     }
 

@@ -57,6 +57,9 @@ public class ExecutionService {
     @Value("${execution.max-concurrent:100}")
     private int maxConcurrentExecutions;
 
+    @Value("${execution.max-concurrent-per-user:10}")
+    private int maxConcurrentPerUser;
+
     @Value("${execution.timeout-ms:300000}")
     private long executionTimeoutMs;
 
@@ -220,11 +223,18 @@ public class ExecutionService {
             throw new IllegalArgumentException("Invalid flow definition: " + String.join(", ", parseResult.getErrors()));
         }
 
-        // Check concurrent execution limit
+        // Check global concurrent execution limit
         long runningCount = executionRepository.countByStatus("running");
         if (runningCount >= maxConcurrentExecutions) {
             throw new IllegalStateException(
                 "Maximum concurrent executions (" + maxConcurrentExecutions + ") reached. Please wait for existing executions to complete.");
+        }
+
+        // Check per-user concurrent execution limit
+        long userRunningCount = executionRepository.countByStatusAndTriggeredBy("running", userId);
+        if (userRunningCount >= maxConcurrentPerUser) {
+            throw new IllegalStateException(
+                "Maximum concurrent executions per user (" + maxConcurrentPerUser + ") reached. Please wait for your existing executions to complete.");
         }
 
         // Create execution
