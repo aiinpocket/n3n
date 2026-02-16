@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.activity.controller;
 
 import com.aiinpocket.n3n.activity.dto.UserActivityResponse;
 import com.aiinpocket.n3n.activity.service.ActivityService;
+import jakarta.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,7 +64,7 @@ public class ActivityController {
      */
     @GetMapping("/resource/{resourceType}/{resourceId}")
     public ResponseEntity<Page<UserActivityResponse>> getResourceActivities(
-            @PathVariable String resourceType,
+            @PathVariable @Size(max = 50) String resourceType,
             @PathVariable UUID resourceId,
             @AuthenticationPrincipal UserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {

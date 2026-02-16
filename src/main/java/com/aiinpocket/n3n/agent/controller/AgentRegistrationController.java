@@ -215,7 +215,7 @@ public class AgentRegistrationController {
      * Download Agent binary
      */
     @GetMapping("/binary/{platform}")
-    public ResponseEntity<?> downloadBinary(@PathVariable String platform) {
+    public ResponseEntity<?> downloadBinary(@PathVariable @Size(max = 50) String platform) {
         try {
             String resourcePath;
             if ("macos".equalsIgnoreCase(platform)) {
@@ -343,7 +343,7 @@ public class AgentRegistrationController {
      */
     @PostMapping("/download/{platform}")
     public ResponseEntity<?> downloadAgentPackage(
-            @PathVariable String platform,
+            @PathVariable @Size(max = 50) String platform,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {

@@ -40,7 +40,7 @@ public class ExecutionController {
     @GetMapping
     public ResponseEntity<Page<ExecutionResponse>> listExecutions(
             @PageableDefault(size = 20) Pageable pageable,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 20) String status,
             @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 500) String search,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -83,7 +83,7 @@ public class ExecutionController {
     @GetMapping("/{id}/nodes/{nodeId}/data")
     public ResponseEntity<Map<String, Object>> getNodeData(
             @PathVariable UUID id,
-            @PathVariable @jakarta.validation.constraints.Pattern(regexp = "^[a-zA-Z0-9_\\-]+$") String nodeId,
+            @PathVariable @jakarta.validation.constraints.Size(max = 255) @jakarta.validation.constraints.Pattern(regexp = "^[a-zA-Z0-9_\\-]+$") String nodeId,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(executionService.getNodeData(id, nodeId, userId));

@@ -1861,7 +1861,10 @@
     "emergencyRestoreFailed": "Emergency restore failed. Please verify your Recovery Key and password.",
     "recoveryKeyLabel": "Recovery Key (12 words)",
     "encryptionVersion": "Encryption Key Version",
-    "securityLoadFailed": "Unable to load security status. Please try again later."
+    "securityLoadFailed": "Unable to load security status. Please try again later.",
+    "recentLoginActivity": "Recent Login Activity",
+    "ipAddress": "IP Address",
+    "viewAllActivity": "View All Activity →"
   },
   "admin": {
     "title": "User Management",

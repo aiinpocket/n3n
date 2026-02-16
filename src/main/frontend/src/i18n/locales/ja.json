@@ -1861,7 +1861,10 @@
     "emergencyRestoreFailed": "緊急復元に失敗しました。Recovery Key とパスワードが正しいか確認してください。",
     "recoveryKeyLabel": "Recovery Key（12単語）",
     "encryptionVersion": "暗号化キーバージョン",
-    "securityLoadFailed": "セキュリティ情報の読み込みに失敗しました。後でもう一度お試しください。"
+    "securityLoadFailed": "セキュリティ情報の読み込みに失敗しました。後でもう一度お試しください。",
+    "recentLoginActivity": "最近のログイン履歴",
+    "ipAddress": "IPアドレス",
+    "viewAllActivity": "すべてのアクティビティを表示 →"
   },
   "admin": {
     "title": "ユーザー管理",

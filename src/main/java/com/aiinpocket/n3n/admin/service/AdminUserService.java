@@ -41,6 +41,7 @@ public class AdminUserService {
     private final ActivityService activityService;
     private final EmailService emailService;
 
+    @Transactional(readOnly = true)
     public Page<UserResponse> listUsers(Pageable pageable, String search) {
         Page<User> userPage;
         if (search != null && !search.isBlank()) {
@@ -61,6 +62,7 @@ public class AdminUserService {
             rolesByUserId.getOrDefault(user.getId(), Set.of())));
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getUser(UUID id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));

@@ -1861,7 +1861,10 @@
     "emergencyRestoreFailed": "緊急還原失敗。請確認您的 Recovery Key 和密碼是否正確。",
     "recoveryKeyLabel": "Recovery Key（12 個單詞）",
     "encryptionVersion": "加密金鑰版本",
-    "securityLoadFailed": "無法載入安全狀態，請稍後再試。"
+    "securityLoadFailed": "無法載入安全狀態，請稍後再試。",
+    "recentLoginActivity": "最近登入活動",
+    "ipAddress": "IP 位址",
+    "viewAllActivity": "查看所有活動 →"
   },
   "admin": {
     "title": "使用者管理",

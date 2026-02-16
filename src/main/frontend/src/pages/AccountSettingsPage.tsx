@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
-import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space, Modal } from 'antd'
-import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined, MedicineBoxOutlined } from '@ant-design/icons'
+import { useState, useEffect, useCallback } from 'react'
+import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space, Modal, Table } from 'antd'
+import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined, MedicineBoxOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { authApi } from '../api/auth'
 import { extractApiError } from '../utils/errorMessages'
 import { securityApi, SecurityStatus } from '../api/security'
+import { activityApi, UserActivity } from '../api/activity'
 
 const { Title, Text } = Typography
 
@@ -24,6 +25,24 @@ export default function AccountSettingsPage() {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false)
   const [emergencyLoading, setEmergencyLoading] = useState(false)
   const [emergencyForm] = Form.useForm()
+  const [loginActivities, setLoginActivities] = useState<UserActivity[]>([])
+  const [loginActivityLoading, setLoginActivityLoading] = useState(false)
+
+  const fetchLoginActivities = useCallback(async () => {
+    setLoginActivityLoading(true)
+    try {
+      const result = await activityApi.listMy(0, 5, 'LOGIN')
+      setLoginActivities(result.content)
+    } catch {
+      // Non-critical, ignore
+    } finally {
+      setLoginActivityLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchLoginActivities()
+  }, [fetchLoginActivities])
 
   useEffect(() => {
     let cancelled = false
@@ -304,6 +323,51 @@ export default function AccountSettingsPage() {
             </Button>
           </Form.Item>
         </Form>
+      </Card>
+
+      {/* Recent Login Activity */}
+      <Card style={{ marginTop: 24 }}>
+        <Title level={5} style={{ color: 'var(--color-text-primary)', marginBottom: 16 }}>
+          <HistoryOutlined style={{ marginRight: 8 }} />
+          {t('account.recentLoginActivity')}
+        </Title>
+        <Divider style={{ margin: '8px 0 16px' }} />
+        <Table
+          dataSource={loginActivities}
+          rowKey="id"
+          loading={loginActivityLoading}
+          pagination={false}
+          size="small"
+          scroll={{ x: 400 }}
+          columns={[
+            {
+              title: t('activity.time'),
+              dataIndex: 'createdAt',
+              key: 'createdAt',
+              width: 180,
+              render: (val: string) => new Date(val).toLocaleString(),
+            },
+            {
+              title: t('account.ipAddress'),
+              dataIndex: 'ipAddress',
+              key: 'ipAddress',
+              width: 150,
+              render: (val: string | null) => val || '-',
+            },
+            {
+              title: t('common.status'),
+              key: 'status',
+              width: 100,
+              render: () => <Tag color="green">{t('common.success')}</Tag>,
+            },
+          ]}
+          locale={{ emptyText: t('execution.noData') }}
+        />
+        <div style={{ textAlign: 'right', marginTop: 8 }}>
+          <Button type="link" size="small" onClick={() => navigate('/activities')}>
+            {t('account.viewAllActivity')}
+          </Button>
+        </div>
       </Card>
 
       {/* Emergency Restore Modal */}

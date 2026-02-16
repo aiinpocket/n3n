@@ -127,6 +127,7 @@ public class ExecutionService {
         executionRepository.delete(execution);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getNodeData(UUID executionId, String nodeId, UUID userId) {
         findExecutionWithOwnerCheck(executionId, userId);
         Map<String, Object> output = stateManager.getNodeOutput(executionId, nodeId);
@@ -293,6 +294,7 @@ public class ExecutionService {
         return enrichExecution(execution);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getExecutionOutput(UUID executionId, UUID userId) {
         findExecutionWithOwnerCheck(executionId, userId);
         return stateManager.getExecutionOutput(executionId);
@@ -628,6 +630,7 @@ public class ExecutionService {
     /**
      * Verify the caller has access to the execution (is the owner).
      */
+    @Transactional(readOnly = true)
     public void verifyExecutionAccess(UUID executionId, UUID userId) {
         Execution execution = executionRepository.findById(executionId)
             .orElseThrow(() -> new ResourceNotFoundException("Execution not found: " + executionId));
