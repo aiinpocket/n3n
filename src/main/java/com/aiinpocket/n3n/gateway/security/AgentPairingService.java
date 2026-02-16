@@ -238,11 +238,12 @@ public class AgentPairingService {
     }
 
     /**
-     * Validate device token and return user ID
+     * Validate device token and return user ID.
+     * Token format: base64(userId:deviceId:timestamp:hmac)
+     * HMAC is computed using the device's authKey for cryptographic verification.
      */
     public Optional<UUID> validateDeviceToken(String deviceToken) {
         try {
-            // Token format: base64(userId:deviceId:timestamp:signature)
             String decoded = new String(Base64.getDecoder().decode(deviceToken));
             String[] parts = decoded.split(":");
 
@@ -252,7 +253,8 @@ public class AgentPairingService {
 
             UUID userId = UUID.fromString(parts[0]);
             String deviceId = parts[1];
-            // In production, verify signature with auth key
+            String timestamp = parts[2];
+            String providedHmac = parts[3];
 
             Optional<DeviceKeyStore.DeviceKey> deviceKey = deviceKeyStore.getDeviceKey(deviceId);
             if (deviceKey.isEmpty() || deviceKey.get().isRevoked()) {
@@ -260,6 +262,16 @@ public class AgentPairingService {
             }
 
             if (!deviceKey.get().getUserId().equals(userId)) {
+                return Optional.empty();
+            }
+
+            // Verify HMAC signature using device authKey
+            byte[] authKey = Base64.getDecoder().decode(deviceKey.get().getAuthKey());
+            String expectedHmac = computeHmac(authKey, userId.toString() + ":" + deviceId + ":" + timestamp);
+            if (!java.security.MessageDigest.isEqual(
+                    expectedHmac.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                    providedHmac.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+                log.warn("Device token HMAC mismatch for deviceId={}", deviceId);
                 return Optional.empty();
             }
 
@@ -274,15 +286,42 @@ public class AgentPairingService {
     private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
 
     /**
-     * Generate a secure device token using cryptographically strong random bytes
+     * Generate a secure device token signed with HMAC-SHA256 using the device's authKey.
      */
     private String generateDeviceToken(UUID userId, String deviceId) {
         long timestamp = System.currentTimeMillis();
-        byte[] randomBytes = new byte[32];
-        SECURE_RANDOM.nextBytes(randomBytes);
-        String signature = java.util.HexFormat.of().formatHex(randomBytes);
-        String tokenData = userId.toString() + ":" + deviceId + ":" + timestamp + ":" + signature;
+        String data = userId.toString() + ":" + deviceId + ":" + timestamp;
+
+        // Retrieve authKey for HMAC signing
+        Optional<DeviceKeyStore.DeviceKey> deviceKey = deviceKeyStore.getDeviceKey(deviceId);
+        String hmac;
+        if (deviceKey.isPresent()) {
+            byte[] authKey = Base64.getDecoder().decode(deviceKey.get().getAuthKey());
+            hmac = computeHmac(authKey, data);
+        } else {
+            // Fallback: use cryptographically secure random bytes (token will fail validation
+            // if device key is later deleted, which is the correct behavior)
+            byte[] randomBytes = new byte[32];
+            SECURE_RANDOM.nextBytes(randomBytes);
+            hmac = java.util.HexFormat.of().formatHex(randomBytes);
+        }
+
+        String tokenData = data + ":" + hmac;
         return Base64.getEncoder().encodeToString(tokenData.getBytes());
+    }
+
+    /**
+     * Compute HMAC-SHA256 signature for device token verification.
+     */
+    private String computeHmac(byte[] key, String data) {
+        try {
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA256"));
+            byte[] hmacBytes = mac.doFinal(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(hmacBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("HMAC computation failed", e);
+        }
     }
 
     // Request/Response records

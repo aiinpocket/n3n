@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.template.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
 import com.aiinpocket.n3n.template.dto.TemplateResponse;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class FlowTemplateController {
 
     private final FlowTemplateService templateService;
+    private final ActivityService activityService;
 
     @GetMapping
     public ResponseEntity<Page<TemplateResponse>> listTemplates(
@@ -66,8 +68,9 @@ public class FlowTemplateController {
             @Valid @RequestBody CreateTemplateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(templateService.createTemplate(request, userId));
+        TemplateResponse response = templateService.createTemplate(request, userId);
+        activityService.logActivity(userId, "TEMPLATE_CREATE", "template", response.getId(), response.getName(), null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
@@ -77,6 +80,7 @@ public class FlowTemplateController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         TemplateResponse response = templateService.updateTemplate(id, request, userId);
+        activityService.logActivity(userId, "TEMPLATE_UPDATE", "template", id, response.getName(), null);
         return ResponseEntity.ok(response);
     }
 
@@ -87,8 +91,10 @@ public class FlowTemplateController {
             @Valid @RequestBody CreateTemplateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(templateService.createTemplateFromFlow(flowId, version, request, userId));
+        TemplateResponse response = templateService.createTemplateFromFlow(flowId, version, request, userId);
+        activityService.logActivity(userId, "TEMPLATE_CREATE", "template", response.getId(), response.getName(),
+                java.util.Map.of("sourceFlowId", flowId.toString(), "sourceVersion", version));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{id}/use")
@@ -97,8 +103,10 @@ public class FlowTemplateController {
             @RequestParam @NotBlank @Size(max = 255) String flowName,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(templateService.createFlowFromTemplate(id, flowName, userId));
+        FlowResponse response = templateService.createFlowFromTemplate(id, flowName, userId);
+        activityService.logActivity(userId, "TEMPLATE_USE", "template", id, flowName,
+                java.util.Map.of("createdFlowId", response.getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
@@ -107,6 +115,7 @@ public class FlowTemplateController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         templateService.deleteTemplate(id, userId);
+        activityService.logActivity(userId, "TEMPLATE_DELETE", "template", id, null, null);
         return ResponseEntity.noContent().build();
     }
 }

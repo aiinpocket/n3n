@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.scheduler.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
@@ -43,6 +44,9 @@ class ScheduleControllerTest {
 
     @Mock
     private FlowShareService flowShareService;
+
+    @Mock
+    private ActivityService activityService;
 
     @InjectMocks
     private ScheduleController scheduleController;

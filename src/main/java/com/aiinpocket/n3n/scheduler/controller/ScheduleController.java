@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.scheduler.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
@@ -39,6 +40,7 @@ public class ScheduleController {
     private final SchedulerService schedulerService;
     private final FlowRepository flowRepository;
     private final FlowShareService flowShareService;
+    private final ActivityService activityService;
 
     @GetMapping
     public ResponseEntity<List<ScheduleResponse>> listSchedules(
@@ -118,6 +120,9 @@ public class ScheduleController {
         log.info("Schedule created: id={}, flowId={}, cron='{}'",
                 schedule.getId(), schedule.getFlowId(), schedule.getCronExpression());
 
+        activityService.logActivity(userId, "SCHEDULE_CREATE", "schedule", schedule.getId(),
+                schedule.getName(), Map.of("flowId", schedule.getFlowId().toString(), "cron", schedule.getCronExpression()));
+
         String flowName = flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())
                 .map(Flow::getName)
                 .orElse(null);
@@ -168,6 +173,9 @@ public class ScheduleController {
         schedule = scheduleRepository.save(schedule);
         log.info("Schedule updated: id={}, cron='{}'", id, schedule.getCronExpression());
 
+        activityService.logActivity(userId, "SCHEDULE_UPDATE", "schedule", id,
+                schedule.getName(), Map.of("cron", schedule.getCronExpression()));
+
         String flowName = flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())
                 .map(Flow::getName)
                 .orElse(null);
@@ -186,6 +194,9 @@ public class ScheduleController {
         if (schedule.getQuartzScheduleId() != null) {
             schedulerService.unschedule(schedule.getQuartzScheduleId());
         }
+
+        activityService.logActivity(userId, "SCHEDULE_DELETE", "schedule", id,
+                schedule.getName(), null);
 
         scheduleRepository.deleteById(id);
         log.info("Schedule deleted: id={}", id);
@@ -207,6 +218,7 @@ public class ScheduleController {
         schedule = scheduleRepository.save(schedule);
 
         log.info("Schedule paused: id={}", id);
+        activityService.logActivity(userId, "SCHEDULE_PAUSE", "schedule", id, schedule.getName(), null);
 
         String flowName = flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())
                 .map(Flow::getName)
@@ -230,6 +242,7 @@ public class ScheduleController {
         schedule = scheduleRepository.save(schedule);
 
         log.info("Schedule resumed: id={}", id);
+        activityService.logActivity(userId, "SCHEDULE_RESUME", "schedule", id, schedule.getName(), null);
 
         String flowName = flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())
                 .map(Flow::getName)
@@ -258,6 +271,7 @@ public class ScheduleController {
 
         schedulerService.triggerNow(schedule.getQuartzScheduleId());
         log.info("Schedule triggered manually: id={}", id);
+        activityService.logActivity(userId, "SCHEDULE_TRIGGER", "schedule", id, schedule.getName(), null);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,

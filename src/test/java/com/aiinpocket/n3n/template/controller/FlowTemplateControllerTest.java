@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.template.controller;
 
+import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
@@ -36,6 +37,9 @@ class FlowTemplateControllerTest {
 
     @Mock
     private FlowTemplateService templateService;
+
+    @Mock
+    private ActivityService activityService;
 
     @InjectMocks
     private FlowTemplateController flowTemplateController;

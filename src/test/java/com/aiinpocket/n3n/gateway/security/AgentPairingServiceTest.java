@@ -178,16 +178,28 @@ class AgentPairingServiceTest extends BaseServiceTest {
     // ========== Validate Device Token Tests ==========
 
     @Test
-    void validateDeviceToken_validToken_returnsUserId() {
+    void validateDeviceToken_validToken_returnsUserId() throws Exception {
         // Given
         UUID userId = UUID.randomUUID();
         String deviceId = "device-123";
-        String tokenData = userId.toString() + ":" + deviceId + ":12345678:abcdef1234567890";
+        String timestamp = "12345678";
+        byte[] authKey = new byte[32];
+        new java.security.SecureRandom().nextBytes(authKey);
+
+        // Compute correct HMAC
+        String data = userId.toString() + ":" + deviceId + ":" + timestamp;
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+        mac.init(new javax.crypto.spec.SecretKeySpec(authKey, "HmacSHA256"));
+        byte[] hmacBytes = mac.doFinal(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String hmac = java.util.HexFormat.of().formatHex(hmacBytes);
+
+        String tokenData = data + ":" + hmac;
         String token = Base64.getEncoder().encodeToString(tokenData.getBytes());
 
         DeviceKeyStore.DeviceKey deviceKey = DeviceKeyStore.DeviceKey.builder()
                 .deviceId(deviceId)
                 .userId(userId)
+                .authKey(Base64.getEncoder().encodeToString(authKey))
                 .revoked(false)
                 .build();
 

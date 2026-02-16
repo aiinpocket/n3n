@@ -219,6 +219,8 @@ public class AdminUserService {
         userRepository.save(user);
 
         log.info("Admin {} reset password for user: {}", adminId, id);
+        activityService.logActivity(adminId, ActivityService.PASSWORD_RESET, "user", id,
+                user.getEmail(), java.util.Map.of("action", "admin_reset"));
 
         // Send password reset email
         emailService.sendPasswordReset(user.getEmail(), newPassword);
