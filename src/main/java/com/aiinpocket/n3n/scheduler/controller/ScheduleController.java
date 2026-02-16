@@ -141,6 +141,9 @@ public class ScheduleController {
         boolean cronChanged = false;
 
         if (request.getName() != null) {
+            if (request.getName().isBlank()) {
+                throw new IllegalArgumentException("Name must not be blank");
+            }
             schedule.setName(request.getName());
         }
         if (request.getCronExpression() != null) {
@@ -151,6 +154,9 @@ public class ScheduleController {
             cronChanged = true;
         }
         if (request.getTimezone() != null) {
+            if (request.getTimezone().isBlank()) {
+                throw new IllegalArgumentException("Timezone must not be blank");
+            }
             schedule.setTimezone(request.getTimezone());
             cronChanged = true;
         }

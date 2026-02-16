@@ -99,7 +99,7 @@ export default function MonitoringPage() {
             action={<Button size="small" onClick={fetchAll}>{t('common.retry')}</Button>}
           />
         )}
-        <Spin spinning={loading && !systemMetrics}>
+        <Spin spinning={loading}>
         {/* JVM Metrics */}
         <Card type="inner" title={t('monitoring.jvm.title')} style={{ marginBottom: 16 }}>
           <Row gutter={[24, 16]}>

@@ -60,11 +60,13 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
         monitoringApi.getFlowStats(),
         monitoringApi.getHealthStatus(),
       ])
+      const rejected = [system, flows, health].find(r => r.status === 'rejected') as PromiseRejectedResult | undefined
       set({
         systemMetrics: system.status === 'fulfilled' ? system.value : null,
         flowStats: flows.status === 'fulfilled' ? flows.value : null,
         healthStatus: health.status === 'fulfilled' ? health.value : null,
         loading: false,
+        error: rejected ? extractApiError(rejected.reason, i18n.t('errorMessage.defaultMessage')) : null,
       })
     } catch (error) {
       set({ loading: false, error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
