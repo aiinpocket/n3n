@@ -26,6 +26,9 @@ class PluginInstallControllerTest {
     @Mock
     private PluginInstallService pluginInstallService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private PluginInstallController controller;
 

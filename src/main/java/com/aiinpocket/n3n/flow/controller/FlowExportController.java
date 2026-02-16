@@ -36,6 +36,7 @@ public class FlowExportController {
     private final FlowImportService importService;
     private final ActivityService activityService;
     private final com.aiinpocket.n3n.flow.service.FlowShareService flowShareService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     /**
      * 匯出流程（指定版本）
@@ -117,6 +118,7 @@ public class FlowExportController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
+        ipRateLimiter.checkAllowed("flow-import", userId.toString(), 5, 60);
         FlowResponse response = importService.importFlow(request, userId);
 
         // Audit log: flow import

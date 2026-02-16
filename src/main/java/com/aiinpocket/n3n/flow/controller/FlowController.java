@@ -33,6 +33,7 @@ public class FlowController {
     private final FlowService flowService;
     private final FlowShareService flowShareService;
     private final ActivityService activityService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     @GetMapping
     public ResponseEntity<Page<FlowResponse>> listFlows(
@@ -138,6 +139,7 @@ public class FlowController {
             @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 255) String name,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
+        ipRateLimiter.checkAllowed("flow-clone", userId.toString(), 10, 60);
         if (!flowShareService.hasAccess(id, userId)) {
             throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
         }

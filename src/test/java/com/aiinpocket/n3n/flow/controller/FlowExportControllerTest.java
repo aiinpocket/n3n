@@ -45,6 +45,9 @@ class FlowExportControllerTest {
     @Mock
     private FlowShareService flowShareService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private FlowExportController flowExportController;
 

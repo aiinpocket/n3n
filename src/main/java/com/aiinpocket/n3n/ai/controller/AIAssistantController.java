@@ -94,6 +94,7 @@ public class AIAssistantController {
             request.getFlowId(), request.getVersion());
 
         UUID userId = requireUserId(principal);
+        ipRateLimiter.checkAllowed("ai-analyze", userId.toString(), 10, 60);
         PublishAnalysisResponse response = aiAssistantService.analyzeForPublish(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -110,6 +111,7 @@ public class AIAssistantController {
             request.getSuggestionIds().size(), request.getFlowId());
 
         UUID userId = requireUserId(principal);
+        ipRateLimiter.checkAllowed("ai-apply", userId.toString(), 10, 60);
         if (request.getFlowId() != null) {
             UUID flowId = UUID.fromString(request.getFlowId());
             if (!flowShareService.hasEditAccess(flowId, userId)) {
@@ -157,6 +159,7 @@ public class AIAssistantController {
             request.getSearchQuery(), request.getCategory());
 
         UUID userId = requireUserId(principal);
+        ipRateLimiter.checkAllowed("ai-recommend", userId.toString(), 15, 60);
         NodeRecommendationResponse response = aiAssistantService.recommendNodes(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -247,6 +250,7 @@ public class AIAssistantController {
                 request.getMessage().substring(0, Math.min(50, request.getMessage().length())) + "..." : "null");
 
         UUID userId = requireUserId(principal);
+        ipRateLimiter.checkAllowed("ai-clarify", userId.toString(), 15, 60);
         RequirementClarificationResponse response = requirementClarificationService.clarify(request, userId);
         return ResponseEntity.ok(response);
     }

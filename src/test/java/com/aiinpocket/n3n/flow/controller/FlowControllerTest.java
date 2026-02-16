@@ -42,6 +42,9 @@ class FlowControllerTest {
     @Mock
     private ActivityService activityService;
 
+    @Mock
+    private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private FlowController flowController;
 

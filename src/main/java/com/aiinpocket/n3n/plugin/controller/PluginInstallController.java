@@ -26,6 +26,7 @@ import java.util.UUID;
 public class PluginInstallController {
 
     private final PluginInstallService pluginInstallService;
+    private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
     /**
      * 批量安裝缺失的節點類型
@@ -39,6 +40,7 @@ public class PluginInstallController {
             Authentication authentication) {
 
         UUID userId = getUserId(authentication);
+        ipRateLimiter.checkAllowed("plugin-install", userId.toString(), 5, 300);
         log.info("Installing missing nodes for user {}: {}", userId, request.nodeTypes());
 
         List<UUID> taskIds = pluginInstallService.installMissingNodes(request.nodeTypes(), userId);
@@ -63,6 +65,7 @@ public class PluginInstallController {
             Authentication authentication) {
 
         UUID userId = getUserId(authentication);
+        ipRateLimiter.checkAllowed("plugin-install", userId.toString(), 5, 300);
         String version = request != null ? request.version() : null;
 
         log.info("Installing plugin {} version {} for user {}", pluginId, version, userId);
