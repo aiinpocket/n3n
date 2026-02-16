@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.execution.handler.handlers.scripting;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
@@ -65,6 +66,9 @@ public class JavaScriptEngine implements ScriptEngine {
         Future<ScriptResult> future = executor.submit(() -> {
             try (Context context = Context.newBuilder("js")
                 .allowAllAccess(false)
+                .allowHostAccess(HostAccess.NONE)
+                .allowNativeAccess(false)
+                .allowIO(false)
                 .option("js.ecmascript-version", "2022")
                 .option("engine.WarnInterpreterOnly", "false")
                 .out(outputStream)
@@ -174,6 +178,9 @@ public class JavaScriptEngine implements ScriptEngine {
     public boolean validateSyntax(String code) {
         try (Context context = Context.newBuilder("js")
             .allowAllAccess(false)
+            .allowHostAccess(HostAccess.NONE)
+            .allowNativeAccess(false)
+            .allowIO(false)
             .build()) {
             // Try to parse without executing
             Source source = Source.newBuilder("js", "(function(){" + code + "})", "syntax-check.js").build();

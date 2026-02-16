@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.execution.handler.handlers.ai.agent.tools;
 import com.aiinpocket.n3n.execution.handler.handlers.ai.agent.AgentNodeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.springframework.stereotype.Component;
@@ -89,8 +90,14 @@ public class CodeExecutionTool implements AgentNodeTool {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
 
+            // Cap user-provided timeout to prevent long-running scripts
+            timeout = Math.max(1, Math.min(timeout, 60));
+
             try (Context jsContext = Context.newBuilder("js")
                     .allowAllAccess(false)
+                    .allowHostAccess(HostAccess.NONE)
+                    .allowNativeAccess(false)
+                    .allowIO(false)
                     .option("engine.WarnInterpreterOnly", "false")
                     .out(outputStream)
                     .err(errorStream)
