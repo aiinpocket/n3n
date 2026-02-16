@@ -127,7 +127,7 @@ postgresql:
   enabled: true
   auth:
     username: n3n
-    password: n3n-secret
+    password: n3n-dev-only  # DEV ONLY — override via --set postgresql.auth.password=xxx in production
     database: n3n
   primary:
     persistence:

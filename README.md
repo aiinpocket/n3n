@@ -314,6 +314,9 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 | `REDIS_HOST` | `localhost` | Redis 主機 |
 | `REDIS_PORT` | `6379` | Redis 連接埠 |
 | `REDIS_PASSWORD` | （空） | Redis 密碼（設定後自動啟用認證） |
+| `MONGO_USER` | `n3n_admin` | MongoDB 使用者名稱 |
+| `MONGO_PASSWORD` | `n3n_dev_only` | MongoDB 密碼 |
+| `MONGO_DB` | `n3n_test` | MongoDB 資料庫名稱 |
 
 ### 安全設定
 

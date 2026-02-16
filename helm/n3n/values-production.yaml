@@ -118,7 +118,7 @@ config:
   # Container orchestration (docker until fabric8 client packaging is fixed)
   orchestratorType: docker
   # DDL auto mode (validate for production, update for initial setup)
-  ddlAuto: update
+  ddlAuto: validate
   # Swagger (disabled in production)
   swaggerEnabled: "false"
 

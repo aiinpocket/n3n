@@ -147,6 +147,7 @@ public class CredentialService {
         eventPublisher.publishEvent(new CredentialSyncEvent(id, SyncAction.DELETE, null));
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getDecryptedData(UUID id, UUID userId) {
         Credential credential = credentialRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Credential not found: " + id));

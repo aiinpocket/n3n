@@ -314,6 +314,9 @@ N3N uses a **zero-configuration design** — all settings have sensible defaults
 | `REDIS_HOST` | `localhost` | Redis host |
 | `REDIS_PORT` | `6379` | Redis port |
 | `REDIS_PASSWORD` | (empty) | Redis password (automatically enables authentication when set) |
+| `MONGO_USER` | `n3n_admin` | MongoDB username |
+| `MONGO_PASSWORD` | `n3n_dev_only` | MongoDB password |
+| `MONGO_DB` | `n3n_test` | MongoDB database name |
 
 ### Security
 
