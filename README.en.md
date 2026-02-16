@@ -102,9 +102,13 @@ docker compose up -d
 Open your browser and go to: **http://localhost:8080**
 
 First-time setup will guide you through:
-1. Creating an admin account
-2. Setting up AI assistant (choose your AI service)
-3. Creating your first workflow!
+1. **Create admin account** — Enter your name, email, and password
+2. **Back up Recovery Key** — The system will display 12 English words. This is the only way to recover your encrypted data. Write them down or copy them to a safe place
+3. **Verify Recovery Key** — Enter the 12 words to confirm you have backed them up
+4. Set up AI assistant (choose your AI service)
+5. Create your first workflow!
+
+> **Important**: The Recovery Key is only shown once during initial setup. If lost, encrypted credentials cannot be recovered.
 
 ---
 
@@ -145,6 +149,18 @@ docker compose down
 git pull
 docker compose down
 docker compose up -d --build
+```
+
+### How to access the database (for development)?
+
+Internal services (PostgreSQL, Redis, MongoDB) do not expose ports by default. To access them directly:
+
+```bash
+# Method 1: Use Docker exec
+docker compose exec postgres psql -U n3n
+
+# Method 2: Use development mode (exposes all ports)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ---

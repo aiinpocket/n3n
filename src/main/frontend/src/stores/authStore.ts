@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/register', { email, password, name })
-          const { accessToken, refreshToken, user, isFirstUser } = response.data
+          const { accessToken, refreshToken, user, isFirstUser, recoveryKey, needsRecoveryKeyBackup } = response.data
 
           // Auto-login after registration (Zustand persist handles localStorage)
           if (accessToken) {
@@ -154,6 +154,9 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
               setupRequired: false,
+              // First admin: show Recovery Key backup modal
+              showRecoveryKeyModal: needsRecoveryKeyBackup || false,
+              recoveryKey: recoveryKey || null,
             })
           } else {
             set({

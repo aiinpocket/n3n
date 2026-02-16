@@ -102,9 +102,13 @@ docker compose up -d
 ブラウザを開いて、次のアドレスにアクセス：**http://localhost:8080**
 
 初回セットアップでは以下をガイドします：
-1. 管理者アカウントの作成
-2. AIアシスタントの設定（お持ちのAIサービスを選択）
-3. 最初のワークフローを作成！
+1. **管理者アカウントの作成** — 名前、メール、パスワードを入力
+2. **Recovery Key のバックアップ** — システムが12個の英単語を表示します。これは暗号化データを復元する唯一の方法です。安全な場所に書き留めるかコピーしてください
+3. **Recovery Key の確認** — 先ほどの12個の単語を入力してバックアップを確認
+4. AIアシスタントの設定（お持ちのAIサービスを選択）
+5. 最初のワークフローを作成！
+
+> **重要**：Recovery Key は初回セットアップ時にのみ表示されます。紛失した場合、暗号化された認証情報を復元できません。
 
 ---
 
@@ -145,6 +149,18 @@ docker compose down
 git pull
 docker compose down
 docker compose up -d --build
+```
+
+### データベースにアクセスするには（開発用）？
+
+内部サービス（PostgreSQL、Redis、MongoDB）はデフォルトでポートを公開しません。直接アクセスするには：
+
+```bash
+# 方法1：Docker exec を使用
+docker compose exec postgres psql -U n3n
+
+# 方法2：開発モードを使用（全ポート公開）
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ---

@@ -102,9 +102,13 @@ docker compose up -d
 打開瀏覽器，前往：**http://localhost:8080**
 
 首次使用會引導你：
-1. 建立管理員帳號
-2. 設定 AI 助手（選擇你有的 AI 服務）
-3. 開始建立你的第一個流程！
+1. **建立管理員帳號** — 填入名稱、Email 和密碼
+2. **備份 Recovery Key** — 系統會顯示 12 個英文單詞，這是你恢復加密資料的唯一方式。請務必抄寫或複製保存在安全的地方
+3. **驗證 Recovery Key** — 輸入剛才的 12 個單詞以確認你已備份
+4. 設定 AI 助手（選擇你有的 AI 服務）
+5. 開始建立你的第一個流程！
+
+> **重要**：Recovery Key 只會在首次設定時顯示一次。如果遺失，將無法恢復加密的憑證資料。
 
 ---
 
@@ -145,6 +149,18 @@ docker compose down
 git pull
 docker compose down
 docker compose up -d --build
+```
+
+### 如何存取資料庫（開發用）？
+
+內部服務（PostgreSQL、Redis、MongoDB）預設不對外暴露端口。如需直接存取：
+
+```bash
+# 方法一：使用 Docker exec
+docker compose exec postgres psql -U n3n
+
+# 方法二：使用開發模式覆蓋（暴露所有端口）
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 ---

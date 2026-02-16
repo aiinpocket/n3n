@@ -52,9 +52,10 @@ services:
       POSTGRES_DB: n3n
       POSTGRES_USER: n3n
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-n3n}
-    # Expose for development only
-    ports:
-      - "5432:5432"
+    # Internal service — no ports exposed by default.
+    # For development access, uncomment below or use: docker compose exec postgres psql -U n3n
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -74,9 +75,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: n3n-redis
-    # Expose for development only
-    ports:
-      - "6379:6379"
+    # Internal service — no ports exposed by default.
+    # ports:
+    #   - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -93,12 +94,13 @@ services:
           memory: 128M
     restart: unless-stopped
 
-  # MongoDB for testing workflows
+  # MongoDB for workflow nodes that require NoSQL storage
   mongodb:
     image: mongo:7
     container_name: n3n-mongodb
-    ports:
-      - "27017:27017"
+    # Internal service — no ports exposed by default.
+    # ports:
+    #   - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-n3n_admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-n3n_dev_only}
@@ -125,9 +127,9 @@ services:
       context: ./flow-optimizer
       dockerfile: Dockerfile
     container_name: n3n-flow-optimizer
-    # Port exposed for development debugging only; not needed in production
-    ports:
-      - "8081:8081"
+    # Internal service — no ports exposed by default.
+    # ports:
+    #   - "8081:8081"
     environment:
       LLAMAFILE_HOST: "0.0.0.0"
       LLAMAFILE_PORT: "8081"

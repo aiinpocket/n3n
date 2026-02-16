@@ -130,14 +130,25 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken();
         saveRefreshToken(user, refreshToken, null, null);
 
-        return AuthResponse.builder()
+        var builder = AuthResponse.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .expiresIn(jwtService.getAccessTokenExpirationMs() / 1000)
             .isFirstUser(isFirstUser)
             .message(isFirstUser ? "Admin account created successfully" : "Registration successful")
-            .user(UserResponse.from(user, roles))
-            .build();
+            .user(UserResponse.from(user, roles));
+
+        // First admin registration: include Recovery Key so frontend can show backup modal
+        if (isFirstUser && masterKeyProvider.needsRecoveryKeySetup()) {
+            var pendingKey = masterKeyProvider.getPendingRecoveryKey();
+            if (pendingKey != null && pendingKey.getWords() != null && !pendingKey.getWords().isEmpty()) {
+                builder.needsRecoveryKeyBackup(true)
+                       .recoveryKey(pendingKey.getWords());
+                log.info("Recovery key included in registration response for first admin user {}", user.getId());
+            }
+        }
+
+        return builder.build();
     }
 
     @Transactional

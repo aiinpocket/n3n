@@ -1,0 +1,19 @@
+# Development overrides — exposes internal service ports for local debugging.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  mongodb:
+    ports:
+      - "27017:27017"
+
+  flow-optimizer:
+    ports:
+      - "8081:8081"
