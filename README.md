@@ -241,6 +241,26 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
 ```
 
+### Docker Desktop 沒有啟動？
+
+如果執行 `docker compose up` 出現 `Cannot connect to the Docker daemon` 錯誤：
+
+- **Windows / Mac**：先開啟 Docker Desktop 應用程式，等待系統匣圖示顯示「Running」
+- **Linux**：執行 `sudo systemctl start docker`
+
+### 磁碟空間不足？
+
+首次啟動需要下載約 3-4 GB 映像。確認可用空間：
+
+```bash
+# Mac/Linux
+df -h .
+# Windows (PowerShell)
+Get-PSDrive C
+```
+
+如果空間不足，可以清理 Docker 舊映像：`docker system prune -a`
+
 ### 記憶體不足怎麼辦？
 
 如果你的電腦記憶體不到 8 GB，可以停用 Flow Optimizer 節省 2-4 GB：

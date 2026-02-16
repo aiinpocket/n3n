@@ -241,6 +241,26 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
 ```
 
+### Docker Desktop not running?
+
+If you see `Cannot connect to the Docker daemon` when running `docker compose up`:
+
+- **Windows / Mac**: Open Docker Desktop app first, wait for the system tray icon to show "Running"
+- **Linux**: Run `sudo systemctl start docker`
+
+### Not enough disk space?
+
+The first startup downloads ~3-4 GB of images. Check available space:
+
+```bash
+# Mac/Linux
+df -h .
+# Windows (PowerShell)
+Get-PSDrive C
+```
+
+If space is insufficient, clean up old Docker images: `docker system prune -a`
+
 ### Not enough memory?
 
 If your computer has less than 8 GB of memory, you can disable the Flow Optimizer to save 2-4 GB:

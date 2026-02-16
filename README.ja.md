@@ -232,6 +232,26 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 docker compose exec -T postgres psql -U n3n n3n < backup_20260216.sql
 ```
 
+### Docker Desktop が起動していない場合
+
+`docker compose up` で `Cannot connect to the Docker daemon` エラーが出る場合：
+
+- **Windows / Mac**: Docker Desktop アプリを先に起動し、システムトレイアイコンが「Running」になるまで待つ
+- **Linux**: `sudo systemctl start docker` を実行
+
+### ディスク容量不足の場合
+
+初回起動時は約 3-4 GB のイメージをダウンロードします。空き容量を確認：
+
+```bash
+# Mac/Linux
+df -h .
+# Windows (PowerShell)
+Get-PSDrive C
+```
+
+容量不足の場合、古い Docker イメージを削除：`docker system prune -a`
+
 ### メモリが足りない場合
 
 PCのメモリが8GB未満の場合、Flow Optimizerを無効にして2〜4GBを節約できます：
