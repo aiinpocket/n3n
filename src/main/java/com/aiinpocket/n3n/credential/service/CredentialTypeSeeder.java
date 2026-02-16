@@ -24,6 +24,14 @@ public class CredentialTypeSeeder {
 
     @PostConstruct
     public void seed() {
+        try {
+            doSeed();
+        } catch (Exception e) {
+            log.error("Failed to seed credential types — application will continue but some credential types may be missing: {}", e.getMessage());
+        }
+    }
+
+    private void doSeed() {
         List<SeedType> seeds = List.of(
                 new SeedType("http_basic", "HTTP Basic Auth", "Username and password authentication",
                         Map.of("type", "object",

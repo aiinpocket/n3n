@@ -193,8 +193,8 @@ public class ExecutionService {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));
 
-        // Verify user has at least view access to execute (edit access for non-owner)
-        if (!flowShareService.hasAccess(flow.getId(), userId)) {
+        // Verify user has edit access to execute (VIEW-only users cannot trigger executions)
+        if (!flowShareService.hasEditAccess(flow.getId(), userId)) {
             throw new org.springframework.security.access.AccessDeniedException("Access denied to flow: " + flow.getId());
         }
 

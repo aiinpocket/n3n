@@ -269,8 +269,8 @@ public class FlowExportService {
      */
     private String calculateChecksum(FlowExportPackage pkg) {
         try {
-            // 只對 flow 和 dependencies 計算 checksum
-            Map<String, Object> content = new HashMap<>();
+            // 只對 flow 和 dependencies 計算 checksum（使用 LinkedHashMap 保證順序一致）
+            Map<String, Object> content = new LinkedHashMap<>();
             if (pkg.getFlow() != null) {
                 content.put("flow", pkg.getFlow());
             }

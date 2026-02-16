@@ -102,6 +102,7 @@ class ExecutionServiceTest extends BaseServiceTest {
 
         // Default: user has access to the flow (owner)
         lenient().when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
+        lenient().when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
 
         // Set @Value fields not injected by Mockito
         ReflectionTestUtils.setField(executionService, "maxConcurrentExecutions", 100);

@@ -74,10 +74,9 @@ class FlowImportServiceTest extends BaseServiceTest {
      * Compute SHA-256 checksum the same way FlowImportService does internally.
      */
     private String computeChecksum(FlowExportPackage pkg) throws Exception {
-        Map<String, Object> content = Map.of(
-                "flow", pkg.getFlow(),
-                "dependencies", pkg.getDependencies()
-        );
+        Map<String, Object> content = new LinkedHashMap<>();
+        content.put("flow", pkg.getFlow());
+        content.put("dependencies", pkg.getDependencies());
         String json = objectMapper.writeValueAsString(content);
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(json.getBytes(StandardCharsets.UTF_8));

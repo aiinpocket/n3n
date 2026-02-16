@@ -215,10 +215,10 @@ public class FlowImportService {
             if (flowObj == null || depsObj == null) {
                 throw new IllegalArgumentException("Export package is missing flow data or dependencies");
             }
-            Map<String, Object> content = Map.of(
-                    "flow", flowObj,
-                    "dependencies", depsObj
-            );
+            // 使用 LinkedHashMap 保證序列化順序與匯出端一致
+            Map<String, Object> content = new LinkedHashMap<>();
+            content.put("flow", flowObj);
+            content.put("dependencies", depsObj);
 
             String json = objectMapper.writeValueAsString(content);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

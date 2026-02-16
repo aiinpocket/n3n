@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.flow.dto.import_;
 
 import com.aiinpocket.n3n.flow.dto.export.FlowExportPackage;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class FlowImportRequest {
     /**
      * 新的流程名稱（可選）
      */
+    @Size(max = 255, message = "Flow name must not exceed 255 characters")
     private String newFlowName;
 
     /**
