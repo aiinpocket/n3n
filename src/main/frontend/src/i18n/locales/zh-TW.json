@@ -1885,7 +1885,7 @@
     "status": {
       "active": "啟用",
       "suspended": "已停權",
-      "blocked": "已封鎖"
+      "deleted": "已刪除"
     },
     "viewDetail": "檢視詳情",
     "userDetail": "使用者詳情",

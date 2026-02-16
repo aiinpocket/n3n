@@ -12,6 +12,7 @@ import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
+import com.aiinpocket.n3n.execution.repository.FormTriggerRepository;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -52,6 +53,9 @@ class FlowServiceTest extends BaseServiceTest {
 
     @Mock
     private WebhookRepository webhookRepository;
+
+    @Mock
+    private FormTriggerRepository formTriggerRepository;
 
     @Mock
     private com.aiinpocket.n3n.scheduler.SchedulerService schedulerService;
@@ -403,6 +407,10 @@ class FlowServiceTest extends BaseServiceTest {
 
         // Then
         verify(flowRepository).save(argThat(f -> f.getIsDeleted()));
+        verify(flowShareRepository).deleteByFlowId(flow.getId());
+        verify(webhookRepository).deactivateByFlowId(flow.getId());
+        verify(formTriggerRepository).deactivateByFlowId(flow.getId());
+        verify(flowVersionRepository).deleteByFlowId(flow.getId());
     }
 
     @Test

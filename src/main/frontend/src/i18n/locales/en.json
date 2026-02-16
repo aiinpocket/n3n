@@ -1885,7 +1885,7 @@
     "status": {
       "active": "Active",
       "suspended": "Suspended",
-      "blocked": "Blocked"
+      "deleted": "Deleted"
     },
     "viewDetail": "View Details",
     "userDetail": "User Details",

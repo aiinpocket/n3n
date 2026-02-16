@@ -10,6 +10,7 @@ import com.aiinpocket.n3n.flow.entity.FlowVersion;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
 import com.aiinpocket.n3n.flow.repository.FlowShareRepository;
 import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
+import com.aiinpocket.n3n.execution.repository.FormTriggerRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
@@ -39,6 +40,7 @@ public class FlowService {
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final ExternalServiceService externalServiceService;
     private final WebhookRepository webhookRepository;
+    private final FormTriggerRepository formTriggerRepository;
     private final SchedulerService schedulerService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -238,12 +240,13 @@ public class FlowService {
         // Clean up related data
         flowShareRepository.deleteByFlowId(id);
         webhookRepository.deactivateByFlowId(id);
+        formTriggerRepository.deactivateByFlowId(id);
         int schedulesRemoved = schedulerService.unscheduleByFlowId(id);
         flowVersionRepository.deleteByFlowId(id);
 
         flow.setIsDeleted(true);
         flowRepository.save(flow);
-        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated, {} schedules removed, versions deleted", id, schedulesRemoved);
+        log.info("Flow deleted: id={}, shares cleaned up, webhooks+forms deactivated, {} schedules removed, versions deleted", id, schedulesRemoved);
         eventPublisher.publishEvent(new FlowSyncEvent(id, SyncAction.DELETE, null));
     }
 

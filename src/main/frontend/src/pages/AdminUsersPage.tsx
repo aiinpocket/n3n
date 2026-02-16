@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
   const statusColors: Record<string, string> = {
     active: 'success',
     suspended: 'warning',
-    blocked: 'error',
+    deleted: 'error',
   }
 
   const columns = [

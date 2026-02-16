@@ -297,7 +297,10 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 | 變數 | 預設值 | 說明 |
 |------|--------|------|
 | `JWT_SECRET` | 自動產生 | JWT 簽名密鑰（叢集部署時需統一設定） |
+| `N3N_MASTER_KEY` | 自動產生 | 資料加密主金鑰（**生產環境必須設定**） |
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS 允許來源 |
+
+> **生產環境注意**：`N3N_MASTER_KEY` 在開發環境會自動產生並持久化到 `/data/keys/master.key`，但在生產環境（`SPRING_PROFILES_ACTIVE=prod`）下**必須手動設定**，否則應用會拒絕啟動。產生方式：`openssl rand -base64 32`
 
 ### 容器編排（插件系統）
 

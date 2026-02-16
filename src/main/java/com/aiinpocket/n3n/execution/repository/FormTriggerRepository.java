@@ -60,6 +60,13 @@ public interface FormTriggerRepository extends JpaRepository<FormTrigger, UUID> 
     int incrementSubmissionCountById(@Param("id") UUID id);
 
     /**
+     * Deactivate all form triggers for a flow (used during flow deletion).
+     */
+    @Modifying
+    @Query("UPDATE FormTrigger f SET f.isActive = false, f.updatedAt = CURRENT_TIMESTAMP WHERE f.flowId = :flowId")
+    void deactivateByFlowId(@Param("flowId") UUID flowId);
+
+    /**
      * Atomically check-and-increment: only increments if form is active,
      * not expired, and under submission limit. Prevents TOCTOU race conditions.
      * Returns 1 if incremented (accepted), 0 if rejected.

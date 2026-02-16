@@ -296,7 +296,10 @@ N3N uses a **zero-configuration design** — all settings have sensible defaults
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `JWT_SECRET` | Auto-generated | JWT signing key (must be unified for cluster deployment) |
+| `N3N_MASTER_KEY` | Auto-generated | Data encryption master key (**required in production**) |
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS allowed origins |
+
+> **Production Note**: `N3N_MASTER_KEY` is auto-generated in development and persisted to `/data/keys/master.key`. In production (`SPRING_PROFILES_ACTIVE=prod`), it **must be set manually** or the application will refuse to start. Generate with: `openssl rand -base64 32`
 
 ### Container Orchestration (Plugin System)
 

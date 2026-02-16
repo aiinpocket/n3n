@@ -1885,7 +1885,7 @@
     "status": {
       "active": "有効",
       "suspended": "一時停止",
-      "blocked": "ブロック"
+      "deleted": "削除済み"
     },
     "viewDetail": "詳細を表示",
     "userDetail": "ユーザー詳細",
