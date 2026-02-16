@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space, Steps } from 'antd'
 import { MailOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -11,8 +11,10 @@ const { Title } = Typography
 
 export default function PasswordResetPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-  const [currentStep, setCurrentStep] = useState(0)
+  const tokenFromUrl = searchParams.get('token')
+  const [currentStep, setCurrentStep] = useState(tokenFromUrl ? 1 : 0)
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
@@ -25,6 +27,13 @@ export default function PasswordResetPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [emailForm] = Form.useForm()
   const [resetForm] = Form.useForm()
+
+  // Auto-fill token from URL query parameter (from email reset link)
+  useEffect(() => {
+    if (tokenFromUrl) {
+      resetForm.setFieldsValue({ token: tokenFromUrl })
+    }
+  }, [tokenFromUrl, resetForm])
 
   const handleRequestReset = async (values: { email: string }) => {
     setLoading(true)

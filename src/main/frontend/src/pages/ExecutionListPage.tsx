@@ -56,6 +56,8 @@ export default function ExecutionListPage() {
     current: 1,
     pageSize: 20,
     total: 0,
+    showTotal: (total: number) => t('common.total', { count: total }),
+    showSizeChanger: true,
   })
   const initialStatus = searchParams.get('status') || 'all'
   const flowIdFilter = searchParams.get('flowId') || undefined
@@ -78,11 +80,12 @@ export default function ExecutionListPage() {
         : await executionApi.list(page - 1, size, status, search)
       if (requestId !== fetchRequestIdRef.current) return // Stale response
       setExecutions(data.content)
-      setPagination({
+      setPagination(prev => ({
+        ...prev,
         current: data.number + 1,
         pageSize: data.size,
         total: data.totalElements,
-      })
+      }))
     } catch (error) {
       if (requestId !== fetchRequestIdRef.current) return
       logger.error('Failed to load executions:', error)

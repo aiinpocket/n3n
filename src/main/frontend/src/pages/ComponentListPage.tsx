@@ -76,6 +76,8 @@ export default function ComponentListPage() {
     current: 1,
     pageSize: 20,
     total: 0,
+    showTotal: (total: number) => t('common.total', { count: total }),
+    showSizeChanger: true,
   })
 
   // Create component modal
@@ -120,11 +122,12 @@ export default function ComponentListPage() {
     try {
       const data = await componentApi.list(page - 1, pageSize)
       setComponents(data.content)
-      setPagination({
+      setPagination(prev => ({
+        ...prev,
         current: data.number + 1,
         pageSize: data.size,
         total: data.totalElements,
-      })
+      }))
     } catch (error) {
       logger.error('Failed to load components:', error)
       message.error(extractApiError(error, t('common.loadFailed')))
