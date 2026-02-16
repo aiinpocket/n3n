@@ -65,8 +65,8 @@ public class FormService {
         }
 
         trigger = formTriggerRepository.save(trigger);
-        log.info("Form trigger created/updated: id={}, flowId={}, nodeId={}, token={}",
-            trigger.getId(), flowId, nodeId, trigger.getFormToken());
+        log.info("Form trigger created/updated: id={}, flowId={}, nodeId={}",
+            trigger.getId(), flowId, nodeId);
 
         return trigger;
     }
@@ -127,7 +127,7 @@ public class FormService {
         trigger.setFormToken(generateSecureToken());
         trigger.setUpdatedAt(Instant.now());
         trigger = formTriggerRepository.save(trigger);
-        log.info("Regenerated form token: id={}, newToken={}", triggerId, trigger.getFormToken());
+        log.info("Regenerated form token: id={}", triggerId);
         return trigger;
     }
 

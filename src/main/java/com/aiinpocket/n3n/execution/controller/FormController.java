@@ -112,8 +112,8 @@ public class FormController {
             }
 
             // Trigger the flow with form data
-            log.info("Form submitted: token={}, flowId={}, nodeId={}",
-                token, trigger.getFlowId(), trigger.getNodeId());
+            log.info("Form submitted: flowId={}, nodeId={}",
+                trigger.getFlowId(), trigger.getNodeId());
 
             // Add metadata to form data
             Map<String, Object> triggerInput = new HashMap<>(formData);

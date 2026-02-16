@@ -102,7 +102,110 @@ public class CredentialTypeSeeder {
                                         "username", Map.of("type", "string", "title", "Username"),
                                         "password", Map.of("type", "string", "format", "password", "title", "Password"),
                                         "scheme", Map.of("type", "string", "title", "Scheme", "default", "https")),
-                                "required", List.of("host")))
+                                "required", List.of("host"))),
+                // AI Provider credentials
+                new SeedType("openai", "OpenAI", "OpenAI API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key"),
+                                        "organization", Map.of("type", "string", "title", "Organization ID")),
+                                "required", List.of("apiKey"))),
+                new SeedType("anthropic", "Anthropic (Claude)", "Anthropic Claude API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key")),
+                                "required", List.of("apiKey"))),
+                new SeedType("google", "Google AI (Gemini)", "Google Gemini API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key"),
+                                        "projectId", Map.of("type", "string", "title", "Project ID")),
+                                "required", List.of("apiKey"))),
+                // Google Workspace credentials
+                new SeedType("googleSheets", "Google Sheets", "Google Sheets API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key")),
+                                "required", List.of("serviceAccountKey"))),
+                new SeedType("gmail", "Gmail", "Gmail API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key")),
+                                "required", List.of("serviceAccountKey"))),
+                new SeedType("googleDrive", "Google Drive", "Google Drive API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key")),
+                                "required", List.of("serviceAccountKey"))),
+                new SeedType("googleCalendar", "Google Calendar", "Google Calendar API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key")),
+                                "required", List.of("serviceAccountKey"))),
+                // GCP credentials
+                new SeedType("googlePubSub", "Google Pub/Sub", "Google Cloud Pub/Sub credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key"),
+                                        "projectId", Map.of("type", "string", "title", "Project ID")),
+                                "required", List.of("serviceAccountKey", "projectId"))),
+                new SeedType("googleCloudStorage", "Google Cloud Storage", "GCS credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key"),
+                                        "projectId", Map.of("type", "string", "title", "Project ID")),
+                                "required", List.of("serviceAccountKey", "projectId"))),
+                new SeedType("bigQuery", "BigQuery", "Google BigQuery credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "serviceAccountKey", Map.of("type", "string", "format", "textarea", "title", "Service Account JSON Key"),
+                                        "projectId", Map.of("type", "string", "title", "Project ID")),
+                                "required", List.of("serviceAccountKey", "projectId"))),
+                // Social Media credentials
+                new SeedType("facebook", "Facebook", "Facebook Graph API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "accessToken", Map.of("type", "string", "format", "password", "title", "Access Token"),
+                                        "appId", Map.of("type", "string", "title", "App ID"),
+                                        "appSecret", Map.of("type", "string", "format", "password", "title", "App Secret")),
+                                "required", List.of("accessToken"))),
+                new SeedType("instagram", "Instagram", "Instagram Graph API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "accessToken", Map.of("type", "string", "format", "password", "title", "Access Token")),
+                                "required", List.of("accessToken"))),
+                new SeedType("threads", "Threads", "Threads API credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "accessToken", Map.of("type", "string", "format", "password", "title", "Access Token")),
+                                "required", List.of("accessToken"))),
+                // Email & File Transfer credentials
+                new SeedType("smtp", "SMTP", "SMTP email server credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "host", Map.of("type", "string", "title", "SMTP Host"),
+                                        "port", Map.of("type", "integer", "title", "Port", "default", 587),
+                                        "username", Map.of("type", "string", "title", "Username"),
+                                        "password", Map.of("type", "string", "format", "password", "title", "Password"),
+                                        "encryption", Map.of("type", "string", "title", "Encryption", "default", "STARTTLS")),
+                                "required", List.of("host", "username", "password"))),
+                new SeedType("imap", "IMAP", "IMAP email server credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "host", Map.of("type", "string", "title", "IMAP Host"),
+                                        "port", Map.of("type", "integer", "title", "Port", "default", 993),
+                                        "username", Map.of("type", "string", "title", "Username"),
+                                        "password", Map.of("type", "string", "format", "password", "title", "Password")),
+                                "required", List.of("host", "username", "password"))),
+                new SeedType("ftp", "FTP / SFTP", "FTP or SFTP server credentials",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "host", Map.of("type", "string", "title", "Host"),
+                                        "port", Map.of("type", "integer", "title", "Port", "default", 21),
+                                        "username", Map.of("type", "string", "title", "Username"),
+                                        "password", Map.of("type", "string", "format", "password", "title", "Password"),
+                                        "protocol", Map.of("type", "string", "title", "Protocol", "default", "SFTP")),
+                                "required", List.of("host", "username")))
         );
 
         int seeded = 0;

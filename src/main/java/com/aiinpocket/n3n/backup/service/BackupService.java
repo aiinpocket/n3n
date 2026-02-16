@@ -312,6 +312,8 @@ public class BackupService {
 
     // ========== Private Methods ==========
 
+    private static final int MAX_BACKUP_ENTITIES = 100_000;
+
     private Map<String, Object> collectBackupPayload() {
         Map<String, Object> payload = new LinkedHashMap<>();
 
@@ -334,6 +336,13 @@ public class BackupService {
         // AI Providers
         List<AiProviderConfig> aiProviders = aiProviderConfigRepository.findAll();
         payload.put("aiProviders", aiProviders);
+
+        // Safety check: prevent OOM from excessively large datasets
+        int totalEntities = credentials.size() + flows.size() + versions.size() + aiProviders.size();
+        if (totalEntities > MAX_BACKUP_ENTITIES) {
+            throw new IllegalStateException(
+                    String.format("Backup too large: %d total entities exceeds limit of %d", totalEntities, MAX_BACKUP_ENTITIES));
+        }
 
         log.info("Collected backup: {} credentials, {} flows, {} versions, {} AI providers",
                 credentials.size(), flows.size(), versions.size(), aiProviders.size());

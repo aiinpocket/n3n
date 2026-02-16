@@ -90,7 +90,7 @@ public class OAuth2Controller {
             @RequestParam(required = false, name = "error_description") @Size(max = 2000) String errorDescription) {
 
         if (error != null) {
-            log.error("OAuth2 error: {} - {}", error, errorDescription);
+            log.error("OAuth2 callback error: {}", error);
             return redirectToFrontend(null, error, errorDescription != null ? errorDescription : "Authorization failed");
         }
 
