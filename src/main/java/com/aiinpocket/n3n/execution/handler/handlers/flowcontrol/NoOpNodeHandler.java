@@ -46,7 +46,7 @@ public class NoOpNodeHandler extends AbstractNodeHandler {
         boolean logData = getBooleanConfig(context, "logData", false);
 
         if (logData && inputData != null) {
-            log.info("NoOp node passing through data: {}", inputData);
+            log.info("NoOp node passing through data keys: {}", inputData.keySet());
         } else {
             log.debug("NoOp node executing");
         }

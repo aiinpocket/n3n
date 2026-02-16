@@ -176,6 +176,11 @@ public abstract class AbstractNodeHandler implements NodeHandler {
         s = s.replaceAll("/(?:home|tmp|var|etc|usr|opt|Users|mnt)/[^\\s,;)]+", "/***");
         // Strip GCP project references
         s = s.replaceAll("projects/[^/\\s]+", "projects/***");
+        // Strip Bearer/Basic auth tokens
+        s = s.replaceAll("(?i)bearer\\s+[A-Za-z0-9._\\-]+", "bearer ***");
+        s = s.replaceAll("(?i)basic\\s+[A-Za-z0-9+/=]+", "basic ***");
+        // Strip key=value patterns for common secret fields
+        s = s.replaceAll("(?i)(password|secret|api[_-]?key|token|authorization)\\s*[=:]\\s*[^\\s,;)\"']+", "$1=***");
         // Truncate
         if (s.length() > maxLen) {
             s = s.substring(0, maxLen) + "...";

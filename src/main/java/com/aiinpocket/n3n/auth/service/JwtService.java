@@ -66,6 +66,7 @@ public class JwtService {
     public Claims parseToken(String token) {
         return Jwts.parser()
             .verifyWith(getSigningKey())
+            .requireIssuer("n3n-flow-platform")
             .build()
             .parseSignedClaims(token)
             .getPayload();

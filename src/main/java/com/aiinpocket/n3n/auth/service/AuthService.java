@@ -243,6 +243,9 @@ public class AuthService {
         user.setLockedUntil(null);
         userRepository.save(user);
 
+        // Revoke all existing refresh tokens to force re-authentication on all devices
+        refreshTokenRepository.revokeAllByUserId(userId, java.time.Instant.now());
+
         activityService.logPasswordChange(userId, user.getEmail());
         log.info("Password changed for user: {}", user.getEmail());
     }
@@ -299,6 +302,9 @@ public class AuthService {
 
         // Delete the reset token from Redis
         redisTemplate.delete(redisKey);
+
+        // Revoke all existing refresh tokens to force re-authentication on all devices
+        refreshTokenRepository.revokeAllByUserId(userId, java.time.Instant.now());
 
         log.info("Password reset completed for user: {}", user.getEmail());
 

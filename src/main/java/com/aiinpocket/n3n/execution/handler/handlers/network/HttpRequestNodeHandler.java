@@ -98,9 +98,8 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
 
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
-        log.info("HttpRequestNodeHandler.doExecute called for node: {}", context.getNodeId());
+        log.debug("HttpRequestNodeHandler.doExecute called for node: {}", context.getNodeId());
         String url = getStringConfig(context, "url", "");
-        log.info("URL config: '{}'", url);
         String method = getStringConfig(context, "method", "GET").toUpperCase();
         int timeout = getIntConfig(context, "timeout", DEFAULT_TIMEOUT_SECONDS);
 
@@ -160,11 +159,11 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
                 .build();
 
             Request request = requestBuilder.build();
-            log.info("Executing HTTP {} {} with timeout {}s", method, url, timeout);
+            log.info("Executing HTTP {} to {} with timeout {}s", method, sanitizeUrl(url), timeout);
 
             try (Response response = client.newCall(request).execute()) {
                 NodeExecutionResult result = processResponse(response, context);
-                log.info("HTTP response: status={}, success={}, outputKeys={}",
+                log.debug("HTTP response: status={}, success={}, outputKeys={}",
                     response.code(), result.isSuccess(),
                     result.getOutput() != null ? result.getOutput().keySet() : "null");
                 return result;
@@ -246,7 +245,7 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
             }
 
             bodyString = responseBody.string();
-            log.info("HTTP response body length: {} bytes", bodyString.length());
+            log.debug("HTTP response body length: {} bytes", bodyString.length());
 
             // Try to parse as JSON
             String contentType = response.header("Content-Type", "");
@@ -281,6 +280,14 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
         }
 
         return NodeExecutionResult.success(output);
+    }
+
+    /**
+     * Strip query parameters from URL for safe logging (may contain API keys).
+     */
+    private String sanitizeUrl(String url) {
+        int queryIndex = url.indexOf('?');
+        return queryIndex >= 0 ? url.substring(0, queryIndex) + "?***" : url;
     }
 
     @Override

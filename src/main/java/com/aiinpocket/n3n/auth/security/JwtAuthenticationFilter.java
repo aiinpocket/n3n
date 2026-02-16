@@ -54,6 +54,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             @SuppressWarnings("unchecked")
             List<String> roles = claims.get("roles", List.class);
+            if (roles == null) {
+                roles = List.of("USER");
+            }
 
             List<SimpleGrantedAuthority> authorities = roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
