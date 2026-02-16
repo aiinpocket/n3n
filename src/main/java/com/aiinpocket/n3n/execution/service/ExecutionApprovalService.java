@@ -163,6 +163,7 @@ public class ExecutionApprovalService {
     /**
      * Get an approval by ID.
      */
+    @Transactional(readOnly = true)
     public ExecutionApproval getApproval(UUID approvalId) {
         return approvalRepository.findById(approvalId)
             .orElseThrow(() -> new ResourceNotFoundException("Approval not found: " + approvalId));
@@ -171,6 +172,7 @@ public class ExecutionApprovalService {
     /**
      * Get approval for an execution and node.
      */
+    @Transactional(readOnly = true)
     public Optional<ExecutionApproval> getApprovalForExecution(UUID executionId, String nodeId) {
         return approvalRepository.findByExecutionIdAndNodeId(executionId, nodeId);
     }
@@ -178,6 +180,7 @@ public class ExecutionApprovalService {
     /**
      * Get pending approval for an execution.
      */
+    @Transactional(readOnly = true)
     public Optional<ExecutionApproval> getPendingApprovalForExecution(UUID executionId) {
         return approvalRepository.findPendingByExecutionId(executionId);
     }
@@ -185,6 +188,7 @@ public class ExecutionApprovalService {
     /**
      * Get all approvals for an execution.
      */
+    @Transactional(readOnly = true)
     public List<ExecutionApproval> getApprovalsForExecution(UUID executionId) {
         return approvalRepository.findByExecutionId(executionId);
     }
@@ -192,6 +196,7 @@ public class ExecutionApprovalService {
     /**
      * Get all pending approvals.
      */
+    @Transactional(readOnly = true)
     public List<ExecutionApproval> getAllPendingApprovals() {
         return approvalRepository.findAllPending();
     }
@@ -209,6 +214,7 @@ public class ExecutionApprovalService {
      * Check if a user is authorized to view/interact with an approval.
      * A user is authorized if they triggered the execution associated with the approval.
      */
+    @Transactional(readOnly = true)
     public boolean isUserAuthorizedForApproval(ExecutionApproval approval, UUID userId) {
         return executionRepository.findById(approval.getExecutionId())
             .map(execution -> userId.equals(execution.getTriggeredBy()))
@@ -218,6 +224,7 @@ public class ExecutionApprovalService {
     /**
      * Get actions for an approval.
      */
+    @Transactional(readOnly = true)
     public List<ApprovalAction> getActionsForApproval(UUID approvalId) {
         return actionRepository.findByApprovalIdOrderByCreatedAtDesc(approvalId);
     }
