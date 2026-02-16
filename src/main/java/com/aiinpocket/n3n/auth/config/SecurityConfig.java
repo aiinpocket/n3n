@@ -74,6 +74,8 @@ public class SecurityConfig {
                     .includeSubDomains(true)
                     .maxAgeInSeconds(31536000)
                 )
+                // Prevent browsers from caching sensitive API responses on shared devices
+                .cacheControl(cache -> {})
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
