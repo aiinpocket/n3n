@@ -228,38 +228,6 @@ export const flowApi = {
     await apiClient.delete(`/flows/${flowId}/versions/${version}/pin/${nodeId}`)
   },
 
-  /**
-   * Get all pinned data for a flow version
-   */
-  getPinnedData: async (flowId: string, version: string): Promise<Record<string, unknown>> => {
-    const response = await apiClient.get(`/flows/${flowId}/versions/${version}/pinned-data`)
-    return response.data
-  },
-
-  /**
-   * Get the published version directly (convenience API)
-   */
-  getPublishedVersion: async (flowId: string): Promise<FlowVersion> => {
-    const response = await apiClient.get(`/flows/${flowId}/versions/published`)
-    return response.data
-  },
-
-  /**
-   * Validate a flow definition without saving
-   */
-  validateDefinition: async (definition: FlowDefinition): Promise<FlowValidationResponse> => {
-    const response = await apiClient.post('/flows/validate', definition)
-    return response.data
-  },
-
-  /**
-   * Export the latest version of a flow (convenience API)
-   */
-  exportLatest: async (flowId: string): Promise<FlowExportData> => {
-    const response = await apiClient.get(`/flows/${flowId}/export`)
-    return response.data
-  },
-
   batchDelete: async (ids: string[]): Promise<{ deleted: number; total: number }> => {
     const response = await apiClient.delete('/flows/batch', { data: { ids } })
     return response.data

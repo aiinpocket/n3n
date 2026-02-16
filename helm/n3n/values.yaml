@@ -76,9 +76,13 @@ persistence:
 
 # Application configuration
 config:
-  # JWT secret - auto-generated if not set; set explicitly for multi-replica consistency
+  # JWT secret - auto-generated if not set
+  # IMPORTANT: For multi-replica deployments, set this explicitly so all pods share the same secret
   jwtSecret: ""
-  # Master encryption key for credentials (maps to N3N_MASTER_KEY env var)
+  # Master encryption key for AES-256-GCM credential encryption (maps to N3N_MASTER_KEY env var)
+  # IMPORTANT: For multi-replica deployments, ALL pods MUST share the same key.
+  # If left empty, each pod auto-generates its own key and credentials encrypted by one pod
+  # cannot be decrypted by another. Generate with: openssl rand -base64 32
   encryptionKey: ""
   # Allowed CORS origins (comma-separated)
   allowedOrigins: "https://n3n.local"

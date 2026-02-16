@@ -160,11 +160,15 @@ helm show values ./helm/n3n
 # 建立 namespace
 kubectl create namespace n3n
 
-# 建立 secrets（僅需資料庫密碼，Master Key 和 JWT Secret 會自動產生）
+# 建立 secrets
+# ⚠️ 多實例部署（replicas > 1）必須設定 master-key 和 jwt-secret
+#    以確保所有 Pod 使用相同的加密密鑰
 kubectl create secret generic n3n-secrets \
   --namespace n3n \
-  --from-literal=db-password="strong-db-password" \
-  --from-literal=redis-password="strong-redis-password"
+  --from-literal=db-password="$(openssl rand -base64 24)" \
+  --from-literal=redis-password="$(openssl rand -base64 24)" \
+  --from-literal=master-key="$(openssl rand -base64 32)" \
+  --from-literal=jwt-secret="$(openssl rand -base64 64)"
 ```
 
 #### 3. 安裝 Chart
@@ -328,10 +332,14 @@ metadata:
   namespace: n3n
 type: Opaque
 stringData:
-  # Master Key 和 JWT Secret 會自動產生，不需手動設定
   db-username: "n3n"
   db-password: "your-db-password"
   redis-password: "your-redis-password"
+  # ⚠️ 多實例部署必須設定，確保所有 Pod 共用相同加密密鑰
+  # 產生方式：openssl rand -base64 32
+  N3N_MASTER_KEY: "your-base64-encoded-master-key"
+  # 產生方式：openssl rand -base64 64
+  JWT_SECRET: "your-base64-encoded-jwt-secret"
 ```
 
 #### 3. Deployment
