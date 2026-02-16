@@ -138,8 +138,9 @@ public class AdminUserService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
         // Prevent suspending/blocking the last active admin
+        boolean targetIsAdmin = false;
         if (!"active".equals(status)) {
-            boolean targetIsAdmin = userRoleRepository.findByUserId(id).stream()
+            targetIsAdmin = userRoleRepository.findByUserId(id).stream()
                 .anyMatch(r -> "ADMIN".equals(r.getRole()));
             if (targetIsAdmin) {
                 long activeAdminCount = countActiveAdmins();
@@ -157,6 +158,15 @@ public class AdminUserService {
 
         user.setStatus(status);
         user = userRepository.save(user);
+
+        // Post-save verification: ensure at least one admin remains active (TOCTOU defence)
+        if (targetIsAdmin) {
+            userRepository.flush();
+            long postSaveAdminCount = countActiveAdmins();
+            if (postSaveAdminCount < 1) {
+                throw new IllegalStateException("Operation would leave no active admins — rolled back");
+            }
+        }
 
         Set<String> roles = userRoleRepository.findByUserId(user.getId())
             .stream()
@@ -253,12 +263,12 @@ public class AdminUserService {
     }
 
     /**
-     * Validate password strength: at least 8 chars, with at least 3 of 4 criteria
-     * (uppercase, lowercase, digit, special char). Same rules as user registration.
+     * Validate password strength: at least 12 chars, with at least 3 of 4 criteria
+     * (uppercase, lowercase, digit, special char). Aligned with CreateUserRequest DTO.
      */
     private void validatePasswordStrength(String password) {
-        if (password.length() < 8) {
-            throw new IllegalArgumentException("Password must be at least 8 characters");
+        if (password.length() < 12) {
+            throw new IllegalArgumentException("Password must be at least 12 characters");
         }
         int criteria = 0;
         if (password.matches(".*[A-Z].*")) criteria++;

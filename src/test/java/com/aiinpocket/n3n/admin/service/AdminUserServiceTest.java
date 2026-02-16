@@ -234,7 +234,7 @@ class AdminUserServiceTest extends BaseServiceTest {
             CreateUserRequest request = new CreateUserRequest();
             request.setEmail("new@example.com");
             request.setName("Multi Role User");
-            request.setPassword("Pass1234!");
+            request.setPassword("Pass1234!Abc");
             request.setRoles(Set.of("USER", "ADMIN"));
 
             when(userRepository.existsByEmail("new@example.com")).thenReturn(false);

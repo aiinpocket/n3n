@@ -287,12 +287,8 @@ public class ScheduleController {
     // ---- private helpers ----
 
     private Schedule findScheduleWithOwnerCheck(UUID id, UUID userId) {
-        Schedule schedule = scheduleRepository.findById(id)
+        return scheduleRepository.findByIdAndCreatedBy(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
-        if (!schedule.getCreatedBy().equals(userId)) {
-            throw new AccessDeniedException("Access denied");
-        }
-        return schedule;
     }
 
     private Instant getNextRunInstant(String quartzScheduleId) {

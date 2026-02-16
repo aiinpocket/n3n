@@ -138,7 +138,7 @@ class ScheduleControllerTest {
         Schedule schedule = sampleSchedule();
         Flow flow = sampleFlow(schedule.getFlowId());
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.of(flow));
 
         var response = scheduleController.getSchedule(schedule.getId(), testUser());
@@ -152,27 +152,26 @@ class ScheduleControllerTest {
     @Test
     void getSchedule_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleController.getSchedule(scheduleId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void getSchedule_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID()); // different user
+    void getSchedule_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> scheduleController.getSchedule(schedule.getId(), testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.getSchedule(scheduleId, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void getSchedule_shouldReturnNullFlowNameWhenFlowDeleted() {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
 
         var response = scheduleController.getSchedule(schedule.getId(), testUser());
@@ -372,7 +371,7 @@ class ScheduleControllerTest {
     @Test
     void updateSchedule_shouldUpdateNameOnly() throws SchedulerException {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setName("Updated Name");
@@ -397,7 +396,7 @@ class ScheduleControllerTest {
         String newQuartzId = "quartz-new-" + UUID.randomUUID();
         Date newNextFire = Date.from(Instant.now().plusSeconds(7200));
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setCronExpression("0 30 * * * ?");
@@ -423,7 +422,7 @@ class ScheduleControllerTest {
         String oldQuartzId = schedule.getQuartzScheduleId();
         String newQuartzId = "quartz-tz-" + UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setTimezone("Asia/Tokyo");
@@ -446,7 +445,7 @@ class ScheduleControllerTest {
     @Test
     void updateSchedule_shouldUpdateInputWithoutReschedule() throws SchedulerException {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setInput(Map.of("newKey", "newVal"));
@@ -465,7 +464,7 @@ class ScheduleControllerTest {
     @Test
     void updateSchedule_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setName("New Name");
@@ -475,23 +474,22 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void updateSchedule_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID()); // different user
+    void updateSchedule_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setName("New Name");
 
-        assertThatThrownBy(() -> scheduleController.updateSchedule(schedule.getId(), request, testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.updateSchedule(scheduleId, request, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void updateSchedule_shouldThrowWhenBlankCronExpression() {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setCronExpression("   ");
@@ -506,7 +504,7 @@ class ScheduleControllerTest {
     @Test
     void deleteSchedule_shouldDeleteSuccessfully() throws SchedulerException {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.deleteSchedule(schedule.getId(), testUser());
 
@@ -519,7 +517,7 @@ class ScheduleControllerTest {
     void deleteSchedule_shouldSkipUnscheduleWhenNoQuartzId() throws SchedulerException {
         Schedule schedule = sampleSchedule();
         schedule.setQuartzScheduleId(null);
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.deleteSchedule(schedule.getId(), testUser());
 
@@ -531,21 +529,20 @@ class ScheduleControllerTest {
     @Test
     void deleteSchedule_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleController.deleteSchedule(scheduleId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void deleteSchedule_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID());
+    void deleteSchedule_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> scheduleController.deleteSchedule(schedule.getId(), testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.deleteSchedule(scheduleId, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     // ========== pauseSchedule ==========
@@ -553,7 +550,7 @@ class ScheduleControllerTest {
     @Test
     void pauseSchedule_shouldPauseSuccessfully() throws SchedulerException {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
 
@@ -570,7 +567,7 @@ class ScheduleControllerTest {
     void pauseSchedule_shouldSkipQuartzPauseWhenNoQuartzId() throws SchedulerException {
         Schedule schedule = sampleSchedule();
         schedule.setQuartzScheduleId(null);
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
 
@@ -585,21 +582,20 @@ class ScheduleControllerTest {
     @Test
     void pauseSchedule_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleController.pauseSchedule(scheduleId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void pauseSchedule_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID());
+    void pauseSchedule_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> scheduleController.pauseSchedule(schedule.getId(), testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.pauseSchedule(scheduleId, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     // ========== resumeSchedule ==========
@@ -610,7 +606,7 @@ class ScheduleControllerTest {
         schedule.setIsActive(false);
         Date nextFire = Date.from(Instant.now().plusSeconds(3600));
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(schedulerService.getNextFireTime(schedule.getQuartzScheduleId())).thenReturn(nextFire);
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
@@ -630,7 +626,7 @@ class ScheduleControllerTest {
         schedule.setIsActive(false);
         schedule.setQuartzScheduleId(null);
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
 
@@ -645,21 +641,20 @@ class ScheduleControllerTest {
     @Test
     void resumeSchedule_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleController.resumeSchedule(scheduleId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void resumeSchedule_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID());
+    void resumeSchedule_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> scheduleController.resumeSchedule(schedule.getId(), testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.resumeSchedule(scheduleId, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     // ========== triggerScheduleNow ==========
@@ -667,7 +662,7 @@ class ScheduleControllerTest {
     @Test
     void triggerScheduleNow_shouldTriggerActiveSchedule() throws SchedulerException {
         Schedule schedule = sampleSchedule();
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.triggerScheduleNow(schedule.getId(), testUser());
 
@@ -683,7 +678,7 @@ class ScheduleControllerTest {
         Schedule schedule = sampleSchedule();
         schedule.setIsActive(false);
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.triggerScheduleNow(schedule.getId(), testUser());
 
@@ -699,7 +694,7 @@ class ScheduleControllerTest {
         Schedule schedule = sampleSchedule();
         schedule.setQuartzScheduleId(null);
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.triggerScheduleNow(schedule.getId(), testUser());
 
@@ -713,21 +708,20 @@ class ScheduleControllerTest {
     @Test
     void triggerScheduleNow_shouldThrowNotFoundWhenScheduleDoesNotExist() {
         UUID scheduleId = UUID.randomUUID();
-        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.empty());
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> scheduleController.triggerScheduleNow(scheduleId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void triggerScheduleNow_shouldThrowAccessDeniedWhenNotOwner() {
-        Schedule schedule = sampleSchedule();
-        schedule.setCreatedBy(UUID.randomUUID());
+    void triggerScheduleNow_shouldThrowNotFoundWhenNotOwner() {
+        UUID scheduleId = UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(scheduleId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> scheduleController.triggerScheduleNow(schedule.getId(), testUser()))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> scheduleController.triggerScheduleNow(scheduleId, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -735,7 +729,7 @@ class ScheduleControllerTest {
         Schedule schedule = sampleSchedule();
         schedule.setIsActive(null);
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         var response = scheduleController.triggerScheduleNow(schedule.getId(), testUser());
 
@@ -809,7 +803,7 @@ class ScheduleControllerTest {
     void updateSchedule_shouldNotRescheduleWhenQuartzIdIsNull() throws SchedulerException {
         Schedule schedule = sampleSchedule();
         schedule.setQuartzScheduleId(null);
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setCronExpression("0 15 * * * ?");
@@ -830,7 +824,7 @@ class ScheduleControllerTest {
         Schedule schedule = sampleSchedule();
         schedule.setIsActive(false);
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
         when(schedulerService.getNextFireTime(schedule.getQuartzScheduleId()))
                 .thenThrow(new SchedulerException("Quartz error"));
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -850,7 +844,7 @@ class ScheduleControllerTest {
         String oldQuartzId = schedule.getQuartzScheduleId();
         String newQuartzId = "quartz-both-" + UUID.randomUUID();
 
-        when(scheduleRepository.findById(schedule.getId())).thenReturn(Optional.of(schedule));
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
 
         UpdateScheduleRequest request = new UpdateScheduleRequest();
         request.setCronExpression("0 45 * * * ?");
