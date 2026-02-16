@@ -418,6 +418,29 @@ class ReadFileNodeHandlerTest {
         }
 
         @Test
+        void absolutePathIsBlockedByDefault() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("operation", "readText");
+            config.put("filePath", "/etc/passwd");
+            config.put("allowAbsolutePaths", false);
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("read-1")
+                    .nodeType("readFile")
+                    .nodeConfig(config)
+                    .inputData(Map.of())
+                    .userId(UUID.randomUUID())
+                    .flowId(UUID.randomUUID())
+                    .build();
+
+            NodeExecutionResult result = handler.execute(context);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.getErrorMessage()).contains("Absolute paths are not allowed");
+        }
+
+        @Test
         void unknownOperationReturnsFailure() throws IOException {
             Path file = tempDir.resolve("unknown-op.txt");
             Files.writeString(file, "test");
@@ -462,6 +485,7 @@ class ReadFileNodeHandlerTest {
 
             Map<String, Object> config = new HashMap<>();
             config.put("operation", "readText");
+            config.put("allowAbsolutePaths", true);
 
             Map<String, Object> inputData = new HashMap<>();
             inputData.put("filePath", file.toAbsolutePath().toString());
@@ -484,11 +508,14 @@ class ReadFileNodeHandlerTest {
     }
 
     private NodeExecutionContext buildContext(Map<String, Object> config) {
+        Map<String, Object> fullConfig = new HashMap<>(config);
+        // Tests use @TempDir which produces absolute paths; allow them by default
+        fullConfig.putIfAbsent("allowAbsolutePaths", true);
         return NodeExecutionContext.builder()
                 .executionId(UUID.randomUUID())
                 .nodeId("read-1")
                 .nodeType("readFile")
-                .nodeConfig(new HashMap<>(config))
+                .nodeConfig(fullConfig)
                 .inputData(Map.of())
                 .userId(UUID.randomUUID())
                 .flowId(UUID.randomUUID())

@@ -75,17 +75,31 @@ public class WriteFileNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("File path is required");
         }
 
-        // Security: prevent path traversal
+        // Security: prevent path traversal and restrict to safe base directory
         if (filePath.contains("..")) {
             return NodeExecutionResult.failure("Path traversal is not allowed");
         }
 
         Path path = Paths.get(filePath).normalize();
 
+        // Block absolute paths unless explicitly allowed via config
+        if (path.isAbsolute() && !getBooleanConfig(context, "allowAbsolutePaths", false)) {
+            return NodeExecutionResult.failure("Absolute paths are not allowed");
+        }
+
         try {
             // Create parent directories if requested
             if (createDirectories && path.getParent() != null) {
                 Files.createDirectories(path.getParent());
+            }
+
+            // For relative paths, verify the resolved path doesn't escape the working directory
+            if (!path.isAbsolute()) {
+                Path basePath = Paths.get("").toAbsolutePath().toRealPath();
+                Path resolvedPath = basePath.resolve(path).normalize();
+                if (!resolvedPath.startsWith(basePath)) {
+                    return NodeExecutionResult.failure("File path escapes the working directory");
+                }
             }
 
             Charset charset = resolveCharset(encoding);

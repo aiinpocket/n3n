@@ -75,15 +75,34 @@ public class ReadFileNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("File path is required");
         }
 
-        // Security: prevent path traversal
+        // Security: prevent path traversal and restrict to safe base directory
         if (filePath.contains("..")) {
             return NodeExecutionResult.failure("Path traversal is not allowed");
         }
 
         Path path = Paths.get(filePath).normalize();
 
+        // Block absolute paths unless explicitly allowed via config
+        if (path.isAbsolute() && !getBooleanConfig(context, "allowAbsolutePaths", false)) {
+            return NodeExecutionResult.failure("Absolute paths are not allowed");
+        }
+
+        // Resolve symlinks and verify the real path doesn't escape via symlink
         if (!Files.exists(path)) {
             return NodeExecutionResult.failure("File not found: " + filePath);
+        }
+
+        try {
+            Path realPath = path.toRealPath();
+            // If path was relative, verify the real path still looks reasonable
+            if (!path.isAbsolute()) {
+                Path basePath = Paths.get("").toAbsolutePath().toRealPath();
+                if (!realPath.startsWith(basePath)) {
+                    return NodeExecutionResult.failure("Symlink target outside working directory is not allowed");
+                }
+            }
+        } catch (IOException e) {
+            return NodeExecutionResult.failure("Cannot resolve file path: " + filePath);
         }
 
         if (!Files.isReadable(path)) {

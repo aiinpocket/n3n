@@ -28,13 +28,13 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
 
     private final ObjectMapper objectMapper;
 
-    // OkHttpClient with sensible defaults
+    // OkHttpClient with sensible defaults — redirects disabled to prevent SSRF bypass
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
-        .followRedirects(true)
-        .followSslRedirects(true)
+        .followRedirects(false)
+        .followSslRedirects(false)
         .build();
 
     @Override
@@ -75,6 +75,27 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
         return !getBooleanConfig(context, "allowInternalAddresses", false);
     }
 
+    /**
+     * Check if an IP address belongs to a private, reserved, or internal range.
+     * Covers all RFC 1918/5737/6598 ranges plus cloud metadata endpoints.
+     */
+    private boolean isPrivateOrReservedIP(java.net.InetAddress addr) {
+        byte[] ip = addr.getAddress();
+        if (ip.length == 4) {
+            int b0 = ip[0] & 0xFF;
+            int b1 = ip[1] & 0xFF;
+            if (b0 == 127) return true;                            // 127.0.0.0/8 loopback
+            if (b0 == 10) return true;                             // 10.0.0.0/8 private
+            if (b0 == 172 && b1 >= 16 && b1 <= 31) return true;   // 172.16.0.0/12 private
+            if (b0 == 192 && b1 == 168) return true;               // 192.168.0.0/16 private
+            if (b0 == 169 && b1 == 254) return true;               // 169.254.0.0/16 link-local/metadata
+            if (b0 == 0) return true;                              // 0.0.0.0/8 current network
+            if (b0 == 100 && b1 >= 64 && b1 <= 127) return true;  // 100.64.0.0/10 CGNAT
+        }
+        return addr.isLoopbackAddress() || addr.isSiteLocalAddress() ||
+               addr.isLinkLocalAddress() || addr.isAnyLocalAddress();
+    }
+
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
         log.info("HttpRequestNodeHandler.doExecute called for node: {}", context.getNodeId());
@@ -92,13 +113,15 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
             return NodeExecutionResult.failure("URL must start with http:// or https://");
         }
 
-        // SSRF protection: block internal/private addresses
+        // SSRF protection: block internal/private addresses (all resolved IPs)
         if (isSsrfProtectionEnabled(context)) {
             try {
                 java.net.URL parsedUrl = new java.net.URL(url);
-                java.net.InetAddress addr = java.net.InetAddress.getByName(parsedUrl.getHost());
-                if (addr.isLoopbackAddress() || addr.isLinkLocalAddress() || addr.isSiteLocalAddress()) {
-                    return NodeExecutionResult.failure("Access to internal network addresses is not allowed");
+                java.net.InetAddress[] addresses = java.net.InetAddress.getAllByName(parsedUrl.getHost());
+                for (java.net.InetAddress addr : addresses) {
+                    if (isPrivateOrReservedIP(addr)) {
+                        return NodeExecutionResult.failure("Access to internal network addresses is not allowed");
+                    }
                 }
             } catch (java.net.MalformedURLException e) {
                 return NodeExecutionResult.failure("Invalid URL format: " + url);

@@ -403,6 +403,30 @@ class WriteFileNodeHandlerTest {
         }
 
         @Test
+        void absolutePathIsBlockedByDefault() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("operation", "writeText");
+            config.put("filePath", "/tmp/blocked-file.txt");
+            config.put("content", "attack");
+            config.put("allowAbsolutePaths", false);
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("write-1")
+                    .nodeType("writeFile")
+                    .nodeConfig(config)
+                    .inputData(Map.of())
+                    .userId(UUID.randomUUID())
+                    .flowId(UUID.randomUUID())
+                    .build();
+
+            NodeExecutionResult result = handler.execute(context);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.getErrorMessage()).contains("Absolute paths are not allowed");
+        }
+
+        @Test
         void unknownOperationReturnsFailure() {
             Path file = tempDir.resolve("unknown.txt");
 
@@ -430,6 +454,7 @@ class WriteFileNodeHandlerTest {
             Map<String, Object> config = new HashMap<>();
             config.put("operation", "writeText");
             config.put("filePath", file.toAbsolutePath().toString());
+            config.put("allowAbsolutePaths", true);
 
             Map<String, Object> inputData = new HashMap<>();
             inputData.put("content", "Content from input");
@@ -452,11 +477,14 @@ class WriteFileNodeHandlerTest {
     }
 
     private NodeExecutionContext buildContext(Map<String, Object> config) {
+        Map<String, Object> fullConfig = new HashMap<>(config);
+        // Tests use @TempDir which produces absolute paths; allow them by default
+        fullConfig.putIfAbsent("allowAbsolutePaths", true);
         return NodeExecutionContext.builder()
                 .executionId(UUID.randomUUID())
                 .nodeId("write-1")
                 .nodeType("writeFile")
-                .nodeConfig(new HashMap<>(config))
+                .nodeConfig(fullConfig)
                 .inputData(Map.of())
                 .userId(UUID.randomUUID())
                 .flowId(UUID.randomUUID())
