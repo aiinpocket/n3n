@@ -102,18 +102,19 @@ public class WebhookTriggerController {
                 "message", "Flow execution started"
             ));
         } catch (SecurityException e) {
-            log.warn("Webhook signature validation failed for path: {}, sourceIp={}", path, sourceIp);
-            activityService.logWebhookTriggerFailed(path, sourceIp, "Invalid signature");
-            return ResponseEntity.status(401).body(Map.of(
+            log.warn("Webhook auth failed for path: {}, sourceIp={}", path, sourceIp);
+            activityService.logWebhookTriggerFailed(path, sourceIp, "Auth failed");
+            // Use 404 for both auth failures and missing webhooks to prevent path enumeration
+            return ResponseEntity.status(404).body(Map.of(
                 "success", false,
-                "error", "Invalid signature"
+                "error", "Not found"
             ));
         } catch (com.aiinpocket.n3n.common.exception.ResourceNotFoundException e) {
             log.warn("Webhook not found: path={}, sourceIp={}", path, sourceIp);
             activityService.logWebhookTriggerFailed(path, sourceIp, "Not found");
             return ResponseEntity.status(404).body(Map.of(
                 "success", false,
-                "error", "Webhook not found"
+                "error", "Not found"
             ));
         } catch (Exception e) {
             log.error("Webhook trigger failed for path: {}, sourceIp={}", path, sourceIp, e);
