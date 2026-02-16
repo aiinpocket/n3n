@@ -275,6 +275,47 @@ cp .env.example .env
 
 > **密碼產生器**：可用 `openssl rand -base64 24` 產生隨機密碼。
 
+### HTTPS 反向代理設定
+
+N3N 預設透過 HTTP 提供服務。生產環境建議搭配反向代理啟用 HTTPS：
+
+**使用 Caddy（最簡單，自動 HTTPS）：**
+
+```bash
+# 安裝 Caddy 後，建立 Caddyfile
+echo 'n3n.example.com {
+  reverse_proxy localhost:8080
+}' > Caddyfile
+
+caddy start
+```
+
+**使用 Nginx：**
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name n3n.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/n3n.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/n3n.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # WebSocket 支援
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+> 設定反向代理後，記得在 `.env` 中更新 `ALLOWED_ORIGINS=https://n3n.example.com`。
+
 ---
 
 ## 功能特色

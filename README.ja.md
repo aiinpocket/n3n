@@ -266,6 +266,47 @@ cp .env.example .env
 
 > **パスワード生成**: `openssl rand -base64 24` でランダムパスワードを生成できます。
 
+### HTTPSリバースプロキシ設定
+
+N3NはデフォルトでHTTPを提供します。本番環境ではリバースプロキシでHTTPSを有効にしてください：
+
+**Caddy使用（最も簡単、自動HTTPS）：**
+
+```bash
+# Caddyインストール後、Caddyfileを作成
+echo 'n3n.example.com {
+  reverse_proxy localhost:8080
+}' > Caddyfile
+
+caddy start
+```
+
+**Nginx使用：**
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name n3n.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/n3n.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/n3n.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # WebSocket対応
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+> リバースプロキシ設定後、`.env`の`ALLOWED_ORIGINS=https://n3n.example.com`を更新してください。
+
 ---
 
 ## 機能特徴
