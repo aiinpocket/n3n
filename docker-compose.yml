@@ -175,8 +175,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 30s
       timeout: 10s
-      start_period: 120s
-      retries: 3
+      start_period: 600s
+      retries: 5
     restart: unless-stopped
 
 volumes:

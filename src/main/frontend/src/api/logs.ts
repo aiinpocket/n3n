@@ -1,5 +1,6 @@
 import apiClient from './client'
 import { useAuthStore } from '../stores/authStore'
+import logger from '../utils/logger'
 
 export interface LogEntry {
   timestamp: string
@@ -24,25 +25,63 @@ export const logsApi = {
   },
 }
 
+export interface LogStreamHandle {
+  close(): void
+}
+
+const MAX_RECONNECT_ATTEMPTS = 3
+const RECONNECT_DELAY_MS = 2000
+
 export function createLogStream(
   onMessage: (entry: LogEntry) => void,
   onError?: (error: Event) => void,
-): EventSource {
-  const token = useAuthStore.getState().accessToken || ''
-  const eventSource = new EventSource(`/api/logs/stream?token=${encodeURIComponent(token)}`)
+): LogStreamHandle {
+  let closed = false
+  let reconnectAttempts = 0
+  let currentEventSource: EventSource | null = null
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 
-  eventSource.onmessage = (event) => {
-    try {
-      const entry: LogEntry = JSON.parse(event.data)
-      onMessage(entry)
-    } catch {
-      // ignore parse errors
+  function connect() {
+    if (closed) return
+    const token = useAuthStore.getState().accessToken || ''
+    const es = new EventSource(`/api/logs/stream?token=${encodeURIComponent(token)}`)
+    currentEventSource = es
+
+    es.onmessage = (event) => {
+      if (closed) return
+      try {
+        const entry: LogEntry = JSON.parse(event.data)
+        onMessage(entry)
+        reconnectAttempts = 0
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    es.onerror = (event) => {
+      if (closed) return
+      es.close()
+      currentEventSource = null
+
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++
+        logger.warn(`SSE connection lost, reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`)
+        reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
+      } else {
+        logger.warn('SSE reconnection failed after max attempts')
+        if (onError) onError(event)
+      }
     }
   }
 
-  eventSource.onerror = (event) => {
-    if (onError) onError(event)
-  }
+  connect()
 
-  return eventSource
+  return {
+    close() {
+      closed = true
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      currentEventSource?.close()
+      currentEventSource = null
+    },
+  }
 }

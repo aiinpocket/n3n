@@ -93,7 +93,7 @@ Run the following commands:
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# Start the service (first time takes 5-15 minutes to download images and start all services)
+# Start the service (first time takes 10-30 minutes to download images and AI model)
 docker compose up -d
 ```
 
@@ -107,7 +107,7 @@ docker compose up -d
 
 ### 3. Start Using
 
-> **First startup takes time**: The initial startup requires downloading all Docker images and may take 5-15 minutes (depending on network speed). Subsequent restarts only take 60-90 seconds. You can track progress with:
+> **First startup takes time**: The initial startup requires downloading Docker images and the AI model (~2.3GB), which may take 10-30 minutes depending on network speed. Subsequent restarts only take 60-90 seconds. You can track progress with:
 > ```bash
 > # Follow startup progress
 > docker compose logs -f app

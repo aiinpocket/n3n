@@ -7,7 +7,7 @@ import {
   FileTextOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { logsApi, createLogStream, type LogEntry } from '../api/logs'
+import { logsApi, createLogStream, type LogEntry, type LogStreamHandle } from '../api/logs'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 
@@ -42,7 +42,7 @@ export default function LogViewerPage() {
   const [level, setLevel] = useState<string>('ALL')
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [streaming, setStreaming] = useState(false)
-  const eventSourceRef = useRef<EventSource | null>(null)
+  const eventSourceRef = useRef<LogStreamHandle | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
 
   const loadLogs = useCallback(async () => {
