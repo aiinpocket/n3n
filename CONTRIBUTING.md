@@ -70,8 +70,9 @@
 # 快速開始（一鍵啟動所有依賴服務）
 docker compose up -d
 
-# 後端開發
-./mvnw spring-boot:run
+# 後端編譯與啟動
+./mvnw compile -Dfrontend.skip=true
+./mvnw spring-boot:run -Dfrontend.skip=true
 
 # 前端開發（另一個終端）
 cd src/main/frontend
@@ -100,6 +101,28 @@ npm run lint
 # 整合建置（前端 + 後端）
 ./mvnw clean install
 ```
+
+## 編碼規範
+
+### 後端（Java / Spring Boot）
+
+- 使用 Lombok 註解（`@Data`, `@Builder`, `@RequiredArgsConstructor`）
+- Controller 回傳 DTO（`*Response`），不直接暴露 Entity
+- 請求 DTO 命名：`Create*Request`、`Update*Request`
+- 所有 ID 使用 `UUID`
+- 軟刪除使用 `isDeleted` 欄位
+- Service 讀取方法加上 `@Transactional(readOnly = true)`
+- 測試基底類別：`BaseServiceTest`（Mockito）、`BaseRepositoryTest`（H2）、`BaseControllerTest`（MockMvc）
+
+### 前端（React / TypeScript）
+
+- 所有使用者可見文字必須使用 i18n（`t('key')`），不可寫死字串
+- 三個語系檔案的 key 必須同步：`en.json`、`zh-TW.json`、`ja.json`
+- 使用 CSS 自訂屬性（如 `var(--color-primary)`），不使用寫死的色碼
+- 錯誤處理使用 `extractApiError()` 工具函式
+- 使用 `logger` 工具取代 `console.*`
+- 使用 `react-router-dom` 的 `navigate()`，不使用 `window.location`
+- Table 元件需設定 `scroll={{ x }}` 確保水平捲動
 
 ## Branch 保護規則
 

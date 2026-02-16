@@ -398,10 +398,13 @@ Skill management and execution.
 | GET | `/api/executions/by-flow/{flowId}` | List by flow |
 | GET | `/api/executions/{id}` | Get execution details |
 | GET | `/api/executions/{id}/nodes` | Get node executions |
+| GET | `/api/executions/{id}/nodes/{nodeId}/data` | Get specific node execution data |
 | GET | `/api/executions/{id}/output` | Get execution output |
 | POST | `/api/executions` | Create/trigger execution |
+| POST | `/api/executions/{id}/pause` | Pause running execution |
 | POST | `/api/executions/{id}/cancel` | Cancel execution |
 | POST | `/api/executions/{id}/retry` | Retry failed execution |
+| DELETE | `/api/executions/batch` | Batch delete executions |
 
 **Create Execution Request:**
 ```json
@@ -1267,7 +1270,7 @@ src/test/java/com/aiinpocket/n3n/
     └── FailoverConfigTest
 ```
 
-**Total backend tests: 2,375** (as of 2026-02-09)
+**Total backend tests: 3,543+** (as of 2026-02-16)
 
 ### Writing Tests
 
