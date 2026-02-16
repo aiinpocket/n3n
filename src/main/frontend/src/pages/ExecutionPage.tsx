@@ -29,6 +29,7 @@ import {
   RedoOutlined,
   DatabaseOutlined,
   ExclamationCircleOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
@@ -406,7 +407,7 @@ export default function ExecutionPage() {
                 {t('execution.resume')}
               </Button>
             )}
-            {(isFailed || isCancelled) && (
+            {(isFailed || isCancelled) && executionData.canRetry !== false && (
               <Button icon={<RedoOutlined />} onClick={handleRetryExecution} loading={retrying}>
                 {t('execution.retry')}
               </Button>
@@ -416,6 +417,9 @@ export default function ExecutionPage() {
                 {t('execution.cancel')}
               </Button>
             )}
+            <Button icon={<FileTextOutlined />} onClick={() => navigate(`/logs?search=${id}`)}>
+              {t('execution.viewLogs')}
+            </Button>
           </Space>
         }
       >

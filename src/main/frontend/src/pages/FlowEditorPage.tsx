@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { getLocale } from '../utils/locale'
-import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select } from 'antd'
+import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select, Drawer } from 'antd'
 import { useTranslation } from 'react-i18next'
 import {
   SaveOutlined,
@@ -57,6 +57,7 @@ import { customEdgeTypes } from '../components/edges/CustomEdges'
 import EdgeConfigPanel, { EdgeLegend } from '../components/edges/EdgeConfigPanel'
 import type { EdgeType } from '../types'
 import { useFlowExecution } from '../hooks/useFlowExecution'
+import { useExecutionStore, NodeExecutionState } from '../stores/executionStore'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 import OptimizationPanel from '../components/flow/OptimizationPanel'
 import PublishFlowModal from '../components/ai/PublishFlowModal'
@@ -138,6 +139,8 @@ export default function FlowEditorPage() {
   const [activeExecutionId, setActiveExecutionId] = useState<string | null>(
     searchParams.get('executionId')
   )
+  const [executionNodeDetail, setExecutionNodeDetail] = useState<NodeExecutionState | null>(null)
+  const getNodeState = useExecutionStore((state) => state.getNodeState)
 
   // Flow execution hook
   const {
@@ -514,6 +517,18 @@ export default function FlowEditorPage() {
     setNodes([...nodes, newNode])
     setServicePanelOpen(false)
   }
+
+  const handleExecutionNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (activeExecutionId) {
+        const nodeState = getNodeState(activeExecutionId, node.id)
+        if (nodeState) {
+          setExecutionNodeDetail(nodeState)
+        }
+      }
+    },
+    [activeExecutionId, getNodeState]
+  )
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
@@ -987,7 +1002,7 @@ export default function FlowEditorPage() {
           onEdgesChange={(executionMode || isReadOnly) ? undefined : onEdgesChange}
           onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
           isValidConnection={isValidConnection}
-          onNodeClick={executionMode ? undefined : handleNodeClick}
+          onNodeClick={executionMode ? handleExecutionNodeClick : handleNodeClick}
           onEdgeClick={(executionMode || isReadOnly) ? undefined : handleEdgeClick}
           onPaneClick={executionMode ? undefined : handlePaneClick}
           nodesDraggable={!executionMode && canEdit}
@@ -1499,6 +1514,62 @@ export default function FlowEditorPage() {
           message.success(t('editor.flowChangesApplied'))
         }}
       />
+
+      {/* Execution Node Detail Drawer */}
+      <Drawer
+        title={executionNodeDetail ? `${t('editor.nodeOutput')}: ${executionNodeDetail.nodeId}` : ''}
+        open={!!executionNodeDetail}
+        onClose={() => setExecutionNodeDetail(null)}
+        width={480}
+      >
+        {executionNodeDetail && (
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <div>
+              <Text strong>{t('common.status')}: </Text>
+              <Tag color={
+                executionNodeDetail.status === 'completed' ? 'success' :
+                executionNodeDetail.status === 'failed' ? 'error' :
+                executionNodeDetail.status === 'running' ? 'processing' : 'default'
+              }>
+                {executionNodeDetail.status}
+              </Tag>
+            </div>
+            {executionNodeDetail.startedAt && (
+              <div>
+                <Text strong>{t('execution.startTime')}: </Text>
+                <Text>{new Date(executionNodeDetail.startedAt).toLocaleString(getLocale())}</Text>
+              </div>
+            )}
+            {executionNodeDetail.completedAt && (
+              <div>
+                <Text strong>{t('execution.endTime')}: </Text>
+                <Text>{new Date(executionNodeDetail.completedAt).toLocaleString(getLocale())}</Text>
+              </div>
+            )}
+            {executionNodeDetail.error && (
+              <div>
+                <Text strong type="danger">{t('common.error')}: </Text>
+                <Text type="danger">{executionNodeDetail.error}</Text>
+              </div>
+            )}
+            {executionNodeDetail.output && (
+              <div>
+                <Text strong>{t('execution.output')}: </Text>
+                <pre style={{
+                  background: 'var(--color-bg-container, #1e293b)',
+                  padding: 12,
+                  borderRadius: 6,
+                  maxHeight: 400,
+                  overflow: 'auto',
+                  fontSize: 12,
+                }}>
+                  {JSON.stringify(executionNodeDetail.output, null, 2)}
+                </pre>
+              </div>
+            )}
+          </Space>
+        )}
+      </Drawer>
     </>
   )
 }

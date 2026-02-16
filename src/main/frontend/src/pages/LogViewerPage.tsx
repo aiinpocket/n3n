@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert, message } from 'antd'
 import {
   ReloadOutlined,
@@ -34,11 +35,12 @@ function formatTimestamp(ts: string): string {
 
 export default function LogViewerPage() {
   const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [level, setLevel] = useState<string>('ALL')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') || '')
   const [streaming, setStreaming] = useState(false)
   const eventSourceRef = useRef<EventSource | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
