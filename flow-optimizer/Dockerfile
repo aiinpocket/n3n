@@ -24,9 +24,16 @@ RUN curl -L -o /app/llamafile \
 ARG MODEL_URL="https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf"
 RUN curl -L -o /models/phi-3-mini-4k-instruct-q4.gguf "${MODEL_URL}"
 
+# Create non-root user for security
+RUN groupadd -r llamafile && useradd -r -g llamafile -d /app llamafile && \
+    chown -R llamafile:llamafile /app /models
+
 # Copy startup script
-COPY entrypoint.sh /app/entrypoint.sh
+COPY --chown=llamafile:llamafile entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
+
+# Run as non-root user
+USER llamafile
 
 # Expose port for API
 EXPOSE 8081

@@ -32,8 +32,15 @@ export default function LanguageSwitcher() {
     <Dropdown
       menu={{ items, onClick: handleLanguageChange, selectedKeys: [i18n.language] }}
       placement="bottomRight"
+      trigger={['click']}
     >
-      <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }} role="button" aria-label={t('language.title')} tabIndex={0}>
+      <span
+        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+        role="button"
+        aria-label={t('language.title')}
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click() } }}
+      >
         <GlobalOutlined />
         <span>{currentLang.flag}</span>
       </span>
