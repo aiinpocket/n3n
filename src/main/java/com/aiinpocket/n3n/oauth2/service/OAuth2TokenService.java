@@ -167,7 +167,7 @@ public class OAuth2TokenService {
             String responseBody = response.body() != null ? response.body().string() : "";
 
             if (!response.isSuccessful()) {
-                log.error("OAuth2 token refresh failed: {} - {}", response.code(), responseBody);
+                log.error("OAuth2 token refresh failed with status: {}", response.code());
                 return token; // Return old token, let it fail naturally
             }
 

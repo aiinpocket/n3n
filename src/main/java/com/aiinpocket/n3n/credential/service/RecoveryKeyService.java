@@ -61,7 +61,7 @@ public class RecoveryKeyService {
                 .keyVersion(1)
                 .build();
 
-        log.info("Generated new Recovery Key (hash: {}...)", keyHash.substring(0, 8));
+        log.info("Generated new Recovery Key successfully");
         return recoveryKey;
     }
 
