@@ -92,9 +92,10 @@ cd n3n
 docker compose up -d
 ```
 
-> **Zero-Configuration Startup**: N3N is designed to work out-of-the-box with sensible defaults:
-> - PostgreSQL / Redis start automatically and connect
-> - JWT secret key is auto-generated on first startup
+> **Zero-Configuration Startup**: N3N is designed to work out-of-the-box — you don't need to configure anything:
+> - Databases (PostgreSQL / Redis / MongoDB) start automatically and connect
+> - JWT signing key is randomly auto-generated on first startup
+> - Data encryption master key is auto-generated and securely stored
 > - No environment variables required to run
 
 ### 3. Start Using
@@ -109,6 +110,8 @@ First-time setup will guide you through:
 5. Create your first workflow!
 
 > **Important**: The Recovery Key is only shown once during initial setup. If lost, encrypted credentials cannot be recovered.
+>
+> **Backup tips**: Store your Recovery Key in a password manager (e.g., 1Password, Bitwarden) or write it down on paper and keep it in a safe place. Do not save it as a screenshot or unencrypted text file.
 
 ---
 
@@ -135,6 +138,15 @@ Make sure Docker is running, then retry:
 ```bash
 docker compose down
 docker compose up -d
+```
+
+### Port already in use?
+
+If you see a `port 8080 is already in use` error, another program is using port 8080. You can:
+```bash
+# Start with a different port (e.g., 9090)
+N3N_PORT=9090 docker compose up -d
+# Then open http://localhost:9090
 ```
 
 ### How to stop the service?

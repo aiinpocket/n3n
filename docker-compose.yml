@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: n3n-app
     ports:
-      - "8080:8080"
+      - "${N3N_PORT:-8080}:8080"
     environment:
       # Database
       DATABASE_URL: jdbc:postgresql://postgres:5432/n3n
@@ -19,7 +19,7 @@ services:
       # JWT Secret 自動產生，無需設定
       # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
       # CORS
-      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+      ALLOWED_ORIGINS: http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000
       # Flow Optimizer
       FLOW_OPTIMIZER_ENABLED: "true"
       FLOW_OPTIMIZER_URL: http://flow-optimizer:8081

@@ -22,23 +22,7 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
 
     List<Execution> findByFlowVersionIdAndStatus(UUID flowVersionId, String status);
 
-    Page<Execution> findAllByOrderByStartedAtDesc(Pageable pageable);
-
     Page<Execution> findByTriggeredByAndStatusOrderByStartedAtDesc(UUID triggeredBy, String status, Pageable pageable);
-
-    Page<Execution> findByStatusOrderByStartedAtDesc(String status, Pageable pageable);
-
-    @Query(value = "SELECT e.* FROM executions e " +
-        "JOIN flow_versions fv ON e.flow_version_id = fv.id " +
-        "JOIN flows f ON fv.flow_id = f.id " +
-        "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) " +
-        "ORDER BY e.started_at DESC",
-        countQuery = "SELECT COUNT(*) FROM executions e " +
-            "JOIN flow_versions fv ON e.flow_version_id = fv.id " +
-            "JOIN flows f ON fv.flow_id = f.id " +
-            "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))",
-        nativeQuery = true)
-    Page<Execution> findByFlowNameContaining(@Param("search") String search, Pageable pageable);
 
     @Query(value = "SELECT e.* FROM executions e " +
         "JOIN flow_versions fv ON e.flow_version_id = fv.id " +
@@ -51,18 +35,6 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
             "WHERE e.triggered_by = :userId AND LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))",
         nativeQuery = true)
     Page<Execution> findByUserAndFlowNameContaining(@Param("userId") UUID userId, @Param("search") String search, Pageable pageable);
-
-    @Query(value = "SELECT e.* FROM executions e " +
-        "JOIN flow_versions fv ON e.flow_version_id = fv.id " +
-        "JOIN flows f ON fv.flow_id = f.id " +
-        "WHERE e.status = CAST(:status AS TEXT) AND LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) " +
-        "ORDER BY e.started_at DESC",
-        countQuery = "SELECT COUNT(*) FROM executions e " +
-            "JOIN flow_versions fv ON e.flow_version_id = fv.id " +
-            "JOIN flows f ON fv.flow_id = f.id " +
-            "WHERE e.status = CAST(:status AS TEXT) AND LOWER(f.name) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))",
-        nativeQuery = true)
-    Page<Execution> findByStatusAndFlowNameContaining(@Param("status") String status, @Param("search") String search, Pageable pageable);
 
     @Query(value = "SELECT e.* FROM executions e " +
         "JOIN flow_versions fv ON e.flow_version_id = fv.id " +

@@ -92,9 +92,10 @@ cd n3n
 docker compose up -d
 ```
 
-> **零配置啟動**：N3N 採用開箱即用設計，所有必要設定都有預設值：
-> - PostgreSQL / Redis 自動啟動並連接
-> - JWT 密鑰首次啟動時自動產生
+> **零配置啟動**：N3N 採用開箱即用設計，你不需要手動設定任何東西：
+> - 資料庫（PostgreSQL / Redis / MongoDB）自動啟動並連接
+> - JWT 簽名密鑰在首次啟動時自動隨機產生
+> - 資料加密主金鑰自動產生並安全保存
 > - 無需設定任何環境變數即可運行
 
 ### 3. 開始使用
@@ -109,6 +110,8 @@ docker compose up -d
 5. 開始建立你的第一個流程！
 
 > **重要**：Recovery Key 只會在首次設定時顯示一次。如果遺失，將無法恢復加密的憑證資料。
+>
+> **備份建議**：將 Recovery Key 存放在密碼管理器（如 1Password、Bitwarden）中，或抄寫在紙上存放於安全處。請不要以截圖或未加密的文字檔保存。
 
 ---
 
@@ -135,6 +138,15 @@ N3N 支援多種 AI 服務，你可以選擇任何一種：
 ```bash
 docker compose down
 docker compose up -d
+```
+
+### 連接埠被佔用怎麼辦？
+
+如果看到 `port 8080 is already in use` 的錯誤，表示其他程式正在使用 8080 連接埠。你可以：
+```bash
+# 使用其他連接埠啟動（例如改用 9090）
+N3N_PORT=9090 docker compose up -d
+# 然後用 http://localhost:9090 開啟
 ```
 
 ### 如何停止服務？

@@ -133,4 +133,21 @@ export const componentApi = {
     return response.data;
   },
 
+  getVersion: async (
+    componentId: string,
+    version: string
+  ): Promise<ComponentVersionResponse> => {
+    const response = await apiClient.get<ComponentVersionResponse>(
+      `/components/${componentId}/versions/${encodeURIComponent(version)}`
+    );
+    return response.data;
+  },
+
+  getActiveVersion: async (componentId: string): Promise<ComponentVersionResponse> => {
+    const response = await apiClient.get<ComponentVersionResponse>(
+      `/components/${componentId}/versions/active`
+    );
+    return response.data;
+  },
+
 };

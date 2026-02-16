@@ -73,17 +73,14 @@ class ApprovalControllerTest {
     // ===== GET /pending =====
 
     @Test
-    void getPendingApprovals_shouldReturnOnlyAuthorizedApprovals() {
+    void getPendingApprovals_shouldReturnOnlyUserApprovals() {
         UUID userId = UUID.randomUUID();
         UUID approvalId1 = UUID.randomUUID();
-        UUID approvalId2 = UUID.randomUUID();
 
         ExecutionApproval approval1 = sampleApproval(approvalId1, UUID.randomUUID());
-        ExecutionApproval approval2 = sampleApproval(approvalId2, UUID.randomUUID());
 
-        when(approvalService.getAllPendingApprovals()).thenReturn(List.of(approval1, approval2));
-        when(approvalService.isUserAuthorizedForApproval(approval1, userId)).thenReturn(true);
-        when(approvalService.isUserAuthorizedForApproval(approval2, userId)).thenReturn(false);
+        // DB-level filtering returns only user's approvals
+        when(approvalService.getPendingApprovalsForUser(userId)).thenReturn(List.of(approval1));
 
         var response = approvalController.getPendingApprovals(testUser(userId));
 
@@ -95,7 +92,7 @@ class ApprovalControllerTest {
     @Test
     void getPendingApprovals_shouldReturnEmptyWhenNoApprovals() {
         UUID userId = UUID.randomUUID();
-        when(approvalService.getAllPendingApprovals()).thenReturn(List.of());
+        when(approvalService.getPendingApprovalsForUser(userId)).thenReturn(List.of());
 
         var response = approvalController.getPendingApprovals(testUser(userId));
 

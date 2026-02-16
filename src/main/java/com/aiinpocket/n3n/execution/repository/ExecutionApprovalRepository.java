@@ -43,6 +43,15 @@ public interface ExecutionApprovalRepository extends JpaRepository<ExecutionAppr
     List<ExecutionApproval> findAllPending();
 
     /**
+     * Find pending approvals for executions triggered by a specific user.
+     * Filters at DB level instead of loading all pending approvals and filtering in memory.
+     */
+    @Query("SELECT a FROM ExecutionApproval a WHERE a.status = 'pending' " +
+           "AND a.executionId IN (SELECT e.id FROM Execution e WHERE e.triggeredBy = :userId) " +
+           "ORDER BY a.createdAt DESC")
+    List<ExecutionApproval> findPendingByTriggeredUser(@Param("userId") UUID userId);
+
+    /**
      * Check if an approval exists for execution and node
      */
     boolean existsByExecutionIdAndNodeId(UUID executionId, String nodeId);

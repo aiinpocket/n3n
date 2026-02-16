@@ -37,10 +37,8 @@ public class ApprovalController {
     public ResponseEntity<List<ApprovalSummary>> getPendingApprovals(
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        // Filter approvals to only show those belonging to the current user's executions
-        List<ExecutionApproval> approvals = approvalService.getAllPendingApprovals().stream()
-            .filter(a -> approvalService.isUserAuthorizedForApproval(a, userId))
-            .toList();
+        // Filter at DB level: only fetch approvals for the user's own executions
+        List<ExecutionApproval> approvals = approvalService.getPendingApprovalsForUser(userId);
         List<ApprovalSummary> summaries = approvals.stream()
             .map(ApprovalSummary::from)
             .toList();

@@ -193,6 +193,15 @@ public class ExecutionApprovalService {
     }
 
     /**
+     * Get pending approvals for a specific user's executions.
+     * More efficient than getAllPendingApprovals() + in-memory filtering.
+     */
+    @Transactional(readOnly = true)
+    public List<ExecutionApproval> getPendingApprovalsForUser(UUID userId) {
+        return approvalRepository.findPendingByTriggeredUser(userId);
+    }
+
+    /**
      * Check if a user is authorized to view/interact with an approval.
      * A user is authorized if they triggered the execution associated with the approval.
      */
