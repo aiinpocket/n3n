@@ -45,6 +45,7 @@ public class CloudSyncService {
     private static final String CIPHER_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH = 128;
     private static final int GCM_IV_LENGTH = 12;
+    private static final int MAX_REMOTE_FILES = 10_000;
 
     private final CloudSyncProperties properties;
     private final CloudStorageFactory storageFactory;
@@ -137,6 +138,12 @@ public class CloudSyncService {
         try (CloudStorageProvider provider = createProvider(remoteKey)) {
             List<CloudStorageProvider.StorageFileInfo> files = provider.list(remoteFingerprint + "/");
 
+            if (files.size() > MAX_REMOTE_FILES) {
+                log.warn("Remote file list exceeds safety limit: {} files found, truncating to {}",
+                        files.size(), MAX_REMOTE_FILES);
+                files = files.subList(0, MAX_REMOTE_FILES);
+            }
+
             List<SyncEntityInfo> entities = new ArrayList<>();
             int flowCount = 0, credentialCount = 0, aiProviderCount = 0;
 
@@ -206,6 +213,12 @@ public class CloudSyncService {
         List<RemoteEntity> remoteEntities = new ArrayList<>();
         try (CloudStorageProvider provider = createProvider(oldMasterKey)) {
             List<CloudStorageProvider.StorageFileInfo> files = provider.list(remoteFingerprint + "/");
+
+            if (files.size() > MAX_REMOTE_FILES) {
+                log.warn("Remote file list exceeds safety limit during import: {} files found, truncating to {}",
+                        files.size(), MAX_REMOTE_FILES);
+                files = files.subList(0, MAX_REMOTE_FILES);
+            }
 
             for (CloudStorageProvider.StorageFileInfo file : files) {
                 if (!file.filename().endsWith(".json.enc")) continue;
