@@ -178,6 +178,7 @@ class ExecutionApprovalControllerTest {
 
         doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
         when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(true);
         when(approvalService.submitApproval(approval.getId(), userId, "approve", "Looks good"))
                 .thenReturn(approvedApproval);
         when(approvalService.getActionsForApproval(approvedApproval.getId())).thenReturn(List.of());
@@ -211,6 +212,7 @@ class ExecutionApprovalControllerTest {
 
         doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
         when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(true);
         when(approvalService.submitApproval(approval.getId(), userId, "reject", "Not ready"))
                 .thenReturn(rejectedApproval);
         when(approvalService.getActionsForApproval(rejectedApproval.getId())).thenReturn(List.of());
@@ -241,6 +243,7 @@ class ExecutionApprovalControllerTest {
 
         doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
         when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(true);
         when(approvalService.submitApproval(approval.getId(), userId, "approve", null))
                 .thenReturn(updatedApproval);
         when(approvalService.getActionsForApproval(updatedApproval.getId())).thenReturn(List.of());
@@ -264,6 +267,7 @@ class ExecutionApprovalControllerTest {
 
         doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
         when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(true);
         when(approvalService.submitApproval(approval.getId(), userId, "approve", null))
                 .thenReturn(cancelledApproval);
         when(approvalService.getActionsForApproval(cancelledApproval.getId())).thenReturn(List.of());
@@ -300,6 +304,21 @@ class ExecutionApprovalControllerTest {
     }
 
     @Test
+    void submitApproval_notAuthorized_throwsException() {
+        var executionId = UUID.randomUUID();
+        var approval = sampleApproval(executionId);
+        var request = new ExecutionApprovalController.ApprovalRequest("approve", null);
+
+        doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
+        when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(false);
+
+        assertThatThrownBy(() -> controller.submitApproval(executionId, request, testUser()))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(approvalService, never()).submitApproval(any(), any(), any(), any());
+    }
+
+    @Test
     void submitApproval_approveWithNoComment_doesNotIncludeComment() {
         var executionId = UUID.randomUUID();
         var approval = sampleApproval(executionId);
@@ -313,6 +332,7 @@ class ExecutionApprovalControllerTest {
 
         doNothing().when(executionService).verifyExecutionAccess(executionId, userId);
         when(approvalService.getPendingApprovalForExecution(executionId)).thenReturn(Optional.of(approval));
+        when(approvalService.isUserAuthorizedForApproval(approval, userId)).thenReturn(true);
         when(approvalService.submitApproval(approval.getId(), userId, "approve", null))
                 .thenReturn(approvedApproval);
         when(approvalService.getActionsForApproval(approvedApproval.getId())).thenReturn(List.of());

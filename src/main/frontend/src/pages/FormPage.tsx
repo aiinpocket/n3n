@@ -98,10 +98,14 @@ export default function FormPage() {
         // Validate redirect URL to prevent open redirect attacks
         try {
           const url = new URL(response.redirectUrl, window.location.origin)
-          if (url.protocol === 'https:' || url.protocol === 'http:') {
+          // Only allow http/https protocol AND same-origin redirects (reject external domains)
+          if ((url.protocol === 'https:' || url.protocol === 'http:') &&
+              url.origin === window.location.origin) {
             redirectTimerRef.current = setTimeout(() => {
               window.location.href = url.href
             }, 2000)
+          } else {
+            logger.warn('External redirect URL blocked:', response.redirectUrl)
           }
         } catch {
           logger.warn('Invalid redirect URL received')

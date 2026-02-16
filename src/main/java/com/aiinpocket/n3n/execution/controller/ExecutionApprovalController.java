@@ -77,6 +77,11 @@ public class ExecutionApprovalController {
         ExecutionApproval approval = approvalService.getPendingApprovalForExecution(executionId)
             .orElseThrow(() -> new IllegalStateException("No pending approval found for execution: " + executionId));
 
+        // Authorization check: verify user is allowed to act on this approval
+        if (!approvalService.isUserAuthorizedForApproval(approval, userId)) {
+            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Approval not found: " + executionId);
+        }
+
         // Submit the action
         approval = approvalService.submitApproval(
             approval.getId(),

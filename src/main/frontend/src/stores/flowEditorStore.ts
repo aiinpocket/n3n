@@ -122,6 +122,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           })) as Edge[],
           pinnedData: flowVersion.pinnedData || {},
           isDirty: false,
+          history: [],
+          historyIndex: -1,
         })
       } else {
         set({
@@ -130,6 +132,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
           edges: [],
           pinnedData: {},
           isDirty: false,
+          history: [],
+          historyIndex: -1,
         })
       }
     } catch (err) {
