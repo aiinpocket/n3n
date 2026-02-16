@@ -24,8 +24,12 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -336,13 +340,20 @@ public class MasterKeyProvider {
      */
     public static void saveKeyToFile(String key, String filePath) throws IOException {
         Path path = Path.of(filePath);
-        Files.writeString(path, key);
 
-        // 設定檔案權限為僅擁有者可讀（Unix-like 系統）
+        // Create file with restrictive permissions atomically (POSIX systems)
         try {
+            FileAttribute<Set<PosixFilePermission>> attr =
+                    PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+            Files.deleteIfExists(path);
+            Files.createFile(path, attr);
+            Files.writeString(path, key, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+            // Remove write permission after writing
             Files.setPosixFilePermissions(path, Set.of(PosixFilePermission.OWNER_READ));
         } catch (UnsupportedOperationException e) {
-            log.warn("Could not set file permissions (non-POSIX system)");
+            // Non-POSIX system (Windows) — fall back to write-then-hope
+            log.warn("Could not set file permissions atomically (non-POSIX system)");
+            Files.writeString(path, key);
         }
     }
 
