@@ -20,4 +20,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
     Optional<Schedule> findByQuartzScheduleId(String quartzScheduleId);
 
     void deleteByFlowId(UUID flowId);
+
+    List<Schedule> findByIsActiveTrue();
 }
