@@ -103,6 +103,12 @@ public class FormController {
                 .body(Map.of("error", "Form data exceeds maximum field limit"));
         }
 
+        // Validate nesting depth to prevent DoS via deeply nested JSON
+        if (formData != null && hasExcessiveNesting(formData, 0, 5)) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Form data exceeds maximum nesting depth"));
+        }
+
         try {
             FormTrigger trigger = formService.getFormTriggerByToken(token);
 
@@ -172,6 +178,12 @@ public class FormController {
             @Valid @RequestBody FormSubmissionRequest request,
             @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest httpRequest) {
+
+        // Validate nesting depth for in-flow form data
+        if (request.formData() != null && hasExcessiveNesting(request.formData(), 0, 5)) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Form data exceeds maximum nesting depth"));
+        }
 
         try {
             UUID userId = userDetails != null
@@ -344,6 +356,24 @@ public class FormController {
         }
         FormTrigger updated = formService.regenerateFormToken(triggerId);
         return ResponseEntity.ok(FormTriggerResponse.from(updated));
+    }
+
+    /**
+     * Check if a map has excessive nesting depth to prevent DoS via deeply nested JSON.
+     */
+    @SuppressWarnings("unchecked")
+    private boolean hasExcessiveNesting(Object obj, int currentDepth, int maxDepth) {
+        if (currentDepth > maxDepth) return true;
+        if (obj instanceof Map<?, ?> map) {
+            for (Object value : map.values()) {
+                if (hasExcessiveNesting(value, currentDepth + 1, maxDepth)) return true;
+            }
+        } else if (obj instanceof List<?> list) {
+            for (Object item : list) {
+                if (hasExcessiveNesting(item, currentDepth + 1, maxDepth)) return true;
+            }
+        }
+        return false;
     }
 
     private String getClientIp(HttpServletRequest request) {

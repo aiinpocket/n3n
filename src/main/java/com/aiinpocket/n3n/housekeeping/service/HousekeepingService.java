@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.housekeeping.service;
 import com.aiinpocket.n3n.activity.repository.UserActivityRepository;
 import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.common.logging.LogContext;
+import com.aiinpocket.n3n.execution.service.FormService;
 import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.entity.NodeExecution;
 import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
@@ -52,6 +53,7 @@ public class HousekeepingService {
     private final HousekeepingJobRepository jobRepository;
     private final UserActivityRepository userActivityRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FormService formService;
     private final AtomicBoolean cleanupRunning = new AtomicBoolean(false);
 
     /**
@@ -164,6 +166,12 @@ public class HousekeepingService {
                 if (properties.getTokenRetentionDays() > 0) {
                     int tokensDeleted = cleanupOldRefreshTokens();
                     log.info("HOUSEKEEPING_TOKENS deleted={}", tokensDeleted);
+                }
+
+                // Expire old form triggers
+                int formsExpired = formService.expireOldFormTriggers();
+                if (formsExpired > 0) {
+                    log.info("HOUSEKEEPING_FORMS expired={}", formsExpired);
                 }
 
                 // Update job

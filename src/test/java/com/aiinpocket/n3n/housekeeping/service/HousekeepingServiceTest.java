@@ -14,6 +14,7 @@ import com.aiinpocket.n3n.housekeeping.entity.HousekeepingJob;
 import com.aiinpocket.n3n.housekeeping.repository.ExecutionHistoryRepository;
 import com.aiinpocket.n3n.housekeeping.repository.HousekeepingJobRepository;
 import com.aiinpocket.n3n.housekeeping.repository.NodeExecutionHistoryRepository;
+import com.aiinpocket.n3n.execution.service.FormService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -57,6 +58,9 @@ class HousekeepingServiceTest extends BaseServiceTest {
 
     @Mock
     private HousekeepingJobRepository jobRepository;
+
+    @Mock
+    private FormService formService;
 
     @InjectMocks
     private HousekeepingService housekeepingService;
