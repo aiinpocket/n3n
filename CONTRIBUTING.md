@@ -56,13 +56,21 @@
 
    然後在 GitHub 上建立 Pull Request。
 
+### 前置需求
+
+- Java 21+
+- Node.js 18+
+- Docker 24.0+ & Docker Compose v2.20+
+
 ### 開發環境設置
 
 請參考 [DEPLOYMENT.md](docs/DEPLOYMENT.md) 設置本地開發環境。
 
 ```bash
-# 快速開始
+# 快速開始（一鍵啟動所有依賴服務）
 docker compose up -d
+
+# 後端開發
 ./mvnw spring-boot:run
 
 # 前端開發（另一個終端）
@@ -76,14 +84,20 @@ npm run dev
 提交前請確保：
 
 ```bash
-# 後端測試
-./mvnw test
+# 後端測試（跳過前端建置，加速執行）
+./mvnw test -Dfrontend.skip=true
+
+# 執行單一測試類別
+./mvnw test -Dfrontend.skip=true -Dtest=FlowServiceTest
+
+# 執行單一測試方法
+./mvnw test -Dfrontend.skip=true -Dtest="FlowServiceTest#shouldCreateFlow"
 
 # 前端 lint
 cd src/main/frontend
 npm run lint
 
-# 整合建置
+# 整合建置（前端 + 後端）
 ./mvnw clean install
 ```
 

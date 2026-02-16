@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.scheduler.controller;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
 import com.aiinpocket.n3n.scheduler.dto.CreateScheduleRequest;
 import com.aiinpocket.n3n.scheduler.dto.ScheduleResponse;
@@ -37,6 +38,7 @@ public class ScheduleController {
     private final ScheduleRepository scheduleRepository;
     private final SchedulerService schedulerService;
     private final FlowRepository flowRepository;
+    private final FlowShareService flowShareService;
 
     @GetMapping
     public ResponseEntity<List<ScheduleResponse>> listSchedules(
@@ -78,10 +80,10 @@ public class ScheduleController {
             @AuthenticationPrincipal UserDetails userDetails) throws SchedulerException {
         UUID userId = UUID.fromString(userDetails.getUsername());
 
-        // Verify the flow exists and user owns it
-        Flow flow = flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
+        // Verify the flow exists and user has edit access (owner or shared with edit permission)
+        flowRepository.findByIdAndIsDeletedFalse(request.getFlowId())
                 .orElseThrow(() -> new ResourceNotFoundException("Flow not found"));
-        if (!flow.getCreatedBy().equals(userId)) {
+        if (!flowShareService.hasEditAccess(request.getFlowId(), userId)) {
             throw new AccessDeniedException("Access denied");
         }
 

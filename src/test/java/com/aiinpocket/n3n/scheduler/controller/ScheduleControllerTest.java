@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.scheduler.controller;
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.repository.FlowRepository;
+import com.aiinpocket.n3n.flow.service.FlowShareService;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
 import com.aiinpocket.n3n.scheduler.dto.CreateScheduleRequest;
 import com.aiinpocket.n3n.scheduler.dto.ScheduleResponse;
@@ -39,6 +40,9 @@ class ScheduleControllerTest {
 
     @Mock
     private FlowRepository flowRepository;
+
+    @Mock
+    private FlowShareService flowShareService;
 
     @InjectMocks
     private ScheduleController scheduleController;
@@ -191,6 +195,7 @@ class ScheduleControllerTest {
         Date nextFire = Date.from(Instant.now().plusSeconds(3600));
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(0L);
         when(schedulerService.scheduleCron(eq(flowId), eq("0 0 * * * ?"), eq("Asia/Taipei"), eq(userId)))
                 .thenReturn(quartzId);
@@ -229,6 +234,7 @@ class ScheduleControllerTest {
         String quartzId = "quartz-utc";
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(0L);
         when(schedulerService.scheduleCron(eq(flowId), anyString(), eq("UTC"), eq(userId)))
                 .thenReturn(quartzId);
@@ -263,7 +269,7 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void createSchedule_shouldThrowAccessDeniedWhenNotFlowOwner() {
+    void createSchedule_shouldThrowAccessDeniedWhenNoEditAccess() {
         UUID flowId = UUID.randomUUID();
         Flow flow = Flow.builder()
                 .id(flowId)
@@ -277,9 +283,45 @@ class ScheduleControllerTest {
         request.setCronExpression("0 0 * * * ?");
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(false);
 
         assertThatThrownBy(() -> scheduleController.createSchedule(request, testUser()))
                 .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void createSchedule_shouldAllowSharedFlowWithEditPermission() throws SchedulerException {
+        UUID flowId = UUID.randomUUID();
+        UUID otherUserId = UUID.randomUUID();
+        Flow flow = Flow.builder()
+                .id(flowId)
+                .name("Shared Flow")
+                .createdBy(otherUserId) // owned by different user
+                .build();
+
+        CreateScheduleRequest request = new CreateScheduleRequest();
+        request.setFlowId(flowId);
+        request.setName("Shared Schedule");
+        request.setCronExpression("0 0 * * * ?");
+
+        String quartzId = "quartz-shared";
+
+        when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true); // shared with edit
+        when(scheduleRepository.countByCreatedBy(userId)).thenReturn(0L);
+        when(schedulerService.scheduleCron(eq(flowId), anyString(), anyString(), eq(userId)))
+                .thenReturn(quartzId);
+        when(schedulerService.getNextFireTime(quartzId)).thenReturn(null);
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> {
+            Schedule s = inv.getArgument(0);
+            s.setId(UUID.randomUUID());
+            return s;
+        });
+
+        var response = scheduleController.createSchedule(request, testUser());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getName()).isEqualTo("Shared Schedule");
     }
 
     @Test
@@ -293,6 +335,7 @@ class ScheduleControllerTest {
         request.setCronExpression("0 0 * * * ?");
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(100L);
 
         assertThatThrownBy(() -> scheduleController.createSchedule(request, testUser()))
@@ -311,6 +354,7 @@ class ScheduleControllerTest {
         request.setCronExpression("0 0 * * * ?");
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(0L);
         when(schedulerService.scheduleCron(eq(flowId), anyString(), anyString(), eq(userId)))
                 .thenThrow(new SchedulerException("Quartz error"));
@@ -711,6 +755,7 @@ class ScheduleControllerTest {
         String quartzId = "quartz-no-fire";
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(0L);
         when(schedulerService.scheduleCron(eq(flowId), anyString(), anyString(), eq(userId)))
                 .thenReturn(quartzId);
@@ -740,6 +785,7 @@ class ScheduleControllerTest {
         String quartzId = "quartz-99";
 
         when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+        when(flowShareService.hasEditAccess(flowId, userId)).thenReturn(true);
         when(scheduleRepository.countByCreatedBy(userId)).thenReturn(99L); // 99 existing, will be 100th
         when(schedulerService.scheduleCron(eq(flowId), anyString(), anyString(), eq(userId)))
                 .thenReturn(quartzId);

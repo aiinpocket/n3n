@@ -42,119 +42,67 @@
 
 ### 使用 Docker Compose（開發環境）
 
-開發環境使用預設的 `docker-compose.yml`，會啟動 PostgreSQL 和 Redis：
+開發環境使用預設的 `docker-compose.yml`，會啟動所有服務（App、PostgreSQL、Redis、MongoDB、Flow Optimizer）：
 
 ```bash
 # 1. Clone 專案
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# 2. 啟動依賴服務
+# 2. 一鍵啟動所有服務
 docker compose up -d
 
 # 3. 確認服務狀態
 docker compose ps
 
-# 4. 編譯並啟動應用程式
-./mvnw spring-boot:run
+# 4. 開啟瀏覽器
+open http://localhost:8080
 ```
+
+> **零配置設計**：JWT Secret、Master Key 等安全金鑰皆自動產生，無需手動設定。
+> 首次啟動時會引導建立管理員帳號，並顯示 Recovery Key 供備份。
 
 **服務連線資訊：**
 
-| 服務 | 連線位址 | 帳號/密碼 |
-|------|---------|----------|
-| PostgreSQL | localhost:5432 | n3n / n3n |
-| Redis | localhost:6379 | - |
-| N3N Web | http://localhost:8080 | - |
+| 服務 | 連線位址 | 說明 |
+|------|---------|------|
+| N3N Web | http://localhost:8080 | 主應用程式 |
+| PostgreSQL | 內部網路 (5432) | 預設不對外暴露 |
+| Redis | 內部網路 (6379) | 預設不對外暴露 |
+
+> **需要直接存取資料庫？** 使用開發覆蓋檔暴露端口：
+> ```bash
+> docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+> ```
+> 或使用 `docker compose exec postgres psql -U n3n` 直接進入。
 
 ### 使用 Docker Compose（生產環境）
 
-生產環境需要額外配置安全設定。建立 `docker-compose.prod.yml`：
-
-```yaml
-services:
-  n3n:
-    image: ghcr.io/aiinpocket/n3n:latest
-    container_name: n3n-app
-    ports:
-      - "8080:8080"
-    environment:
-      # 必要配置 - 使用強密碼
-      N3N_MASTER_KEY: ${N3N_MASTER_KEY}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/n3n
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
-      # 可選配置
-      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseContainerSupport"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: n3n-postgres
-    environment:
-      POSTGRES_DB: n3n
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: n3n-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
-  redis_data:
-```
-
-建立 `.env` 檔案：
+生產環境建議加強資料庫密碼安全性。建立 `.env` 檔案：
 
 ```bash
-# .env (生產環境請使用強密碼)
-N3N_MASTER_KEY=your-32-byte-base64-encoded-key
-DB_USERNAME=n3n_prod
-DB_PASSWORD=strong-password-here
+# .env (生產環境 - 自訂密碼)
+# Master Key 和 JWT Secret 會自動產生，不需要手動設定
+# 如需多實例共享，可設定：
+# JWT_SECRET=your-base64-encoded-32-byte-key
+
+# 資料庫密碼（建議使用強密碼）
+POSTGRES_PASSWORD=strong-db-password
 REDIS_PASSWORD=strong-redis-password
 ```
 
 啟動生產環境：
 
 ```bash
-# 使用生產配置啟動
-docker compose -f docker-compose.prod.yml up -d
+# 使用預設的 docker-compose.yml 啟動
+docker compose up -d
 
 # 查看日誌
-docker compose -f docker-compose.prod.yml logs -f n3n
+docker compose logs -f app
 ```
+
+> **安全提示**：`docker-compose.yml` 中的內部服務（PostgreSQL、Redis、MongoDB）預設不對外暴露端口。
+> Master Key 自動產生並持久化到 `/data` 卷。Recovery Key 在首次設定時顯示。
 
 ### 單獨使用 Docker
 
@@ -164,16 +112,16 @@ docker compose -f docker-compose.prod.yml logs -f n3n
 # 建置映像檔
 docker build -t n3n:latest .
 
-# 執行容器
+# 執行容器（Master Key 會自動產生，掛載 /data 以持久化）
 docker run -d \
   --name n3n \
   -p 8080:8080 \
-  -e N3N_MASTER_KEY="your-master-key" \
-  -e SPRING_DATASOURCE_URL="jdbc:postgresql://host.docker.internal:5432/n3n" \
-  -e SPRING_DATASOURCE_USERNAME="n3n" \
-  -e SPRING_DATASOURCE_PASSWORD="password" \
-  -e SPRING_DATA_REDIS_HOST="host.docker.internal" \
-  -e SPRING_DATA_REDIS_PORT="6379" \
+  -v n3n_data:/data \
+  -e DATABASE_URL="jdbc:postgresql://host.docker.internal:5432/n3n" \
+  -e DATABASE_USERNAME="n3n" \
+  -e DATABASE_PASSWORD="password" \
+  -e REDIS_HOST="host.docker.internal" \
+  -e REDIS_PORT="6379" \
   n3n:latest
 
 # 查看日誌
@@ -212,11 +160,9 @@ helm show values ./helm/n3n
 # 建立 namespace
 kubectl create namespace n3n
 
-# 建立 secrets（必要）
+# 建立 secrets（僅需資料庫密碼，Master Key 和 JWT Secret 會自動產生）
 kubectl create secret generic n3n-secrets \
   --namespace n3n \
-  --from-literal=master-key="your-32-byte-base64-encoded-key" \
-  --from-literal=jwt-secret="your-jwt-secret" \
   --from-literal=db-password="strong-db-password" \
   --from-literal=redis-password="strong-redis-password"
 ```
@@ -227,9 +173,7 @@ kubectl create secret generic n3n-secrets \
 
 ```bash
 helm install n3n ./helm/n3n \
-  --namespace n3n \
-  --set config.jwtSecret="your-jwt-secret" \
-  --set config.encryptionKey="your-encryption-key"
+  --namespace n3n
 ```
 
 **生產環境（外部資料庫）：**
@@ -384,7 +328,7 @@ metadata:
   namespace: n3n
 type: Opaque
 stringData:
-  master-key: "your-32-byte-base64-encoded-key"
+  # Master Key 和 JWT Secret 會自動產生，不需手動設定
   db-username: "n3n"
   db-password: "your-db-password"
   redis-password: "your-redis-password"
@@ -422,11 +366,7 @@ spec:
             - configMapRef:
                 name: n3n-config
           env:
-            - name: N3N_MASTER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: n3n-secrets
-                  key: master-key
+            # Master Key 自動產生，掛載 PVC 以持久化
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -515,34 +455,40 @@ kubectl apply -f ingress.yaml
 
 | 變數 | 必要 | 說明 | 預設值 |
 |------|:----:|------|--------|
-| `N3N_MASTER_KEY` | ✅ | 資料加密主金鑰（32 bytes, base64 編碼） | - |
-| `SPRING_DATASOURCE_URL` | ✅ | PostgreSQL 連線字串 | jdbc:postgresql://localhost:5432/n3n |
-| `SPRING_DATASOURCE_USERNAME` | ✅ | 資料庫帳號 | n3n |
-| `SPRING_DATASOURCE_PASSWORD` | ✅ | 資料庫密碼 | n3n |
-| `SPRING_DATA_REDIS_HOST` | ✅ | Redis 主機 | localhost |
-| `SPRING_DATA_REDIS_PORT` |  | Redis 連接埠 | 6379 |
-| `SPRING_DATA_REDIS_PASSWORD` |  | Redis 密碼 | - |
+| `DATABASE_URL` |  | PostgreSQL 連線字串 | jdbc:postgresql://postgres:5432/n3n |
+| `DATABASE_USERNAME` |  | 資料庫帳號 | n3n |
+| `DATABASE_PASSWORD` |  | 資料庫密碼 | n3n |
+| `REDIS_HOST` |  | Redis 主機 | redis |
+| `REDIS_PORT` |  | Redis 連接埠 | 6379 |
+| `REDIS_PASSWORD` |  | Redis 密碼 | (無) |
+| `JWT_SECRET` |  | JWT 簽章金鑰 | 自動產生並持久化到資料庫 |
+| `ALLOWED_ORIGINS` |  | CORS 允許來源 | http://localhost:8080,http://localhost:3000 |
 | `JAVA_OPTS` |  | JVM 參數 | -XX:MaxRAMPercentage=75.0 |
+
+> **零配置原則**：所有安全金鑰（JWT Secret、Master Key）在首次啟動時自動產生。
+> 只有在多實例叢集部署時，才需要手動設定 `JWT_SECRET` 以確保所有實例共用同一金鑰。
 
 ---
 
 ## 安全配置
 
-### 生成 Master Key
+### 金鑰管理
 
-```bash
-# 使用 OpenSSL 生成 32 bytes 隨機金鑰
-openssl rand -base64 32
-# 輸出範例: nJsaWEwTysEqcg/pAbCD32u8emt/KkJSeBZWdh7NGos=
-```
+N3N 採用零配置安全設計：
+
+- **Master Key**：首次啟動時自動產生，持久化到 `/data` 卷中的檔案
+- **JWT Secret**：自動產生並存入資料庫，重啟後自動載入
+- **Recovery Key**：12 個 BIP-39 英文單詞，首次設定時顯示給管理員備份
+
+> **重要**：Recovery Key 是恢復加密憑證的唯一方式。請務必在首次設定時備份。
 
 ### 安全建議
 
-1. **永遠不要將 Master Key 寫入程式碼或 Git**
-2. 使用 Kubernetes Secrets 或 HashiCorp Vault 管理機敏資訊
+1. **備份 Recovery Key** — 首次設定時務必抄寫或下載保存
+2. 使用 Kubernetes Secrets 或 HashiCorp Vault 管理資料庫密碼
 3. 啟用 TLS 加密所有通訊
-4. 定期輪換密碼和金鑰
-5. 限制資料庫和 Redis 的網路存取
+4. 定期輪換資料庫密碼
+5. 內部服務不暴露端口（預設已遵守）
 
 ---
 
