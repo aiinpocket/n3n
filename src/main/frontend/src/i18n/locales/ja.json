@@ -732,6 +732,7 @@
     "typeSsh": "SSH",
     "visibility": "可視性",
     "visibilityPrivate": "プライベート",
+    "visibilityPublic": "公開",
     "visibilityWorkspace": "ワークスペース",
     "visibilityShared": "共有",
     "securityInfo": "認証情報はAES-256で暗号化して保存されます。プラットフォームは外部サービス呼び出し時に自動で復号化して注入します。認証情報を安全に管理し、信頼できない人と共有しないでください。",

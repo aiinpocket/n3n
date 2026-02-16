@@ -732,6 +732,7 @@
     "typeSsh": "SSH",
     "visibility": "可見性",
     "visibilityPrivate": "私人",
+    "visibilityPublic": "公開",
     "visibilityWorkspace": "工作區",
     "visibilityShared": "共享",
     "securityInfo": "認證資訊使用 AES-256 加密儲存，平台在呼叫外部服務時自動解密注入。請妥善保管您的認證，不要分享給不信任的人。",

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -30,7 +30,8 @@ import {
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useWebhookStore } from '../stores/webhookStore'
-import { useFlowListStore } from '../stores/flowListStore'
+import { flowApi } from '../api/flow'
+import type { Flow } from '../api/flow'
 import type { Webhook, CreateWebhookRequest } from '../api/webhook'
 import { webhookApi } from '../api/webhook'
 import { extractApiError } from '../utils/errorMessages'
@@ -60,13 +61,22 @@ const WebhooksPage: React.FC = () => {
     testWebhook,
   } = useWebhookStore()
 
-  const { flows, fetchFlows } = useFlowListStore()
+  const [editableFlows, setEditableFlows] = useState<Flow[]>([])
+
+  const loadEditableFlows = useCallback(async () => {
+    try {
+      const data = await flowApi.listEditableFlows()
+      setEditableFlows(data)
+    } catch {
+      // Flow list loading failure is non-critical
+    }
+  }, [])
 
   const flowNameMap = useMemo(() => {
     const map = new Map<string, string>()
-    flows.forEach((f) => map.set(f.id, f.name))
+    editableFlows.forEach((f) => map.set(f.id, f.name))
     return map
-  }, [flows])
+  }, [editableFlows])
 
   const filteredWebhooks = useMemo(() => {
     if (!searchText) return webhooks
@@ -81,8 +91,8 @@ const WebhooksPage: React.FC = () => {
 
   useEffect(() => {
     fetchWebhooks()
-    fetchFlows(0, 200)
-  }, [fetchWebhooks, fetchFlows])
+    loadEditableFlows()
+  }, [fetchWebhooks, loadEditableFlows])
 
   const handleCreate = async (values: CreateWebhookRequest) => {
     setCreating(true)
@@ -429,7 +439,7 @@ const WebhooksPage: React.FC = () => {
               showSearch
               optionFilterProp="children"
             >
-              {flows.map((flow) => (
+              {editableFlows.map((flow) => (
                 <Select.Option key={flow.id} value={flow.id}>
                   {flow.name}
                 </Select.Option>

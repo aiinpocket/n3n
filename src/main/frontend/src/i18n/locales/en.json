@@ -732,6 +732,7 @@
     "typeSsh": "SSH",
     "visibility": "Visibility",
     "visibilityPrivate": "Private",
+    "visibilityPublic": "Public",
     "visibilityWorkspace": "Workspace",
     "visibilityShared": "Shared",
     "securityInfo": "Credentials are stored with AES-256 encryption. The platform automatically decrypts and injects credentials when calling external services. Keep your credentials safe and do not share with untrusted people.",
