@@ -90,6 +90,7 @@ public class FlowExportService {
                         .description(flow.getDescription())
                         .definition(definition)
                         .settings(flowVersion.getSettings())
+                        .pinnedData(flowVersion.getPinnedData())
                         .build())
                 .dependencies(FlowExportPackage.FlowDependencies.builder()
                         .components(components)

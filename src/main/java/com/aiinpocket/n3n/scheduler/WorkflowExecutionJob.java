@@ -61,9 +61,9 @@ public class WorkflowExecutionJob implements Job {
 
             log.info("Scheduled execution completed for flow {}: {}", flowId, result);
 
-            // Update lastRunAt on the Schedule entity
+            // Update lastRunAt on the Schedule entity (lookup by Quartz schedule ID, not DB primary key)
             try {
-                scheduleRepository.findById(UUID.fromString(scheduleId)).ifPresent(schedule -> {
+                scheduleRepository.findByQuartzScheduleId(scheduleId).ifPresent(schedule -> {
                     schedule.setLastRunAt(Instant.now());
                     scheduleRepository.save(schedule);
                 });

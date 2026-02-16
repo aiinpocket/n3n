@@ -58,6 +58,7 @@ public class FlowExportPackage {
         private String description;
         private Map<String, Object> definition;
         private Map<String, Object> settings;
+        private Map<String, Object> pinnedData;
     }
 
     @Data

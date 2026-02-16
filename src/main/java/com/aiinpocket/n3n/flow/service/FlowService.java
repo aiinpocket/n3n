@@ -14,6 +14,7 @@ import com.aiinpocket.n3n.execution.repository.FormTriggerRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
+import com.aiinpocket.n3n.scheduler.repository.ScheduleRepository;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
 import com.aiinpocket.n3n.backup.event.FlowSyncEvent;
 import com.aiinpocket.n3n.backup.event.SyncAction;
@@ -42,6 +43,7 @@ public class FlowService {
     private final WebhookRepository webhookRepository;
     private final FormTriggerRepository formTriggerRepository;
     private final SchedulerService schedulerService;
+    private final ScheduleRepository scheduleRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
@@ -263,6 +265,7 @@ public class FlowService {
         webhookRepository.deactivateByFlowId(id);
         formTriggerRepository.deactivateByFlowId(id);
         int schedulesRemoved = schedulerService.unscheduleByFlowId(id);
+        scheduleRepository.deleteByFlowId(id);
         flowVersionRepository.deleteByFlowId(id);
 
         flow.setIsDeleted(true);

@@ -16,4 +16,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
     Optional<Schedule> findByIdAndCreatedBy(UUID id, UUID createdBy);
 
     long countByCreatedBy(UUID createdBy);
+
+    Optional<Schedule> findByQuartzScheduleId(String quartzScheduleId);
+
+    void deleteByFlowId(UUID flowId);
 }

@@ -174,7 +174,8 @@ public class WebhookService {
             switch (webhook.getAuthType()) {
                 case "hmac", "signature" -> validateHmacSignature(payload, signature, webhook.getAuthConfig());
                 case "apiKey" -> validateApiKey(request, webhook.getAuthConfig());
-                default -> { /* no-auth or unknown type: allow */ }
+                case "none" -> { /* Explicitly no auth */ }
+                default -> throw new SecurityException("Unsupported webhook auth type: " + webhook.getAuthType());
             }
         }
 

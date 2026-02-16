@@ -156,6 +156,7 @@ public class FlowImportService {
                 .version("1.0.0")
                 .definition(definition)
                 .settings(pkg.getFlow().getSettings() != null ? pkg.getFlow().getSettings() : Map.of())
+                .pinnedData(pkg.getFlow().getPinnedData() != null ? pkg.getFlow().getPinnedData() : Map.of())
                 .status("draft")
                 .createdBy(userId)
                 .build();
