@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip } from 'antd'
+import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip, Result } from 'antd'
 import {
   ReloadOutlined,
   EyeOutlined,
@@ -66,6 +66,7 @@ export default function ExecutionListPage() {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [batchDeleting, setBatchDeleting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const fetchRequestIdRef = useRef(0)
 
   // Real-time updates from WebSocket
@@ -74,6 +75,7 @@ export default function ExecutionListPage() {
   const loadExecutions = useCallback(async (page = 1, size = 20, status?: string, search?: string) => {
     const requestId = ++fetchRequestIdRef.current
     setLoading(true)
+    setLoadError(null)
     try {
       const data = flowIdFilter
         ? await executionApi.listByFlow(flowIdFilter, page - 1, size)
@@ -89,7 +91,9 @@ export default function ExecutionListPage() {
     } catch (error) {
       if (requestId !== fetchRequestIdRef.current) return
       logger.error('Failed to load executions:', error)
-      message.error(extractApiError(error, t('common.loadFailed')))
+      const errMsg = extractApiError(error, t('common.loadFailed'))
+      setLoadError(errMsg)
+      message.error(errMsg)
     } finally {
       if (requestId === fetchRequestIdRef.current) setLoading(false)
     }
@@ -327,6 +331,17 @@ export default function ExecutionListPage() {
       },
     },
   ]
+
+  if (!loading && loadError && executions.length === 0) {
+    return (
+      <Result
+        status="error"
+        title={t('common.loadFailed')}
+        subTitle={loadError}
+        extra={<Button type="primary" onClick={() => loadExecutions()}>{t('common.retry')}</Button>}
+      />
+    )
+  }
 
   return (
     <Card

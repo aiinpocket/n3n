@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ErrorBoundary from './error/ErrorBoundary'
-import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography } from 'antd'
+import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography, Badge } from 'antd'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -33,16 +33,34 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from './LanguageSwitcher'
 import RecoveryKeyModal from './security/RecoveryKeyModal'
+import { approvalApi } from '../api/approval'
 
 const { Header, Sider, Content } = Layout
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [shortcutsVisible, setShortcutsVisible] = useState(false)
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0)
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout, showRecoveryKeyModal, recoveryKey, confirmRecoveryKeyBackup } = useAuthStore()
   const { t } = useTranslation()
+
+  // Fetch pending approval count
+  const fetchPendingApprovals = useCallback(async () => {
+    try {
+      const pending = await approvalApi.getPending()
+      setPendingApprovalCount(pending.length)
+    } catch {
+      // Silently fail - badge is non-critical
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchPendingApprovals()
+    const interval = setInterval(fetchPendingApprovals, 30000) // Refresh every 30s
+    return () => clearInterval(interval)
+  }, [fetchPendingApprovals])
 
   // Dynamic page title
   useEffect(() => {
@@ -102,7 +120,14 @@ export default function MainLayout() {
         {
           key: '/approvals',
           icon: <ExclamationCircleOutlined />,
-          label: t('nav.approvals'),
+          label: (
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {t('nav.approvals')}
+              {pendingApprovalCount > 0 && (
+                <Badge count={pendingApprovalCount} size="small" style={{ marginLeft: 8 }} />
+              )}
+            </span>
+          ),
         },
       ],
     },

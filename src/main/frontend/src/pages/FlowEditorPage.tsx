@@ -949,8 +949,8 @@ export default function FlowEditorPage() {
                   <Button
                     type="primary"
                     icon={<PlayCircleOutlined />}
-                    onClick={startExecution}
-                    disabled={!currentFlow?.publishedVersion}
+                    onClick={() => startExecution(currentVersion?.version)}
+                    disabled={!currentVersion}
                   >
                     {t('editor.reExecute')}
                   </Button>
@@ -966,22 +966,22 @@ export default function FlowEditorPage() {
                 </Button>
               </Space>
             ) : (
-              <Tooltip title={!currentFlow?.publishedVersion ? t('editor.noPublishedVersion') : ''}>
+              <Tooltip title={!currentVersion ? t('editor.noVersion') : currentVersion.status === 'draft' ? t('editor.testDraftHint') : ''}>
                 <Button
                   type="primary"
                   icon={<PlayCircleOutlined />}
-                  disabled={!currentFlow?.publishedVersion}
+                  disabled={!currentVersion}
                   onClick={async () => {
                     setExecutionMode(true)
                     try {
-                      await startExecution()
+                      await startExecution(currentVersion?.version)
                     } catch (error) {
                       message.error(extractApiError(error, t('execution.executeFailed')))
                       setExecutionMode(false)
                     }
                   }}
                 >
-                  {t('editor.executeAndMonitor')}
+                  {currentVersion?.status === 'draft' ? t('editor.testDraft') : t('editor.executeAndMonitor')}
                 </Button>
               </Tooltip>
             )}
@@ -1450,10 +1450,10 @@ export default function FlowEditorPage() {
           }
         }}
         onExecute={async () => {
-          if (currentFlow?.publishedVersion) {
+          if (currentVersion) {
             setExecutionMode(true)
             try {
-              await startExecution()
+              await startExecution(currentVersion?.version)
             } catch (error) {
               message.error(extractApiError(error, t('execution.executeFailed')))
               setExecutionMode(false)

@@ -15,6 +15,7 @@ import {
   Typography,
   Card,
   Empty,
+  Result,
 } from 'antd'
 import {
   PlusOutlined,
@@ -85,6 +86,7 @@ const SchedulerPage: React.FC = () => {
   const [editForm] = Form.useForm()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [editableFlows, setEditableFlows] = useState<Flow[]>([])
   const createCronValue = Form.useWatch('cronExpression', form)
   const editCronValue = Form.useWatch('cronExpression', editForm)
@@ -93,11 +95,14 @@ const SchedulerPage: React.FC = () => {
 
   const loadSchedules = useCallback(async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const data = await schedulerApi.list()
       setSchedules(data)
     } catch (error) {
-      message.error(extractApiError(error, t('common.loadFailed')))
+      const errMsg = extractApiError(error, t('common.loadFailed'))
+      setLoadError(errMsg)
+      message.error(errMsg)
     } finally {
       setLoading(false)
     }
@@ -368,6 +373,17 @@ const SchedulerPage: React.FC = () => {
       ),
     },
   ]
+
+  if (!loading && loadError && schedules.length === 0) {
+    return (
+      <Result
+        status="error"
+        title={t('common.loadFailed')}
+        subTitle={loadError}
+        extra={<Button type="primary" onClick={loadSchedules}>{t('common.retry')}</Button>}
+      />
+    )
+  }
 
   return (
     <div style={{ padding: 24 }}>

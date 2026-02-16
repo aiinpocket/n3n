@@ -24,7 +24,7 @@ interface UseFlowExecutionResult {
   nodesWithExecutionState: Node[]
 
   // Actions
-  startExecution: () => Promise<void>
+  startExecution: (version?: string) => Promise<void>
   stopExecution: () => Promise<void>
   clearExecution: () => void
 
@@ -64,10 +64,10 @@ export function useFlowExecution({ flowId, nodes }: UseFlowExecutionOptions): Us
     })
   }, [nodes, executionId, execution])
 
-  // Start execution
-  const startExecution = useCallback(async () => {
+  // Start execution (optionally with a specific version for draft testing)
+  const startExecution = useCallback(async (version?: string) => {
     try {
-      const response = await startExecutionAction({ flowId })
+      const response = await startExecutionAction({ flowId, version })
       setExecutionId(response.id)
     } catch (error) {
       logger.error('Failed to start execution:', error)

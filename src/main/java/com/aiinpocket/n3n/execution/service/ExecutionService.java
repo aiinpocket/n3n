@@ -202,13 +202,13 @@ public class ExecutionService {
         if (request.getVersion() != null) {
             version = flowVersionRepository.findByFlowIdAndVersion(flow.getId(), request.getVersion())
                 .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + request.getVersion()));
-            // Only published versions can be executed
-            if (!"published".equals(version.getStatus())) {
+            // Allow both published and draft versions when explicitly specified (for testing)
+            if ("deprecated".equals(version.getStatus())) {
                 throw new IllegalArgumentException(
-                    "Version " + request.getVersion() + " is not published. Only published versions can be executed.");
+                    "Version " + request.getVersion() + " is deprecated and cannot be executed.");
             }
         } else {
-            // Use published version only - draft versions cannot be executed without explicit version
+            // Default to published version when no specific version requested
             version = flowVersionRepository.findByFlowIdAndStatus(flow.getId(), "published")
                 .orElseThrow(() -> new IllegalArgumentException(
                     "No published version available for flow: " + flow.getName()));

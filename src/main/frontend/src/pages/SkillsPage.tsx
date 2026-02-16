@@ -17,6 +17,7 @@ import {
   Badge,
   Alert,
   Switch,
+  Result,
 } from 'antd'
 import {
   PlusOutlined,
@@ -399,6 +400,17 @@ export default function SkillsPage() {
     }
     return list
   }, [activeTab, skills, builtinSkills, searchText])
+
+  if (!isLoading && error && skills.length === 0) {
+    return (
+      <Result
+        status="error"
+        title={t('common.loadFailed')}
+        subTitle={error}
+        extra={<Button type="primary" onClick={() => { clearError(); fetchSkills() }}>{t('common.retry')}</Button>}
+      />
+    )
+  }
 
   return (
     <>
