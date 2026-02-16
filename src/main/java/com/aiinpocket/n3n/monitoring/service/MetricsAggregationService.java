@@ -79,19 +79,20 @@ public class MetricsAggregationService {
     }
 
     /**
-     * Query execution statistics from the database.
+     * Query execution statistics from the database using a single aggregated query.
      */
     @Transactional(readOnly = true)
     public FlowExecutionStatsResponse getFlowExecutionStats() {
         Instant twentyFourHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
 
-        long total24h = executionRepository.countByStartedAtAfter(twentyFourHoursAgo);
-        long running = executionRepository.countByStatus("running");
-        long completed = executionRepository.countByStatusAndStartedAtAfter("completed", twentyFourHoursAgo);
-        long failed = executionRepository.countByStatusAndStartedAtAfter("failed", twentyFourHoursAgo);
-        long cancelled = executionRepository.countByStatusAndStartedAtAfter("cancelled", twentyFourHoursAgo);
-        Double avgDurationMs = executionRepository.findAverageDurationMsSince(twentyFourHoursAgo);
-        long totalAllTime = executionRepository.count();
+        Object[] stats = executionRepository.getAggregatedStats(twentyFourHoursAgo);
+        long total24h = stats[0] != null ? ((Number) stats[0]).longValue() : 0L;
+        long running = stats[1] != null ? ((Number) stats[1]).longValue() : 0L;
+        long completed = stats[2] != null ? ((Number) stats[2]).longValue() : 0L;
+        long failed = stats[3] != null ? ((Number) stats[3]).longValue() : 0L;
+        long cancelled = stats[4] != null ? ((Number) stats[4]).longValue() : 0L;
+        Double avgDurationMs = stats[5] != null ? ((Number) stats[5]).doubleValue() : null;
+        long totalAllTime = stats[6] != null ? ((Number) stats[6]).longValue() : 0L;
 
         return FlowExecutionStatsResponse.builder()
                 .total24h(total24h)

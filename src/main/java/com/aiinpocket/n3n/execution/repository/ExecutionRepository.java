@@ -109,4 +109,19 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
      * Check if an execution exists and is owned by the given user.
      */
     boolean existsByIdAndTriggeredBy(UUID id, UUID triggeredBy);
+
+    /**
+     * Aggregate execution statistics in a single query for monitoring dashboard.
+     * Returns: [total24h, running, completed24h, failed24h, cancelled24h, avgDurationMs, totalAllTime]
+     */
+    @Query("SELECT " +
+            "COUNT(CASE WHEN e.startedAt > :after THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'running' THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'completed' AND e.startedAt > :after THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'failed' AND e.startedAt > :after THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'cancelled' AND e.startedAt > :after THEN 1 END), " +
+            "AVG(CASE WHEN e.status = 'completed' AND e.durationMs IS NOT NULL AND e.startedAt > :after THEN e.durationMs END), " +
+            "COUNT(e) " +
+            "FROM Execution e")
+    Object[] getAggregatedStats(@Param("after") Instant after);
 }

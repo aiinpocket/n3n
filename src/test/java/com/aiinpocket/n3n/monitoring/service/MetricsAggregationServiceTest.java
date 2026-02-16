@@ -81,14 +81,9 @@ class MetricsAggregationServiceTest extends BaseServiceTest {
 
     @Test
     void getFlowExecutionStats_returnsCorrectCounts() {
-        // Given
-        when(executionRepository.countByStartedAtAfter(any(Instant.class))).thenReturn(100L);
-        when(executionRepository.countByStatus("running")).thenReturn(5L);
-        when(executionRepository.countByStatusAndStartedAtAfter(eq("completed"), any(Instant.class))).thenReturn(80L);
-        when(executionRepository.countByStatusAndStartedAtAfter(eq("failed"), any(Instant.class))).thenReturn(10L);
-        when(executionRepository.countByStatusAndStartedAtAfter(eq("cancelled"), any(Instant.class))).thenReturn(5L);
-        when(executionRepository.findAverageDurationMsSince(any(Instant.class))).thenReturn(1500.0);
-        when(executionRepository.count()).thenReturn(500L);
+        // Given - single aggregated query returns [total24h, running, completed, failed, cancelled, avgDuration, totalAllTime]
+        Object[] aggregatedStats = new Object[]{100L, 5L, 80L, 10L, 5L, 1500.0, 500L};
+        when(executionRepository.getAggregatedStats(any(Instant.class))).thenReturn(aggregatedStats);
 
         // When
         FlowExecutionStatsResponse stats = metricsAggregationService.getFlowExecutionStats();
@@ -105,12 +100,9 @@ class MetricsAggregationServiceTest extends BaseServiceTest {
 
     @Test
     void getFlowExecutionStats_withNoExecutions_returnsZeros() {
-        // Given
-        when(executionRepository.countByStartedAtAfter(any(Instant.class))).thenReturn(0L);
-        when(executionRepository.countByStatus("running")).thenReturn(0L);
-        when(executionRepository.countByStatusAndStartedAtAfter(anyString(), any(Instant.class))).thenReturn(0L);
-        when(executionRepository.findAverageDurationMsSince(any(Instant.class))).thenReturn(null);
-        when(executionRepository.count()).thenReturn(0L);
+        // Given - all nulls from empty database
+        Object[] aggregatedStats = new Object[]{0L, 0L, 0L, 0L, 0L, null, 0L};
+        when(executionRepository.getAggregatedStats(any(Instant.class))).thenReturn(aggregatedStats);
 
         // When
         FlowExecutionStatsResponse stats = metricsAggregationService.getFlowExecutionStats();
