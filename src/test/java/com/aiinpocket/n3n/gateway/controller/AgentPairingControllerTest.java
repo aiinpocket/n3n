@@ -1,7 +1,9 @@
 package com.aiinpocket.n3n.gateway.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.gateway.security.AgentPairingService;
 import com.aiinpocket.n3n.gateway.security.DeviceKeyStore;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,8 +33,17 @@ class AgentPairingControllerTest {
     @Mock
     private DeviceKeyStore deviceKeyStore;
 
+    @Mock
+    private IpRateLimiter ipRateLimiter;
+
     @InjectMocks
     private AgentPairingController agentPairingController;
+
+    private HttpServletRequest mockHttpRequest() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        return request;
+    }
 
     private UserDetails testUser() {
         return User.withUsername(UUID.randomUUID().toString())
@@ -143,7 +154,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        var result = agentPairingController.completePairing(request);
+        var result = agentPairingController.completePairing(request, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         @SuppressWarnings("unchecked")
@@ -163,7 +174,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenThrow(new AgentPairingService.PairingException("Invalid or expired pairing code"));
 
-        var result = agentPairingController.completePairing(request);
+        var result = agentPairingController.completePairing(request, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         @SuppressWarnings("unchecked")
@@ -180,7 +191,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenThrow(new RuntimeException("Something crashed"));
 
-        var result = agentPairingController.completePairing(request);
+        var result = agentPairingController.completePairing(request, mockHttpRequest());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         @SuppressWarnings("unchecked")
@@ -201,7 +212,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        agentPairingController.completePairing(request);
+        agentPairingController.completePairing(request, mockHttpRequest());
 
         verify(pairingService).completePairing(argThat(pr ->
                 pr.pairingCode().equals("CODE99") &&
@@ -228,7 +239,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        agentPairingController.completePairing(request);
+        agentPairingController.completePairing(request, mockHttpRequest());
 
         verify(pairingService).completePairing(argThat(pr ->
                 !pr.directConnectionEnabled()
@@ -247,7 +258,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        agentPairingController.completePairing(request);
+        agentPairingController.completePairing(request, mockHttpRequest());
 
         verify(pairingService).completePairing(argThat(pr ->
                 pr.directConnectionEnabled()
@@ -751,7 +762,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        agentPairingController.completePairing(request);
+        agentPairingController.completePairing(request, mockHttpRequest());
 
         verify(pairingService).completePairing(argThat(pr ->
                 !pr.directConnectionEnabled()
@@ -817,7 +828,7 @@ class AgentPairingControllerTest {
         when(pairingService.completePairing(any(AgentPairingService.PairingRequest.class)))
                 .thenReturn(pairingResult);
 
-        agentPairingController.completePairing(request);
+        agentPairingController.completePairing(request, mockHttpRequest());
 
         verify(pairingService).completePairing(argThat(pr ->
                 pr.allowedIps() != null &&

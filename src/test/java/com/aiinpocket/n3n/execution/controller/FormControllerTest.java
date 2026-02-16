@@ -84,7 +84,7 @@ class FormControllerTest {
         FormTrigger trigger = activeFormTrigger(UUID.randomUUID());
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
 
-        var response = formController.getFormByToken("test-token");
+        var response = formController.getFormByToken("test-token", mockRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -95,7 +95,7 @@ class FormControllerTest {
         trigger.setIsActive(false);
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
 
-        var response = formController.getFormByToken("test-token");
+        var response = formController.getFormByToken("test-token", mockRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
     }
@@ -106,7 +106,7 @@ class FormControllerTest {
         trigger.setExpiresAt(Instant.now().minusSeconds(3600)); // expired
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
 
-        var response = formController.getFormByToken("test-token");
+        var response = formController.getFormByToken("test-token", mockRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
     }
@@ -118,7 +118,7 @@ class FormControllerTest {
         trigger.setMaxSubmissions(100);
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
 
-        var response = formController.getFormByToken("test-token");
+        var response = formController.getFormByToken("test-token", mockRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
     }
@@ -128,7 +128,7 @@ class FormControllerTest {
         when(formService.getFormTriggerByToken("invalid-token"))
             .thenThrow(new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Not found"));
 
-        var response = formController.getFormByToken("invalid-token");
+        var response = formController.getFormByToken("invalid-token", mockRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }

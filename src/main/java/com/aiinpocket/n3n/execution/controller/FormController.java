@@ -46,7 +46,11 @@ public class FormController {
      * This returns the form schema for rendering.
      */
     @GetMapping("/{token}")
-    public ResponseEntity<?> getFormByToken(@PathVariable @Size(max = 255) String token) {
+    public ResponseEntity<?> getFormByToken(
+            @PathVariable @Size(max = 255) String token,
+            HttpServletRequest request) {
+        // Rate limit: 30 form lookups per minute per IP (token enumeration protection)
+        ipRateLimiter.checkAllowed("form-lookup", getClientIp(request), 30, 60);
         try {
             FormTrigger trigger = formService.getFormTriggerByToken(token);
 

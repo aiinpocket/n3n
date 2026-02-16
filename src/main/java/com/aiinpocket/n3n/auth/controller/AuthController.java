@@ -77,6 +77,7 @@ public class AuthController {
             @Valid @RequestBody RefreshTokenRequest request,
             HttpServletRequest httpRequest) {
         String ipAddress = getClientIp(httpRequest);
+        ipRateLimiter.checkAllowed("token-refresh", ipAddress, 30, 60);
         String userAgent = httpRequest.getHeader("User-Agent");
         return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken(), ipAddress, userAgent));
     }

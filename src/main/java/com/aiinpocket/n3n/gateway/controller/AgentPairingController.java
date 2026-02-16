@@ -1,7 +1,9 @@
 package com.aiinpocket.n3n.gateway.controller;
 
+import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.gateway.security.AgentPairingService;
 import com.aiinpocket.n3n.gateway.security.DeviceKeyStore;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,7 @@ public class AgentPairingController {
 
     private final AgentPairingService pairingService;
     private final DeviceKeyStore deviceKeyStore;
+    private final IpRateLimiter ipRateLimiter;
 
     /**
      * Initiate a new pairing session (authenticated user only)
@@ -62,7 +65,11 @@ public class AgentPairingController {
      * This endpoint is unauthenticated - the pairing code serves as authentication
      */
     @PostMapping("/pair/complete")
-    public ResponseEntity<?> completePairing(@Valid @RequestBody PairCompleteRequest request) {
+    public ResponseEntity<?> completePairing(
+            @Valid @RequestBody PairCompleteRequest request,
+            HttpServletRequest httpRequest) {
+        // Rate limit: 5 pairing attempts per 5 minutes per IP (6-digit code brute-force protection)
+        ipRateLimiter.checkAllowed("agent-pair-complete", getClientIp(httpRequest), 5, 300);
         try {
             AgentPairingService.PairingRequest pairingRequest = new AgentPairingService.PairingRequest(
                 request.pairingCode(),
@@ -225,6 +232,20 @@ public class AgentPairingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to revoke devices"));
         }
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            String ip = xForwardedFor.split(",")[0].trim();
+            try {
+                java.net.InetAddress.getByName(ip);
+                return ip;
+            } catch (java.net.UnknownHostException e) {
+                // Invalid IP format, fall through to remoteAddr
+            }
+        }
+        return request.getRemoteAddr();
     }
 
     // Request/Response DTOs
