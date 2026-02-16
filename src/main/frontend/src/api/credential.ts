@@ -9,6 +9,7 @@ export interface Credential {
   workspaceId?: string
   visibility: string
   metadata?: Record<string, unknown>
+  keyStatus?: string
   createdAt: string
   updatedAt: string
 }

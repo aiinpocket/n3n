@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal, Form, Input, Select } from 'antd'
-import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined, SearchOutlined, SwapOutlined, WarningOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'
 import { Credential, credentialApi } from '../api/credential'
 import { oauth2Api, OAuth2Status } from '../api/oauth2'
 import CredentialFormModal from '../components/credentials/CredentialFormModal'
+import MigrateCredentialModal from '../components/security/MigrateCredentialModal'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
 import logger from '../utils/logger'
@@ -41,6 +42,8 @@ const CredentialListPage: React.FC = () => {
   const [editForm] = Form.useForm()
   const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [migrateModalOpen, setMigrateModalOpen] = useState(false)
+  const [migrateCredential, setMigrateCredential] = useState<Credential | null>(null)
 
   useEffect(() => {
     fetchCredentials()
@@ -250,10 +253,15 @@ const CredentialListPage: React.FC = () => {
       title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
-      render: (name: string) => (
+      render: (name: string, record: Credential) => (
         <Space>
           <KeyOutlined />
           <span>{name}</span>
+          {record.keyStatus && record.keyStatus !== 'active' && (
+            <Tooltip title={t('credential.keyMismatchWarning')}>
+              <WarningOutlined style={{ color: 'var(--color-warning)' }} />
+            </Tooltip>
+          )}
         </Space>
       )
     },
@@ -330,6 +338,20 @@ const CredentialListPage: React.FC = () => {
               </Tooltip>
             )
           })()}
+          {record.keyStatus && record.keyStatus !== 'active' && (
+            <Tooltip title={t('credential.migrateCredential')}>
+              <Button
+                type="link"
+                icon={<SwapOutlined />}
+                onClick={() => {
+                  setMigrateCredential(record)
+                  setMigrateModalOpen(true)
+                }}
+                style={{ color: 'var(--color-warning)' }}
+                aria-label={t('credential.migrateCredential')}
+              />
+            </Tooltip>
+          )}
           <Tooltip title={t('common.edit')}>
             <Button
               type="link"
@@ -386,6 +408,19 @@ const CredentialListPage: React.FC = () => {
             {t('credential.newCredential')}
           </Button>
         </div>
+
+        {credentials.some(c => c.keyStatus && c.keyStatus !== 'active') && (
+          <Alert
+            type="warning"
+            showIcon
+            icon={<WarningOutlined />}
+            message={t('credential.keyMismatchBanner')}
+            description={t('credential.keyMismatchBannerDesc', {
+              count: credentials.filter(c => c.keyStatus && c.keyStatus !== 'active').length,
+            })}
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         <Space style={{ marginBottom: 16, width: '100%' }} wrap>
           <Input
@@ -524,6 +559,25 @@ const CredentialListPage: React.FC = () => {
           fetchCredentials()
         }}
       />
+
+      {migrateCredential && (
+        <MigrateCredentialModal
+          open={migrateModalOpen}
+          credential={{
+            id: migrateCredential.id,
+            name: migrateCredential.name,
+            type: migrateCredential.type,
+            keyStatus: migrateCredential.keyStatus || 'unknown',
+          }}
+          onClose={() => {
+            setMigrateModalOpen(false)
+            setMigrateCredential(null)
+          }}
+          onSuccess={() => {
+            fetchCredentials()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space } from 'antd'
-import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
+import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space, Modal } from 'antd'
+import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined, MedicineBoxOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
@@ -21,6 +21,9 @@ export default function AccountSettingsPage() {
   const [editingProfile, setEditingProfile] = useState(false)
   const [securityStatus, setSecurityStatus] = useState<SecurityStatus | null>(null)
   const [securityError, setSecurityError] = useState(false)
+  const [emergencyModalOpen, setEmergencyModalOpen] = useState(false)
+  const [emergencyLoading, setEmergencyLoading] = useState(false)
+  const [emergencyForm] = Form.useForm()
 
   useEffect(() => {
     let cancelled = false
@@ -41,6 +44,27 @@ export default function AccountSettingsPage() {
       message.error(extractApiError(error, t('account.profileUpdateFailed')))
     } finally {
       setProfileLoading(false)
+    }
+  }
+
+  const handleEmergencyRestore = async (values: { recoveryKeyPhrase: string; permanentPassword: string }) => {
+    setEmergencyLoading(true)
+    try {
+      const result = await securityApi.emergencyRestore(values.recoveryKeyPhrase, values.permanentPassword)
+      if (result.success) {
+        message.success(t('account.emergencyRestoreSuccess'))
+        setEmergencyModalOpen(false)
+        emergencyForm.resetFields()
+        // Refresh security status
+        const status = await securityApi.getStatus()
+        setSecurityStatus(status)
+      } else {
+        message.error(result.message || t('account.emergencyRestoreFailed'))
+      }
+    } catch (error: unknown) {
+      message.error(extractApiError(error, t('account.emergencyRestoreFailed')))
+    } finally {
+      setEmergencyLoading(false)
     }
   }
 
@@ -184,9 +208,18 @@ export default function AccountSettingsPage() {
                 message={t('account.keyMismatch')}
                 description={t('account.keyMismatchDesc')}
                 action={
-                  <Button size="small" danger onClick={() => navigate('/credentials')}>
-                    {t('account.resolveKeyMismatch')}
-                  </Button>
+                  <Space>
+                    <Button size="small" danger onClick={() => navigate('/credentials')}>
+                      {t('account.resolveKeyMismatch')}
+                    </Button>
+                    <Button
+                      size="small"
+                      icon={<MedicineBoxOutlined />}
+                      onClick={() => setEmergencyModalOpen(true)}
+                    >
+                      {t('account.emergencyRestore')}
+                    </Button>
+                  </Space>
                 }
               />
             )}
@@ -272,6 +305,69 @@ export default function AccountSettingsPage() {
           </Form.Item>
         </Form>
       </Card>
+
+      {/* Emergency Restore Modal */}
+      <Modal
+        title={
+          <Space>
+            <MedicineBoxOutlined style={{ color: 'var(--color-error)' }} />
+            <span>{t('account.emergencyRestoreTitle')}</span>
+          </Space>
+        }
+        open={emergencyModalOpen}
+        onCancel={() => { setEmergencyModalOpen(false); emergencyForm.resetFields() }}
+        footer={null}
+        destroyOnClose
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message={t('account.emergencyRestoreWarning')}
+          description={t('account.emergencyRestoreWarningDesc')}
+          style={{ marginBottom: 24 }}
+        />
+        <Form form={emergencyForm} layout="vertical" onFinish={handleEmergencyRestore}>
+          <Form.Item
+            name="recoveryKeyPhrase"
+            label={t('account.recoveryKeyLabel')}
+            rules={[
+              { required: true, message: t('recovery.pleaseEnterKey') },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve()
+                  const words = value.trim().split(/\s+/)
+                  return words.length === 12
+                    ? Promise.resolve()
+                    : Promise.reject(new Error(t('recovery.mustBe12Words')))
+                },
+              },
+            ]}
+          >
+            <Input.TextArea
+              rows={2}
+              placeholder={t('recovery.verifyPlaceholder')}
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+          <Form.Item
+            name="permanentPassword"
+            label={t('account.currentPassword')}
+            rules={[{ required: true, message: t('account.currentPasswordRequired') }]}
+          >
+            <Input.Password placeholder={t('account.currentPasswordPlaceholder')} />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button onClick={() => { setEmergencyModalOpen(false); emergencyForm.resetFields() }}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="primary" danger htmlType="submit" loading={emergencyLoading}>
+                {t('account.emergencyRestoreAction')}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

@@ -19,6 +19,7 @@ public class CredentialResponse {
     private UUID workspaceId;
     private String visibility;
     private Map<String, Object> metadata;
+    private String keyStatus;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -32,6 +33,7 @@ public class CredentialResponse {
             .workspaceId(credential.getWorkspaceId())
             .visibility(credential.getVisibility())
             .metadata(credential.getMetadata())
+            .keyStatus(credential.getKeyStatus())
             .createdAt(credential.getCreatedAt())
             .updatedAt(credential.getUpdatedAt())
             .build();

@@ -75,6 +75,11 @@ export const componentApi = {
     return response.data;
   },
 
+  getByName: async (name: string): Promise<ComponentResponse> => {
+    const response = await apiClient.get<ComponentResponse>(`/components/by-name/${encodeURIComponent(name)}`);
+    return response.data;
+  },
+
   create: async (request: CreateComponentRequest): Promise<ComponentResponse> => {
     const response = await apiClient.post<ComponentResponse>('/components', request);
     return response.data;
