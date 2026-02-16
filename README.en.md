@@ -191,8 +191,11 @@ docker compose up -d
 If you see a `port 8080 is already in use` error, another program is using port 8080.
 
 ```bash
-# Check which program is using port 8080 (Mac/Linux)
+# Check which program is using port 8080
+# Mac/Linux:
 lsof -i :8080
+# Windows (PowerShell):
+netstat -ano | findstr :8080
 
 # Or start with a different port (e.g., 9090)
 N3N_PORT=9090 docker compose up -d

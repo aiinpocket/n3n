@@ -58,7 +58,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 log.info("REQUEST_START method={} uri={} query={}",
                         request.getMethod(),
                         uri,
-                        request.getQueryString());
+                        maskSensitiveParams(request.getQueryString()));
             }
 
             filterChain.doFilter(request, response);
@@ -78,6 +78,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             // Clear MDC
             LogContext.clear();
         }
+    }
+
+    /**
+     * Mask sensitive query parameters (tokens, keys, passwords) to prevent credential leakage in logs.
+     */
+    private String maskSensitiveParams(String queryString) {
+        if (queryString == null || queryString.isEmpty()) {
+            return queryString;
+        }
+        // Mask token=..., key=..., password=..., secret=... parameters
+        return queryString.replaceAll("((?:token|key|password|secret|api_key|apiKey)=)[^&]*", "$1***");
     }
 
     /**

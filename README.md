@@ -191,8 +191,11 @@ docker compose up -d
 如果看到 `port 8080 is already in use` 的錯誤，表示其他程式正在使用 8080 連接埠。
 
 ```bash
-# 查看是哪個程式佔用了 8080（Mac/Linux）
+# 查看是哪個程式佔用了 8080
+# Mac/Linux:
 lsof -i :8080
+# Windows (PowerShell):
+netstat -ano | findstr :8080
 
 # 或改用其他連接埠啟動（例如改用 9090）
 N3N_PORT=9090 docker compose up -d
