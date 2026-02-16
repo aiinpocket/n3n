@@ -189,10 +189,11 @@ class SkillControllerTest {
 
     @Test
     void getSkillsByCategory_returnsMatchingSkills() {
+        var user = testUser();
         var skill = sampleSkillDto();
-        when(skillService.getSkillsByCategory("data")).thenReturn(List.of(skill));
+        when(skillService.getSkillsByCategory(eq("data"), any(UUID.class))).thenReturn(List.of(skill));
 
-        var result = skillController.getSkillsByCategory("data");
+        var result = skillController.getSkillsByCategory("data", user);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -202,9 +203,10 @@ class SkillControllerTest {
 
     @Test
     void getSkillsByCategory_noMatch_returnsEmptyList() {
-        when(skillService.getSkillsByCategory("nonexistent")).thenReturn(List.of());
+        var user = testUser();
+        when(skillService.getSkillsByCategory(eq("nonexistent"), any(UUID.class))).thenReturn(List.of());
 
-        var result = skillController.getSkillsByCategory("nonexistent");
+        var result = skillController.getSkillsByCategory("nonexistent", user);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -213,11 +215,12 @@ class SkillControllerTest {
 
     @Test
     void getSkillsByCategory_multipleMatches_returnsAll() {
+        var user = testUser();
         var skill1 = SkillDto.builder().id(UUID.randomUUID()).name("skill1").category("web").build();
         var skill2 = SkillDto.builder().id(UUID.randomUUID()).name("skill2").category("web").build();
-        when(skillService.getSkillsByCategory("web")).thenReturn(List.of(skill1, skill2));
+        when(skillService.getSkillsByCategory(eq("web"), any(UUID.class))).thenReturn(List.of(skill1, skill2));
 
-        var result = skillController.getSkillsByCategory("web");
+        var result = skillController.getSkillsByCategory("web", user);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).hasSize(2);
@@ -276,15 +279,16 @@ class SkillControllerTest {
 
     @Test
     void getSkillByName_found_returnsOk() {
+        var user = testUser();
         var skill = SkillDto.builder()
                 .id(UUID.randomUUID())
                 .name("parse_json")
                 .displayName("Parse JSON")
                 .category("data")
                 .build();
-        when(skillService.getSkillByName("parse_json")).thenReturn(Optional.of(skill));
+        when(skillService.getSkillByName(eq("parse_json"), any(UUID.class))).thenReturn(Optional.of(skill));
 
-        var result = skillController.getSkillByName("parse_json");
+        var result = skillController.getSkillByName("parse_json", user);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -293,9 +297,10 @@ class SkillControllerTest {
 
     @Test
     void getSkillByName_notFound_returnsNotFound() {
-        when(skillService.getSkillByName("nonexistent_skill")).thenReturn(Optional.empty());
+        var user = testUser();
+        when(skillService.getSkillByName(eq("nonexistent_skill"), any(UUID.class))).thenReturn(Optional.empty());
 
-        var result = skillController.getSkillByName("nonexistent_skill");
+        var result = skillController.getSkillByName("nonexistent_skill", user);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(result.getBody()).isNull();

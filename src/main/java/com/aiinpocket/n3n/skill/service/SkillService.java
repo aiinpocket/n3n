@@ -48,10 +48,10 @@ public class SkillService {
     }
 
     /**
-     * Get skills by category.
+     * Get accessible skills by category.
      */
-    public List<SkillDto> getSkillsByCategory(String category) {
-        return skillRepository.findByCategory(category)
+    public List<SkillDto> getSkillsByCategory(String category, UUID requestingUserId) {
+        return skillRepository.findAccessibleByCategory(category, requestingUserId)
             .stream()
             .map(this::toDto)
             .collect(Collectors.toList());
@@ -85,10 +85,16 @@ public class SkillService {
     }
 
     /**
-     * Get skill by name.
+     * Get skill by name with access control check.
      */
-    public Optional<SkillDto> getSkillByName(String name) {
-        return skillRepository.findByName(name).map(this::toDto);
+    public Optional<SkillDto> getSkillByName(String name, UUID requestingUserId) {
+        return skillRepository.findByName(name)
+                .filter(skill ->
+                        Boolean.TRUE.equals(skill.getIsBuiltin()) ||
+                        requestingUserId.equals(skill.getOwnerId()) ||
+                        "public".equalsIgnoreCase(skill.getVisibility())
+                )
+                .map(this::toDto);
     }
 
     /**

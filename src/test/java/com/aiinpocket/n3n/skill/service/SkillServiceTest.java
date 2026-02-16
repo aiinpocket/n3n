@@ -86,13 +86,14 @@ class SkillServiceTest extends BaseServiceTest {
     @Test
     void getSkillsByCategory_validCategory_returnsMatchingSkills() {
         // Given
+        UUID userId = UUID.randomUUID();
         Skill skill = createTestSkill("http_skill", false);
         skill.setCategory("network");
 
-        when(skillRepository.findByCategory("network")).thenReturn(List.of(skill));
+        when(skillRepository.findAccessibleByCategory("network", userId)).thenReturn(List.of(skill));
 
         // When
-        List<SkillDto> result = skillService.getSkillsByCategory("network");
+        List<SkillDto> result = skillService.getSkillsByCategory("network", userId);
 
         // Then
         assertThat(result).hasSize(1);
@@ -129,17 +130,35 @@ class SkillServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void getSkillByName_existingName_returnsSkill() {
+    void getSkillByName_existingAccessibleSkill_returnsSkill() {
         // Given
+        UUID userId = UUID.randomUUID();
         Skill skill = createTestSkill("test_skill", false);
+        skill.setOwnerId(userId); // owned by requesting user
         when(skillRepository.findByName("test_skill")).thenReturn(Optional.of(skill));
 
         // When
-        Optional<SkillDto> result = skillService.getSkillByName("test_skill");
+        Optional<SkillDto> result = skillService.getSkillByName("test_skill", userId);
 
         // Then
         assertThat(result).isPresent();
         assertThat(result.get().getName()).isEqualTo("test_skill");
+    }
+
+    @Test
+    void getSkillByName_privateSkillOfOtherUser_returnsEmpty() {
+        // Given
+        UUID requestingUserId = UUID.randomUUID();
+        Skill skill = createTestSkill("private_skill", false);
+        skill.setOwnerId(UUID.randomUUID()); // owned by different user
+        skill.setVisibility("private");
+        when(skillRepository.findByName("private_skill")).thenReturn(Optional.of(skill));
+
+        // When
+        Optional<SkillDto> result = skillService.getSkillByName("private_skill", requestingUserId);
+
+        // Then
+        assertThat(result).isEmpty();
     }
 
     // ========== Create Skill Tests ==========

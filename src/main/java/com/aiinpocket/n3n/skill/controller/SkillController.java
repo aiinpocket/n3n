@@ -51,11 +51,14 @@ public class SkillController {
     }
 
     /**
-     * Get skills by category.
+     * Get accessible skills by category.
      */
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<SkillDto>> getSkillsByCategory(@PathVariable @Size(max = 100) String category) {
-        return ResponseEntity.ok(skillService.getSkillsByCategory(category));
+    public ResponseEntity<List<SkillDto>> getSkillsByCategory(
+            @PathVariable @Size(max = 100) String category,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(skillService.getSkillsByCategory(category, userId));
     }
 
     /**
@@ -72,11 +75,14 @@ public class SkillController {
     }
 
     /**
-     * Get skill by name.
+     * Get skill by name with access control.
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<SkillDto> getSkillByName(@PathVariable @Size(max = 255) String name) {
-        return skillService.getSkillByName(name)
+    public ResponseEntity<SkillDto> getSkillByName(
+            @PathVariable @Size(max = 255) String name,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return skillService.getSkillByName(name, userId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }

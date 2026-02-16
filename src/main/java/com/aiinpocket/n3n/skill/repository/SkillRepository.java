@@ -22,6 +22,9 @@ public interface SkillRepository extends JpaRepository<Skill, UUID> {
 
     List<Skill> findByCategory(String category);
 
+    @Query("SELECT s FROM Skill s WHERE s.category = :category AND (s.isBuiltin = true OR s.ownerId = :ownerId OR s.visibility = 'public')")
+    List<Skill> findAccessibleByCategory(String category, UUID ownerId);
+
     List<Skill> findByIsEnabledTrue();
 
     @Query("SELECT s FROM Skill s WHERE s.isBuiltin = true OR s.ownerId = :ownerId OR s.visibility = 'public'")
