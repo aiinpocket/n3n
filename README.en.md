@@ -93,7 +93,7 @@ Run the following commands:
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# Start the service (first time takes 2-5 minutes to download images)
+# Start the service (first time takes 5-15 minutes to download images and start all services)
 docker compose up -d
 ```
 
@@ -116,9 +116,11 @@ First-time setup will guide you through:
 4. Set up AI assistant (choose your AI service)
 5. Create your first workflow!
 
-> **Important**: The Recovery Key is only shown once during initial setup. If lost, encrypted credentials cannot be recovered.
+> **Important**: The Recovery Key is only shown once during initial setup. If lost, encrypted credentials cannot be recovered. Make sure to back it up!
 >
 > **Backup tips**: Store your Recovery Key in a password manager (e.g., 1Password, Bitwarden) or write it down on paper and keep it in a safe place. Do not save it as a screenshot or unencrypted text file.
+>
+> **What if I lose my Recovery Key?** You can still log in and use the system normally. However, if you need to restore encrypted credentials to a new environment or perform a cloud backup restore, old credentials cannot be decrypted. We recommend recreating your credentials as soon as possible after losing the key.
 
 ---
 
@@ -165,9 +167,13 @@ docker compose up -d
 
 ### Port already in use?
 
-If you see a `port 8080 is already in use` error, another program is using port 8080. You can:
+If you see a `port 8080 is already in use` error, another program is using port 8080.
+
 ```bash
-# Start with a different port (e.g., 9090)
+# Check which program is using port 8080 (Mac/Linux)
+lsof -i :8080
+
+# Or start with a different port (e.g., 9090)
 N3N_PORT=9090 docker compose up -d
 # Then open http://localhost:9090
 ```

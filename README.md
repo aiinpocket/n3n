@@ -93,7 +93,7 @@ N3N 是一個**視覺化流程自動化平台**，讓你可以：
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# 啟動服務（首次需要等待 2-5 分鐘下載映像檔）
+# 啟動服務（首次需要等待 5-15 分鐘下載映像檔和啟動所有服務）
 docker compose up -d
 ```
 
@@ -116,9 +116,11 @@ docker compose up -d
 4. 設定 AI 助手（選擇你有的 AI 服務）
 5. 開始建立你的第一個流程！
 
-> **重要**：Recovery Key 只會在首次設定時顯示一次。如果遺失，將無法恢復加密的憑證資料。
+> **重要**：Recovery Key 只會在首次設定時顯示一次。如果遺失，將無法恢復加密的憑證資料。請務必備份！
 >
 > **備份建議**：將 Recovery Key 存放在密碼管理器（如 1Password、Bitwarden）中，或抄寫在紙上存放於安全處。請不要以截圖或未加密的文字檔保存。
+>
+> **Recovery Key 遺失怎麼辦？** 如果遺失 Recovery Key，你仍然可以正常登入使用系統。但如果需要將加密憑證還原到新環境，或進行雲端備份還原時，將無法解密舊的憑證資料。建議遺失後儘快重新建立所需的憑證。
 
 ---
 
@@ -165,9 +167,13 @@ docker compose up -d
 
 ### 連接埠被佔用怎麼辦？
 
-如果看到 `port 8080 is already in use` 的錯誤，表示其他程式正在使用 8080 連接埠。你可以：
+如果看到 `port 8080 is already in use` 的錯誤，表示其他程式正在使用 8080 連接埠。
+
 ```bash
-# 使用其他連接埠啟動（例如改用 9090）
+# 查看是哪個程式佔用了 8080（Mac/Linux）
+lsof -i :8080
+
+# 或改用其他連接埠啟動（例如改用 9090）
 N3N_PORT=9090 docker compose up -d
 # 然後用 http://localhost:9090 開啟
 ```
