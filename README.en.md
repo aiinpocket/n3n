@@ -119,7 +119,7 @@ docker compose up -d
 Open your browser and go to: **http://localhost:8080**
 
 First-time setup will guide you through:
-1. **Create admin account** — Enter your name, email, and password (min 8 characters, must include at least 3 of: uppercase, lowercase, digit, special character)
+1. **Create admin account** — Enter your name, email, and password (12-128 characters, must include at least 3 of: uppercase, lowercase, digit, special character)
 2. **Back up Recovery Key** — The system will display 12 English words. This is the only way to recover your encrypted data. Use the "Copy" button or write them down in a safe place
 3. **Verify Recovery Key** — Enter the 12 words to confirm you have backed them up
 4. Set up AI assistant (choose your AI service)
@@ -299,7 +299,7 @@ cp .env.example .env
 - **Flow Validation** - Built-in validation button in editor toolbar to check DAG structure before publishing
 - **Schedule Management** - Cron-based flow triggers with pause/resume/trigger-now support (Quartz integration)
 - **Webhook Testing** - Test triggers directly from the Webhook management page with instant flow activation confirmation
-- **Plugin Ratings** - Community ratings and reviews for custom Docker tools in the plugin marketplace
+- **Plugin Ratings** - Community ratings and reviews for custom Docker tools
 - **Save as Template** - One-click conversion of existing flow versions into reusable templates
 - **Form Triggers** - Create public forms that trigger workflow execution on submission, no login required
 - **Cloud Encrypted Backup** - Auto-encrypt and back up flows, credentials, settings to S3/GCS/R2/SFTP, restore via Recovery Key

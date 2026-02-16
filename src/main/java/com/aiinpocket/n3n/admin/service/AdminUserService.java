@@ -273,10 +273,17 @@ public class AdminUserService {
     }
 
     private String generateRandomPassword() {
+        // Ensure generated password meets validatePasswordStrength() criteria:
+        // 12+ chars, at least 3 of 4: uppercase, lowercase, digit, special char
         SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[12];
+        // Generate 12 random bytes → 16-char Base64url (A-Za-z0-9_-)
+        // _ and - count as special chars for [^a-zA-Z0-9] regex
+        // In rare cases, output may lack one category, so we guarantee all four
+        byte[] bytes = new byte[9]; // 9 bytes → 12 Base64 chars, leaving room for prefix
         random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        String base = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        // Prefix guarantees all 4 criteria: uppercase A, lowercase a, digit 1, special _
+        return "Aa1_" + base;
     }
 
     /**
