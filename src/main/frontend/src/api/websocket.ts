@@ -232,3 +232,10 @@ class WebSocketService {
 }
 
 export const websocketService = new WebSocketService();
+
+// Clean up WebSocket connection on page unload to prevent orphaned connections
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    websocketService.disconnect();
+  });
+}

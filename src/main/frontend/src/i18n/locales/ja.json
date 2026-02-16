@@ -1150,6 +1150,14 @@
       "any": "いずれか",
       "all": "全員",
       "majority": "過半数"
+    },
+    "history": "承認履歴",
+    "status": {
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "却下済み",
+      "expired": "期限切れ",
+      "resolved": "解決済み"
     }
   },
   "form": {

@@ -1150,6 +1150,14 @@
       "any": "任一人",
       "all": "全部",
       "majority": "多數決"
+    },
+    "history": "審批歷史",
+    "status": {
+      "pending": "待審批",
+      "approved": "已核准",
+      "rejected": "已拒絕",
+      "expired": "已過期",
+      "resolved": "已解決"
     }
   },
   "form": {

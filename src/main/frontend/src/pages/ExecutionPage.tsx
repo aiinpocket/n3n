@@ -32,6 +32,7 @@ import {
   FileTextOutlined,
   CopyOutlined,
   CodeOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
@@ -94,6 +95,7 @@ export default function ExecutionPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadingNodeData, setLoadingNodeData] = useState(false)
   const [approvalData, setApprovalData] = useState<ApprovalResponse | null>(null)
+  const [approvalHistory, setApprovalHistory] = useState<ApprovalResponse[]>([])
   const [approvalComment, setApprovalComment] = useState('')
   const [submittingApproval, setSubmittingApproval] = useState(false)
   const [executionOutput, setExecutionOutput] = useState<Record<string, unknown> | null>(null)
@@ -118,6 +120,14 @@ export default function ExecutionPage() {
       if (data.status === 'waiting') {
         const approval = await executionApi.getApproval(id)
         setApprovalData(approval)
+      }
+
+      // Load approval history
+      try {
+        const history = await executionApi.getApprovals(id)
+        setApprovalHistory(history)
+      } catch {
+        // Approval history may not exist
       }
 
       // Load execution output if completed
@@ -501,6 +511,51 @@ export default function ExecutionPage() {
                   </Button>
                 </Space>
               </Space>
+            </Card>
+          )}
+
+          {approvalHistory.length > 0 && (
+            <Card
+              title={
+                <Space>
+                  <HistoryOutlined />
+                  <span>{t('approval.history')} ({approvalHistory.length})</span>
+                </Space>
+              }
+              size="small"
+            >
+              <Timeline
+                items={approvalHistory.map((approval) => ({
+                  color: approval.status === 'approved' ? 'green' : approval.status === 'rejected' ? 'red' : 'orange',
+                  children: (
+                    <div>
+                      <Space>
+                        <Tag color={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'error' : 'warning'}>
+                          {t(`approval.status.${approval.status}`, { defaultValue: approval.status })}
+                        </Tag>
+                        <Text type="secondary">{approval.nodeId}</Text>
+                        {approval.createdAt && (
+                          <Text type="secondary">{new Date(approval.createdAt).toLocaleString(getLocale())}</Text>
+                        )}
+                      </Space>
+                      {approval.message && (
+                        <div style={{ marginTop: 4 }}>
+                          <Text>{approval.message}</Text>
+                        </div>
+                      )}
+                      {approval.actions && approval.actions.length > 0 && (
+                        <div style={{ marginTop: 4 }}>
+                          {approval.actions.map((action, idx) => (
+                            <Tag key={idx} color={action.action === 'approve' ? 'green' : 'red'}>
+                              {action.action} {action.comment && `- ${action.comment}`}
+                            </Tag>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ),
+                }))}
+              />
             </Card>
           )}
 

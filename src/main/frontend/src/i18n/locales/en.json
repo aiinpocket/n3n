@@ -1150,6 +1150,14 @@
       "any": "Any",
       "all": "All",
       "majority": "Majority"
+    },
+    "history": "Approval History",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "resolved": "Resolved"
     }
   },
   "form": {

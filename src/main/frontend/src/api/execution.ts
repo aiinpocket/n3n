@@ -173,6 +173,11 @@ export const executionApi = {
     }
   },
 
+  getApprovals: async (executionId: string): Promise<ApprovalResponse[]> => {
+    const response = await apiClient.get<ApprovalResponse[]>(`/executions/${executionId}/approvals`);
+    return response.data;
+  },
+
   submitApproval: async (executionId: string, action: string, comment?: string): Promise<ApprovalResponse> => {
     const response = await apiClient.post(`/executions/${executionId}/approval`, { action, comment });
     return response.data;
