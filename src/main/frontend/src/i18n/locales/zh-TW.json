@@ -1342,7 +1342,22 @@
     "externalAddress": "外部位址",
     "externalAddressExtra": "格式：IP:Port 或 主機名稱:Port，用於平台直接連接此設備時使用",
     "invalidAddressFormat": "請輸入有效的位址格式（IP:Port）",
-    "externalAddressPlaceholder": "例如：203.0.113.50:9999"
+    "externalAddressPlaceholder": "例如：203.0.113.50:9999",
+    "pairedDevices": "已配對裝置",
+    "noPairedDevices": "尚未配對任何裝置。請到閘道頁面使用配對碼來配對裝置。",
+    "unpairDevice": "取消配對",
+    "unpairConfirmTitle": "取消配對此裝置？",
+    "unpairConfirmDesc": "裝置需要重新配對才能再次連線。",
+    "deviceUnpaired": "裝置已取消配對",
+    "unpairFailed": "取消配對失敗",
+    "revokeAll": "撤銷所有裝置",
+    "revokeAllConfirmTitle": "撤銷所有已配對裝置？",
+    "revokeAllConfirmDesc": "所有已配對裝置將會斷開連線。這是緊急操作。",
+    "revokeAllSuccess": "已撤銷所有裝置（共 {{count}} 個裝置）",
+    "revokeAllFailed": "撤銷裝置失敗",
+    "platform": "平台",
+    "pairedAt": "配對時間",
+    "lastActiveAt": "最後活動"
   },
   "gateway": {
     "loadFailed": "載入設定失敗",

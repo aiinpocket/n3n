@@ -25,6 +25,8 @@ import {
   DeleteOutlined,
   AppleOutlined,
   WindowsOutlined,
+  DisconnectOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import {
@@ -37,7 +39,14 @@ import {
   generateInstallCommand,
   type AgentRegistration,
 } from '../api/agentRegistration'
+import {
+  listDevices,
+  unpairDevice,
+  revokeAllDevices,
+  type DeviceInfo,
+} from '../api/agentPairing'
 import { extractApiError } from '../utils/errorMessages'
+import { getLocale } from '../utils/locale'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -49,6 +58,8 @@ const DeviceManagementPage: React.FC = () => {
   const [installModalOpen, setInstallModalOpen] = useState(false)
   const [installCommand, setInstallCommand] = useState<string | null>(null)
   const [generatingCommand, setGeneratingCommand] = useState(false)
+  const [pairedDevices, setPairedDevices] = useState<DeviceInfo[]>([])
+  const [pairedLoading, setPairedLoading] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -64,9 +75,22 @@ const DeviceManagementPage: React.FC = () => {
     }
   }, [t])
 
+  const fetchPairedDevices = useCallback(async () => {
+    try {
+      setPairedLoading(true)
+      const devices = await listDevices()
+      setPairedDevices(devices)
+    } catch {
+      // Silently fail — paired devices tab is optional
+    } finally {
+      setPairedLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+    fetchPairedDevices()
+  }, [fetchData, fetchPairedDevices])
 
   const handleGenerateInstallCommand = async () => {
     try {
@@ -126,6 +150,90 @@ const DeviceManagementPage: React.FC = () => {
       message.error(errorMessage)
     }
   }
+
+  const handleUnpairDevice = async (deviceId: string) => {
+    try {
+      await unpairDevice(deviceId)
+      message.success(t('device.deviceUnpaired'))
+      fetchPairedDevices()
+    } catch (err: unknown) {
+      message.error(extractApiError(err, t('device.unpairFailed')))
+    }
+  }
+
+  const handleRevokeAll = async () => {
+    try {
+      const result = await revokeAllDevices()
+      message.success(t('device.revokeAllSuccess', { count: result.revokedCount }))
+      fetchPairedDevices()
+    } catch (err: unknown) {
+      message.error(extractApiError(err, t('device.revokeAllFailed')))
+    }
+  }
+
+  const pairedDeviceColumns: ColumnsType<DeviceInfo> = [
+    {
+      title: t('device.deviceName'),
+      dataIndex: 'deviceName',
+      key: 'deviceName',
+      render: (name: string, record: DeviceInfo) => (
+        <Space direction="vertical" size={0}>
+          <Text strong>{name}</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>{record.deviceId.substring(0, 8)}...</Text>
+        </Space>
+      ),
+    },
+    {
+      title: t('device.platform'),
+      dataIndex: 'platform',
+      key: 'platform',
+      width: 120,
+      render: (platform: string) => <Tag>{platform}</Tag>,
+    },
+    {
+      title: t('device.status'),
+      key: 'status',
+      width: 100,
+      render: (_: unknown, record: DeviceInfo) => (
+        record.revoked
+          ? <Tag color="red">{t('deviceCard.revoked')}</Tag>
+          : <Tag color="green">{t('deviceCard.online')}</Tag>
+      ),
+    },
+    {
+      title: t('device.pairedAt'),
+      dataIndex: 'pairedAt',
+      key: 'pairedAt',
+      width: 180,
+      render: (ts: number) => new Date(ts).toLocaleString(getLocale()),
+    },
+    {
+      title: t('device.lastActiveAt'),
+      dataIndex: 'lastActiveAt',
+      key: 'lastActiveAt',
+      width: 180,
+      render: (ts: number) => new Date(ts).toLocaleString(getLocale()),
+    },
+    {
+      title: t('device.actions'),
+      key: 'actions',
+      width: 120,
+      render: (_: unknown, record: DeviceInfo) => (
+        <Popconfirm
+          title={t('device.unpairConfirmTitle')}
+          description={t('device.unpairConfirmDesc')}
+          onConfirm={() => handleUnpairDevice(record.deviceId)}
+          okText={t('common.ok')}
+          cancelText={t('common.cancel')}
+          okButtonProps={{ danger: true }}
+        >
+          <Button size="small" icon={<DisconnectOutlined />} danger>
+            {t('device.unpairDevice')}
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ]
 
   const columns: ColumnsType<AgentRegistration> = [
     {
@@ -259,11 +367,53 @@ const DeviceManagementPage: React.FC = () => {
     )
   }
 
+  const renderPairedDevices = () => {
+    if (pairedLoading) {
+      return <div style={{ textAlign: 'center', padding: 60 }}><Spin size="large" /></div>
+    }
+    if (pairedDevices.length === 0) {
+      return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('device.noPairedDevices')} />
+    }
+    return (
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        {pairedDevices.length > 1 && (
+          <div style={{ textAlign: 'right' }}>
+            <Popconfirm
+              title={t('device.revokeAllConfirmTitle')}
+              description={t('device.revokeAllConfirmDesc')}
+              onConfirm={handleRevokeAll}
+              okText={t('common.ok')}
+              cancelText={t('common.cancel')}
+              okButtonProps={{ danger: true }}
+              icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
+            >
+              <Button danger icon={<DisconnectOutlined />}>
+                {t('device.revokeAll')}
+              </Button>
+            </Popconfirm>
+          </div>
+        )}
+        <Table
+          columns={pairedDeviceColumns}
+          dataSource={pairedDevices}
+          rowKey="deviceId"
+          pagination={false}
+          scroll={{ x: 800 }}
+        />
+      </Space>
+    )
+  }
+
   const tabItems = [
     {
       key: 'agents',
       label: `${t('device.agentList')} (${registrations.length})`,
       children: renderAgentList(),
+    },
+    {
+      key: 'paired',
+      label: `${t('device.pairedDevices')} (${pairedDevices.length})`,
+      children: renderPairedDevices(),
     },
     {
       key: 'install',

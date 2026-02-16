@@ -1,4 +1,7 @@
 import apiClient from './client'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
+import { useAuthStore } from '../stores/authStore'
+import logger from '../utils/logger'
 
 // ==================== Types ====================
 
@@ -167,5 +170,67 @@ export async function cancelConversation(id: string): Promise<Conversation> {
  */
 export async function archiveConversation(id: string): Promise<void> {
   await apiClient.delete(`/agent/conversations/${id}`)
+}
+
+// ==================== SSE Streaming ====================
+
+export interface StreamChunk {
+  delta: string | null
+  done: boolean
+}
+
+export interface AgentStreamCallbacks {
+  onDelta?: (text: string) => void
+  onDone?: () => void
+  onError?: (error: string) => void
+}
+
+/**
+ * 串流發送訊息（SSE）
+ */
+export async function streamMessage(
+  conversationId: string,
+  message: string,
+  callbacks: AgentStreamCallbacks,
+  abortController?: AbortController
+): Promise<void> {
+  const token = useAuthStore.getState().accessToken || null
+
+  await fetchEventSource(
+    `/api/agent/conversations/${conversationId}/stream?message=${encodeURIComponent(message)}`,
+    {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal: abortController?.signal,
+
+      onopen: async (response) => {
+        if (!response.ok) {
+          const error = await response.text()
+          throw new Error(error || `HTTP ${response.status}`)
+        }
+      },
+
+      onmessage: (event) => {
+        if (!event.data) return
+        try {
+          const chunk: StreamChunk = JSON.parse(event.data)
+          if (chunk.done) {
+            callbacks.onDone?.()
+          } else if (chunk.delta) {
+            callbacks.onDelta?.(chunk.delta)
+          }
+        } catch (e) {
+          logger.warn('Failed to parse agent SSE chunk:', e)
+        }
+      },
+
+      onerror: (error) => {
+        logger.error('Agent SSE error:', error)
+        callbacks.onError?.(error.message || 'Connection error')
+      },
+    }
+  )
 }
 

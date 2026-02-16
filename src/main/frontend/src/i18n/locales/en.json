@@ -1342,7 +1342,22 @@
     "externalAddress": "External Address",
     "externalAddressExtra": "Format: IP:Port or Hostname:Port. Used when the platform connects directly to this device.",
     "invalidAddressFormat": "Please enter a valid address format (IP:Port)",
-    "externalAddressPlaceholder": "e.g. 203.0.113.50:9999"
+    "externalAddressPlaceholder": "e.g. 203.0.113.50:9999",
+    "pairedDevices": "Paired Devices",
+    "noPairedDevices": "No paired devices yet. Use the pairing code from the Gateway page to pair a device.",
+    "unpairDevice": "Unpair Device",
+    "unpairConfirmTitle": "Unpair this device?",
+    "unpairConfirmDesc": "The device will need to be paired again to reconnect.",
+    "deviceUnpaired": "Device has been unpaired",
+    "unpairFailed": "Failed to unpair device",
+    "revokeAll": "Revoke All Devices",
+    "revokeAllConfirmTitle": "Revoke all paired devices?",
+    "revokeAllConfirmDesc": "All paired devices will be disconnected. This is an emergency action.",
+    "revokeAllSuccess": "All devices have been revoked ({{count}} devices)",
+    "revokeAllFailed": "Failed to revoke devices",
+    "platform": "Platform",
+    "pairedAt": "Paired At",
+    "lastActiveAt": "Last Active"
   },
   "gateway": {
     "loadFailed": "Failed to load settings",

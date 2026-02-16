@@ -1342,7 +1342,22 @@
     "externalAddress": "外部アドレス",
     "externalAddressExtra": "形式：IP:Port またはホスト名:Port。プラットフォームがこのデバイスに直接接続する際に使用されます。",
     "invalidAddressFormat": "有効なアドレス形式を入力してください（IP:Port）",
-    "externalAddressPlaceholder": "例：203.0.113.50:9999"
+    "externalAddressPlaceholder": "例：203.0.113.50:9999",
+    "pairedDevices": "ペアリング済みデバイス",
+    "noPairedDevices": "ペアリング済みのデバイスはありません。ゲートウェイページのペアリングコードでデバイスをペアリングしてください。",
+    "unpairDevice": "ペアリング解除",
+    "unpairConfirmTitle": "このデバイスのペアリングを解除しますか？",
+    "unpairConfirmDesc": "デバイスは再接続するために再ペアリングが必要です。",
+    "deviceUnpaired": "デバイスのペアリングが解除されました",
+    "unpairFailed": "ペアリング解除に失敗しました",
+    "revokeAll": "全デバイスを取り消し",
+    "revokeAllConfirmTitle": "すべてのペアリング済みデバイスを取り消しますか？",
+    "revokeAllConfirmDesc": "すべてのペアリング済みデバイスが切断されます。これは緊急操作です。",
+    "revokeAllSuccess": "すべてのデバイスが取り消されました（{{count}}台）",
+    "revokeAllFailed": "デバイスの取り消しに失敗しました",
+    "platform": "プラットフォーム",
+    "pairedAt": "ペアリング日時",
+    "lastActiveAt": "最終アクティブ"
   },
   "gateway": {
     "loadFailed": "設定の読み込みに失敗しました",
