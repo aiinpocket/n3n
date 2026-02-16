@@ -30,6 +30,7 @@ public class SkillService {
     /**
      * Get all accessible skills for a user.
      */
+    @Transactional(readOnly = true)
     public List<SkillDto> getAccessibleSkills(UUID userId) {
         return skillRepository.findEnabledAccessibleSkills(userId)
             .stream()
@@ -40,6 +41,7 @@ public class SkillService {
     /**
      * Get all built-in skills.
      */
+    @Transactional(readOnly = true)
     public List<SkillDto> getBuiltinSkills() {
         return skillRepository.findByIsBuiltinTrue()
             .stream()
@@ -50,6 +52,7 @@ public class SkillService {
     /**
      * Get accessible skills by category.
      */
+    @Transactional(readOnly = true)
     public List<SkillDto> getSkillsByCategory(String category, UUID requestingUserId) {
         return skillRepository.findAccessibleByCategory(category, requestingUserId)
             .stream()
@@ -60,6 +63,7 @@ public class SkillService {
     /**
      * Get all available categories.
      */
+    @Transactional(readOnly = true)
     public List<String> getCategories() {
         return skillRepository.findAllCategories();
     }
@@ -67,6 +71,7 @@ public class SkillService {
     /**
      * Get skill by ID.
      */
+    @Transactional(readOnly = true)
     public Optional<SkillDto> getSkill(UUID id) {
         return skillRepository.findById(id).map(this::toDto);
     }
@@ -74,6 +79,7 @@ public class SkillService {
     /**
      * Get skill by ID with access control check.
      */
+    @Transactional(readOnly = true)
     public Optional<SkillDto> getAccessibleSkill(UUID id, UUID requestingUserId) {
         return skillRepository.findById(id)
                 .filter(skill ->
@@ -87,6 +93,7 @@ public class SkillService {
     /**
      * Get skill by name with access control check.
      */
+    @Transactional(readOnly = true)
     public Optional<SkillDto> getSkillByName(String name, UUID requestingUserId) {
         return skillRepository.findByName(name)
                 .filter(skill ->
@@ -215,6 +222,7 @@ public class SkillService {
     /**
      * Get skill summary for AI assistant.
      */
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getSkillSummariesForAI() {
         return skillRepository.findByIsEnabledTrue()
             .stream()

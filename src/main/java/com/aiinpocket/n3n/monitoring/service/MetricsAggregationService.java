@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.lang.management.GarbageCollectorMXBean;
@@ -80,6 +81,7 @@ public class MetricsAggregationService {
     /**
      * Query execution statistics from the database.
      */
+    @Transactional(readOnly = true)
     public FlowExecutionStatsResponse getFlowExecutionStats() {
         Instant twentyFourHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
 

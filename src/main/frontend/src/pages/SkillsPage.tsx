@@ -475,7 +475,7 @@ export default function SkillsPage() {
         open={formModalOpen}
         onCancel={() => { setFormModalOpen(false); form.resetFields(); }}
         onOk={handleFormSubmit}
-        okText={t('common.save')}
+        okText={editingSkill ? t('common.save') : t('common.create')}
         cancelText={t('common.cancel')}
         confirmLoading={formSubmitting}
         width={600}

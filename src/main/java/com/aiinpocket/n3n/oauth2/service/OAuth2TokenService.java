@@ -57,6 +57,7 @@ public class OAuth2TokenService {
     /**
      * Get the OAuth2 token entity for a credential.
      */
+    @Transactional(readOnly = true)
     public Optional<OAuth2Token> getToken(UUID credentialId) {
         return tokenRepository.findByCredentialId(credentialId);
     }

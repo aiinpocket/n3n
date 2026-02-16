@@ -319,6 +319,7 @@ public class HousekeepingService {
     /**
      * Get cleanup statistics.
      */
+    @Transactional(readOnly = true)
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
 
