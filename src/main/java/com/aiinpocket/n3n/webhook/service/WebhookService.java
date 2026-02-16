@@ -146,6 +146,11 @@ public class WebhookService {
     }
 
     @Transactional
+    public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature) {
+        return triggerWebhook(path, method, payload, signature, (HttpServletRequest) null, false);
+    }
+
+    @Transactional
     public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request) {
         return triggerWebhook(path, method, payload, signature, request, false);
     }
