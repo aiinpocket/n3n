@@ -62,7 +62,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     public boolean isAvailable() {
         if (!dockerEnabled) return false;
         try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "version");
+            ProcessBuilder pb = createSanitizedProcessBuilder("docker", "version");
             pb.redirectErrorStream(true);
             Process process = pb.start();
             boolean finished = process.waitFor(5, TimeUnit.SECONDS);
@@ -90,7 +90,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
         log.info("Pulling Docker image: {} (Content Trust: {})", fullImage, contentTrustEnabled);
 
         try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "pull", fullImage);
+            ProcessBuilder pb = createSanitizedProcessBuilder("docker", "pull", fullImage);
             if (contentTrustEnabled) {
                 pb.environment().put("DOCKER_CONTENT_TRUST", "1");
             }
@@ -170,7 +170,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
 
             cmd.add(image);
 
-            ProcessBuilder pb = new ProcessBuilder(cmd);
+            ProcessBuilder pb = createSanitizedProcessBuilder(cmd.toArray(new String[0]));
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
@@ -203,7 +203,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
 
         while (System.currentTimeMillis() - startTime < timeout) {
             try {
-                ProcessBuilder pb = new ProcessBuilder(
+                ProcessBuilder pb = createSanitizedProcessBuilder(
                         "docker", "inspect", "-f", "{{.State.Status}}", containerId);
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
@@ -242,7 +242,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     public void stop(String containerId) {
         log.info("Stopping container: {}", containerId);
         try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "stop", containerId);
+            ProcessBuilder pb = createSanitizedProcessBuilder("docker", "stop", containerId);
             Process p = pb.start();
             try { p.waitFor(30, TimeUnit.SECONDS); } finally { p.destroyForcibly(); }
         } catch (Exception e) {
@@ -253,11 +253,11 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     @Override
     public void stopAndRemove(String name) {
         try {
-            ProcessBuilder stop = new ProcessBuilder("docker", "stop", name);
+            ProcessBuilder stop = createSanitizedProcessBuilder("docker", "stop", name);
             Process sp = stop.start();
             try { sp.waitFor(30, TimeUnit.SECONDS); } finally { sp.destroyForcibly(); }
 
-            ProcessBuilder rm = new ProcessBuilder("docker", "rm", name);
+            ProcessBuilder rm = createSanitizedProcessBuilder("docker", "rm", name);
             Process rp = rm.start();
             try { rp.waitFor(10, TimeUnit.SECONDS); } finally { rp.destroyForcibly(); }
         } catch (Exception e) {
@@ -268,7 +268,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     @Override
     public String getLogs(String containerId, int tailLines) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(
+            ProcessBuilder pb = createSanitizedProcessBuilder(
                     "docker", "logs", "--tail", String.valueOf(tailLines), containerId);
             pb.redirectErrorStream(true);
             Process process = pb.start();
@@ -291,7 +291,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
     @Override
     public List<ContainerStatus> listPluginContainers() {
         try {
-            ProcessBuilder pb = new ProcessBuilder(
+            ProcessBuilder pb = createSanitizedProcessBuilder(
                     "docker", "ps", "-a",
                     "--filter", "label=n3n.plugin=true",
                     "--format", "{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Image}}\t{{.Labels}}");
@@ -340,7 +340,7 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
 
     private Integer getContainerPort(String containerId) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "port", containerId);
+            ProcessBuilder pb = createSanitizedProcessBuilder("docker", "port", containerId);
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
@@ -358,6 +358,33 @@ public class DockerContainerOrchestrator implements ContainerOrchestrator {
             log.debug("Failed to get container port: {}", e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Creates a ProcessBuilder with sanitized environment variables.
+     * Only preserves PATH, HOME, and Docker-specific vars to prevent
+     * leaking sensitive env vars (e.g., JWT_SECRET, DATABASE_URL) to child processes.
+     */
+    private ProcessBuilder createSanitizedProcessBuilder(String... command) {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        Map<String, String> env = pb.environment();
+        String path = env.get("PATH");
+        String home = env.get("HOME");
+        String dockerHost = env.get("DOCKER_HOST");
+        String dockerTlsVerify = env.get("DOCKER_TLS_VERIFY");
+        String dockerCertPath = env.get("DOCKER_CERT_PATH");
+        String dockerConfig = env.get("DOCKER_CONFIG");
+
+        env.clear();
+
+        if (path != null) env.put("PATH", path);
+        if (home != null) env.put("HOME", home);
+        if (dockerHost != null) env.put("DOCKER_HOST", dockerHost);
+        if (dockerTlsVerify != null) env.put("DOCKER_TLS_VERIFY", dockerTlsVerify);
+        if (dockerCertPath != null) env.put("DOCKER_CERT_PATH", dockerCertPath);
+        if (dockerConfig != null) env.put("DOCKER_CONFIG", dockerConfig);
+
+        return pb;
     }
 
     private boolean isPortResponding(int port) {

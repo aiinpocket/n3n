@@ -2887,6 +2887,7 @@
     "checking": "檢查中...",
     "connectWith": "連結 {{provider}}",
     "connectFailed": "OAuth2 連線啟動失敗",
+    "invalidUrl": "無效的 OAuth2 授權網址，網址必須使用 HTTPS 協定。",
     "connect": "連結 OAuth2",
     "disconnect": "斷開 OAuth2 連線",
     "disconnectConfirm": "確定要斷開此 OAuth2 連線嗎？",

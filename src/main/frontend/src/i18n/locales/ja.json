@@ -2887,6 +2887,7 @@
     "checking": "確認中...",
     "connectWith": "{{provider}} に接続",
     "connectFailed": "OAuth2 接続の開始に失敗しました",
+    "invalidUrl": "無効な OAuth2 認証URLです。URLは HTTPS を使用する必要があります。",
     "connect": "OAuth2 接続",
     "disconnect": "OAuth2 を切断",
     "disconnectConfirm": "この OAuth2 接続を切断してもよろしいですか？",

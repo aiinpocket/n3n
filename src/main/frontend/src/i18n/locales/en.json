@@ -2887,6 +2887,7 @@
     "checking": "Checking...",
     "connectWith": "Connect with {{provider}}",
     "connectFailed": "Failed to start OAuth2 connection",
+    "invalidUrl": "Invalid OAuth2 authorization URL. The URL must use HTTPS.",
     "connect": "Connect OAuth2",
     "disconnect": "Disconnect OAuth2",
     "disconnectConfirm": "Are you sure you want to disconnect this OAuth2 connection?",

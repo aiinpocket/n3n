@@ -95,6 +95,17 @@ const CredentialListPage: React.FC = () => {
     setOauth2Loading(prev => ({ ...prev, [credentialId]: true }))
     try {
       const { authorizationUrl } = await oauth2Api.getAuthUrl(provider, credentialId)
+      // Validate URL before redirecting (defense-in-depth)
+      try {
+        const url = new URL(authorizationUrl)
+        if (url.protocol !== 'https:') {
+          throw new Error('OAuth2 authorization URL must use HTTPS')
+        }
+      } catch {
+        message.error(t('oauth2.invalidUrl'))
+        setOauth2Loading(prev => ({ ...prev, [credentialId]: false }))
+        return
+      }
       // Redirect user to the provider's consent page
       window.location.href = authorizationUrl
     } catch (err) {

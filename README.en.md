@@ -4,6 +4,8 @@ English | [日本語](README.ja.md) | [繁體中文](README.md)
 
 > Build automation workflows just by describing them - Let AI turn your ideas into executable workflows
 
+> **First time?** Check the [Quick Start Guide](QUICK_START.en.md) to get running in 3 minutes.
+
 ---
 
 ## Hardware Requirements
@@ -349,7 +351,7 @@ server {
 - **Execution Approval System** - Workflows pause at approval nodes; approvers can approve or reject with comments from the Execution detail page
 - **Skills System** - Built-in automation skills, no extra setup needed
 - **Secure Storage** - Your API keys and passwords are protected with AES-256 encryption
-- **Custom Docker Tools** - Pull tool containers from Docker Hub, auto-register as flow nodes, with featured recommendations and community ratings
+- **Custom Docker Tools** - 90+ built-in tool nodes, plus pull additional tool containers from Docker Hub and auto-register as flow nodes
 - **Approval Dashboard** - Dedicated page to manage all pending approval items, approve or reject with one click
 - **System Housekeeping** - Admins can view statistics and manually trigger cleanup of expired execution records
 - **Device Management** - Connect a local agent to let workflows control your computer
