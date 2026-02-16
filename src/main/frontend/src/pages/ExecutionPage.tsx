@@ -519,6 +519,9 @@ export default function ExecutionPage() {
                         <Tag>{node.componentName}</Tag>
                         <Tag color={statusColors[node.status]}>{node.status}</Tag>
                         {node.durationMs != null && <Text type="secondary">{node.durationMs}ms</Text>}
+                        {node.retryCount != null && node.retryCount > 0 && (
+                          <Tag color="warning">{t('execution.retryCount', { count: node.retryCount })}</Tag>
+                        )}
                         <Button
                           type="link"
                           size="small"

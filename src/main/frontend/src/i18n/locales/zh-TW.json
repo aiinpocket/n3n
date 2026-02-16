@@ -606,12 +606,11 @@
     "showErrorStack": "顯示錯誤堆疊",
     "hideErrorStack": "隱藏錯誤堆疊",
     "copyError": "複製錯誤",
+    "retryCount": "重試 {{count}} 次",
     "viewData": "查看數據",
     "inputData": "輸入數據",
     "outputData": "輸出數據",
-    "noData": "無可用數據",
-    "showErrorStack": "顯示錯誤詳情",
-    "hideErrorStack": "隱藏錯誤詳情"
+    "noData": "無可用數據"
   },
   "service": {
     "title": "外部服務",

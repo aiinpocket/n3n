@@ -606,12 +606,11 @@
     "showErrorStack": "Show Stack Trace",
     "hideErrorStack": "Hide Stack Trace",
     "copyError": "Copy Error",
+    "retryCount": "Retried {{count}}x",
     "viewData": "View Data",
     "inputData": "Input Data",
     "outputData": "Output Data",
-    "noData": "No data available",
-    "showErrorStack": "Show Error Details",
-    "hideErrorStack": "Hide Error Details"
+    "noData": "No data available"
   },
   "service": {
     "title": "External Services",

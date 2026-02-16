@@ -606,12 +606,11 @@
     "showErrorStack": "スタックトレースを表示",
     "hideErrorStack": "スタックトレースを非表示",
     "copyError": "エラーをコピー",
+    "retryCount": "{{count}}回リトライ",
     "viewData": "データ表示",
     "inputData": "入力データ",
     "outputData": "出力データ",
-    "noData": "データなし",
-    "showErrorStack": "エラー詳細を表示",
-    "hideErrorStack": "エラー詳細を非表示"
+    "noData": "データなし"
   },
   "service": {
     "title": "外部サービス",
