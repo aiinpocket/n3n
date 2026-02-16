@@ -37,13 +37,19 @@ public class FlowExportService {
     private final CredentialRepository credentialRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final FlowShareService flowShareService;
 
     /**
      * 匯出流程（最新版本）
      */
     @Transactional(readOnly = true)
     public FlowExportPackage exportFlowLatest(UUID flowId, UUID userId) {
-        Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
+        // Defense-in-depth: verify access at service level (controller also checks)
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new ResourceNotFoundException("Flow not found: " + flowId);
+        }
+
+        flowRepository.findByIdAndIsDeletedFalse(flowId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
         List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(flowId);
@@ -60,6 +66,11 @@ public class FlowExportService {
      */
     @Transactional(readOnly = true)
     public FlowExportPackage exportFlow(UUID flowId, String version, UUID userId) {
+        // Defense-in-depth: verify access at service level (controller also checks)
+        if (!flowShareService.hasAccess(flowId, userId)) {
+            throw new ResourceNotFoundException("Flow not found: " + flowId);
+        }
+
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
@@ -74,8 +85,8 @@ public class FlowExportService {
         // 提取元件依賴
         List<ComponentDependency> components = extractComponentDependencies(definition);
 
-        // 提取憑證佔位符
-        List<CredentialPlaceholder> credentialPlaceholders = extractCredentialPlaceholders(definition);
+        // 提取憑證佔位符（只顯示匯出者有權存取的憑證元資料）
+        List<CredentialPlaceholder> credentialPlaceholders = extractCredentialPlaceholders(definition, userId);
 
         // 取得匯出者 email（遮罩處理）
         String exportedBy = maskEmail(userId);
@@ -149,10 +160,10 @@ public class FlowExportService {
     }
 
     /**
-     * 提取憑證佔位符
+     * 提取憑證佔位符（只顯示匯出者有權存取的憑證元資料）
      */
     @SuppressWarnings("unchecked")
-    private List<CredentialPlaceholder> extractCredentialPlaceholders(Map<String, Object> definition) {
+    private List<CredentialPlaceholder> extractCredentialPlaceholders(Map<String, Object> definition, UUID userId) {
         List<CredentialPlaceholder> placeholders = new ArrayList<>();
 
         Object nodesObj = definition.get("nodes");
@@ -201,10 +212,17 @@ public class FlowExportService {
                 String credentialType = "unknown";
 
                 try {
-                    Credential credential = credentialMap.get(UUID.fromString(credentialId));
+                    UUID credUuid = UUID.fromString(credentialId);
+                    Credential credential = credentialMap.get(credUuid);
                     if (credential != null) {
-                        credentialName = credential.getType() + " Credential";
-                        credentialType = credential.getType();
+                        // Only reveal credential metadata if the exporting user has access
+                        if (credentialRepository.isAccessibleByUser(credUuid, userId)) {
+                            credentialName = credential.getType() + " Credential";
+                            credentialType = credential.getType();
+                        } else {
+                            credentialName = "Credential (access denied)";
+                            credentialType = "restricted";
+                        }
                     }
                 } catch (Exception e) {
                     log.warn("Failed to load credential info for {}: {}", credentialId, e.getMessage());

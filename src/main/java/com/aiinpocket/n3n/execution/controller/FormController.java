@@ -175,6 +175,12 @@ public class FormController {
             UUID userId = userDetails != null
                 ? UUID.fromString(userDetails.getUsername())
                 : null;
+
+            // Early ownership check — only the execution owner can submit in-flow forms
+            if (userId != null) {
+                executionService.verifyExecutionAccess(executionId, userId);
+            }
+
             String clientIp = getClientIp(httpRequest);
 
             // Save form submission

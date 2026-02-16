@@ -39,6 +39,9 @@ class FlowExportServiceTest extends BaseServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private FlowShareService flowShareService;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -76,6 +79,11 @@ class FlowExportServiceTest extends BaseServiceTest {
             .definition(definition)
             .settings(Map.of())
             .build();
+
+        // Default: user has access to the flow
+        lenient().when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
+        // Default: user has access to any credential
+        lenient().when(credentialRepository.isAccessibleByUser(any(UUID.class), eq(userId))).thenReturn(true);
     }
 
     @Nested
