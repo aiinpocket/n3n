@@ -28,6 +28,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import cronstrue from 'cronstrue/i18n'
 import { schedulerApi } from '../api/scheduler'
 import type { Schedule, CreateScheduleRequest } from '../api/scheduler'
 import { flowApi } from '../api/flow'
@@ -52,6 +53,24 @@ const TIMEZONES = [
   'Australia/Sydney',
 ]
 
+const getCronstrueLocale = (): string => {
+  const locale = getLocale()
+  if (locale.startsWith('zh')) return 'zh_TW'
+  if (locale.startsWith('ja')) return 'ja'
+  return 'en'
+}
+
+const describeCron = (cron: string): string | null => {
+  try {
+    // cronstrue expects 5-field cron; Quartz uses 6-field (with seconds)
+    const parts = cron.trim().split(/\s+/)
+    const expr = parts.length === 6 ? parts.slice(1).join(' ') : cron
+    return cronstrue.toString(expr, { locale: getCronstrueLocale(), use24HourTimeFormat: true })
+  } catch {
+    return null
+  }
+}
+
 const SchedulerPage: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -67,6 +86,10 @@ const SchedulerPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
   const [editableFlows, setEditableFlows] = useState<Flow[]>([])
+  const createCronValue = Form.useWatch('cronExpression', form)
+  const editCronValue = Form.useWatch('cronExpression', editForm)
+  const createCronDesc = useMemo(() => createCronValue ? describeCron(createCronValue) : null, [createCronValue])
+  const editCronDesc = useMemo(() => editCronValue ? describeCron(editCronValue) : null, [editCronValue])
 
   const loadSchedules = useCallback(async () => {
     setLoading(true)
@@ -250,8 +273,16 @@ const SchedulerPage: React.FC = () => {
       title: t('schedule.cronExpression'),
       dataIndex: 'cronExpression',
       key: 'cronExpression',
-      width: 160,
-      render: (cron: string) => <Text code>{cron}</Text>,
+      width: 220,
+      render: (cron: string) => {
+        const desc = describeCron(cron)
+        return (
+          <Space direction="vertical" size={0}>
+            <Text code>{cron}</Text>
+            {desc && <Text type="secondary" style={{ fontSize: 12 }}>{desc}</Text>}
+          </Space>
+        )
+      },
     },
     {
       title: t('schedule.timezone'),
@@ -450,6 +481,11 @@ const SchedulerPage: React.FC = () => {
             ]}
             extra={
               <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+                {createCronDesc && (
+                  <Text style={{ fontSize: 12, color: 'var(--color-primary)' }}>
+                    {createCronDesc}
+                  </Text>
+                )}
                 <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.cronHint')}</Text>
                 <Space wrap size={[4, 4]}>
                   <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.presets')}:</Text>
@@ -552,6 +588,11 @@ const SchedulerPage: React.FC = () => {
             ]}
             extra={
               <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+                {editCronDesc && (
+                  <Text style={{ fontSize: 12, color: 'var(--color-primary)' }}>
+                    {editCronDesc}
+                  </Text>
+                )}
                 <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.cronHint')}</Text>
                 <Space wrap size={[4, 4]}>
                   <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.presets')}:</Text>

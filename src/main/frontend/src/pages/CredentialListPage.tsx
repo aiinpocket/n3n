@@ -218,7 +218,26 @@ const CredentialListPage: React.FC = () => {
       api_key: 'orange',
       oauth2: 'purple',
       database: 'cyan',
-      ssh: 'magenta'
+      ssh: 'magenta',
+      mongodb: 'green',
+      redis: 'red',
+      elasticsearch: 'gold',
+      openai: 'geekblue',
+      anthropic: 'orange',
+      google: 'blue',
+      googleSheets: 'green',
+      gmail: 'red',
+      googleDrive: 'blue',
+      googleCalendar: 'cyan',
+      googlePubSub: 'geekblue',
+      googleCloudStorage: 'blue',
+      bigQuery: 'geekblue',
+      facebook: 'blue',
+      instagram: 'magenta',
+      threads: 'default',
+      smtp: 'volcano',
+      imap: 'volcano',
+      ftp: 'lime'
     }
     return colors[type] || 'default'
   }
@@ -230,7 +249,26 @@ const CredentialListPage: React.FC = () => {
       api_key: t('credential.typeApiKey'),
       oauth2: t('credential.typeOAuth2'),
       database: t('credential.typeDatabase'),
-      ssh: t('credential.typeSsh')
+      ssh: t('credential.typeSsh'),
+      mongodb: t('credential.typeMongodb'),
+      redis: t('credential.typeRedis'),
+      elasticsearch: t('credential.typeElasticsearch'),
+      openai: t('credential.typeOpenai'),
+      anthropic: t('credential.typeAnthropic'),
+      google: t('credential.typeGoogle'),
+      googleSheets: t('credential.typeGoogleSheets'),
+      gmail: t('credential.typeGmail'),
+      googleDrive: t('credential.typeGoogleDrive'),
+      googleCalendar: t('credential.typeGoogleCalendar'),
+      googlePubSub: t('credential.typeGooglePubSub'),
+      googleCloudStorage: t('credential.typeGoogleCloudStorage'),
+      bigQuery: t('credential.typeBigQuery'),
+      facebook: t('credential.typeFacebook'),
+      instagram: t('credential.typeInstagram'),
+      threads: t('credential.typeThreads'),
+      smtp: t('credential.typeSmtp'),
+      imap: t('credential.typeImap'),
+      ftp: t('credential.typeFtp')
     }
     return names[type] || type
   }
