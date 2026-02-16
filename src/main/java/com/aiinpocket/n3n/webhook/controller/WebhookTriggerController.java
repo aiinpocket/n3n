@@ -90,7 +90,7 @@ public class WebhookTriggerController {
         }
 
         try {
-            UUID executionId = webhookService.triggerWebhook(path, method, payload, signature);
+            UUID executionId = webhookService.triggerWebhook(path, method, payload, signature, request);
             log.info("Webhook {} triggered successfully, executionId={}, sourceIp={}", path, executionId, sourceIp);
 
             // Log webhook trigger for security analysis

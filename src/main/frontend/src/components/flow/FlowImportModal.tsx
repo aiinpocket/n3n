@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Modal, Button, Upload, message, Typography, Space, Alert, Spin, Input } from 'antd'
-import { InboxOutlined } from '@ant-design/icons'
+import { Modal, Button, Upload, message, Typography, Space, Alert, Spin, Input, Select, Tag } from 'antd'
+import { InboxOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { flowApi, FlowExportData, FlowImportPreview } from '../../api/flow'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { Text } = Typography
 const { Dragger } = Upload
@@ -27,6 +28,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
   const [pasteContent, setPasteContent] = useState('')
   const [preview, setPreview] = useState<FlowImportPreview | null>(null)
   const [importData, setImportData] = useState<FlowExportData | null>(null)
+  const [credentialMappings, setCredentialMappings] = useState<Record<string, string>>({})
 
   const parseAndPreview = async (data: FlowExportData) => {
     setLoading(true)
@@ -34,8 +36,9 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
       const previewResult = await flowApi.previewImport(data)
       setPreview(previewResult)
       setImportData(data)
-    } catch {
-      message.error(t('flow.importPreviewFailed'))
+      setCredentialMappings({})
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.importPreviewFailed')))
       setPreview(null)
       setImportData(null)
     } finally {
@@ -77,22 +80,31 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
 
     setLoading(true)
     try {
-      const flow = await flowApi.importFlow(importData)
+      const mappings = Object.keys(credentialMappings).length > 0 ? credentialMappings : undefined
+      const flow = await flowApi.importFlow(importData, undefined, mappings)
       message.success(t('flow.importSuccess'))
       onSuccess?.()
       onClose()
       navigate(`/flows/${flow.id}/edit`)
-    } catch {
-      message.error(t('flow.importFailed'))
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.importFailed')))
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCredentialMapping = (nodeId: string, credentialId: string) => {
+    setCredentialMappings(prev => ({
+      ...prev,
+      [nodeId]: credentialId,
+    }))
   }
 
   const handleReset = () => {
     setPreview(null)
     setImportData(null)
     setPasteContent('')
+    setCredentialMappings({})
   }
 
   const handleClose = () => {
@@ -105,7 +117,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
       title={t('flow.importFlow')}
       open={visible}
       onCancel={handleClose}
-      width={600}
+      width={640}
       footer={
         preview ? [
           <Button key="back" onClick={handleReset}>
@@ -210,6 +222,55 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
           <div>
             <Text strong>{t('flow.edgeCount')}:</Text> {preview.edgeCount}
           </div>
+
+          {preview.componentStatuses && preview.componentStatuses.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <Text strong>{t('flow.importComponents')}:</Text>
+              <div style={{ marginTop: 8 }}>
+                {preview.componentStatuses.map((c, i) => (
+                  <Tag
+                    key={i}
+                    icon={c.installed ? <CheckCircleOutlined /> : <WarningOutlined />}
+                    color={c.installed ? 'success' : 'warning'}
+                    style={{ marginBottom: 4 }}
+                  >
+                    {c.name} {c.version}
+                  </Tag>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {preview.credentialRequirements && preview.credentialRequirements.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <Text strong>{t('flow.importCredentialMapping')}:</Text>
+              <Alert
+                type="info"
+                message={t('flow.importCredentialMappingHint')}
+                style={{ marginTop: 8, marginBottom: 8 }}
+                showIcon
+              />
+              {preview.credentialRequirements.map((req) => (
+                <div key={req.nodeId} style={{ marginBottom: 12 }}>
+                  <div style={{ marginBottom: 4 }}>
+                    <Text>{req.nodeName}</Text>
+                    <Tag style={{ marginLeft: 8 }}>{req.credentialType}</Tag>
+                  </div>
+                  <Select
+                    style={{ width: '100%' }}
+                    placeholder={t('flow.selectCredential')}
+                    allowClear
+                    value={credentialMappings[req.nodeId] || undefined}
+                    onChange={(value) => handleCredentialMapping(req.nodeId, value)}
+                    options={req.compatibleCredentials.map((c) => ({
+                      value: c.id,
+                      label: `${c.name} (${c.type})`,
+                    }))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {preview.blockers && preview.blockers.length > 0 && (
             <Alert

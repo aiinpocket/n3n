@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -145,22 +146,31 @@ public class WebhookService {
     }
 
     @Transactional
-    public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature) {
-        return triggerWebhook(path, method, payload, signature, false);
+    public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request) {
+        return triggerWebhook(path, method, payload, signature, request, false);
     }
 
     /**
      * Trigger webhook with optional auth skip for internal test triggers.
-     * When skipAuth=true, HMAC validation is skipped (caller must be authenticated via JWT).
+     * When skipAuth=true, auth validation is skipped (caller must be authenticated via JWT).
      */
     @Transactional
     public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, boolean skipAuth) {
+        return triggerWebhook(path, method, payload, signature, null, skipAuth);
+    }
+
+    @Transactional
+    public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request, boolean skipAuth) {
         Webhook webhook = webhookRepository.findByPathAndMethodAndIsActiveTrue(path, method.toUpperCase())
             .orElseThrow(() -> new ResourceNotFoundException("Webhook not found or inactive: " + path));
 
-        // Validate signature if auth is configured (skip for internal test triggers)
-        if (!skipAuth && webhook.getAuthType() != null && "hmac".equals(webhook.getAuthType())) {
-            validateHmacSignature(payload, signature, webhook.getAuthConfig());
+        // Validate auth if configured (skip for internal test triggers)
+        if (!skipAuth && webhook.getAuthType() != null) {
+            switch (webhook.getAuthType()) {
+                case "hmac", "signature" -> validateHmacSignature(payload, signature, webhook.getAuthConfig());
+                case "apiKey" -> validateApiKey(request, webhook.getAuthConfig());
+                default -> { /* no-auth or unknown type: allow */ }
+            }
         }
 
         // Get the published version of the flow to execute
@@ -168,12 +178,12 @@ public class WebhookService {
             .orElseThrow(() -> new IllegalStateException("No published version available for flow"));
 
         // Start execution with webhook payload as input
-        CreateExecutionRequest request = new CreateExecutionRequest();
-        request.setFlowId(webhook.getFlowId());
-        request.setVersion(publishedVersion.getVersion());
-        request.setInput(payload);
+        CreateExecutionRequest execRequest = new CreateExecutionRequest();
+        execRequest.setFlowId(webhook.getFlowId());
+        execRequest.setVersion(publishedVersion.getVersion());
+        execRequest.setInput(payload);
 
-        var execution = executionService.createExecution(request, webhook.getCreatedBy());
+        var execution = executionService.createExecution(execRequest, webhook.getCreatedBy());
         log.info("Webhook triggered execution: webhookId={}, executionId={}", webhook.getId(), execution.getId());
 
         return execution.getId();
@@ -216,6 +226,31 @@ public class WebhookService {
         } catch (Exception e) {
             log.error("Unexpected error during HMAC validation: {}", e.getMessage(), e);
             throw new SecurityException("Signature validation failed");
+        }
+    }
+
+    private void validateApiKey(HttpServletRequest request, Map<String, Object> authConfig) {
+        if (request == null || authConfig == null) {
+            throw new SecurityException("Missing API key for authentication");
+        }
+
+        String headerName = (String) authConfig.get("headerName");
+        String expectedApiKey = (String) authConfig.get("apiKey");
+
+        if (headerName == null || expectedApiKey == null) {
+            throw new SecurityException("API key authentication not properly configured");
+        }
+
+        String providedApiKey = request.getHeader(headerName);
+        if (providedApiKey == null) {
+            throw new SecurityException("Missing API key header: " + headerName);
+        }
+
+        // Constant-time comparison to prevent timing attacks
+        if (!MessageDigest.isEqual(
+                expectedApiKey.getBytes(StandardCharsets.UTF_8),
+                providedApiKey.getBytes(StandardCharsets.UTF_8))) {
+            throw new SecurityException("Invalid API key");
         }
     }
 }

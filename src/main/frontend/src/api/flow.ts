@@ -198,10 +198,15 @@ export const flowApi = {
   /**
    * Import a flow from exported data
    */
-  importFlow: async (data: FlowExportData, newFlowName?: string): Promise<Flow> => {
+  importFlow: async (
+    data: FlowExportData,
+    newFlowName?: string,
+    credentialMappings?: Record<string, string>,
+  ): Promise<Flow> => {
     const response = await apiClient.post('/flows/import', {
       packageData: data,
       newFlowName: newFlowName || undefined,
+      credentialMappings: credentialMappings || undefined,
       autoInstallMissingComponents: false,
     })
     return response.data
