@@ -24,7 +24,7 @@ LICENSE
 
 # Local config
 .env
-.env.local
+.env.*
 CLAUDE.md
 
 # OS files

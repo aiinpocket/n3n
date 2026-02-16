@@ -38,6 +38,7 @@ public class ExternalServiceService {
         this.restClient = RestClient.create();
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceResponse> listServices(UUID userId, Pageable pageable) {
         Page<ExternalService> servicePage = serviceRepository.findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
 
@@ -67,6 +68,7 @@ public class ExternalServiceService {
         return service;
     }
 
+    @Transactional(readOnly = true)
     public ServiceDetailResponse getService(UUID id, UUID userId) {
         ExternalService service = findServiceWithOwnerCheck(id, userId);
         List<ServiceEndpoint> endpoints = endpointRepository.findByServiceIdOrderByPathAsc(id);
@@ -229,6 +231,7 @@ public class ExternalServiceService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<EndpointResponse> getEndpoints(UUID serviceId, UUID userId) {
         findServiceWithOwnerCheck(serviceId, userId);
         return endpointRepository.findByServiceIdOrderByPathAsc(serviceId)
@@ -374,12 +377,14 @@ public class ExternalServiceService {
     /**
      * Internal use: get endpoint schema without ownership check (for flow engine).
      */
+    @Transactional(readOnly = true)
     public EndpointSchemaResponse getEndpointSchema(UUID serviceId, UUID endpointId) {
         ExternalService service = serviceRepository.findByIdAndIsDeletedFalse(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found: " + serviceId));
         return getEndpointSchemaInternal(service, serviceId, endpointId);
     }
 
+    @Transactional(readOnly = true)
     public EndpointSchemaResponse getEndpointSchema(UUID serviceId, UUID endpointId, UUID userId) {
         ExternalService service = findServiceWithOwnerCheck(serviceId, userId);
         return getEndpointSchemaInternal(service, serviceId, endpointId);

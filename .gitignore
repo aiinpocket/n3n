@@ -65,6 +65,11 @@ agents/windows/publish/
 agents/windows/*.user
 agents/windows/.vs/
 
+### Environment ###
+.env
+.env.*
+!.env.example
+
 ### Helm ###
 helm/*/charts/
 helm/*/Chart.lock
