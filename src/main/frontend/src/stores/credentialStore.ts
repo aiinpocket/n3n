@@ -14,6 +14,7 @@ interface CredentialState {
   fetchCredentials: (page?: number) => Promise<void>
   fetchCredentialTypes: () => Promise<void>
   createCredential: (request: CreateCredentialRequest) => Promise<Credential>
+  updateCredential: (id: string, data: { description?: string; visibility?: string; data?: Record<string, unknown> }) => Promise<Credential>
   deleteCredential: (id: string) => Promise<void>
   testCredential: (id: string) => Promise<ConnectionTestResult>
   testUnsavedCredential: (request: TestCredentialRequest) => Promise<ConnectionTestResult>
@@ -69,6 +70,22 @@ export const useCredentialStore = create<CredentialState>((set, get) => ({
         loading: false
       })
       return credential
+    } catch (error: unknown) {
+      set({ error: extractApiError(error), loading: false })
+      throw error
+    }
+  },
+
+  updateCredential: async (id: string, data: { description?: string; visibility?: string; data?: Record<string, unknown> }) => {
+    set({ loading: true, error: null })
+    try {
+      const updated = await credentialApi.update(id, data)
+      const { credentials } = get()
+      set({
+        credentials: credentials.map(c => c.id === id ? updated : c),
+        loading: false
+      })
+      return updated
     } catch (error: unknown) {
       set({ error: extractApiError(error), loading: false })
       throw error

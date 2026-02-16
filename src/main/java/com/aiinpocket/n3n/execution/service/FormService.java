@@ -32,6 +32,11 @@ public class FormService {
     @Transactional
     public FormTrigger createOrUpdateFormTrigger(UUID flowId, String nodeId, Map<String, Object> config,
                                                   Integer expiresInDays, Integer maxSubmissions, UUID createdBy) {
+        // Validate redirect URL if present in config
+        if (config != null && config.get("redirectUrl") != null) {
+            validateRedirectUrl(config.get("redirectUrl").toString());
+        }
+
         Optional<FormTrigger> existing = formTriggerRepository.findByFlowIdAndNodeId(flowId, nodeId);
 
         FormTrigger trigger;
@@ -212,6 +217,38 @@ public class FormService {
         formTriggerRepository.saveAll(expired);
         expired.forEach(t -> log.info("Expired form trigger: id={}", t.getId()));
         return expired.size();
+    }
+
+    /**
+     * Validate redirect URL to prevent open redirect attacks.
+     * Only allows http/https URLs with valid format. Rejects internal network addresses.
+     */
+    private void validateRedirectUrl(String url) {
+        if (url == null || url.isBlank()) return;
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            String scheme = uri.getScheme();
+            if (scheme == null || (!scheme.equals("http") && !scheme.equals("https"))) {
+                throw new IllegalArgumentException("Redirect URL must use http or https protocol");
+            }
+            String host = uri.getHost();
+            if (host == null || host.isBlank()) {
+                throw new IllegalArgumentException("Redirect URL must have a valid host");
+            }
+            String lower = host.toLowerCase();
+            if (lower.equals("localhost") || lower.equals("127.0.0.1") ||
+                lower.equals("0.0.0.0") || lower.equals("::1") ||
+                lower.equals("169.254.169.254") ||
+                lower.startsWith("10.") || lower.startsWith("192.168.") ||
+                lower.matches("172\\.(1[6-9]|2\\d|3[01])\\..*") ||
+                lower.endsWith(".internal") || lower.endsWith(".local")) {
+                throw new IllegalArgumentException("Redirect URL cannot point to internal network addresses");
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid redirect URL format: " + url);
+        }
     }
 
     /**
