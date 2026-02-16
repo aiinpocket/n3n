@@ -280,7 +280,7 @@ export default function AccountSettingsPage() {
             label={t('account.newPassword')}
             rules={[
               { required: true, message: t('account.newPasswordRequired') },
-              { min: 8, message: t('account.passwordMinLength') },
+              { min: 12, message: t('account.passwordMinLength') },
               { max: 128, message: t('common.maxLength', { max: 128 }) },
               {
                 validator: (_, value) => {

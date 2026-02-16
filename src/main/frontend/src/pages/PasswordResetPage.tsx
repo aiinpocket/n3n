@@ -177,7 +177,7 @@ export default function PasswordResetPage() {
                 name="newPassword"
                 rules={[
                   { required: true, message: t('auth.passwordRequired') },
-                  { min: 8, message: t('auth.passwordMinLength') },
+                  { min: 12, message: t('auth.passwordMinLength') },
                   {
                     validator: (_, value) => {
                       if (!value) return Promise.resolve()

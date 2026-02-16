@@ -456,11 +456,11 @@ export default function CloudBackupPage() {
                 size="small"
                 loading={searchingRemote}
                 pagination={false}
+                scroll={{ x: 600 }}
                 rowSelection={{
                   type: 'radio',
                   onChange: (_, rows) => setSelectedRestore(rows[0]?.filename || null),
                 }}
-                scroll={{ x: 600 }}
               />
               <Button
                 type="primary"

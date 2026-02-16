@@ -281,7 +281,9 @@ public class AuthService {
     @Transactional
     public void resetPassword(String token, String newPassword) {
         String redisKey = PASSWORD_RESET_KEY_PREFIX + token;
-        String userIdStr = redisTemplate.opsForValue().get(redisKey);
+
+        // Atomically consume the token (getAndDelete) to prevent reuse
+        String userIdStr = redisTemplate.opsForValue().getAndDelete(redisKey);
 
         if (userIdStr == null) {
             throw new InvalidTokenException("Invalid or expired reset token");
@@ -300,9 +302,6 @@ public class AuthService {
         user.setLockedUntil(null);
         userRepository.save(user);
 
-        // Delete the reset token from Redis
-        redisTemplate.delete(redisKey);
-
         // Revoke all existing refresh tokens to force re-authentication on all devices
         refreshTokenRepository.revokeAllByUserId(userId, java.time.Instant.now());
 
@@ -313,12 +312,12 @@ public class AuthService {
     }
 
     /**
-     * Validate password strength: at least 8 chars, with at least 3 of 4 criteria
+     * Validate password strength: at least 12 chars, with at least 3 of 4 criteria
      * (uppercase, lowercase, digit, special char).
      */
     private void validatePasswordStrength(String password) {
-        if (password == null || password.length() < 8) {
-            throw new IllegalArgumentException("Password must be at least 8 characters");
+        if (password == null || password.length() < 12) {
+            throw new IllegalArgumentException("Password must be at least 12 characters");
         }
         int criteria = 0;
         if (password.matches(".*[A-Z].*")) criteria++;

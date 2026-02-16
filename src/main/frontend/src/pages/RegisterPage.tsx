@@ -119,7 +119,7 @@ export default function RegisterPage() {
               name="password"
               rules={[
                 { required: true, message: t('auth.passwordRequired') },
-                { min: 8, message: t('auth.passwordMinLength') },
+                { min: 12, message: t('auth.passwordMinLength') },
                 { max: 128, message: t('common.maxLength', { max: 128 }) },
                 {
                   validator: (_, value) => {
