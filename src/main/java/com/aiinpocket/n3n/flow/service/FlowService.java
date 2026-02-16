@@ -192,6 +192,27 @@ public class FlowService {
         return FlowResponse.from(flow, latestVersion, publishedVersion);
     }
 
+    /**
+     * Get flow with owner check — returns consistent 404 for both non-existent and non-owned flows
+     * to prevent information leakage about flow existence.
+     */
+    @Transactional(readOnly = true)
+    public FlowResponse getFlowForOwner(UUID id, UUID userId) {
+        Flow flow = flowRepository.findByIdAndIsDeletedFalse(id)
+            .filter(f -> f.getCreatedBy().equals(userId))
+            .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + id));
+
+        List<FlowVersion> versions = flowVersionRepository.findByFlowIdOrderByCreatedAtDesc(id);
+        String latestVersion = versions.isEmpty() ? null : versions.get(0).getVersion();
+        String publishedVersion = versions.stream()
+            .filter(v -> Status.FlowVersion.PUBLISHED.equals(v.getStatus()))
+            .findFirst()
+            .map(FlowVersion::getVersion)
+            .orElse(null);
+
+        return FlowResponse.from(flow, latestVersion, publishedVersion);
+    }
+
     @Transactional
     public FlowResponse createFlow(CreateFlowRequest request, UUID userId) {
         if (flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(request.getName(), userId)) {

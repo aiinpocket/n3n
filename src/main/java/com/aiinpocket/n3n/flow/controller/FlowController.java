@@ -103,10 +103,8 @@ public class FlowController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        FlowResponse flow = flowService.getFlow(id);
-        if (!flow.getCreatedBy().equals(userId)) {
-            throw new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Flow not found: " + id);
-        }
+        // Only owner can delete — use consistent 404 for non-existent AND non-owned flows
+        FlowResponse flow = flowService.getFlowForOwner(id, userId);
         flowService.deleteFlow(id);
         activityService.logFlowDelete(userId, id, flow.getName());
         return ResponseEntity.noContent().build();

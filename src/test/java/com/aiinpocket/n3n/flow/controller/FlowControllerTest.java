@@ -244,7 +244,7 @@ class FlowControllerTest {
         var flow = sampleFlowResponse();
         flow.setId(flowId);
         flow.setCreatedBy(userId);
-        when(flowService.getFlow(flowId)).thenReturn(flow);
+        when(flowService.getFlowForOwner(flowId, userId)).thenReturn(flow);
 
         var result = flowController.deleteFlow(flowId, testUser());
 
@@ -256,10 +256,8 @@ class FlowControllerTest {
     @Test
     void deleteFlow_notOwner_throwsNotFound() {
         var flowId = UUID.randomUUID();
-        var flow = sampleFlowResponse();
-        flow.setId(flowId);
-        flow.setCreatedBy(UUID.randomUUID()); // different user
-        when(flowService.getFlow(flowId)).thenReturn(flow);
+        when(flowService.getFlowForOwner(flowId, userId))
+            .thenThrow(new ResourceNotFoundException("Flow not found: " + flowId));
 
         assertThatThrownBy(() -> flowController.deleteFlow(flowId, testUser()))
                 .isInstanceOf(ResourceNotFoundException.class)

@@ -101,6 +101,11 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.svg", "/*.png").permitAll()
                 // Admin endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Defense-in-depth: admin endpoints not under /api/admin/ (also protected by @PreAuthorize)
+                .requestMatchers("/api/monitoring/**").hasRole("ADMIN")
+                .requestMatchers("/api/logs/**").hasRole("ADMIN")
+                .requestMatchers("/api/settings/gateway/**").hasRole("ADMIN")
+                .requestMatchers("/api/cloud-sync/**").hasRole("ADMIN")
                 // All other API requests require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

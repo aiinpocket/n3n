@@ -121,8 +121,8 @@ public class FlowShareService {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
 
-        // 檢查是否為流程擁有者或有權限
-        if (!flow.getCreatedBy().equals(userId) && !hasAnyPermission(flowId, userId)) {
+        // 只有擁有者或 admin 權限用戶才能查看分享配置（VIEW 用戶不應看到其他人的 email 和權限）
+        if (!flow.getCreatedBy().equals(userId) && !hasAdminPermission(flowId, userId)) {
             throw new IllegalArgumentException("You don't have permission to view shares");
         }
 
