@@ -51,13 +51,9 @@ public class WebhookResponse {
         Map<String, Object> masked = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : authConfig.entrySet()) {
             String key = entry.getKey().toLowerCase();
-            if (key.contains("secret") || key.contains("password") || key.contains("token") || key.contains("key")) {
-                Object value = entry.getValue();
-                if (value instanceof String str && str.length() > 4) {
-                    masked.put(entry.getKey(), str.substring(0, 4) + "****");
-                } else {
-                    masked.put(entry.getKey(), "****");
-                }
+            if (key.contains("secret") || key.contains("password") || key.contains("token")
+                    || key.contains("key") || key.contains("credential") || key.contains("auth")) {
+                masked.put(entry.getKey(), "********");
             } else {
                 masked.put(entry.getKey(), entry.getValue());
             }

@@ -75,11 +75,11 @@ public class ConnectionTestService {
      * Test a saved credential connection and update metadata
      */
     public ConnectionTestResult testSavedCredential(UUID credentialId, UUID userId) {
-        // Get decrypted credential data
+        // Get decrypted credential data (also validates ownership)
         Map<String, Object> data = credentialService.getDecryptedData(credentialId, userId);
 
-        // Get credential entity to get the type
-        Credential credential = credentialRepository.findById(credentialId)
+        // Get credential entity to get the type (use owner check for defense-in-depth)
+        Credential credential = credentialRepository.findByIdAndOwnerId(credentialId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credential not found"));
 
         // Test the connection
