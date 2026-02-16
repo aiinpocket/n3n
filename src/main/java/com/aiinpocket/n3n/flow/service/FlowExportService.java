@@ -177,7 +177,8 @@ public class FlowExportService {
                 Optional<Credential> credentialOpt = credentialRepository.findById(UUID.fromString(credentialId));
                 if (credentialOpt.isPresent()) {
                     Credential credential = credentialOpt.get();
-                    credentialName = credential.getName();
+                    // Use generic name to avoid leaking internal credential naming conventions
+                    credentialName = credential.getType() + " Credential";
                     credentialType = credential.getType();
                 }
             } catch (Exception e) {

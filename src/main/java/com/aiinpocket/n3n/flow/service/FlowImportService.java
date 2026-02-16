@@ -113,6 +113,16 @@ public class FlowImportService {
         // 驗證 checksum
         validateChecksum(pkg);
 
+        // 驗證 DAG 結構
+        Map<String, Object> rawDefinition = pkg.getFlow().getDefinition();
+        if (rawDefinition == null) {
+            throw new IllegalArgumentException("Export package flow is missing definition");
+        }
+        DagParser.ParseResult parseResult = dagParser.parse(rawDefinition);
+        if (!parseResult.isValid()) {
+            throw new IllegalArgumentException("Invalid flow definition: " + String.join(", ", parseResult.getErrors()));
+        }
+
         // 驗證憑證所有權
         validateCredentialAccess(request.getCredentialMappings(), userId);
 

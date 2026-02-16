@@ -327,6 +327,11 @@ class FlowImportServiceTest extends BaseServiceTest {
     @DisplayName("importFlow")
     class ImportFlow {
 
+        @BeforeEach
+        void setUpDagParser() {
+            lenient().when(dagParser.parse(any())).thenReturn(createValidParseResult());
+        }
+
         @Test
         @DisplayName("Creates flow, version, and import record")
         void createsFlowAndVersion() throws Exception {

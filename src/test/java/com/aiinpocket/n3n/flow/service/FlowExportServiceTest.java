@@ -193,7 +193,7 @@ class FlowExportServiceTest extends BaseServiceTest {
 
             assertThat(result.getDependencies().getCredentialPlaceholders()).hasSize(1);
             assertThat(result.getDependencies().getCredentialPlaceholders().get(0).getCredentialName())
-                .isEqualTo("My API Key");
+                .isEqualTo("api_key Credential");
         }
 
         @Test
