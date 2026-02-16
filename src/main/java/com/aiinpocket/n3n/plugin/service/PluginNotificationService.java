@@ -19,8 +19,7 @@ public class PluginNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    private static final String TOPIC_PREFIX = "/topic/users/";
-    private static final String PLUGIN_INSTALL_TOPIC = "/plugin-install";
+    private static final String PLUGIN_INSTALL_QUEUE = "/queue/plugin-install";
 
     /**
      * 通知安裝進度
@@ -54,7 +53,7 @@ public class PluginNotificationService {
      * 發送通知
      */
     private void sendNotification(PluginInstallTask task, String eventType) {
-        String destination = TOPIC_PREFIX + task.getUserId() + PLUGIN_INSTALL_TOPIC;
+        String userId = task.getUserId().toString();
 
         Map<String, Object> payload = Map.of(
             "type", eventType,
@@ -69,8 +68,9 @@ public class PluginNotificationService {
         );
 
         try {
-            messagingTemplate.convertAndSend(destination, (Object) payload);
-            log.debug("Sent {} notification for task {} to {}", eventType, task.getId(), destination);
+            // Use convertAndSendToUser for proper per-user isolation via StompPrincipal
+            messagingTemplate.convertAndSendToUser(userId, PLUGIN_INSTALL_QUEUE, payload);
+            log.debug("Sent {} notification for task {} to user {}", eventType, task.getId(), userId);
         } catch (Exception e) {
             log.warn("Failed to send notification: {}", e.getMessage());
         }

@@ -121,11 +121,17 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
     BrowserSession getOrCreateSession(String host, int port, String sessionId) throws IOException {
         BrowserSession session = sessions.get(sessionId);
         if (session == null) {
-            NodeExecutionResult result = createSessionDirect(host, port, sessionId, "about:blank");
-            if (!result.isSuccess()) {
-                throw new IOException("Failed to create session: " + result.getErrorMessage());
+            synchronized (sessions) {
+                // Double-check after acquiring lock to prevent duplicate session creation
+                session = sessions.get(sessionId);
+                if (session == null) {
+                    NodeExecutionResult result = createSessionDirect(host, port, sessionId, "about:blank");
+                    if (!result.isSuccess()) {
+                        throw new IOException("Failed to create session: " + result.getErrorMessage());
+                    }
+                    session = sessions.get(sessionId);
+                }
             }
-            session = sessions.get(sessionId);
         }
         return session;
     }

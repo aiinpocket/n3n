@@ -27,6 +27,7 @@ import java.util.UUID;
 public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
 
     private static final String EXECUTION_TOPIC_PREFIX = "/topic/executions/";
+    private static final String USER_TOPIC_PREFIX = "/topic/users/";
 
     private final ExecutionRepository executionRepository;
 
@@ -39,8 +40,12 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
             setUserPrincipal(accessor);
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
-            if (destination != null && destination.startsWith(EXECUTION_TOPIC_PREFIX)) {
-                validateExecutionSubscription(accessor, destination);
+            if (destination != null) {
+                if (destination.startsWith(EXECUTION_TOPIC_PREFIX)) {
+                    validateExecutionSubscription(accessor, destination);
+                } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
+                    validateUserTopicSubscription(accessor, destination);
+                }
             }
         }
 
@@ -82,6 +87,32 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
             }
         } catch (IllegalArgumentException e) {
             throw new MessagingException("Invalid execution ID format");
+        }
+    }
+
+    /**
+     * Validate that users can only subscribe to their own user-specific topics.
+     * Prevents User A from subscribing to /topic/users/{userB}/... topics.
+     */
+    private void validateUserTopicSubscription(StompHeaderAccessor accessor, String destination) {
+        Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+        if (sessionAttributes == null || !Boolean.TRUE.equals(sessionAttributes.get("authenticated"))) {
+            throw new MessagingException("Unauthorized: not authenticated");
+        }
+
+        UUID userId = (UUID) sessionAttributes.get("userId");
+        if (userId == null) {
+            throw new MessagingException("Unauthorized: no user identity");
+        }
+
+        // Extract userId from topic path: /topic/users/{userId}/...
+        String remainder = destination.substring(USER_TOPIC_PREFIX.length());
+        int slashIdx = remainder.indexOf('/');
+        String topicUserId = slashIdx > 0 ? remainder.substring(0, slashIdx) : remainder;
+
+        if (!userId.toString().equals(topicUserId)) {
+            log.warn("User {} attempted to subscribe to another user's topic: {}", userId, destination);
+            throw new MessagingException("Access denied: cannot subscribe to another user's topic");
         }
     }
 
