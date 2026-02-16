@@ -78,8 +78,8 @@ export default function CloudBackupPage() {
     try {
       const res = await cloudSyncApi.getStatus()
       setSyncStatus(res.data)
-    } catch {
-      // Non-critical, ignore
+    } catch (err) {
+      logger.warn('Failed to fetch sync status:', err)
     }
   }, [])
 

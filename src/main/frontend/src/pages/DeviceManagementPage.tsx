@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import logger from '../utils/logger'
 import {
   Card,
   Button,
@@ -80,8 +81,8 @@ const DeviceManagementPage: React.FC = () => {
       setPairedLoading(true)
       const devices = await listDevices()
       setPairedDevices(devices)
-    } catch {
-      // Silently fail — paired devices tab is optional
+    } catch (err) {
+      logger.warn('Failed to fetch paired devices:', err)
     } finally {
       setPairedLoading(false)
     }

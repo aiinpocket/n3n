@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import logger from '../utils/logger'
 import {
   Card,
   Button,
@@ -50,8 +51,8 @@ export default function GatewayPage() {
     try {
       const data = await gatewayApi.getStats()
       setStats(data)
-    } catch {
-      // Non-critical, ignore (may require ADMIN role)
+    } catch (err) {
+      logger.warn('Failed to fetch gateway stats:', err)
     }
   }, [])
 
@@ -72,8 +73,8 @@ export default function GatewayPage() {
     try {
       const data = await gatewayApi.getCapabilities()
       setCapabilities(data)
-    } catch {
-      // Non-critical, ignore
+    } catch (err) {
+      logger.warn('Failed to fetch gateway capabilities:', err)
     }
   }, [])
 

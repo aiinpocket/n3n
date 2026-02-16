@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import logger from '../utils/logger'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -67,8 +68,8 @@ const WebhooksPage: React.FC = () => {
     try {
       const data = await flowApi.listEditableFlows()
       setEditableFlows(data)
-    } catch {
-      // Flow list loading failure is non-critical
+    } catch (err) {
+      logger.warn('Failed to load editable flows:', err)
     }
   }, [])
 

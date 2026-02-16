@@ -8,6 +8,7 @@ import { authApi } from '../api/auth'
 import { extractApiError } from '../utils/errorMessages'
 import { securityApi, SecurityStatus } from '../api/security'
 import { activityApi, UserActivity } from '../api/activity'
+import logger from '../utils/logger'
 
 const { Title, Text } = Typography
 
@@ -33,8 +34,8 @@ export default function AccountSettingsPage() {
     try {
       const result = await activityApi.listMy(0, 5, 'LOGIN')
       setLoginActivities(result.content)
-    } catch {
-      // Non-critical, ignore
+    } catch (err) {
+      logger.warn('Failed to fetch login activities:', err)
     } finally {
       setLoginActivityLoading(false)
     }
