@@ -82,6 +82,16 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
     long countByStartedAtBefore(Instant before);
 
     /**
+     * Count executions by status (for concurrent limit enforcement).
+     */
+    long countByStatus(String status);
+
+    /**
+     * Find stuck executions: running but started before cutoff (for timeout monitor).
+     */
+    List<Execution> findByStatusAndStartedAtBefore(String status, Instant before);
+
+    /**
      * Check if an execution exists and is owned by the given user.
      */
     boolean existsByIdAndTriggeredBy(UUID id, UUID triggeredBy);

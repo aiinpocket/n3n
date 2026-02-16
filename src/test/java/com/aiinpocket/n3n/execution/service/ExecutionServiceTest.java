@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.*;
@@ -101,6 +102,10 @@ class ExecutionServiceTest extends BaseServiceTest {
 
         // Default: user has access to the flow (owner)
         lenient().when(flowShareService.hasAccess(flowId, userId)).thenReturn(true);
+
+        // Set @Value fields not injected by Mockito
+        ReflectionTestUtils.setField(executionService, "maxConcurrentExecutions", 100);
+        ReflectionTestUtils.setField(executionService, "executionTimeoutMs", 300000L);
     }
 
     @Nested

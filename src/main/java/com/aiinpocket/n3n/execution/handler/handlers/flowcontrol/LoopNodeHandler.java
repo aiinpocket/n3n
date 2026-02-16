@@ -17,6 +17,8 @@ import java.util.Map;
 @Slf4j
 public class LoopNodeHandler extends AbstractNodeHandler {
 
+    private static final int MAX_LOOP_ITEMS = 100_000;
+
     @Override
     public String getType() {
         return "loop";
@@ -68,6 +70,12 @@ public class LoopNodeHandler extends AbstractNodeHandler {
         }
 
         log.debug("Loop processing {} items with batch size {}", items.size(), batchSize);
+
+        // Guard against excessive items that could exhaust memory
+        if (items.size() > MAX_LOOP_ITEMS) {
+            return NodeExecutionResult.failure(
+                "Loop input exceeds maximum of " + MAX_LOOP_ITEMS + " items (got " + items.size() + ")");
+        }
 
         // Create batched output
         List<Map<String, Object>> batches = new ArrayList<>();

@@ -1900,7 +1900,11 @@
     },
     "viewDetail": "詳細を表示",
     "userDetail": "ユーザー詳細",
-    "emailVerified": "メール認証済み"
+    "emailVerified": "メール認証済み",
+    "revokeAllSessions": "全セッションを取り消し",
+    "confirmRevokeSessions": "このユーザーの全セッションを取り消しますか？",
+    "revokeSessionsDesc": "この操作により、ユーザーは全デバイスからログアウトされます。再度ログインが必要です。",
+    "sessionsRevoked": "全セッションが取り消されました"
   },
   "nodeRecommendation": {
     "title": "スマートノード推薦",

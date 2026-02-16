@@ -1900,7 +1900,11 @@
     },
     "viewDetail": "檢視詳情",
     "userDetail": "使用者詳情",
-    "emailVerified": "電子郵件已驗證"
+    "emailVerified": "電子郵件已驗證",
+    "revokeAllSessions": "撤銷所有工作階段",
+    "confirmRevokeSessions": "要撤銷此使用者的所有工作階段嗎？",
+    "revokeSessionsDesc": "此操作將使該使用者從所有裝置登出，需要重新登入。",
+    "sessionsRevoked": "已撤銷所有工作階段"
   },
   "nodeRecommendation": {
     "title": "智慧節點推薦",

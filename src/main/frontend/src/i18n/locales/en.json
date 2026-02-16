@@ -1900,7 +1900,11 @@
     },
     "viewDetail": "View Details",
     "userDetail": "User Details",
-    "emailVerified": "Email Verified"
+    "emailVerified": "Email Verified",
+    "revokeAllSessions": "Revoke All Sessions",
+    "confirmRevokeSessions": "Revoke all sessions for this user?",
+    "revokeSessionsDesc": "This will log the user out of all devices. They will need to sign in again.",
+    "sessionsRevoked": "All sessions have been revoked"
   },
   "nodeRecommendation": {
     "title": "Smart Node Recommendation",

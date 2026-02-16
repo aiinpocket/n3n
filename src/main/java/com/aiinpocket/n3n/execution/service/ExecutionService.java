@@ -24,7 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +53,12 @@ public class ExecutionService {
     private final ActivityService activityService;
     private final FlowShareService flowShareService;
     private final StringRedisTemplate stringRedisTemplate;
+
+    @Value("${execution.max-concurrent:100}")
+    private int maxConcurrentExecutions;
+
+    @Value("${execution.timeout-ms:300000}")
+    private long executionTimeoutMs;
 
     @Transactional(readOnly = true)
     public Page<ExecutionResponse> listExecutions(UUID userId, Pageable pageable) {
@@ -210,6 +218,13 @@ public class ExecutionService {
         DagParser.ParseResult parseResult = dagParser.parse(version.getDefinition());
         if (!parseResult.isValid()) {
             throw new IllegalArgumentException("Invalid flow definition: " + String.join(", ", parseResult.getErrors()));
+        }
+
+        // Check concurrent execution limit
+        long runningCount = executionRepository.countByStatus("running");
+        if (runningCount >= maxConcurrentExecutions) {
+            throw new IllegalStateException(
+                "Maximum concurrent executions (" + maxConcurrentExecutions + ") reached. Please wait for existing executions to complete.");
         }
 
         // Create execution
@@ -1065,5 +1080,49 @@ public class ExecutionService {
             }
         }
         return ExecutionResponse.from(execution);
+    }
+
+    /**
+     * Monitor and cancel stuck executions that exceed the configured timeout.
+     * Runs every 60 seconds.
+     */
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void monitorStuckExecutions() {
+        if (executionTimeoutMs <= 0) {
+            return;
+        }
+
+        Instant cutoff = Instant.now().minusMillis(executionTimeoutMs);
+        List<Execution> stuckExecutions = executionRepository.findByStatusAndStartedAtBefore("running", cutoff);
+
+        for (Execution execution : stuckExecutions) {
+            log.warn("EXECUTION_TIMEOUT id={} startedAt={} timeoutMs={}",
+                    execution.getId(), execution.getStartedAt(), executionTimeoutMs);
+
+            execution.setStatus("failed");
+            execution.setCompletedAt(Instant.now());
+            if (execution.getStartedAt() != null) {
+                execution.setDurationMs((int) (Instant.now().toEpochMilli() - execution.getStartedAt().toEpochMilli()));
+            }
+            executionRepository.save(execution);
+
+            try {
+                stateManager.updateExecutionStatus(execution.getId(), "failed");
+            } catch (Exception e) {
+                log.debug("Failed to update state manager for timed-out execution: {}", e.getMessage());
+            }
+
+            try {
+                notificationService.notifyExecutionFailed(execution.getId(),
+                        "Execution timed out after " + executionTimeoutMs + "ms");
+            } catch (Exception e) {
+                log.debug("Failed to send timeout notification: {}", e.getMessage());
+            }
+        }
+
+        if (!stuckExecutions.isEmpty()) {
+            log.info("EXECUTION_TIMEOUT_MONITOR cancelled={}", stuckExecutions.size());
+        }
     }
 }

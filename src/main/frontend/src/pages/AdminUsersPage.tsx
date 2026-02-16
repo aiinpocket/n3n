@@ -9,6 +9,7 @@ import {
   StopOutlined,
   SearchOutlined,
   EyeOutlined,
+  DisconnectOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -133,6 +134,23 @@ export default function AdminUsersPage() {
         try {
           await adminApi.resetPassword(userId)
           message.success(t('admin.passwordReset'))
+        } catch (error: unknown) {
+          message.error(extractApiError(error, t('common.updateFailed')))
+        }
+      },
+    })
+  }
+
+  const handleRevokeAllSessions = async (userId: string) => {
+    Modal.confirm({
+      title: t('admin.confirmRevokeSessions'),
+      content: t('admin.revokeSessionsDesc'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        try {
+          await adminApi.revokeUserSessions(userId)
+          message.success(t('admin.sessionsRevoked'))
         } catch (error: unknown) {
           message.error(extractApiError(error, t('common.updateFailed')))
         }
@@ -267,6 +285,17 @@ export default function AdminUsersPage() {
                   icon={<LockOutlined />}
                   onClick={() => handleResetPassword(record.id)}
                   aria-label={t('admin.resetPassword')}
+                />
+              </Tooltip>
+            )}
+            {!isSelf && (
+              <Tooltip title={t('admin.revokeAllSessions')}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DisconnectOutlined />}
+                  onClick={() => handleRevokeAllSessions(record.id)}
+                  aria-label={t('admin.revokeAllSessions')}
                 />
               </Tooltip>
             )}

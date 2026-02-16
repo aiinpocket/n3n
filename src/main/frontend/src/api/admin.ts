@@ -55,6 +55,10 @@ export const adminApi = {
   resetPassword: async (userId: string): Promise<void> => {
     await apiClient.post(`/admin/users/${userId}/reset-password`)
   },
+
+  revokeUserSessions: async (userId: string): Promise<void> => {
+    await apiClient.post(`/admin/users/${userId}/revoke-sessions`)
+  },
 }
 
 export default adminApi
