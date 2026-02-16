@@ -51,6 +51,7 @@ import AIThinkingIndicator from './AIThinkingIndicator'
 import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
 import { getLocale } from '../../utils/locale'
+import { extractApiError } from '../../utils/errorMessages'
 
 const { TextArea } = Input
 const { Text, Paragraph } = Typography
@@ -146,7 +147,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       }
     },
     onError: (err) => {
-      message.error(err)
+      message.error(typeof err === 'string' ? err : t('common.error'))
     },
   })
 
@@ -228,7 +229,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       }))
       setInstallTasks(initialTasks)
     } catch (err) {
-      message.error(t('flowGenerator.installStartFailed') + ': ' + (err instanceof Error ? err.message : t('common.error')))
+      message.error(extractApiError(err, t('flowGenerator.installStartFailed')))
       setIsInstalling(false)
     }
   }

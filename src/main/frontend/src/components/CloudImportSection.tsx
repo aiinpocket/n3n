@@ -30,7 +30,7 @@ export default function CloudImportSection() {
         message.info(t('cloudSync.noRemoteData'))
       }
     } catch (err) {
-      message.error(extractApiError(err))
+      message.error(extractApiError(err, t('common.operationFailed')))
     } finally {
       setScanning(false)
     }
@@ -44,7 +44,7 @@ export default function CloudImportSection() {
       setImportResult(res.data)
       message.success(t('cloudSync.importSuccess'))
     } catch (err) {
-      message.error(extractApiError(err))
+      message.error(extractApiError(err, t('common.operationFailed')))
     } finally {
       setImporting(false)
     }
