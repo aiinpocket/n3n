@@ -10,10 +10,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -156,11 +162,16 @@ class LogViewerControllerTest {
         assertThat(logEntry.getThreadName()).isEqualTo("virtual-thread-1");
     }
 
+    private UserDetails mockUser(String userId) {
+        return new User(userId, "", Collections.emptyList());
+    }
+
     // ========== streamLogs ==========
 
     @Test
     void streamLogs_returnsEmitter() {
-        var emitter = logViewerController.streamLogs();
+        var userDetails = mockUser(UUID.randomUUID().toString());
+        var emitter = logViewerController.streamLogs(userDetails);
 
         assertThat(emitter).isNotNull();
         assertThat(emitter).isInstanceOf(SseEmitter.class);
@@ -168,17 +179,36 @@ class LogViewerControllerTest {
 
     @Test
     void streamLogs_registersListener() {
-        logViewerController.streamLogs();
+        var userDetails = mockUser(UUID.randomUUID().toString());
+        logViewerController.streamLogs(userDetails);
 
         verify(logBuffer).addListener(any());
     }
 
     @Test
     void streamLogs_multipleClients_registersMultipleListeners() {
-        logViewerController.streamLogs();
-        logViewerController.streamLogs();
+        var user1 = mockUser(UUID.randomUUID().toString());
+        var user2 = mockUser(UUID.randomUUID().toString());
+        logViewerController.streamLogs(user1);
+        logViewerController.streamLogs(user2);
 
         verify(logBuffer, times(2)).addListener(any());
+    }
+
+    @Test
+    void streamLogs_exceedsMaxConnections_throwsException() {
+        var userId = UUID.randomUUID().toString();
+        var userDetails = mockUser(userId);
+
+        // Open max connections
+        logViewerController.streamLogs(userDetails);
+        logViewerController.streamLogs(userDetails);
+        logViewerController.streamLogs(userDetails);
+
+        // Fourth connection should fail
+        assertThatThrownBy(() -> logViewerController.streamLogs(userDetails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Too many concurrent SSE connections");
     }
 
     // ========== getLogs with different log levels ==========

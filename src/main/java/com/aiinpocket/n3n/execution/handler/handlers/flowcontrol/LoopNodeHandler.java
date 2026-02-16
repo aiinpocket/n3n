@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 public class LoopNodeHandler extends AbstractNodeHandler {
 
-    private static final int MAX_LOOP_ITEMS = 100_000;
+    private static final int MAX_LOOP_ITEMS = 10_000;
 
     @Override
     public String getType() {

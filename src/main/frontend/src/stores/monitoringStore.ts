@@ -28,27 +28,30 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
   fetchSystemMetrics: async () => {
     try {
       const data = await monitoringApi.getSystemMetrics()
-      set({ systemMetrics: data })
+      set({ systemMetrics: data, error: null })
     } catch (error) {
       logger.error('Failed to fetch system metrics:', error)
+      set({ error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
     }
   },
 
   fetchFlowStats: async () => {
     try {
       const data = await monitoringApi.getFlowStats()
-      set({ flowStats: data })
+      set({ flowStats: data, error: null })
     } catch (error) {
       logger.error('Failed to fetch flow stats:', error)
+      set({ error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
     }
   },
 
   fetchHealthStatus: async () => {
     try {
       const data = await monitoringApi.getHealthStatus()
-      set({ healthStatus: data })
+      set({ healthStatus: data, error: null })
     } catch (error) {
       logger.error('Failed to fetch health status:', error)
+      set({ error: extractApiError(error, i18n.t('errorMessage.defaultMessage')) })
     }
   },
 

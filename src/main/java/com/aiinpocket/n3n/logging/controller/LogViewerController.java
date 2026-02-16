@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -25,6 +28,9 @@ import java.util.function.Consumer;
 @Tag(name = "Logs", description = "Log viewer and streaming")
 @PreAuthorize("hasRole('ADMIN')")
 public class LogViewerController {
+
+    private static final int MAX_SSE_CONNECTIONS_PER_USER = 3;
+    private final ConcurrentHashMap<UUID, AtomicInteger> activeConnections = new ConcurrentHashMap<>();
 
     private final InMemoryLogBuffer logBuffer;
     private final ObjectMapper objectMapper;
@@ -51,7 +57,18 @@ public class LogViewerController {
      * The connection remains open until the client disconnects.
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamLogs() {
+    public SseEmitter streamLogs(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal
+            org.springframework.security.core.userdetails.UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+
+        // Limit concurrent SSE connections per user to prevent resource exhaustion
+        AtomicInteger count = activeConnections.computeIfAbsent(userId, k -> new AtomicInteger(0));
+        if (count.get() >= MAX_SSE_CONNECTIONS_PER_USER) {
+            throw new IllegalStateException("Too many concurrent SSE connections (max " + MAX_SSE_CONNECTIONS_PER_USER + ")");
+        }
+        count.incrementAndGet();
+
         // 5-minute timeout to prevent abandoned connections from leaking resources
         SseEmitter emitter = new SseEmitter(300_000L);
 
@@ -72,12 +89,19 @@ public class LogViewerController {
 
         logBuffer.addListener(listener);
 
-        // Clean up listener on completion, timeout, or error
-        emitter.onCompletion(() -> logBuffer.removeListener(listener));
-        emitter.onTimeout(() -> logBuffer.removeListener(listener));
-        emitter.onError(ex -> logBuffer.removeListener(listener));
+        // Clean up listener and connection count on completion, timeout, or error
+        Runnable cleanupWithListener = () -> {
+            logBuffer.removeListener(listener);
+            count.decrementAndGet();
+            if (count.get() <= 0) {
+                activeConnections.remove(userId);
+            }
+        };
+        emitter.onCompletion(cleanupWithListener);
+        emitter.onTimeout(cleanupWithListener);
+        emitter.onError(ex -> cleanupWithListener.run());
 
-        log.debug("New SSE log stream client connected");
+        log.debug("New SSE log stream client connected (user={}, active={})", userId, count.get());
         return emitter;
     }
 }
