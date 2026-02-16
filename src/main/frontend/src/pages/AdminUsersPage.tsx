@@ -312,6 +312,7 @@ export default function AdminUsersPage() {
             pageSize: 20,
             onChange: (p) => loadUsers(p - 1),
             showTotal: (total) => t('common.total', { count: total }),
+            showSizeChanger: true,
           }}
           scroll={{ x: 800 }}
         />

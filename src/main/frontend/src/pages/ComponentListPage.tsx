@@ -457,6 +457,7 @@ export default function ComponentListPage() {
         onCancel={() => { setEditModalOpen(false); editForm.resetFields() }}
         onOk={handleEditSubmit}
         okText={t('common.save')}
+        cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
         destroyOnClose
       >

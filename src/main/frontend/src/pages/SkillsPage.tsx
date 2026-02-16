@@ -461,7 +461,7 @@ export default function SkillsPage() {
           dataSource={filteredSkills}
           rowKey="id"
           loading={isLoading}
-          pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+          pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => t('common.total', { count: total }) }}
           locale={{
             emptyText: <Empty description={t('skill.noSkills')} />,
           }}
@@ -476,6 +476,7 @@ export default function SkillsPage() {
         onCancel={() => { setFormModalOpen(false); form.resetFields(); }}
         onOk={handleFormSubmit}
         okText={t('common.save')}
+        cancelText={t('common.cancel')}
         confirmLoading={formSubmitting}
         width={600}
         destroyOnClose

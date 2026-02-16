@@ -534,6 +534,7 @@ export default function TemplatePage() {
                       total={totalElements}
                       onChange={handlePageChange}
                       showTotal={(total) => t('common.total', { count: total })}
+                      showSizeChanger
                     />
                   </div>
                 )}
@@ -655,6 +656,7 @@ export default function TemplatePage() {
         onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
         onOk={handleEditSubmit}
         okText={t('common.save')}
+        cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
         destroyOnClose
         width={500}

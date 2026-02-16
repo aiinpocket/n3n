@@ -407,7 +407,7 @@ const WebhooksPage: React.FC = () => {
               dataSource={filteredWebhooks}
               rowKey="id"
               loading={isLoading}
-              pagination={{ pageSize: 10, showTotal: (total) => t('common.total', { count: total }) }}
+              pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => t('common.total', { count: total }) }}
               scroll={{ x: 1000 }}
             />
           </>
@@ -569,6 +569,7 @@ const WebhooksPage: React.FC = () => {
         onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
         onOk={handleEditSubmit}
         okText={t('common.save')}
+        cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
         destroyOnClose
       >

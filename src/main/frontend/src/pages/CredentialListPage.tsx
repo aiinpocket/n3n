@@ -492,7 +492,8 @@ const CredentialListPage: React.FC = () => {
             total: searchText || typeFilter !== 'all' ? filteredCredentials.length : totalElements,
             pageSize: 20,
             onChange: searchText || typeFilter !== 'all' ? undefined : handlePageChange,
-            showTotal: (total) => t('common.total', { count: total })
+            showTotal: (total) => t('common.total', { count: total }),
+            showSizeChanger: true,
           }}
           scroll={{ x: 900 }}
         />
@@ -504,6 +505,7 @@ const CredentialListPage: React.FC = () => {
         onCancel={() => { setEditModalOpen(false); editForm.resetFields(); }}
         onOk={handleEditSubmit}
         okText={t('common.save')}
+        cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
         destroyOnClose
       >

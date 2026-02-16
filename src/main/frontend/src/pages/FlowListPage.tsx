@@ -576,7 +576,7 @@ export default function FlowListPage() {
                   locale={{
                     emptyText: t('share.noShares'),
                   }}
-                  pagination={{ pageSize: 20, showTotal: (total) => t('common.total', { count: total }) }}
+                  pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => t('common.total', { count: total }) }}
                   scroll={{ x: 800 }}
                 />
               ),

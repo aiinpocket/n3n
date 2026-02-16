@@ -554,7 +554,7 @@ export default function ExecutionPage() {
         </Space>
       </Card>
 
-      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => { setCancelModalOpen(false); setCancelReason('') }} confirmLoading={cancelling}>
+      <Modal title={t('execution.cancelExecution')} open={cancelModalOpen} onOk={handleCancelExecution} onCancel={() => { setCancelModalOpen(false); setCancelReason('') }} confirmLoading={cancelling} okText={t('common.confirm')} cancelText={t('common.cancel')}>
         <Input.TextArea placeholder={t('execution.cancelReasonPlaceholder')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={3} />
       </Modal>
 
@@ -565,6 +565,7 @@ export default function ExecutionPage() {
         onCancel={() => { setPauseModalOpen(false); setPauseReason('') }}
         confirmLoading={pausing}
         okText={t('execution.pause')}
+        cancelText={t('common.cancel')}
       >
         <p>{t('execution.pauseConfirm')}</p>
         <Input.TextArea placeholder={t('execution.pauseReasonPlaceholder')} value={pauseReason} onChange={(e) => setPauseReason(e.target.value)} rows={3} />
@@ -577,6 +578,7 @@ export default function ExecutionPage() {
         onCancel={() => { setResumeModalOpen(false); setResumeDataInput('') }}
         confirmLoading={resuming}
         okText={t('execution.resume')}
+        cancelText={t('common.cancel')}
       >
         {executionData?.pauseReason && (
           <p><Text strong>{t('execution.pauseReason')}:</Text> {executionData.pauseReason}</p>

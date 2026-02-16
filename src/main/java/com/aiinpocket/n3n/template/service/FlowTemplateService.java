@@ -279,6 +279,7 @@ public class FlowTemplateService {
             .map(TemplateResponse::summary);
     }
 
+    @Transactional(readOnly = true)
     public Page<TemplateResponse> listTemplatesByCategory(String category, Pageable pageable) {
         return templateRepository.findByCategoryOrderByUsageCountDesc(category, pageable)
             .map(TemplateResponse::summary);

@@ -116,6 +116,7 @@ public class FlowShareService {
     /**
      * 取得流程的所有分享記錄
      */
+    @Transactional(readOnly = true)
     public List<FlowShareResponse> getFlowShares(UUID flowId, UUID userId) {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId)
             .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
@@ -201,6 +202,7 @@ public class FlowShareService {
     /**
      * 取得用戶被分享的流程
      */
+    @Transactional(readOnly = true)
     public List<FlowShareResponse> getSharedWithMe(UUID userId) {
         return enrichShareResponses(flowShareRepository.findByUserId(userId));
     }
@@ -208,6 +210,7 @@ public class FlowShareService {
     /**
      * 檢查用戶是否有流程的存取權
      */
+    @Transactional(readOnly = true)
     public boolean hasAccess(UUID flowId, UUID userId) {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
         if (flow == null) {
@@ -231,6 +234,7 @@ public class FlowShareService {
     /**
      * 檢查用戶是否有編輯權限
      */
+    @Transactional(readOnly = true)
     public boolean hasEditAccess(UUID flowId, UUID userId) {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
         if (flow == null) {
@@ -249,6 +253,7 @@ public class FlowShareService {
     /**
      * 取得用戶對流程的權限等級: owner, admin, edit, view, 或 null
      */
+    @Transactional(readOnly = true)
     public String getUserPermission(UUID flowId, UUID userId) {
         Flow flow = flowRepository.findByIdAndIsDeletedFalse(flowId).orElse(null);
         if (flow == null) {

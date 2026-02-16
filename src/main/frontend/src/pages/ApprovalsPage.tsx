@@ -248,7 +248,7 @@ export default function ApprovalsPage() {
             columns={columns}
             dataSource={filteredApprovals}
             rowKey="id"
-            pagination={{ pageSize: 20, showTotal: (total) => t('common.total', { count: total }) }}
+            pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => t('common.total', { count: total }) }}
             scroll={{ x: 'max-content' }}
             size="small"
           />

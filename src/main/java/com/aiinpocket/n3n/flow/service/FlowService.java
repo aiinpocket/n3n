@@ -308,12 +308,14 @@ public class FlowService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public FlowVersionResponse getVersion(UUID flowId, String version) {
         FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
         return FlowVersionResponse.from(v);
     }
 
+    @Transactional(readOnly = true)
     public FlowVersionResponse getPublishedVersion(UUID flowId) {
         FlowVersion v = flowVersionRepository.findByFlowIdAndStatus(flowId, Status.FlowVersion.PUBLISHED)
             .orElseThrow(() -> new ResourceNotFoundException("No published version for flow: " + flowId));
@@ -385,6 +387,7 @@ public class FlowService {
         return FlowVersionResponse.from(v);
     }
 
+    @Transactional(readOnly = true)
     public FlowValidationResponse validateFlow(UUID flowId, String version) {
         FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
@@ -402,6 +405,7 @@ public class FlowService {
             .build();
     }
 
+    @Transactional(readOnly = true)
     public FlowValidationResponse validateDefinition(Map<String, Object> definition) {
         DagParser.ParseResult result = dagParser.parse(definition);
 
@@ -421,6 +425,7 @@ public class FlowService {
      * Used by the flow editor for input mapping.
      */
     @SuppressWarnings("unchecked")
+    @Transactional(readOnly = true)
     public List<UpstreamNodeOutput> getUpstreamOutputs(UUID flowId, String version, String nodeId) {
         FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));
@@ -616,6 +621,7 @@ public class FlowService {
     /**
      * Get all pinned data for a flow version.
      */
+    @Transactional(readOnly = true)
     public Map<String, Object> getPinnedData(UUID flowId, String version) {
         FlowVersion v = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + version));

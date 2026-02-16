@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -352,14 +353,17 @@ public class ActivityService {
         logStructured("ADMIN_ACTION", adminUserId, Map.of("action", action, "targetType", targetType));
     }
 
+    @Transactional(readOnly = true)
     public Page<UserActivity> getUserActivities(UUID userId, Pageable pageable) {
         return activityRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<UserActivity> getResourceActivities(String resourceType, UUID resourceId, Pageable pageable) {
         return activityRepository.findByResourceTypeAndResourceIdOrderByCreatedAtDesc(resourceType, resourceId, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<UserActivity> getUserResourceActivities(UUID userId, String resourceType, UUID resourceId, Pageable pageable) {
         return activityRepository.findByUserIdAndResourceTypeAndResourceIdOrderByCreatedAtDesc(userId, resourceType, resourceId, pageable);
     }
@@ -448,6 +452,7 @@ public class ActivityService {
     /**
      * Get all activities (for admin).
      */
+    @Transactional(readOnly = true)
     public Page<UserActivity> getAllActivities(Pageable pageable) {
         return activityRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
@@ -455,6 +460,7 @@ public class ActivityService {
     /**
      * Get activities by type.
      */
+    @Transactional(readOnly = true)
     public Page<UserActivity> getActivitiesByType(String activityType, Pageable pageable) {
         return activityRepository.findByActivityTypeOrderByCreatedAtDesc(activityType, pageable);
     }
@@ -462,6 +468,7 @@ public class ActivityService {
     /**
      * Get activities by user and type.
      */
+    @Transactional(readOnly = true)
     public Page<UserActivity> getUserActivitiesByType(UUID userId, String activityType, Pageable pageable) {
         return activityRepository.findByUserIdAndActivityTypeOrderByCreatedAtDesc(userId, activityType, pageable);
     }

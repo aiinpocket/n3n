@@ -69,6 +69,7 @@ public class FormService {
     /**
      * Get form trigger by token (for public form access).
      */
+    @Transactional(readOnly = true)
     public FormTrigger getFormTriggerByToken(String token) {
         return formTriggerRepository.findByFormToken(token)
             .orElseThrow(() -> new ResourceNotFoundException("Form not found"));
@@ -77,6 +78,7 @@ public class FormService {
     /**
      * Get form trigger by ID.
      */
+    @Transactional(readOnly = true)
     public FormTrigger getFormTrigger(UUID triggerId) {
         return formTriggerRepository.findById(triggerId)
             .orElseThrow(() -> new ResourceNotFoundException("Form trigger not found: " + triggerId));
@@ -85,6 +87,7 @@ public class FormService {
     /**
      * Get form trigger by flow and node.
      */
+    @Transactional(readOnly = true)
     public Optional<FormTrigger> getFormTriggerByFlowAndNode(UUID flowId, String nodeId) {
         return formTriggerRepository.findByFlowIdAndNodeId(flowId, nodeId);
     }
@@ -92,6 +95,7 @@ public class FormService {
     /**
      * Get all form triggers for a flow.
      */
+    @Transactional(readOnly = true)
     public List<FormTrigger> getFormTriggersForFlow(UUID flowId) {
         return formTriggerRepository.findByFlowId(flowId);
     }
@@ -153,6 +157,7 @@ public class FormService {
     /**
      * Get form submission for execution and node.
      */
+    @Transactional(readOnly = true)
     public Optional<FormSubmission> getFormSubmission(UUID executionId, String nodeId) {
         return formSubmissionRepository.findByExecutionIdAndNodeId(executionId, nodeId);
     }
@@ -160,6 +165,7 @@ public class FormService {
     /**
      * Get all submissions for an execution.
      */
+    @Transactional(readOnly = true)
     public List<FormSubmission> getFormSubmissionsForExecution(UUID executionId) {
         return formSubmissionRepository.findByExecutionId(executionId);
     }
@@ -167,6 +173,7 @@ public class FormService {
     /**
      * Check if form has been submitted.
      */
+    @Transactional(readOnly = true)
     public boolean hasFormBeenSubmitted(UUID executionId, String nodeId) {
         return formSubmissionRepository.existsByExecutionIdAndNodeId(executionId, nodeId);
     }
