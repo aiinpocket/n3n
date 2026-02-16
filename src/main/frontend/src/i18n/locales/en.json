@@ -2119,7 +2119,11 @@
     },
     "aiChain": {
       "label": "AI Chain",
-      "description": "RAG, Map-Reduce, summary and other AI processing pipelines"
+      "description": "LLM Chain, Conversation Chain, Sequential Chain and Router Chain"
+    },
+    "aiPipeline": {
+      "label": "AI Pipeline",
+      "description": "RAG, Map-Reduce, summarization and custom processing pipelines"
     },
     "aiMemory": {
       "label": "AI Memory",

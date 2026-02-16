@@ -40,7 +40,7 @@ class AiChainNodeHandlerTest {
 
         @Test
         void getType_returnsAiChain() {
-            assertThat(handler.getType()).isEqualTo("aiChain");
+            assertThat(handler.getType()).isEqualTo("aiPipeline");
         }
 
         @Test

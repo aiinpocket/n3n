@@ -2119,7 +2119,11 @@
     },
     "aiChain": {
       "label": "AI 處理鏈",
-      "description": "RAG、Map-Reduce、摘要等 AI 處理流程"
+      "description": "LLM 鏈、對話鏈、順序鏈和路由鏈"
+    },
+    "aiPipeline": {
+      "label": "AI 流水線",
+      "description": "RAG、Map-Reduce、摘要和自訂處理流水線"
     },
     "aiMemory": {
       "label": "AI 記憶",

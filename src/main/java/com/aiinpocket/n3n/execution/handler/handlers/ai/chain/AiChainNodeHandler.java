@@ -45,7 +45,7 @@ public class AiChainNodeHandler extends AbstractAiNodeHandler {
 
     @Override
     public String getType() {
-        return "aiChain";
+        return "aiPipeline";
     }
 
     @Override

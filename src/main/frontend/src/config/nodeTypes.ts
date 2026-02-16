@@ -217,6 +217,14 @@ export const nodeTypes: NodeTypeConfig[] = [
     category: 'ai',
   },
   {
+    value: 'aiPipeline',
+    label: 'nodeTypes.aiPipeline.label',
+    color: '#8B5CF6',
+    icon: 'ApartmentOutlined',
+    description: 'nodeTypes.aiPipeline.description',
+    category: 'ai',
+  },
+  {
     value: 'aiMemory',
     label: 'nodeTypes.aiMemory.label',
     color: '#8B5CF6',

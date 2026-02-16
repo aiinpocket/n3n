@@ -2119,7 +2119,11 @@
     },
     "aiChain": {
       "label": "AI処理チェーン",
-      "description": "RAG、Map-Reduce、要約などのAI処理パイプライン"
+      "description": "LLMチェーン、会話チェーン、シーケンシャルチェーン、ルーターチェーン"
+    },
+    "aiPipeline": {
+      "label": "AIパイプライン",
+      "description": "RAG、Map-Reduce、要約、カスタム処理パイプライン"
     },
     "aiMemory": {
       "label": "AIメモリ",

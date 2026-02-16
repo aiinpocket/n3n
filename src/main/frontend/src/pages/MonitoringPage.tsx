@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Card, Row, Col, Statistic, Progress, Badge, Button, Switch, Space, Typography } from 'antd'
+import { Alert, Card, Row, Col, Statistic, Progress, Badge, Button, Switch, Space, Spin, Typography } from 'antd'
 import {
   ReloadOutlined,
   CheckCircleOutlined,
@@ -99,6 +99,7 @@ export default function MonitoringPage() {
             action={<Button size="small" onClick={fetchAll}>{t('common.retry')}</Button>}
           />
         )}
+        <Spin spinning={loading && !systemMetrics}>
         {/* JVM Metrics */}
         <Card type="inner" title={t('monitoring.jvm.title')} style={{ marginBottom: 16 }}>
           <Row gutter={[24, 16]}>
@@ -230,6 +231,7 @@ export default function MonitoringPage() {
             </Col>
           </Row>
         </Card>
+        </Spin>
       </Card>
     </div>
   )
