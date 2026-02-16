@@ -1093,36 +1093,40 @@ public class ExecutionService {
             return;
         }
 
-        Instant cutoff = Instant.now().minusMillis(executionTimeoutMs);
-        List<Execution> stuckExecutions = executionRepository.findByStatusAndStartedAtBefore("running", cutoff);
+        try {
+            Instant cutoff = Instant.now().minusMillis(executionTimeoutMs);
+            List<Execution> stuckExecutions = executionRepository.findTop1000ByStatusAndStartedAtBefore("running", cutoff);
 
-        for (Execution execution : stuckExecutions) {
-            log.warn("EXECUTION_TIMEOUT id={} startedAt={} timeoutMs={}",
-                    execution.getId(), execution.getStartedAt(), executionTimeoutMs);
+            for (Execution execution : stuckExecutions) {
+                log.warn("EXECUTION_TIMEOUT id={} startedAt={} timeoutMs={}",
+                        execution.getId(), execution.getStartedAt(), executionTimeoutMs);
 
-            execution.setStatus("failed");
-            execution.setCompletedAt(Instant.now());
-            if (execution.getStartedAt() != null) {
-                execution.setDurationMs((int) (Instant.now().toEpochMilli() - execution.getStartedAt().toEpochMilli()));
+                execution.setStatus("failed");
+                execution.setCompletedAt(Instant.now());
+                if (execution.getStartedAt() != null) {
+                    execution.setDurationMs((int) (Instant.now().toEpochMilli() - execution.getStartedAt().toEpochMilli()));
+                }
+                executionRepository.save(execution);
+
+                try {
+                    stateManager.updateExecutionStatus(execution.getId(), "failed");
+                } catch (Exception e) {
+                    log.debug("Failed to update state manager for timed-out execution: {}", e.getMessage());
+                }
+
+                try {
+                    notificationService.notifyExecutionFailed(execution.getId(),
+                            "Execution timed out after " + executionTimeoutMs + "ms");
+                } catch (Exception e) {
+                    log.debug("Failed to send timeout notification: {}", e.getMessage());
+                }
             }
-            executionRepository.save(execution);
 
-            try {
-                stateManager.updateExecutionStatus(execution.getId(), "failed");
-            } catch (Exception e) {
-                log.debug("Failed to update state manager for timed-out execution: {}", e.getMessage());
+            if (!stuckExecutions.isEmpty()) {
+                log.info("EXECUTION_TIMEOUT_MONITOR cancelled={}", stuckExecutions.size());
             }
-
-            try {
-                notificationService.notifyExecutionFailed(execution.getId(),
-                        "Execution timed out after " + executionTimeoutMs + "ms");
-            } catch (Exception e) {
-                log.debug("Failed to send timeout notification: {}", e.getMessage());
-            }
-        }
-
-        if (!stuckExecutions.isEmpty()) {
-            log.info("EXECUTION_TIMEOUT_MONITOR cancelled={}", stuckExecutions.size());
+        } catch (Exception e) {
+            log.error("Stuck execution monitor failed", e);
         }
     }
 }

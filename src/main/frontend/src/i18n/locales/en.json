@@ -1039,7 +1039,6 @@
     "deleteConfirm": "Are you sure you want to delete this Webhook?",
     "deleteWarning": "After deletion, external systems will no longer be able to trigger flows via this Webhook.",
     "deleteSuccess": "Webhook deleted",
-    "flow": "Flow",
     "name": "Name",
     "nameRequired": "Please enter a name",
     "namePlaceholder": "e.g., GitHub Push Trigger",

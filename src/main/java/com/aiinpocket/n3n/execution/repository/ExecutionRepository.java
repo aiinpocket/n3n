@@ -88,8 +88,9 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
 
     /**
      * Find stuck executions: running but started before cutoff (for timeout monitor).
+     * Limited to 1000 to prevent unbounded query in pathological cases.
      */
-    List<Execution> findByStatusAndStartedAtBefore(String status, Instant before);
+    List<Execution> findTop1000ByStatusAndStartedAtBefore(String status, Instant before);
 
     /**
      * Check if an execution exists and is owned by the given user.

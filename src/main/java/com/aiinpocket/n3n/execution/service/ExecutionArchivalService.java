@@ -58,6 +58,8 @@ public class ExecutionArchivalService {
         }
         try {
             doArchiveOldExecutions();
+        } catch (Exception e) {
+            log.error("Execution archival job failed", e);
         } finally {
             archivalRunning.set(false);
         }

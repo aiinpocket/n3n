@@ -1039,7 +1039,6 @@
     "deleteConfirm": "確定要刪除此 Webhook？",
     "deleteWarning": "刪除後，外部系統將無法透過此 Webhook 觸發流程。",
     "deleteSuccess": "Webhook 已刪除",
-    "flow": "流程",
     "name": "名稱",
     "nameRequired": "請輸入名稱",
     "namePlaceholder": "例如：GitHub 推送觸發",

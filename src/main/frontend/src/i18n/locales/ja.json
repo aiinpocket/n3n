@@ -1039,7 +1039,6 @@
     "deleteConfirm": "このWebhookを削除してもよろしいですか？",
     "deleteWarning": "削除後、外部システムはこのWebhookでフローをトリガーできなくなります。",
     "deleteSuccess": "Webhookを削除しました",
-    "flow": "フロー",
     "name": "名前",
     "nameRequired": "名前を入力してください",
     "namePlaceholder": "例：GitHubプッシュトリガー",
