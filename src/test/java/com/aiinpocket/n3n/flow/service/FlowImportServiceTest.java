@@ -292,7 +292,7 @@ class FlowImportServiceTest extends BaseServiceTest {
                     .id(credId).name("Existing API Key").type("api_key")
                     .ownerId(userId).encryptedData(new byte[0]).encryptionIv(new byte[0])
                     .build();
-            when(credentialRepository.findByOwnerIdAndType(userId, "api_key"))
+            when(credentialRepository.findByOwnerIdAndTypeIn(eq(userId), any()))
                     .thenReturn(List.of(cred));
             when(dagParser.parse(any())).thenReturn(createValidParseResult());
 

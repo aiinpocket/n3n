@@ -203,12 +203,14 @@ public class FormService {
     @Transactional
     public int expireOldFormTriggers() {
         List<FormTrigger> expired = formTriggerRepository.findExpiredTriggers(Instant.now());
+        if (expired.isEmpty()) return 0;
+        Instant now = Instant.now();
         for (FormTrigger trigger : expired) {
             trigger.setIsActive(false);
-            trigger.setUpdatedAt(Instant.now());
-            formTriggerRepository.save(trigger);
-            log.info("Expired form trigger: id={}", trigger.getId());
+            trigger.setUpdatedAt(now);
         }
+        formTriggerRepository.saveAll(expired);
+        expired.forEach(t -> log.info("Expired form trigger: id={}", t.getId()));
         return expired.size();
     }
 

@@ -152,7 +152,15 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
                 .rejectedCount(0)
                 .build();
 
-        when(approvalRepository.findById(approvalId)).thenReturn(Optional.of(approval));
+        // First findById: initial read. Second findById: re-read after atomic increment.
+        ExecutionApproval afterIncrement = ExecutionApproval.builder()
+                .id(approvalId).executionId(executionId).nodeId("node1")
+                .status("pending").approvalMode("all").requiredApprovers(3)
+                .approvedCount(1).rejectedCount(0).build();
+
+        when(approvalRepository.findById(approvalId))
+                .thenReturn(Optional.of(approval))
+                .thenReturn(Optional.of(afterIncrement));
         when(actionRepository.existsByApprovalIdAndUserId(approvalId, userId)).thenReturn(false);
         when(approvalRepository.save(any(ExecutionApproval.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -163,6 +171,8 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
         assertThat(result.getApprovedCount()).isEqualTo(1);
         assertThat(result.getRejectedCount()).isZero();
         assertThat(result.getStatus()).isEqualTo("pending"); // still pending, need 3 approvers in "all" mode
+
+        verify(approvalRepository).incrementApprovedCount(approvalId);
 
         ArgumentCaptor<ApprovalAction> actionCaptor = ArgumentCaptor.forClass(ApprovalAction.class);
         verify(actionRepository).save(actionCaptor.capture());
@@ -193,7 +203,14 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
                 .rejectedCount(0)
                 .build();
 
-        when(approvalRepository.findById(approvalId)).thenReturn(Optional.of(approval));
+        ExecutionApproval afterIncrement = ExecutionApproval.builder()
+                .id(approvalId).executionId(executionId).nodeId("node1")
+                .status("pending").approvalMode("all").requiredApprovers(3)
+                .approvedCount(0).rejectedCount(1).build();
+
+        when(approvalRepository.findById(approvalId))
+                .thenReturn(Optional.of(approval))
+                .thenReturn(Optional.of(afterIncrement));
         when(actionRepository.existsByApprovalIdAndUserId(approvalId, userId)).thenReturn(false);
         when(approvalRepository.save(any(ExecutionApproval.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -207,6 +224,7 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
         assertThat(result.getStatus()).isEqualTo("rejected");
         assertThat(result.getResolvedAt()).isNotNull();
 
+        verify(approvalRepository).incrementRejectedCount(approvalId);
         verify(notificationService).notifyApprovalResolved(executionId, approvalId, "rejected");
     }
 
@@ -228,7 +246,14 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
                 .rejectedCount(0)
                 .build();
 
-        when(approvalRepository.findById(approvalId)).thenReturn(Optional.of(approval));
+        ExecutionApproval afterIncrement = ExecutionApproval.builder()
+                .id(approvalId).executionId(executionId).nodeId("node1")
+                .status("pending").approvalMode("any").requiredApprovers(1)
+                .approvedCount(1).rejectedCount(0).build();
+
+        when(approvalRepository.findById(approvalId))
+                .thenReturn(Optional.of(approval))
+                .thenReturn(Optional.of(afterIncrement));
         when(actionRepository.existsByApprovalIdAndUserId(approvalId, userId)).thenReturn(false);
         when(approvalRepository.save(any(ExecutionApproval.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -240,6 +265,7 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
         assertThat(result.getStatus()).isEqualTo("approved");
         assertThat(result.getResolvedAt()).isNotNull();
 
+        verify(approvalRepository).incrementApprovedCount(approvalId);
         verify(notificationService).notifyApprovalResolved(executionId, approvalId, "approved");
     }
 
@@ -262,7 +288,14 @@ class ExecutionApprovalServiceTest extends BaseServiceTest {
                 .rejectedCount(0)
                 .build();
 
-        when(approvalRepository.findById(approvalId)).thenReturn(Optional.of(approval));
+        ExecutionApproval afterIncrement = ExecutionApproval.builder()
+                .id(approvalId).executionId(executionId).nodeId("node1")
+                .status("pending").approvalMode("majority").requiredApprovers(4)
+                .approvedCount(3).rejectedCount(0).build();
+
+        when(approvalRepository.findById(approvalId))
+                .thenReturn(Optional.of(approval))
+                .thenReturn(Optional.of(afterIncrement));
         when(actionRepository.existsByApprovalIdAndUserId(approvalId, userId)).thenReturn(false);
         when(approvalRepository.save(any(ExecutionApproval.class))).thenAnswer(inv -> inv.getArgument(0));
 

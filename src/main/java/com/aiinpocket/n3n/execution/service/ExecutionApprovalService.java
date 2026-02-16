@@ -121,12 +121,16 @@ public class ExecutionApprovalService {
             throw new IllegalStateException("User has already submitted an action for this approval");
         }
 
-        // Update counts
+        // Atomic DB-level count increment to prevent lost updates under concurrent voting
         if ("approve".equals(action)) {
-            approval.setApprovedCount(approval.getApprovedCount() + 1);
+            approvalRepository.incrementApprovedCount(approvalId);
         } else if ("reject".equals(action)) {
-            approval.setRejectedCount(approval.getRejectedCount() + 1);
+            approvalRepository.incrementRejectedCount(approvalId);
         }
+
+        // Re-read approval with updated counts from DB
+        approval = approvalRepository.findById(approvalId)
+            .orElseThrow(() -> new ResourceNotFoundException("Approval not found: " + approvalId));
 
         // Send notification
         notificationService.notifyApprovalAction(approval.getExecutionId(), approvalId, action, userId);

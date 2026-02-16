@@ -271,15 +271,22 @@ public class FlowImportService {
     private List<FlowImportPreviewResponse.CredentialRequirement> analyzeCredentials(
             List<CredentialPlaceholder> placeholders, UUID userId) {
 
-        if (placeholders == null) {
+        if (placeholders == null || placeholders.isEmpty()) {
             return List.of();
         }
 
+        // Batch load all credentials of required types in one query (avoids N+1)
+        Set<String> requiredTypes = placeholders.stream()
+                .map(CredentialPlaceholder::getCredentialType)
+                .collect(Collectors.toSet());
+        Map<String, List<Credential>> credsByType = credentialRepository
+                .findByOwnerIdAndTypeIn(userId, requiredTypes)
+                .stream()
+                .collect(Collectors.groupingBy(Credential::getType));
+
         return placeholders.stream()
                 .map(ph -> {
-                    // 查找相容的憑證
-                    List<Credential> compatibleCreds = credentialRepository
-                            .findByOwnerIdAndType(userId, ph.getCredentialType());
+                    List<Credential> compatibleCreds = credsByType.getOrDefault(ph.getCredentialType(), List.of());
 
                     return FlowImportPreviewResponse.CredentialRequirement.builder()
                             .nodeId(ph.getNodeId())

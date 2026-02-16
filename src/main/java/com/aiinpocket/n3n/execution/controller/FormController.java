@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.controller;
 
+import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
 import com.aiinpocket.n3n.execution.dto.ExecutionResponse;
 import com.aiinpocket.n3n.execution.entity.FormSubmission;
 import com.aiinpocket.n3n.execution.entity.FormTrigger;
@@ -67,9 +68,12 @@ public class FormController {
             // Return form config for rendering
             return ResponseEntity.ok(FormDefinitionResponse.from(trigger));
 
-        } catch (Exception e) {
-            log.error("Error fetching form: {}", e.getClass().getSimpleName());
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error fetching form: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "An error occurred while loading the form"));
         }
     }
 
@@ -140,9 +144,14 @@ public class FormController {
                 "redirectUrl", redirectUrl != null ? redirectUrl : ""
             ));
 
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.GONE)
+                .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            log.error("Error submitting form: {}", e.getClass().getSimpleName());
-            return ResponseEntity.badRequest()
+            log.error("Error submitting form: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to submit form. Please try again."));
         }
     }
@@ -192,9 +201,14 @@ public class FormController {
                 "status", execution.getStatus()
             ));
 
-        } catch (Exception e) {
-            log.error("Error submitting execution form: {}", e.getClass().getSimpleName());
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
+                .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error submitting execution form: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to submit form. Please try again."));
         }
     }

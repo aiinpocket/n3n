@@ -55,4 +55,18 @@ public interface ExecutionApprovalRepository extends JpaRepository<ExecutionAppr
      * Check if an approval exists for execution and node
      */
     boolean existsByExecutionIdAndNodeId(UUID executionId, String nodeId);
+
+    /**
+     * Atomically increment approved count. Prevents lost updates under concurrent voting.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE ExecutionApproval a SET a.approvedCount = a.approvedCount + 1 WHERE a.id = :id")
+    void incrementApprovedCount(@Param("id") UUID id);
+
+    /**
+     * Atomically increment rejected count. Prevents lost updates under concurrent voting.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE ExecutionApproval a SET a.rejectedCount = a.rejectedCount + 1 WHERE a.id = :id")
+    void incrementRejectedCount(@Param("id") UUID id);
 }

@@ -125,7 +125,8 @@ class FormControllerTest {
 
     @Test
     void getFormByToken_shouldReturn404WhenNotFound() {
-        when(formService.getFormTriggerByToken("invalid-token")).thenThrow(new RuntimeException("Not found"));
+        when(formService.getFormTriggerByToken("invalid-token"))
+            .thenThrow(new com.aiinpocket.n3n.common.exception.ResourceNotFoundException("Not found"));
 
         var response = formController.getFormByToken("invalid-token");
 
@@ -183,13 +184,13 @@ class FormControllerTest {
     }
 
     @Test
-    void submitForm_shouldReturnBadRequestOnException() {
+    void submitForm_shouldReturnInternalServerErrorOnException() {
         HttpServletRequest httpRequest = mockRequest();
         when(formService.getFormTriggerByToken("test-token")).thenThrow(new RuntimeException("Error"));
 
         var response = formController.submitForm("test-token", Map.of("key", "value"), httpRequest);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     // ===== POST /execution/{executionId}/submit =====
@@ -217,7 +218,7 @@ class FormControllerTest {
     }
 
     @Test
-    void submitExecutionForm_shouldReturnBadRequestOnError() {
+    void submitExecutionForm_shouldReturnInternalServerErrorOnError() {
         UUID userId = UUID.randomUUID();
         UUID executionId = UUID.randomUUID();
         HttpServletRequest httpRequest = mockRequest();
@@ -228,7 +229,7 @@ class FormControllerTest {
         var request = new FormController.FormSubmissionRequest("node-1", Map.of("field1", "value1"));
         var response = formController.submitExecutionForm(executionId, request, testUser(userId), httpRequest);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     // ===== GET /flow/{flowId}/url =====

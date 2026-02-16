@@ -527,7 +527,6 @@ class FormServiceTest extends BaseServiceTest {
 
         when(formTriggerRepository.findExpiredTriggers(any(Instant.class)))
                 .thenReturn(List.of(expired1, expired2, expired3));
-        when(formTriggerRepository.save(any(FormTrigger.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // When
         int count = formService.expireOldFormTriggers();
@@ -541,7 +540,7 @@ class FormServiceTest extends BaseServiceTest {
         assertThat(expired2.getUpdatedAt()).isNotNull();
         assertThat(expired3.getUpdatedAt()).isNotNull();
 
-        verify(formTriggerRepository, times(3)).save(any(FormTrigger.class));
+        verify(formTriggerRepository).saveAll(anyList());
     }
 
     @Test

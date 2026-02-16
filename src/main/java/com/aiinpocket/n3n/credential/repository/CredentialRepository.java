@@ -17,6 +17,8 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
 
     List<Credential> findByOwnerIdAndType(UUID ownerId, String type);
 
+    List<Credential> findByOwnerIdAndTypeIn(UUID ownerId, java.util.Collection<String> types);
+
     @Query("""
         SELECT c FROM Credential c
         WHERE c.ownerId = :userId
