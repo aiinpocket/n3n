@@ -46,6 +46,14 @@ class DashboardControllerTest {
                 .build();
     }
 
+    /**
+     * Helper: builds the Object[] that getUserDashboardStats returns.
+     * Order: [total, completed, failed, running]
+     */
+    private Object[] dashboardStats(long total, long completed, long failed, long running) {
+        return new Object[]{total, completed, failed, running};
+    }
+
     // ===== getStats (GET /api/dashboard/stats) =====
 
     @Test
@@ -54,10 +62,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(10L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(50L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(35L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(10L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(5L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(50L, 35L, 10L, 5L));
 
         var result = dashboardController.getStats(user);
 
@@ -76,10 +81,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(0L, 0L, 0L, 0L));
 
         var result = dashboardController.getStats(user);
 
@@ -98,10 +100,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(25L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(0L, 0L, 0L, 0L));
 
         var result = dashboardController.getStats(user);
 
@@ -109,9 +108,6 @@ class DashboardControllerTest {
         assertThat(result.getBody()).isNotNull();
         assertThat(result.getBody().getTotalFlows()).isEqualTo(25L);
         assertThat(result.getBody().getTotalExecutions()).isZero();
-        assertThat(result.getBody().getSuccessfulExecutions()).isZero();
-        assertThat(result.getBody().getFailedExecutions()).isZero();
-        assertThat(result.getBody().getRunningExecutions()).isZero();
     }
 
     @Test
@@ -120,10 +116,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(100L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(80L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(15L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(5L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(100L, 80L, 15L, 5L));
 
         var result = dashboardController.getStats(user);
 
@@ -142,10 +135,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(5L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(200L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(200L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(200L, 200L, 0L, 0L));
 
         var result = dashboardController.getStats(user);
 
@@ -163,10 +153,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(3L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(50L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(50L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(50L, 0L, 50L, 0L));
 
         var result = dashboardController.getStats(user);
 
@@ -184,10 +171,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(2L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(10L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(10L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(10L, 0L, 0L, 10L));
 
         var result = dashboardController.getStats(user);
 
@@ -205,10 +189,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(999_999L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(10_000_000L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(9_500_000L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(450_000L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(50_000L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(10_000_000L, 9_500_000L, 450_000L, 50_000L));
 
         var result = dashboardController.getStats(user);
 
@@ -229,18 +210,12 @@ class DashboardControllerTest {
         var user = testUserWithId(userId);
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(1L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(1L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(1L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(1L, 1L, 0L, 0L));
 
         dashboardController.getStats(user);
 
         verify(flowRepository).countByCreatedByAndIsDeletedFalse(eq(userId));
-        verify(executionRepository).countByTriggeredBy(eq(userId));
-        verify(executionRepository).countByTriggeredByAndStatus(eq(userId), eq("completed"));
-        verify(executionRepository).countByTriggeredByAndStatus(eq(userId), eq("failed"));
-        verify(executionRepository).countByTriggeredByAndStatus(eq(userId), eq("running"));
+        verify(executionRepository).getUserDashboardStats(eq(userId));
     }
 
     @Test
@@ -251,38 +226,31 @@ class DashboardControllerTest {
         var user2 = testUserWithId(userId2);
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(any())).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(any())).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(any(), any())).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(any())).thenReturn(dashboardStats(0L, 0L, 0L, 0L));
 
         dashboardController.getStats(user1);
         dashboardController.getStats(user2);
 
         verify(flowRepository).countByCreatedByAndIsDeletedFalse(userId1);
         verify(flowRepository).countByCreatedByAndIsDeletedFalse(userId2);
-        verify(executionRepository).countByTriggeredBy(userId1);
-        verify(executionRepository).countByTriggeredBy(userId2);
+        verify(executionRepository).getUserDashboardStats(userId1);
+        verify(executionRepository).getUserDashboardStats(userId2);
     }
 
     // ===== Repository interaction verification =====
 
     @Test
-    void getStats_callsAllRepositoryMethods() {
+    void getStats_callsRepositoryMethodsOnce() {
         var user = testUser();
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(0L, 0L, 0L, 0L));
 
         dashboardController.getStats(user);
 
         verify(flowRepository, times(1)).countByCreatedByAndIsDeletedFalse(userId);
-        verify(executionRepository, times(1)).countByTriggeredBy(userId);
-        verify(executionRepository, times(1)).countByTriggeredByAndStatus(userId, "completed");
-        verify(executionRepository, times(1)).countByTriggeredByAndStatus(userId, "failed");
-        verify(executionRepository, times(1)).countByTriggeredByAndStatus(userId, "running");
+        verify(executionRepository, times(1)).getUserDashboardStats(userId);
         verifyNoMoreInteractions(flowRepository);
         verifyNoMoreInteractions(executionRepository);
     }
@@ -308,27 +276,12 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(5L);
-        when(executionRepository.countByTriggeredBy(userId))
+        when(executionRepository.getUserDashboardStats(userId))
                 .thenThrow(new RuntimeException("Query timeout"));
 
         assertThatThrownBy(() -> dashboardController.getStats(user))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Query timeout");
-    }
-
-    @Test
-    void getStats_statusCountThrowsException_propagatesException() {
-        var user = testUser();
-        UUID userId = UUID.fromString(user.getUsername());
-
-        when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(5L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(10L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed"))
-                .thenThrow(new RuntimeException("Unexpected error in status count"));
-
-        assertThatThrownBy(() -> dashboardController.getStats(user))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Unexpected error in status count");
     }
 
     // ===== Response structure verification =====
@@ -339,10 +292,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(7L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(42L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(30L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(8L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(4L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(42L, 30L, 8L, 4L));
 
         var result = dashboardController.getStats(user);
 
@@ -364,37 +314,12 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(0L, 0L, 0L, 0L));
 
         var result = dashboardController.getStats(user);
 
         assertThat(result.getBody()).isNotNull();
         assertThat(result.getBody()).isInstanceOf(DashboardStatsResponse.class);
-    }
-
-    // ===== Status string verification =====
-
-    @Test
-    void getStats_usesCorrectStatusStrings() {
-        var user = testUser();
-        UUID userId = UUID.fromString(user.getUsername());
-
-        when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(eq(userId), eq("completed"))).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(eq(userId), eq("failed"))).thenReturn(0L);
-        when(executionRepository.countByTriggeredByAndStatus(eq(userId), eq("running"))).thenReturn(0L);
-
-        dashboardController.getStats(user);
-
-        verify(executionRepository).countByTriggeredByAndStatus(userId, "completed");
-        verify(executionRepository).countByTriggeredByAndStatus(userId, "failed");
-        verify(executionRepository).countByTriggeredByAndStatus(userId, "running");
-        verify(executionRepository, never()).countByTriggeredByAndStatus(userId, "pending");
-        verify(executionRepository, never()).countByTriggeredByAndStatus(userId, "cancelled");
     }
 
     // ===== Mixed scenario =====
@@ -405,10 +330,7 @@ class DashboardControllerTest {
         UUID userId = UUID.fromString(user.getUsername());
 
         when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(15L);
-        when(executionRepository.countByTriggeredBy(userId)).thenReturn(100L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "completed")).thenReturn(60L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "failed")).thenReturn(25L);
-        when(executionRepository.countByTriggeredByAndStatus(userId, "running")).thenReturn(15L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(dashboardStats(100L, 60L, 25L, 15L));
 
         var result = dashboardController.getStats(user);
 
@@ -419,5 +341,25 @@ class DashboardControllerTest {
         // Verify breakdown sums to total (in this case: 60 + 25 + 15 = 100)
         assertThat(stats.getSuccessfulExecutions() + stats.getFailedExecutions() + stats.getRunningExecutions())
                 .isEqualTo(stats.getTotalExecutions());
+    }
+
+    // ===== Null-safety =====
+
+    @Test
+    void getStats_nullsInAggregatedResult_returnsZeros() {
+        var user = testUser();
+        UUID userId = UUID.fromString(user.getUsername());
+
+        when(flowRepository.countByCreatedByAndIsDeletedFalse(userId)).thenReturn(0L);
+        when(executionRepository.getUserDashboardStats(userId)).thenReturn(new Object[]{null, null, null, null});
+
+        var result = dashboardController.getStats(user);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isNotNull();
+        assertThat(result.getBody().getTotalExecutions()).isZero();
+        assertThat(result.getBody().getSuccessfulExecutions()).isZero();
+        assertThat(result.getBody().getFailedExecutions()).isZero();
+        assertThat(result.getBody().getRunningExecutions()).isZero();
     }
 }

@@ -18,24 +18,6 @@ class FlowRepositoryTest extends BaseRepositoryTest {
     private FlowRepository flowRepository;
 
     @Test
-    void findByIsDeletedFalse_activeFlows_returnsOnlyActive() {
-        // Given
-        UUID userId = UUID.randomUUID();
-        Flow activeFlow = createFlow("Active Flow", userId, false);
-        Flow deletedFlow = createFlow("Deleted Flow", userId, true);
-        entityManager.persist(activeFlow);
-        entityManager.persist(deletedFlow);
-        entityManager.flush();
-
-        // When
-        Page<Flow> result = flowRepository.findByIsDeletedFalse(PageRequest.of(0, 10));
-
-        // Then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getName()).isEqualTo("Active Flow");
-    }
-
-    @Test
     void findByIdAndIsDeletedFalse_activeFlow_returnsFlow() {
         // Given
         Flow flow = createFlow("Test Flow", UUID.randomUUID(), false);
@@ -102,7 +84,7 @@ class FlowRepositoryTest extends BaseRepositoryTest {
     }
 
     @Test
-    void searchFlows_matchingName_returnsResults() {
+    void searchByCreatedByAndQuery_matchingName_returnsResults() {
         // Given
         UUID userId = UUID.randomUUID();
         Flow flow1 = createFlow("API Integration", userId, false);
@@ -114,7 +96,7 @@ class FlowRepositoryTest extends BaseRepositoryTest {
         entityManager.flush();
 
         // When
-        Page<Flow> result = flowRepository.searchFlows("Integration", PageRequest.of(0, 10));
+        Page<Flow> result = flowRepository.searchByCreatedByAndQuery(userId, "Integration", PageRequest.of(0, 10));
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(2);
@@ -124,7 +106,7 @@ class FlowRepositoryTest extends BaseRepositoryTest {
     }
 
     @Test
-    void searchFlows_matchingDescription_returnsResults() {
+    void searchByCreatedByAndQuery_matchingDescription_returnsResults() {
         // Given
         UUID userId = UUID.randomUUID();
         Flow flow = createFlow("My Flow", userId, false);
@@ -133,7 +115,7 @@ class FlowRepositoryTest extends BaseRepositoryTest {
         flushAndClear();
 
         // When
-        Page<Flow> result = flowRepository.searchFlows("payments", PageRequest.of(0, 10));
+        Page<Flow> result = flowRepository.searchByCreatedByAndQuery(userId, "payments", PageRequest.of(0, 10));
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -141,21 +123,22 @@ class FlowRepositoryTest extends BaseRepositoryTest {
     }
 
     @Test
-    void searchFlows_caseInsensitive_returnsResults() {
+    void searchByCreatedByAndQuery_caseInsensitive_returnsResults() {
         // Given
-        Flow flow = createFlow("EMAIL Notification", UUID.randomUUID(), false);
+        UUID userId = UUID.randomUUID();
+        Flow flow = createFlow("EMAIL Notification", userId, false);
         entityManager.persist(flow);
         flushAndClear();
 
         // When
-        Page<Flow> result = flowRepository.searchFlows("email", PageRequest.of(0, 10));
+        Page<Flow> result = flowRepository.searchByCreatedByAndQuery(userId, "email", PageRequest.of(0, 10));
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
     @Test
-    void searchFlows_excludesDeletedFlows() {
+    void searchByCreatedByAndQuery_excludesDeletedFlows() {
         // Given
         UUID userId = UUID.randomUUID();
         Flow activeFlow = createFlow("Active Search Flow", userId, false);
@@ -165,11 +148,30 @@ class FlowRepositoryTest extends BaseRepositoryTest {
         entityManager.flush();
 
         // When
-        Page<Flow> result = flowRepository.searchFlows("Search Flow", PageRequest.of(0, 10));
+        Page<Flow> result = flowRepository.searchByCreatedByAndQuery(userId, "Search Flow", PageRequest.of(0, 10));
 
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getName()).isEqualTo("Active Search Flow");
+    }
+
+    @Test
+    void searchByCreatedByAndQuery_excludesOtherUsersFlows() {
+        // Given
+        UUID user1Id = UUID.randomUUID();
+        UUID user2Id = UUID.randomUUID();
+        Flow flow1 = createFlow("Shared Flow Name", user1Id, false);
+        Flow flow2 = createFlow("Shared Flow Name", user2Id, false);
+        entityManager.persist(flow1);
+        entityManager.persist(flow2);
+        entityManager.flush();
+
+        // When
+        Page<Flow> result = flowRepository.searchByCreatedByAndQuery(user1Id, "Shared", PageRequest.of(0, 10));
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getCreatedBy()).isEqualTo(user1Id);
     }
 
     @Test

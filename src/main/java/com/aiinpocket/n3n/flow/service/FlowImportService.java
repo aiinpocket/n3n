@@ -131,8 +131,8 @@ public class FlowImportService {
                 ? request.getNewFlowName()
                 : pkg.getFlow().getName() + " (Imported)";
 
-        // 檢查名稱是否重複
-        if (flowRepository.existsByNameAndIsDeletedFalse(flowName)) {
+        // 檢查名稱是否重複（僅在當前用戶範圍內）
+        if (flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(flowName, userId)) {
             flowName = flowName + " - " + System.currentTimeMillis();
         }
 

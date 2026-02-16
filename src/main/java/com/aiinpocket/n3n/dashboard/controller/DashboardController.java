@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,17 +25,21 @@ public class DashboardController {
     private final ExecutionRepository executionRepository;
 
     @GetMapping("/stats")
+    @Transactional(readOnly = true)
     public ResponseEntity<DashboardStatsResponse> getStats(
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
 
         long totalFlows = flowRepository.countByCreatedByAndIsDeletedFalse(userId);
-        long totalExecutions = executionRepository.countByTriggeredBy(userId);
-        long successfulExecutions = executionRepository.countByTriggeredByAndStatus(userId, "completed");
-        long failedExecutions = executionRepository.countByTriggeredByAndStatus(userId, "failed");
-        long runningExecutions = executionRepository.countByTriggeredByAndStatus(userId, "running");
 
-        DashboardStatsResponse stats = DashboardStatsResponse.builder()
+        // Single aggregated query instead of 4 separate COUNT queries
+        Object[] stats = executionRepository.getUserDashboardStats(userId);
+        long totalExecutions = stats[0] != null ? ((Number) stats[0]).longValue() : 0L;
+        long successfulExecutions = stats[1] != null ? ((Number) stats[1]).longValue() : 0L;
+        long failedExecutions = stats[2] != null ? ((Number) stats[2]).longValue() : 0L;
+        long runningExecutions = stats[3] != null ? ((Number) stats[3]).longValue() : 0L;
+
+        DashboardStatsResponse response = DashboardStatsResponse.builder()
                 .totalFlows(totalFlows)
                 .totalExecutions(totalExecutions)
                 .successfulExecutions(successfulExecutions)
@@ -42,6 +47,6 @@ public class DashboardController {
                 .runningExecutions(runningExecutions)
                 .build();
 
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(response);
     }
 }

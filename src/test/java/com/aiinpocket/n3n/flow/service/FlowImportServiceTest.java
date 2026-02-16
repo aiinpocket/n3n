@@ -348,7 +348,7 @@ class FlowImportServiceTest extends BaseServiceTest {
                     .createdBy(userId)
                     .build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse(anyString())).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(anyString(), eq(userId))).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -376,7 +376,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("My Custom Name").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse("My Custom Name")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("My Custom Name", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -401,7 +401,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Test Flow (Imported)").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse("Test Flow (Imported)")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("Test Flow (Imported)", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -426,7 +426,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Existing Flow - 123456").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse("Existing Flow")).thenReturn(true);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("Existing Flow", userId)).thenReturn(true);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -465,7 +465,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Test Flow (Imported)").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse(anyString())).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(anyString(), eq(userId))).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -493,7 +493,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Test Flow (Imported)").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse(anyString())).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse(anyString(), eq(userId))).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -538,7 +538,7 @@ class FlowImportServiceTest extends BaseServiceTest {
                     .id(flowId).name("Credential Test").createdBy(userId).build();
 
             when(credentialRepository.isAccessibleByUser(newCredId, userId)).thenReturn(true);
-            when(flowRepository.existsByNameAndIsDeletedFalse("Credential Test")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("Credential Test", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -577,7 +577,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("No Cred Test").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse("No Cred Test")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("No Cred Test", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -611,7 +611,7 @@ class FlowImportServiceTest extends BaseServiceTest {
                     .id(flowId).name("Mapping Test").createdBy(userId).build();
 
             when(credentialRepository.isAccessibleByUser(credId, userId)).thenReturn(true);
-            when(flowRepository.existsByNameAndIsDeletedFalse("Mapping Test")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("Mapping Test", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -678,7 +678,7 @@ class FlowImportServiceTest extends BaseServiceTest {
             Flow savedFlow = Flow.builder()
                     .id(flowId).name("Settings Test").createdBy(userId).build();
 
-            when(flowRepository.existsByNameAndIsDeletedFalse("Settings Test")).thenReturn(false);
+            when(flowRepository.existsByNameAndCreatedByAndIsDeletedFalse("Settings Test", userId)).thenReturn(false);
             when(flowRepository.save(any(Flow.class))).thenReturn(savedFlow);
             when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
             when(importRepository.save(any(FlowImport.class))).thenAnswer(inv -> inv.getArgument(0));

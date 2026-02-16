@@ -16,8 +16,6 @@ import java.util.UUID;
 @Repository
 public interface FlowRepository extends JpaRepository<Flow, UUID> {
 
-    Page<Flow> findByIsDeletedFalse(Pageable pageable);
-
     Page<Flow> findByCreatedByAndIsDeletedFalse(UUID createdBy, Pageable pageable);
 
     List<Flow> findByCreatedByAndIsDeletedFalseOrderByCreatedAtDesc(UUID createdBy);
@@ -27,11 +25,6 @@ public interface FlowRepository extends JpaRepository<Flow, UUID> {
     boolean existsByNameAndIsDeletedFalse(String name);
 
     boolean existsByNameAndCreatedByAndIsDeletedFalse(String name, UUID createdBy);
-
-    @Query("SELECT f FROM Flow f WHERE f.isDeleted = false AND " +
-           "(LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "LOWER(f.description) LIKE LOWER(CONCAT('%', :query, '%')))")
-    Page<Flow> searchFlows(@Param("query") String query, Pageable pageable);
 
     @Query("SELECT f FROM Flow f WHERE f.createdBy = :userId AND f.isDeleted = false AND " +
            "(LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

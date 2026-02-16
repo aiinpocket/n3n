@@ -65,40 +65,16 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
         Pageable pageable);
 
     /**
-     * Count all executions by a specific user.
+     * Aggregate user-specific execution statistics in a single query for dashboard.
+     * Returns: [total, completed, failed, running]
      */
-    long countByTriggeredBy(UUID userId);
-
-    /**
-     * Count executions by a specific user and status.
-     */
-    long countByTriggeredByAndStatus(UUID userId, String status);
-
-    /**
-     * Count running executions for a flow version.
-     */
-    long countByFlowVersionIdAndStatus(UUID flowVersionId, String status);
-
-    /**
-     * Count executions by status (all time).
-     */
-    long countByStatus(String status);
-
-    /**
-     * Count executions started after a given time.
-     */
-    long countByStartedAtAfter(Instant after);
-
-    /**
-     * Count executions by status started after a given time.
-     */
-    long countByStatusAndStartedAtAfter(String status, Instant after);
-
-    /**
-     * Calculate average duration for completed executions started after a given time.
-     */
-    @Query("SELECT AVG(e.durationMs) FROM Execution e WHERE e.status = 'completed' AND e.durationMs IS NOT NULL AND e.startedAt > :after")
-    Double findAverageDurationMsSince(@Param("after") Instant after);
+    @Query("SELECT " +
+            "COUNT(e), " +
+            "COUNT(CASE WHEN e.status = 'completed' THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'failed' THEN 1 END), " +
+            "COUNT(CASE WHEN e.status = 'running' THEN 1 END) " +
+            "FROM Execution e WHERE e.triggeredBy = :userId")
+    Object[] getUserDashboardStats(@Param("userId") UUID userId);
 
     /**
      * Count executions started before a given time (for housekeeping stats).
