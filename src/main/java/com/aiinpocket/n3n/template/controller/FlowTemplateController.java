@@ -6,6 +6,8 @@ import com.aiinpocket.n3n.template.dto.TemplateResponse;
 import com.aiinpocket.n3n.template.dto.UpdateTemplateRequest;
 import com.aiinpocket.n3n.template.service.FlowTemplateService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,8 +32,8 @@ public class FlowTemplateController {
 
     @GetMapping
     public ResponseEntity<Page<TemplateResponse>> listTemplates(
-            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100) String category,
-            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 500) String search,
+            @RequestParam(required = false) @Size(max = 100) String category,
+            @RequestParam(required = false) @Size(max = 500) String search,
             @PageableDefault(size = 20) Pageable pageable) {
         if (search != null && !search.isEmpty()) {
             return ResponseEntity.ok(templateService.searchTemplates(search, pageable));
@@ -81,7 +83,7 @@ public class FlowTemplateController {
     @PostMapping("/from-flow/{flowId}/version/{version}")
     public ResponseEntity<TemplateResponse> createTemplateFromFlow(
             @PathVariable UUID flowId,
-            @PathVariable String version,
+            @PathVariable @Size(max = 100) String version,
             @Valid @RequestBody CreateTemplateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -92,7 +94,7 @@ public class FlowTemplateController {
     @PostMapping("/{id}/use")
     public ResponseEntity<FlowResponse> createFlowFromTemplate(
             @PathVariable UUID id,
-            @RequestParam @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 255) String flowName,
+            @RequestParam @NotBlank @Size(max = 255) String flowName,
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)

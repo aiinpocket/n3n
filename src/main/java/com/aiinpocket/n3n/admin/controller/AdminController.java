@@ -5,6 +5,7 @@ import com.aiinpocket.n3n.admin.dto.UserResponse;
 import com.aiinpocket.n3n.admin.service.AdminUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponse>> listUsers(
             @PageableDefault(size = 20) Pageable pageable,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) @Size(max = 500) String search) {
         return ResponseEntity.ok(adminUserService.listUsers(pageable, search));
     }
 
