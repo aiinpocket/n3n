@@ -52,12 +52,13 @@ public class GeminiProvider implements AiProvider {
 
     @Override
     public CompletableFuture<List<AiModel>> fetchModels(String apiKey, String baseUrl) {
-        String url = resolveBaseUrl(baseUrl) + "/v1beta/models?key=" + apiKey;
+        String url = resolveBaseUrl(baseUrl) + "/v1beta/models";
 
         WebClient client = webClientBuilder.build();
 
         return client.get()
                 .uri(url)
+                .header("x-goog-api-key", apiKey)
                 .retrieve()
                 .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(30))
@@ -153,7 +154,7 @@ public class GeminiProvider implements AiProvider {
     @Override
     public CompletableFuture<AiResponse> chat(AiChatRequest request, AiProviderSettings settings) {
         String url = resolveBaseUrl(settings.getBaseUrl()) +
-                "/v1beta/models/" + request.getModel() + ":generateContent?key=" + settings.getApiKey();
+                "/v1beta/models/" + request.getModel() + ":generateContent";
         long startTime = System.currentTimeMillis();
 
         WebClient client = buildClient(settings);
@@ -162,6 +163,7 @@ public class GeminiProvider implements AiProvider {
         return client.post()
                 .uri(url)
                 .header("Content-Type", "application/json")
+                .header("x-goog-api-key", settings.getApiKey())
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -173,7 +175,7 @@ public class GeminiProvider implements AiProvider {
     @Override
     public Flux<AiStreamChunk> chatStream(AiChatRequest request, AiProviderSettings settings) {
         String url = resolveBaseUrl(settings.getBaseUrl()) +
-                "/v1beta/models/" + request.getModel() + ":streamGenerateContent?alt=sse&key=" + settings.getApiKey();
+                "/v1beta/models/" + request.getModel() + ":streamGenerateContent?alt=sse";
 
         WebClient client = buildClient(settings);
         String body = buildRequestBody(request);
@@ -181,6 +183,7 @@ public class GeminiProvider implements AiProvider {
         return client.post()
                 .uri(url)
                 .header("Content-Type", "application/json")
+                .header("x-goog-api-key", settings.getApiKey())
                 .bodyValue(body)
                 .retrieve()
                 .bodyToFlux(String.class)
@@ -190,12 +193,13 @@ public class GeminiProvider implements AiProvider {
 
     @Override
     public CompletableFuture<Boolean> testConnection(String apiKey, String baseUrl) {
-        String url = resolveBaseUrl(baseUrl) + "/v1beta/models?key=" + apiKey;
+        String url = resolveBaseUrl(baseUrl) + "/v1beta/models";
 
         WebClient client = webClientBuilder.build();
 
         return client.get()
                 .uri(url)
+                .header("x-goog-api-key", apiKey)
                 .retrieve()
                 .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(30))

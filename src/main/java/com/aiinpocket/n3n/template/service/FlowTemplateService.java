@@ -371,12 +371,15 @@ public class FlowTemplateService {
         FlowVersion flowVersion = flowVersionRepository.findByFlowIdAndVersion(flowId, version)
             .orElseThrow(() -> new ResourceNotFoundException("Flow version not found: " + flowId + "/" + version));
 
+        // Strip credential references to prevent leaking user credentials in shared templates
+        Map<String, Object> sanitizedDefinition = removeCredentialReferences(flowVersion.getDefinition());
+
         FlowTemplate template = FlowTemplate.builder()
             .name(request.getName())
             .description(request.getDescription())
             .category(request.getCategory())
             .tags(request.getTags())
-            .definition(flowVersion.getDefinition())
+            .definition(sanitizedDefinition)
             .thumbnailUrl(request.getThumbnailUrl())
             .createdBy(userId)
             .build();
@@ -400,11 +403,12 @@ public class FlowTemplateService {
             .build();
         flow = flowRepository.save(flow);
 
-        // Create initial version with template definition
+        // Create initial version with template definition (strip credential refs as defense-in-depth)
+        Map<String, Object> cleanDefinition = removeCredentialReferences(template.getDefinition());
         FlowVersion version = FlowVersion.builder()
             .flowId(flow.getId())
             .version("1.0.0")
-            .definition(template.getDefinition())
+            .definition(cleanDefinition)
             .settings(Map.of())
             .status("draft")
             .createdBy(userId)
@@ -430,5 +434,41 @@ public class FlowTemplateService {
 
         templateRepository.delete(template);
         log.info("Template deleted: id={}", id);
+    }
+
+    /**
+     * Remove credential references from flow definition to prevent leaking user credentials.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> removeCredentialReferences(Map<String, Object> definition) {
+        if (definition == null) {
+            return Map.of();
+        }
+
+        Map<String, Object> newDefinition = new HashMap<>(definition);
+
+        Object nodesObj = definition.get("nodes");
+        if (nodesObj instanceof List<?> nodesList) {
+            List<Object> nodes = new ArrayList<>();
+
+            for (Object nodeObj : nodesList) {
+                if (nodeObj instanceof Map<?, ?> nodeMap) {
+                    Map<String, Object> newNode = new HashMap<>((Map<String, Object>) nodeMap);
+                    Object rawData = nodeMap.get("data");
+                    if (rawData instanceof Map<?, ?> dataMap) {
+                        Map<String, Object> data = new HashMap<>((Map<String, Object>) dataMap);
+                        data.remove("credentialId");
+                        newNode.put("data", data);
+                    }
+                    nodes.add(newNode);
+                } else {
+                    nodes.add(nodeObj);
+                }
+            }
+
+            newDefinition.put("nodes", nodes);
+        }
+
+        return newDefinition;
     }
 }

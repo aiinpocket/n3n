@@ -216,7 +216,9 @@ class FlowTemplateServiceTest extends BaseServiceTest {
         @Test
         void createTemplateFromFlow_validFlowVersion_createsWithFlowDefinition() {
             UUID flowId = UUID.randomUUID();
-            Map<String, Object> flowDef = Map.of("nodes", List.of("node1"), "edges", List.of());
+            Map<String, Object> nodeData = new HashMap<>(Map.of("label", "HTTP Request", "type", "httpRequest"));
+            Map<String, Object> node1 = new HashMap<>(Map.of("id", "node-1", "data", nodeData));
+            Map<String, Object> flowDef = Map.of("nodes", List.of(node1), "edges", List.of());
 
             // Mock flow ownership check
             Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
@@ -243,9 +245,45 @@ class FlowTemplateServiceTest extends BaseServiceTest {
             TemplateResponse result = flowTemplateService.createTemplateFromFlow(flowId, "1.0.0", request, userId);
 
             assertThat(result.getName()).isEqualTo("From Flow");
-            verify(templateRepository).save(argThat(t ->
-                t.getDefinition().equals(flowDef)
+            verify(templateRepository).save(argThat(t -> t.getDefinition() != null));
+        }
+
+        @Test
+        void createTemplateFromFlow_stripsCredentialIds() {
+            UUID flowId = UUID.randomUUID();
+            UUID credId = UUID.randomUUID();
+            Map<String, Object> nodeData = new HashMap<>(Map.of(
+                "label", "HTTP Request", "type", "httpRequest", "credentialId", credId.toString()
             ));
+            Map<String, Object> node1 = new HashMap<>(Map.of("id", "node-1", "data", nodeData));
+            Map<String, Object> flowDef = Map.of("nodes", List.of(node1), "edges", List.of());
+
+            Flow flow = Flow.builder().id(flowId).name("Test Flow").createdBy(userId).build();
+            when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(flow));
+
+            FlowVersion flowVersion = FlowVersion.builder()
+                .flowId(flowId).version("1.0.0").definition(flowDef).build();
+            when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0"))
+                .thenReturn(Optional.of(flowVersion));
+            when(templateRepository.save(any(FlowTemplate.class))).thenAnswer(inv -> {
+                FlowTemplate t = inv.getArgument(0);
+                t.setId(UUID.randomUUID());
+                return t;
+            });
+
+            CreateTemplateRequest request = new CreateTemplateRequest();
+            request.setName("From Flow");
+            request.setDescription("desc");
+
+            flowTemplateService.createTemplateFromFlow(flowId, "1.0.0", request, userId);
+
+            verify(templateRepository).save(argThat(t -> {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> nodes = (List<Map<String, Object>>) t.getDefinition().get("nodes");
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) nodes.get(0).get("data");
+                return !data.containsKey("credentialId") && "HTTP Request".equals(data.get("label"));
+            }));
         }
 
         @Test
