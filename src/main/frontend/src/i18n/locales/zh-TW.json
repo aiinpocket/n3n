@@ -336,6 +336,8 @@
     "aiFeatures": "AI 功能",
     "versionHistory": "版本記錄",
     "noChanges": "無變更需要儲存",
+    "autoLayout": "自動排版",
+    "autoLayoutApplied": "已套用自動排版",
     "stopExecution": "停止執行",
     "reExecute": "重新執行",
     "exitMonitor": "退出監控",
@@ -921,6 +923,7 @@
       "multiple": "可設定多組設定，並選擇一組作為預設",
       "ollamaLocal": "Ollama 為本地運行，不需要 API Key"
     },
+    "configRequired": "請先在設定 → AI 設定中配置 AI 服務提供者",
     "recommendation": "AI 推薦",
     "understanding": "需求理解",
     "existingComponents": "推薦使用的現有元件",

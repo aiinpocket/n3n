@@ -31,6 +31,7 @@ import {
   ExportOutlined,
   BookOutlined,
   UnorderedListOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -71,6 +72,7 @@ import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
 import { extractApiError } from '../utils/errorMessages'
+import { getLayoutedElements } from '../utils/autoLayout'
 import { formApi } from '../api/form'
 import { templateApi } from '../api/template'
 
@@ -218,6 +220,15 @@ export default function FlowEditorPage() {
       message.error(extractApiError(err, t('form.formUrlFailed')))
     }
   }, [id, nodes, t])
+
+  // Auto-layout using dagre
+  const handleAutoLayout = useCallback(() => {
+    if (nodes.length === 0) return
+    pushHistory()
+    const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, { direction: 'TB', nodeSep: 60, rankSep: 100 })
+    setNodes(layoutedNodes)
+    message.success(t('editor.autoLayoutApplied'))
+  }, [nodes, edges, pushHistory, setNodes, t])
 
   // Save current flow as template
   const handleSaveAsTemplate = useCallback(async (values: { name: string; description: string; category: string }) => {
@@ -464,12 +475,23 @@ export default function FlowEditorPage() {
       // Prevent self-connections
       if (connection.source === connection.target) return false
       // Prevent duplicate edges between same handles
-      return !edges.some(
+      if (edges.some(
         (e) => e.source === connection.source && e.target === connection.target
           && e.sourceHandle === connection.sourceHandle && e.targetHandle === connection.targetHandle
-      )
+      )) return false
+
+      // Prevent connecting TO a trigger node (triggers should only be entry points)
+      const targetNode = nodes.find(n => n.id === connection.target)
+      if (targetNode) {
+        const targetType = (targetNode.data as Record<string, unknown>)?.nodeType as string
+        if (targetType === 'trigger' || targetType === 'webhook_trigger' || targetType === 'schedule_trigger' || targetType === 'form_trigger') {
+          return false
+        }
+      }
+
+      return true
     },
-    [edges]
+    [edges, nodes]
   )
 
   const onConnect = useCallback(
@@ -878,6 +900,14 @@ export default function FlowEditorPage() {
               >
                 {t('flow.export')}
               </Button>
+            </Tooltip>
+            <Tooltip title={t('editor.autoLayout')}>
+              <Button
+                icon={<ApartmentOutlined />}
+                onClick={handleAutoLayout}
+                disabled={nodes.length === 0}
+                aria-label={t('editor.autoLayout')}
+              />
             </Tooltip>
             <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
               <Button

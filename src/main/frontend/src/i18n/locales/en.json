@@ -336,6 +336,8 @@
     "aiFeatures": "AI Features",
     "versionHistory": "Version History",
     "noChanges": "No changes to save",
+    "autoLayout": "Auto Layout",
+    "autoLayoutApplied": "Auto layout applied",
     "stopExecution": "Stop Execution",
     "reExecute": "Re-execute",
     "exitMonitor": "Exit Monitor",
@@ -921,6 +923,7 @@
       "multiple": "Configure multiple settings and choose one as default",
       "ollamaLocal": "Ollama runs locally and doesn't require an API Key"
     },
+    "configRequired": "Please configure an AI provider in Settings → AI Settings first",
     "recommendation": "AI Recommendations",
     "understanding": "Understanding",
     "existingComponents": "Recommended Existing Components",

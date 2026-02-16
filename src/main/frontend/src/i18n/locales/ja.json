@@ -336,6 +336,8 @@
     "aiFeatures": "AI機能",
     "versionHistory": "バージョン履歴",
     "noChanges": "保存する変更がありません",
+    "autoLayout": "自動レイアウト",
+    "autoLayoutApplied": "自動レイアウトを適用しました",
     "stopExecution": "実行を停止",
     "reExecute": "再実行",
     "exitMonitor": "監視を終了",
@@ -921,6 +923,7 @@
       "multiple": "複数の設定を作成し、デフォルトを選択できます",
       "ollamaLocal": "Ollamaはローカルで実行され、APIキーは不要です"
     },
+    "configRequired": "設定 → AI設定でAIプロバイダーを先に設定してください",
     "recommendation": "AIの推薦",
     "understanding": "理解内容",
     "existingComponents": "推奨する既存コンポーネント",

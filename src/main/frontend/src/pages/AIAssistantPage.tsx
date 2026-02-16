@@ -314,17 +314,17 @@ const AIAssistantPage: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={t('chat.placeholder')}
+                placeholder={hasAiConfig === false ? t('ai.configRequired') : t('chat.placeholder')}
                 autoSize={{ minRows: 1, maxRows: 4 }}
                 style={{ flex: 1 }}
-                disabled={sending}
+                disabled={sending || hasAiConfig === false}
               />
               <Button
                 type="primary"
                 icon={<SendOutlined />}
                 onClick={handleSend}
                 loading={sending}
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || hasAiConfig === false}
               >
                 {t('chat.send')}
               </Button>
