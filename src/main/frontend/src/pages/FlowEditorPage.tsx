@@ -30,6 +30,7 @@ import {
   CloseCircleOutlined,
   ExportOutlined,
   BookOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -848,6 +849,12 @@ export default function FlowEditorPage() {
                 {t('editor.versionHistory')} ({versions.length})
               </Button>
             </Dropdown>
+            <Button
+              icon={<UnorderedListOutlined />}
+              onClick={() => navigate(`/executions?flowId=${id}`)}
+            >
+              {t('flow.viewExecutions')}
+            </Button>
             <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
               <Button
                 icon={<ExportOutlined />}

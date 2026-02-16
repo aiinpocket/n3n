@@ -592,23 +592,45 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 }
 ```
 
-### Devices & Agents
+### Devices & Agent Pairing
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/devices` | List user's devices |
-| POST | `/api/devices/pairing-code` | Generate 6-digit pairing code |
-| POST | `/api/devices/pair` | Complete pairing with code |
-| GET | `/api/devices/{id}` | Get device details |
-| PUT | `/api/devices/{id}` | Update device name/settings |
-| DELETE | `/api/devices/{id}` | Remove device |
-| POST | `/api/devices/{id}/command` | Send command to agent |
+| POST | `/api/agent/pair/initiate` | Initiate pairing session (generates pairing code) |
+| POST | `/api/agent/pair/complete` | Complete pairing with device keys |
+| GET | `/api/agent/devices` | List user's paired devices |
+| PUT | `/api/agent/devices/{deviceId}` | Update device settings (external address, direct connection) |
+| DELETE | `/api/agent/devices/{deviceId}` | Unpair a device |
+| POST | `/api/agent/devices/revoke-all` | Revoke all paired devices (emergency) |
+
+### Agent Registration
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/agents/install-command` | Generate install command with token |
+| GET | `/api/agents/registrations` | List agent registrations |
+| PUT | `/api/agents/{id}/block` | Block an agent |
+| PUT | `/api/agents/{id}/unblock` | Unblock an agent |
+| DELETE | `/api/agents/{id}` | Delete agent registration |
+
+### Gateway
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/gateway/nodes` | List connected gateway nodes |
+| GET | `/api/gateway/nodes/{connectionId}` | Get specific node |
+| POST | `/api/gateway/nodes/{connectionId}/invoke` | Invoke node capability |
+| GET | `/api/gateway/capabilities` | List available capabilities |
+| GET | `/api/gateway/stats` | Get gateway statistics |
+| POST | `/api/gateway/pairing-code` | Generate gateway pairing code |
+| GET | `/api/settings/gateway` | Get gateway settings |
+| PUT | `/api/settings/gateway` | Update gateway settings |
 
 **Pairing Flow:**
-1. User requests pairing code: `POST /api/devices/pairing-code`
-2. Agent submits code with public key: `POST /api/devices/pair`
-3. Server responds with encrypted session key
-4. All further communication is encrypted
+1. User requests pairing code: `POST /api/agent/pair/initiate`
+2. Agent submits code with public key: `POST /api/agent/pair/complete`
+3. Server responds with platform public key and device token
+4. All further communication is E2E encrypted
 
 **Security:**
 - X25519 ECDH for key exchange
@@ -631,9 +653,10 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/admin/users` | List all users |
+| GET | `/api/admin/users/{id}` | Get user details |
 | POST | `/api/admin/users` | Create user |
-| PUT | `/api/admin/users/{id}/status` | Update user status |
-| PUT | `/api/admin/users/{id}/roles` | Update user roles |
+| PATCH | `/api/admin/users/{id}/status` | Update user status |
+| PATCH | `/api/admin/users/{id}/roles` | Update user roles |
 
 ### Dashboard
 
