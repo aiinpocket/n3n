@@ -31,12 +31,6 @@ public interface FormTriggerRepository extends JpaRepository<FormTrigger, UUID> 
     List<FormTrigger> findByFlowId(UUID flowId);
 
     /**
-     * Find all active form triggers for a flow
-     */
-    @Query("SELECT f FROM FormTrigger f WHERE f.flowId = :flowId AND f.isActive = true")
-    List<FormTrigger> findActiveByFlowId(@Param("flowId") UUID flowId);
-
-    /**
      * Find all expired form triggers
      */
     @Query("SELECT f FROM FormTrigger f WHERE f.isActive = true AND f.expiresAt IS NOT NULL AND f.expiresAt < :now")
