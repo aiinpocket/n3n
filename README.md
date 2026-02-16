@@ -81,16 +81,23 @@ N3N 是一個**視覺化流程自動化平台**，讓你可以：
 
 ### 2. 啟動 N3N
 
-打開終端機（Terminal），執行以下指令：
+打開終端機：
+- **Windows**: 按 `Win + R`，輸入 `cmd` 後按 Enter
+- **Mac**: 按 `Cmd + Space`，輸入 `Terminal` 後按 Enter
+- **Linux**: 按 `Ctrl + Alt + T`
+
+在終端機中執行以下指令：
 
 ```bash
-# 下載專案
+# 下載專案（需要安裝 Git，或者直接從 GitHub 下載 ZIP 解壓）
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# 啟動服務（首次需要等待幾分鐘）
+# 啟動服務（首次需要等待 2-5 分鐘下載映像檔）
 docker compose up -d
 ```
+
+> **沒有 Git？** 你也可以直接[下載 ZIP 檔案](https://github.com/aiinpocket/n3n/archive/refs/heads/main.zip)，解壓後在該資料夾中執行 `docker compose up -d`。
 
 > **零配置啟動**：N3N 採用開箱即用設計，你不需要手動設定任何東西：
 > - 資料庫（PostgreSQL / Redis / MongoDB）自動啟動並連接
@@ -103,8 +110,8 @@ docker compose up -d
 打開瀏覽器，前往：**http://localhost:8080**
 
 首次使用會引導你：
-1. **建立管理員帳號** — 填入名稱、Email 和密碼
-2. **備份 Recovery Key** — 系統會顯示 12 個英文單詞，這是你恢復加密資料的唯一方式。請務必抄寫或複製保存在安全的地方
+1. **建立管理員帳號** — 填入名稱、Email 和密碼（至少 8 個字元，需包含大寫、小寫、數字中的至少 3 種）
+2. **備份 Recovery Key** — 系統會顯示 12 個英文單詞，這是你恢復加密資料的唯一方式。頁面上有「複製」按鈕，請務必複製或抄寫保存在安全的地方
 3. **驗證 Recovery Key** — 輸入剛才的 12 個單詞以確認你已備份
 4. 設定 AI 助手（選擇你有的 AI 服務）
 5. 開始建立你的第一個流程！
@@ -131,6 +138,22 @@ N3N 支援多種 AI 服務，你可以選擇任何一種：
 ---
 
 ## 常見問題
+
+### 如何確認 Docker 已安裝？
+
+```bash
+docker --version
+# 應該看到類似 Docker version 24.0.6
+```
+
+如果沒有回應，表示 Docker 尚未安裝或未啟動。Windows/Mac 使用者請先開啟 Docker Desktop 應用程式。
+
+### 如何確認服務已啟動？
+
+```bash
+docker compose ps
+# 應該看到 app、postgres、redis 等容器狀態為 running
+```
 
 ### 啟動失敗怎麼辦？
 

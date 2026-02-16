@@ -55,6 +55,11 @@ export const gatewayApi = {
     return response.data
   },
 
+  invokeAny: async (request: InvokeRequest): Promise<InvokeResponse> => {
+    const response = await apiClient.post<InvokeResponse>('/gateway/invoke', request)
+    return response.data
+  },
+
   getStats: async (): Promise<GatewayStats> => {
     const response = await apiClient.get<GatewayStats>('/gateway/stats')
     return response.data

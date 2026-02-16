@@ -81,16 +81,23 @@ If you don't have Docker yet, please install it first:
 
 ### 2. Start N3N
 
-Open Terminal and run the following commands:
+Open your terminal:
+- **Windows**: Press `Win + R`, type `cmd`, press Enter
+- **Mac**: Press `Cmd + Space`, type `Terminal`, press Enter
+- **Linux**: Press `Ctrl + Alt + T`
+
+Run the following commands:
 
 ```bash
-# Clone the project
+# Clone the project (requires Git, or download ZIP from GitHub)
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# Start the service (first time may take a few minutes)
+# Start the service (first time takes 2-5 minutes to download images)
 docker compose up -d
 ```
+
+> **No Git?** You can [download the ZIP file](https://github.com/aiinpocket/n3n/archive/refs/heads/main.zip) directly, extract it, then run `docker compose up -d` from the extracted folder.
 
 > **Zero-Configuration Startup**: N3N is designed to work out-of-the-box — you don't need to configure anything:
 > - Databases (PostgreSQL / Redis / MongoDB) start automatically and connect
@@ -103,8 +110,8 @@ docker compose up -d
 Open your browser and go to: **http://localhost:8080**
 
 First-time setup will guide you through:
-1. **Create admin account** — Enter your name, email, and password
-2. **Back up Recovery Key** — The system will display 12 English words. This is the only way to recover your encrypted data. Write them down or copy them to a safe place
+1. **Create admin account** — Enter your name, email, and password (min 8 characters, must include at least 3 of: uppercase, lowercase, digit, special character)
+2. **Back up Recovery Key** — The system will display 12 English words. This is the only way to recover your encrypted data. Use the "Copy" button or write them down in a safe place
 3. **Verify Recovery Key** — Enter the 12 words to confirm you have backed them up
 4. Set up AI assistant (choose your AI service)
 5. Create your first workflow!
@@ -131,6 +138,22 @@ N3N supports multiple AI services, you can choose any of them:
 ---
 
 ## FAQ
+
+### How to verify Docker is installed?
+
+```bash
+docker --version
+# Should show something like: Docker version 24.0.6
+```
+
+If there's no response, Docker is not installed or not running. Windows/Mac users should start the Docker Desktop application first.
+
+### How to verify the service is running?
+
+```bash
+docker compose ps
+# Should show app, postgres, redis etc. with status "running"
+```
 
 ### What if startup fails?
 
