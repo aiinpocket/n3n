@@ -161,40 +161,65 @@ public class FlowExportService {
 
         List<Map<String, Object>> nodes = (List<Map<String, Object>>) nodesObj;
 
+        // Collect all credential IDs first, then batch-load (avoids N+1)
+        Map<String, List<Map<String, Object>>> nodesByCredentialId = new LinkedHashMap<>();
         for (Map<String, Object> node : nodes) {
-            String nodeId = (String) node.get("id");
             Map<String, Object> data = (Map<String, Object>) node.get("data");
             if (data == null) continue;
-
             String credentialId = (String) data.get("credentialId");
             if (credentialId == null) continue;
+            nodesByCredentialId.computeIfAbsent(credentialId, k -> new ArrayList<>()).add(node);
+        }
 
-            // 取得憑證資訊
-            String credentialName = "Unknown";
-            String credentialType = "unknown";
+        if (nodesByCredentialId.isEmpty()) {
+            return placeholders;
+        }
 
+        // Batch load all credentials in one query
+        Set<UUID> credentialUuids = new HashSet<>();
+        for (String id : nodesByCredentialId.keySet()) {
             try {
-                Optional<Credential> credentialOpt = credentialRepository.findById(UUID.fromString(credentialId));
-                if (credentialOpt.isPresent()) {
-                    Credential credential = credentialOpt.get();
-                    // Use generic name to avoid leaking internal credential naming conventions
-                    credentialName = credential.getType() + " Credential";
-                    credentialType = credential.getType();
-                }
+                credentialUuids.add(UUID.fromString(id));
             } catch (Exception e) {
-                log.warn("Failed to load credential info for {}: {}", credentialId, e.getMessage());
+                log.warn("Invalid credential ID format: {}", id);
             }
+        }
+        Map<UUID, Credential> credentialMap = new HashMap<>();
+        if (!credentialUuids.isEmpty()) {
+            credentialRepository.findAllById(credentialUuids).forEach(c -> credentialMap.put(c.getId(), c));
+        }
 
-            CredentialPlaceholder placeholder = CredentialPlaceholder.builder()
-                    .nodeId(nodeId)
-                    .nodeName((String) data.get("label"))
-                    .credentialType(credentialType)
-                    .credentialName(credentialName)
-                    .description("Required for " + data.get("label"))
-                    .required(true)
-                    .build();
+        // Build placeholders using batch-loaded credentials
+        for (var entry : nodesByCredentialId.entrySet()) {
+            String credentialId = entry.getKey();
+            for (Map<String, Object> node : entry.getValue()) {
+                String nodeId = (String) node.get("id");
+                Map<String, Object> data = (Map<String, Object>) node.get("data");
 
-            placeholders.add(placeholder);
+                String credentialName = "Unknown";
+                String credentialType = "unknown";
+
+                try {
+                    Credential credential = credentialMap.get(UUID.fromString(credentialId));
+                    if (credential != null) {
+                        credentialName = credential.getType() + " Credential";
+                        credentialType = credential.getType();
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to load credential info for {}: {}", credentialId, e.getMessage());
+                }
+
+                CredentialPlaceholder placeholder = CredentialPlaceholder.builder()
+                        .nodeId(nodeId)
+                        .nodeName((String) data.get("label"))
+                        .credentialType(credentialType)
+                        .credentialName(credentialName)
+                        .description("Required for " + data.get("label"))
+                        .required(true)
+                        .build();
+
+                placeholders.add(placeholder);
+            }
         }
 
         return placeholders;

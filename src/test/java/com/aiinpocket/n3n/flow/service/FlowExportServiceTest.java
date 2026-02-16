@@ -186,7 +186,7 @@ class FlowExportServiceTest extends BaseServiceTest {
 
             when(flowRepository.findByIdAndIsDeletedFalse(flowId)).thenReturn(Optional.of(testFlow));
             when(flowVersionRepository.findByFlowIdAndVersion(flowId, "1.0.0")).thenReturn(Optional.of(testVersion));
-            when(credentialRepository.findById(credId)).thenReturn(Optional.of(cred));
+            when(credentialRepository.findAllById(any())).thenReturn(List.of(cred));
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
             FlowExportPackage result = flowExportService.exportFlow(flowId, "1.0.0", userId);

@@ -226,7 +226,7 @@ class ExecutionArchivalServiceTest extends BaseServiceTest {
                     .thenReturn(List.of(old1, old2))
                     .thenReturn(List.of()); // second call returns empty to stop loop
 
-            when(flowVersionRepository.findById(versionId)).thenReturn(Optional.empty());
+            when(flowVersionRepository.findAllById(any())).thenReturn(List.of());
             when(nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(any()))
                     .thenReturn(List.of());
             when(stateManager.getExecutionOutput(any())).thenReturn(Map.of());
@@ -242,31 +242,34 @@ class ExecutionArchivalServiceTest extends BaseServiceTest {
         @Test
         void archiveOldExecutions_archivalFailure_continuesWithNext() {
             // Given
-            Execution good = Execution.builder()
-                    .id(UUID.randomUUID()).flowVersionId(versionId)
-                    .status("completed").build();
+            UUID badId = UUID.randomUUID();
+            UUID goodId = UUID.randomUUID();
             Execution bad = Execution.builder()
-                    .id(UUID.randomUUID()).flowVersionId(versionId)
+                    .id(badId).flowVersionId(versionId)
+                    .status("completed").build();
+            Execution good = Execution.builder()
+                    .id(goodId).flowVersionId(versionId)
                     .status("completed").build();
 
             when(executionRepository.findByCompletedAtBeforeAndStatusIn(any(), any(), eq(100)))
                     .thenReturn(List.of(bad, good))
                     .thenReturn(List.of());
 
-            // First call throws, second succeeds
-            when(flowVersionRepository.findById(versionId))
-                    .thenThrow(new RuntimeException("DB error"))
-                    .thenReturn(Optional.empty());
-            when(nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(any()))
+            when(flowVersionRepository.findAllById(any())).thenReturn(List.of());
+
+            // First execution fails on node execution lookup, second succeeds
+            when(nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(badId))
+                    .thenThrow(new RuntimeException("DB error"));
+            when(nodeExecutionRepository.findByExecutionIdOrderByStartedAtAsc(goodId))
                     .thenReturn(List.of());
-            when(stateManager.getExecutionOutput(any())).thenReturn(Map.of());
+            when(stateManager.getExecutionOutput(goodId)).thenReturn(Map.of());
             when(archiveRepository.save(any(ExecutionArchive.class))).thenAnswer(inv -> inv.getArgument(0));
 
             // When - should not throw
             archivalService.archiveOldExecutions();
 
-            // Then - at least one archive attempt was made
-            verify(executionRepository, atLeastOnce()).findByCompletedAtBeforeAndStatusIn(any(), any(), eq(100));
+            // Then - good execution was archived despite bad one failing
+            verify(archiveRepository, times(1)).save(any(ExecutionArchive.class));
         }
     }
 

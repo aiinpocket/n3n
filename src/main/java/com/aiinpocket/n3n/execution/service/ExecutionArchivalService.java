@@ -20,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
@@ -76,10 +78,29 @@ public class ExecutionArchivalService {
 
         while (!toArchive.isEmpty() && iteration < maxIterations) {
             iteration++;
+
+            // Batch-load flow versions and flows to avoid N+1 queries
+            Set<UUID> versionIds = new HashSet<>();
+            for (Execution exec : toArchive) {
+                if (exec.getFlowVersionId() != null) versionIds.add(exec.getFlowVersionId());
+            }
+            Map<UUID, FlowVersion> versionMap = new HashMap<>();
+            if (!versionIds.isEmpty()) {
+                flowVersionRepository.findAllById(versionIds).forEach(v -> versionMap.put(v.getId(), v));
+            }
+            Set<UUID> flowIds = new HashSet<>();
+            for (FlowVersion v : versionMap.values()) {
+                if (v.getFlowId() != null) flowIds.add(v.getFlowId());
+            }
+            Map<UUID, Flow> flowMap = new HashMap<>();
+            if (!flowIds.isEmpty()) {
+                flowRepository.findAllById(flowIds).forEach(f -> flowMap.put(f.getId(), f));
+            }
+
             int batchFailed = 0;
             for (Execution execution : toArchive) {
                 try {
-                    archiveExecution(execution);
+                    archiveExecution(execution, versionMap, flowMap);
                     archivedCount++;
                 } catch (Exception e) {
                     failedCount++;
@@ -105,16 +126,35 @@ public class ExecutionArchivalService {
         }
     }
 
+    /**
+     * Archive a single execution (backward-compatible, loads flow info individually).
+     */
     @Transactional
     public void archiveExecution(Execution execution) {
-        // Get flow info
+        // Fallback for single execution archival (used in tests and external callers)
+        Map<UUID, FlowVersion> versionMap = new HashMap<>();
+        Map<UUID, Flow> flowMap = new HashMap<>();
+        if (execution.getFlowVersionId() != null) {
+            flowVersionRepository.findById(execution.getFlowVersionId()).ifPresent(v -> {
+                versionMap.put(v.getId(), v);
+                if (v.getFlowId() != null) {
+                    flowRepository.findById(v.getFlowId()).ifPresent(f -> flowMap.put(f.getId(), f));
+                }
+            });
+        }
+        archiveExecution(execution, versionMap, flowMap);
+    }
+
+    @Transactional
+    public void archiveExecution(Execution execution, Map<UUID, FlowVersion> versionMap, Map<UUID, Flow> flowMap) {
+        // Get flow info from pre-loaded maps (batch-loaded to avoid N+1)
         String flowName = null;
         String flowVersion = null;
 
-        FlowVersion version = flowVersionRepository.findById(execution.getFlowVersionId()).orElse(null);
+        FlowVersion version = execution.getFlowVersionId() != null ? versionMap.get(execution.getFlowVersionId()) : null;
         if (version != null) {
             flowVersion = version.getVersion();
-            Flow flow = flowRepository.findById(version.getFlowId()).orElse(null);
+            Flow flow = version.getFlowId() != null ? flowMap.get(version.getFlowId()) : null;
             if (flow != null) {
                 flowName = flow.getName();
             }
