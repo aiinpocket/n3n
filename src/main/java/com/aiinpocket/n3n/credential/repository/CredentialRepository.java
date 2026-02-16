@@ -22,7 +22,7 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
     @Query("""
         SELECT c FROM Credential c
         WHERE c.ownerId = :userId
-        OR c.visibility = 'shared'
+        OR c.visibility = 'public'
         OR c.id IN (
             SELECT cs.credentialId FROM CredentialShare cs WHERE cs.userId = :userId
         )
@@ -41,7 +41,7 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
         SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Credential c
         WHERE c.id = :credentialId
         AND (c.ownerId = :userId
-             OR c.visibility = 'shared'
+             OR c.visibility = 'public'
              OR c.id IN (SELECT cs.credentialId FROM CredentialShare cs WHERE cs.userId = :userId))
         """)
     boolean isAccessibleByUser(@Param("credentialId") UUID credentialId, @Param("userId") UUID userId);
