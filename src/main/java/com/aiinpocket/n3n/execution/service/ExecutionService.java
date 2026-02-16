@@ -194,6 +194,11 @@ public class ExecutionService {
         if (request.getVersion() != null) {
             version = flowVersionRepository.findByFlowIdAndVersion(flow.getId(), request.getVersion())
                 .orElseThrow(() -> new ResourceNotFoundException("Version not found: " + request.getVersion()));
+            // Only published versions can be executed
+            if (!"published".equals(version.getStatus())) {
+                throw new IllegalArgumentException(
+                    "Version " + request.getVersion() + " is not published. Only published versions can be executed.");
+            }
         } else {
             // Use published version only - draft versions cannot be executed without explicit version
             version = flowVersionRepository.findByFlowIdAndStatus(flow.getId(), "published")
@@ -442,6 +447,10 @@ public class ExecutionService {
         Map<String, Object> context = new HashMap<>();
         if (execution.getTriggerInput() != null) {
             context.put("input", execution.getTriggerInput());
+            // Propagate sub-workflow depth to top-level context for recursion tracking
+            if (execution.getTriggerInput().containsKey("_subWorkflowDepth")) {
+                context.put("_subWorkflowDepth", execution.getTriggerInput().get("_subWorkflowDepth"));
+            }
         }
         if (execution.getTriggerContext() != null) {
             context.putAll(execution.getTriggerContext());

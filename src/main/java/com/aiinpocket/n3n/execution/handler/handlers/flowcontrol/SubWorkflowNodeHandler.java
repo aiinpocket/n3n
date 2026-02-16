@@ -116,8 +116,11 @@ public class SubWorkflowNodeHandler extends AbstractNodeHandler {
         }
 
         try {
-            log.info("Triggering sub-workflow: {} (flowId: {}, wait: {})",
-                    subFlow.getName(), subFlowId, waitForCompletion);
+            log.info("Triggering sub-workflow: {} (flowId: {}, wait: {}, depth: {})",
+                    subFlow.getName(), subFlowId, waitForCompletion, currentDepth + 1);
+
+            // Propagate recursion depth to sub-workflow
+            subInput.put(DEPTH_KEY, currentDepth + 1);
 
             // Trigger sub-workflow
             ExecutionResponse subExecution = executionService.startExecution(
