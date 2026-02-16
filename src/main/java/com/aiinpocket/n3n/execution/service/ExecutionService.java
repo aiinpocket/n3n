@@ -1096,7 +1096,7 @@ public class ExecutionService {
      * Monitor and cancel stuck executions that exceed the configured timeout.
      * Runs every 60 seconds.
      */
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedDelay = 60000)
     @Transactional
     public void monitorStuckExecutions() {
         if (executionTimeoutMs <= 0) {

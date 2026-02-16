@@ -50,7 +50,6 @@ public class ExecutionArchivalService {
      * Runs daily at 3:00 AM (staggered from housekeeping at 2:00 AM).
      */
     @Scheduled(cron = "${execution.archival.cron:0 0 3 * * ?}")
-    @Transactional
     public void archiveOldExecutions() {
         if (!archivalRunning.compareAndSet(false, true)) {
             log.warn("Execution archival already running, skipping this run");

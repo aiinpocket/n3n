@@ -470,6 +470,7 @@ kubectl apply -f ingress.yaml
 | `REDIS_PORT` |  | Redis 連接埠 | 6379 |
 | `REDIS_PASSWORD` |  | Redis 密碼 | (無) |
 | `JWT_SECRET` |  | JWT 簽章金鑰 | 自動產生並持久化到資料庫 |
+| `N3N_SERVER_BASE_URL` | 生產環境建議 | 公開存取的 URL（影響 Webhook URL 與 Email 連結） | http://localhost:8080 |
 | `ALLOWED_ORIGINS` |  | CORS 允許來源 | http://localhost:8080,http://localhost:3000 |
 | `JAVA_OPTS` |  | JVM 參數 | -XX:MaxRAMPercentage=75.0 |
 

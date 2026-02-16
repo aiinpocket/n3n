@@ -102,7 +102,7 @@ config:
 # Flow Optimizer (local Phi-3-Mini LLM for flow analysis)
 flowOptimizer:
   enabled: true
-  url: "http://localhost:8081"
+  url: "http://n3n-flow-optimizer:8081"  # Use K8s Service name; override with localhost:8081 for local dev
   timeoutMs: 30000
 
 # Database configuration
@@ -119,12 +119,22 @@ database:
   minIdle: 2
 
 # Redis configuration
+# To use external Redis: set external=true and configure host/port/password.
+# To use built-in Redis: set enabled=true (default).
 redis:
-  # Use external Redis or built-in
   external: false
   host: ""
   port: 6379
   password: ""
+  # Built-in Redis (Bitnami subchart) settings
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
 
 # Built-in PostgreSQL (Bitnami chart)
 postgresql:
@@ -137,17 +147,6 @@ postgresql:
     persistence:
       enabled: true
       size: 10Gi
-
-# Built-in Redis (Bitnami chart)
-redis:
-  enabled: true
-  architecture: standalone
-  auth:
-    enabled: false
-  master:
-    persistence:
-      enabled: true
-      size: 1Gi
 
 # Health checks
 healthCheck:

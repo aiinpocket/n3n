@@ -117,6 +117,9 @@ docker compose up -d
 > docker compose ps
 > ```
 > 當看到 `Started N3nApplication` 字樣時，即可開啟瀏覽器。
+>
+> **注意**：本地 AI 優化器首次啟動需額外下載模型，其他功能可正常使用。
+> 追蹤 AI 優化器進度：`docker compose logs -f flow-optimizer`
 
 打開瀏覽器，前往：**http://localhost:8080**
 
