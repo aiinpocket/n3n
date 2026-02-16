@@ -130,4 +130,9 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
      * Count executions started before a given time (for housekeeping stats).
      */
     long countByStartedAtBefore(Instant before);
+
+    /**
+     * Check if an execution exists and is owned by the given user.
+     */
+    boolean existsByIdAndTriggeredBy(UUID id, UUID triggeredBy);
 }

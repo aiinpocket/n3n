@@ -785,9 +785,11 @@ export default function FlowEditorPage() {
                 <Button icon={<PlusOutlined />}>{t('editor.addNode')}</Button>
               </Dropdown>
             )}
-            <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
-              {t('editor.externalServices')}
-            </Button>
+            {canEdit && (
+              <Button icon={<ApiOutlined />} onClick={() => setServicePanelOpen(true)}>
+                {t('editor.externalServices')}
+              </Button>
+            )}
             {hasFormTrigger && (
               <Tooltip title={t('form.getFormUrl')}>
                 <Button icon={<LinkOutlined />} onClick={handleCopyFormUrl}>
@@ -978,9 +980,9 @@ export default function FlowEditorPage() {
           onEdgesChange={(executionMode || isReadOnly) ? undefined : onEdgesChange}
           onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
           isValidConnection={isValidConnection}
-          onNodeClick={(executionMode || isReadOnly) ? undefined : handleNodeClick}
+          onNodeClick={executionMode ? undefined : handleNodeClick}
           onEdgeClick={(executionMode || isReadOnly) ? undefined : handleEdgeClick}
-          onPaneClick={(executionMode || isReadOnly) ? undefined : handlePaneClick}
+          onPaneClick={executionMode ? undefined : handlePaneClick}
           nodesDraggable={!executionMode && canEdit}
           nodesConnectable={!executionMode && canEdit}
           elementsSelectable={!executionMode && canEdit}
@@ -1103,8 +1105,9 @@ export default function FlowEditorPage() {
         flowId={id}
         flowVersion={currentVersion?.version}
         onClose={() => setSelectedNodeId(null)}
-        onUpdate={executionMode ? undefined : handleNodeConfigUpdate}
-        onDelete={executionMode ? undefined : handleNodeDelete}
+        onUpdate={(executionMode || isReadOnly) ? undefined : handleNodeConfigUpdate}
+        onDelete={(executionMode || isReadOnly) ? undefined : handleNodeDelete}
+        readOnly={isReadOnly}
       />
 
       <ServiceNodePanel

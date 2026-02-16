@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.service;
 
+import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class ExecutionNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final ExecutionRepository executionRepository;
 
     @Data
     @Builder
@@ -238,9 +240,17 @@ public class ExecutionNotificationService {
     }
 
     private void sendToExecution(UUID executionId, ExecutionEvent event) {
-        // Send to execution-specific topic
+        // Send to execution-specific topic (protected by WebSocketSubscriptionInterceptor)
         messagingTemplate.convertAndSend("/topic/executions/" + executionId, event);
-        // Also send to global executions topic for dashboard updates
-        messagingTemplate.convertAndSend("/topic/executions", event);
+
+        // Send to user-specific queue for dashboard updates (scoped to execution owner)
+        try {
+            executionRepository.findById(executionId).ifPresent(execution -> {
+                String userId = execution.getTriggeredBy().toString();
+                messagingTemplate.convertAndSendToUser(userId, "/queue/executions", event);
+            });
+        } catch (Exception e) {
+            log.debug("Could not send user-specific execution event: {}", e.getMessage());
+        }
     }
 }

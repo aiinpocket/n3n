@@ -140,7 +140,8 @@ class WebSocketService {
   }
 
   subscribeToAllExecutions(handler: EventHandler): () => void {
-    const topic = '/topic/executions';
+    // Subscribe to user-specific queue for dashboard updates (server sends only own executions)
+    const topic = '/user/queue/executions';
     return this.subscribe(topic, handler);
   }
 

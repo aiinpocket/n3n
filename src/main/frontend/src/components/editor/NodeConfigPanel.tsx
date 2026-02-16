@@ -56,6 +56,7 @@ interface NodeConfigPanelProps {
   onUpdate?: (nodeId: string, data: Record<string, unknown>) => void
   onDelete?: (nodeId: string) => void
   onTest?: (nodeId: string) => void
+  readOnly?: boolean
 }
 
 interface SchemaProperty {
@@ -88,6 +89,7 @@ export default function NodeConfigPanel({
   onUpdate,
   onDelete,
   onTest,
+  readOnly = false,
 }: NodeConfigPanelProps) {
   const { t } = useTranslation()
   const [form] = Form.useForm()
@@ -667,6 +669,7 @@ export default function NodeConfigPanel({
             layout="vertical"
             onValuesChange={handleValuesChange}
             initialValues={node.data}
+            disabled={readOnly}
           >
             {renderNodeTabs()}
           </Form>
@@ -690,6 +693,7 @@ export default function NodeConfigPanel({
           )}
 
           {/* Action buttons - always show delete button */}
+          {!readOnly && (
           <div style={{ marginTop: 24 }}>
             <Space direction="vertical" style={{ width: '100%' }}>
               {onTest && (
@@ -735,6 +739,7 @@ export default function NodeConfigPanel({
               )}
             </Space>
           </div>
+          )}
         </>
       )}
 
