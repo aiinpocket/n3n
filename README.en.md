@@ -313,6 +313,7 @@ N3N uses a **zero-configuration design** — all settings have sensible defaults
 | `DATABASE_PASSWORD` | `n3n` | Database password |
 | `REDIS_HOST` | `localhost` | Redis host |
 | `REDIS_PORT` | `6379` | Redis port |
+| `REDIS_PASSWORD` | (empty) | Redis password (automatically enables authentication when set) |
 
 ### Security
 

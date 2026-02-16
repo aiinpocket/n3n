@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import backupApi, { BackupSettings, BackupHistory, RemoteBackupInfo } from '../api/backup'
+import { getLocale } from '../utils/locale'
 import { cloudSyncApi, type CloudSyncStatus } from '../api/cloudSync'
 import { extractApiError } from '../utils/errorMessages'
 import logger from '../utils/logger'
@@ -228,7 +229,7 @@ export default function CloudBackupPage() {
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (date: string) => new Date(date).toLocaleString(getLocale()),
     },
   ]
 

@@ -8,6 +8,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { logsApi, createLogStream, type LogEntry } from '../api/logs'
 import { extractApiError } from '../utils/errorMessages'
+import { getLocale } from '../utils/locale'
 
 const { Text } = Typography
 
@@ -28,7 +29,7 @@ const levelTagColors: Record<string, string> = {
 function formatTimestamp(ts: string): string {
   const d = new Date(ts)
   if (isNaN(d.getTime())) return ts
-  return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions)
+  return d.toLocaleTimeString(getLocale(), { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions)
 }
 
 export default function LogViewerPage() {
