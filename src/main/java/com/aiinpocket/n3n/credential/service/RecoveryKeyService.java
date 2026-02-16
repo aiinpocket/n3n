@@ -193,45 +193,6 @@ public class RecoveryKeyService {
     }
 
     /**
-     * 從 Recovery Key 衍生 Master Key（舊版相容，帶外部 Salt）
-     *
-     * @param phrase Recovery Key 字串
-     * @param instanceSalt 實例 Salt（環境特定）
-     * @return 256-bit Master Key
-     * @deprecated 使用 {@link #deriveMasterKey(String)} 代替，Salt 從助記詞最後一個單字衍生
-     */
-    @Deprecated
-    public byte[] deriveMasterKey(String phrase, byte[] instanceSalt) {
-        if (!validate(phrase)) {
-            throw new IllegalArgumentException("Invalid Recovery Key format");
-        }
-
-        if (instanceSalt == null || instanceSalt.length < 16) {
-            throw new IllegalArgumentException("Instance salt must be at least 16 bytes");
-        }
-
-        try {
-            String normalizedPhrase = normalizePhrase(phrase);
-
-            PBEKeySpec spec = new PBEKeySpec(
-                    normalizedPhrase.toCharArray(),
-                    instanceSalt,
-                    PBKDF2_ITERATIONS,
-                    DERIVED_KEY_LENGTH
-            );
-
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            byte[] derivedKey = factory.generateSecret(spec).getEncoded();
-
-            log.debug("Master key derived successfully (legacy mode with external salt)");
-            return derivedKey;
-
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException("Master key derivation failed", e);
-        }
-    }
-
-    /**
      * 從單字衍生 Salt
      *
      * 使用 SHA-256 hash 單字得到 32 bytes 的 Salt。
@@ -249,20 +210,6 @@ public class RecoveryKeyService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 not available", e);
         }
-    }
-
-    /**
-     * 產生 Instance Salt（舊版相容）
-     *
-     * @return 32 bytes 的隨機 Salt
-     * @deprecated Salt 現在從助記詞最後一個單字衍生，不再需要獨立的 Instance Salt
-     */
-    @Deprecated
-    public byte[] generateInstanceSalt() {
-        byte[] salt = new byte[32];
-        new SecureRandom().nextBytes(salt);
-        log.info("Generated new Instance Salt (deprecated, use deriveMasterKey(phrase) instead)");
-        return salt;
     }
 
     /**

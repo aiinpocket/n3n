@@ -48,6 +48,10 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
 
   connect: async () => {
     try {
+      websocketService.onReconnectFailed = () => {
+        logger.error('WebSocket reconnection failed after max attempts');
+        set({ isConnected: false });
+      };
       await websocketService.connect();
       set({ isConnected: true });
     } catch (error) {

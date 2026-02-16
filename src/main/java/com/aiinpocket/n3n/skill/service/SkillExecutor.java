@@ -40,6 +40,9 @@ public class SkillExecutor {
         }
 
         Skill skill = skillOpt.get();
+        if (!isAccessible(skill, userId)) {
+            return SkillResult.failure("ACCESS_DENIED", "Not authorized to execute this skill");
+        }
         return executeSkill(skill, input, executionId, nodeExecutionId, userId);
     }
 
@@ -53,7 +56,20 @@ public class SkillExecutor {
         }
 
         Skill skill = skillOpt.get();
+        if (!isAccessible(skill, userId)) {
+            return SkillResult.failure("ACCESS_DENIED", "Not authorized to execute this skill");
+        }
         return executeSkill(skill, input, executionId, nodeExecutionId, userId);
+    }
+
+    /**
+     * Check if a skill is accessible to the given user.
+     * A skill is accessible if it's builtin, owned by the user, or has public visibility.
+     */
+    private boolean isAccessible(Skill skill, UUID userId) {
+        if (Boolean.TRUE.equals(skill.getIsBuiltin())) return true;
+        if (userId != null && userId.equals(skill.getOwnerId())) return true;
+        return "public".equalsIgnoreCase(skill.getVisibility());
     }
 
     private SkillResult executeSkill(Skill skill, Map<String, Object> input, UUID executionId, UUID nodeExecutionId, UUID userId) {

@@ -12,7 +12,5 @@ public interface OAuth2TokenRepository extends JpaRepository<OAuth2Token, UUID> 
 
     Optional<OAuth2Token> findByCredentialId(UUID credentialId);
 
-    Optional<OAuth2Token> findByCredentialIdAndProvider(UUID credentialId, String provider);
-
     void deleteByCredentialId(UUID credentialId);
 }
