@@ -38,4 +38,10 @@ public interface FlowVersionRepository extends JpaRepository<FlowVersion, UUID> 
      * 批次查詢多個 Flow 的已發布版本
      */
     List<FlowVersion> findByFlowIdInAndStatus(List<UUID> flowIds, String status);
+
+    /**
+     * 刪除指定 Flow 的所有版本（用於 Flow 刪除時清理）
+     */
+    @Modifying
+    void deleteByFlowId(UUID flowId);
 }

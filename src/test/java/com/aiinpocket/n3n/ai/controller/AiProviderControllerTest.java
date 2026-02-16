@@ -779,7 +779,7 @@ class AiProviderControllerTest {
         when(providerService.fetchModelsWithKey("openai", "sk-test-key", "https://api.openai.com/v1"))
                 .thenReturn(models);
 
-        var result = controller.fetchModelsWithKey(request);
+        var result = controller.fetchModelsWithKey(request, testUser());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -794,7 +794,7 @@ class AiProviderControllerTest {
         when(providerService.fetchModelsWithKey("claude", "sk-ant-test", null))
                 .thenReturn(List.of(sampleModelResponse("claude-3-opus", "Claude 3 Opus")));
 
-        var result = controller.fetchModelsWithKey(request);
+        var result = controller.fetchModelsWithKey(request, testUser());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).hasSize(1);
@@ -807,7 +807,7 @@ class AiProviderControllerTest {
         when(providerService.fetchModelsWithKey("invalid", "key", null))
                 .thenThrow(new IllegalArgumentException("Unknown provider: invalid"));
 
-        assertThatThrownBy(() -> controller.fetchModelsWithKey(request))
+        assertThatThrownBy(() -> controller.fetchModelsWithKey(request, testUser()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Unknown provider");
     }
@@ -818,7 +818,7 @@ class AiProviderControllerTest {
         when(providerService.fetchModelsWithKey("openai", "bad-key", null))
                 .thenThrow(new RuntimeException("Failed to fetch models"));
 
-        assertThatThrownBy(() -> controller.fetchModelsWithKey(request))
+        assertThatThrownBy(() -> controller.fetchModelsWithKey(request, testUser()))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Failed to fetch models");
     }
@@ -829,7 +829,7 @@ class AiProviderControllerTest {
         when(providerService.fetchModelsWithKey("ollama", "no-key", "http://localhost:11434"))
                 .thenReturn(List.of());
 
-        var result = controller.fetchModelsWithKey(request);
+        var result = controller.fetchModelsWithKey(request, testUser());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();

@@ -40,6 +40,7 @@ public class WebhookService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
+    @Transactional(readOnly = true)
     public List<WebhookResponse> listWebhooks(UUID userId) {
         return webhookRepository.findByCreatedByOrderByCreatedAtDesc(userId)
             .stream()
@@ -47,6 +48,7 @@ public class WebhookService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<WebhookResponse> listWebhooksForFlow(UUID flowId, UUID userId) {
         // Validate user has access to the flow
         if (!flowShareService.hasAccess(flowId, userId)) {
@@ -67,6 +69,7 @@ public class WebhookService {
         return webhook;
     }
 
+    @Transactional(readOnly = true)
     public WebhookResponse getWebhook(UUID id, UUID userId) {
         Webhook webhook = findWebhookWithOwnerCheck(id, userId);
         return WebhookResponse.from(webhook, baseUrl);

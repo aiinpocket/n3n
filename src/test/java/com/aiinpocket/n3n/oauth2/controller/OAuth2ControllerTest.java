@@ -73,7 +73,7 @@ class OAuth2ControllerTest {
         when(credentialRepository.findByIdAndOwnerId(credentialId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> oAuth2Controller.getAuthorizationUrl(
-                "google", credentialId, null, null, testUser()))
+                "google", credentialId, null, testUser()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Credential not found or access denied");
     }
@@ -84,7 +84,7 @@ class OAuth2ControllerTest {
         when(credentialRepository.findByIdAndOwnerId(credentialId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> oAuth2Controller.getAuthorizationUrl(
-                "google", credentialId, null, null, testUser()))
+                "google", credentialId, null, testUser()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Credential not found or access denied");
     }
@@ -97,7 +97,7 @@ class OAuth2ControllerTest {
 
         // No env vars set, so buildAuthorizationUrl returns null for any provider
         var result = oAuth2Controller.getAuthorizationUrl(
-                "unsupported", credentialId, null, null, testUser());
+                "unsupported", credentialId, null, testUser());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(result.getBody()).isNotNull();
@@ -112,7 +112,7 @@ class OAuth2ControllerTest {
 
         // Without env vars GOOGLE_CLIENT_ID and OAUTH2_REDIRECT_URI, result will be null
         var result = oAuth2Controller.getAuthorizationUrl(
-                "google", credentialId, null, null, testUser());
+                "google", credentialId, null, testUser());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(result.getBody()).containsKey("error");

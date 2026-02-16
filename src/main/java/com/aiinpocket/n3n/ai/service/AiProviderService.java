@@ -40,6 +40,7 @@ public class AiProviderService {
     /**
      * 列出所有可用的 Provider 類型
      */
+    @Transactional(readOnly = true)
     public List<ProviderTypeResponse> listProviderTypes() {
         return providerFactory.getAllProviders().stream()
                 .map(ProviderTypeResponse::from)
@@ -49,6 +50,7 @@ public class AiProviderService {
     /**
      * 列出使用者的所有 AI Provider 設定
      */
+    @Transactional(readOnly = true)
     public List<AiProviderConfigResponse> listUserConfigs(UUID userId) {
         return configRepository.findByOwnerIdAndIsActiveTrue(userId).stream()
                 .map(AiProviderConfigResponse::from)
@@ -58,6 +60,7 @@ public class AiProviderService {
     /**
      * 取得使用者的預設 AI Provider 設定
      */
+    @Transactional(readOnly = true)
     public AiProviderConfigResponse getDefaultConfig(UUID userId) {
         return configRepository.findByOwnerIdAndIsDefaultTrue(userId)
                 .map(AiProviderConfigResponse::from)
@@ -67,6 +70,7 @@ public class AiProviderService {
     /**
      * 取得指定的 AI Provider 設定
      */
+    @Transactional(readOnly = true)
     public AiProviderConfigResponse getConfig(UUID configId, UUID userId) {
         return configRepository.findByIdAndOwnerId(configId, userId)
                 .map(AiProviderConfigResponse::from)
@@ -239,6 +243,7 @@ public class AiProviderService {
     /**
      * 取得可用模型清單
      */
+    @Transactional(readOnly = true)
     public List<AiModelResponse> fetchModels(UUID configId, UUID userId) {
         AiProviderConfig config = configRepository.findByIdAndOwnerId(configId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Provider config not found: " + configId));
@@ -280,6 +285,7 @@ public class AiProviderService {
     /**
      * 取得 Provider Settings（用於執行 AI 請求）
      */
+    @Transactional(readOnly = true)
     public AiProviderSettings getProviderSettings(UUID configId, UUID userId) {
         AiProviderConfig config = configRepository.findByIdAndOwnerId(configId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Provider config not found: " + configId));
@@ -297,6 +303,7 @@ public class AiProviderService {
     /**
      * 取得 Provider 設定（內部使用）
      */
+    @Transactional(readOnly = true)
     public AiProviderConfig getConfigEntity(UUID configId, UUID userId) {
         return configRepository.findByIdAndOwnerId(configId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Provider config not found: " + configId));

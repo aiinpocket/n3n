@@ -58,4 +58,16 @@ public interface FormTriggerRepository extends JpaRepository<FormTrigger, UUID> 
     @Modifying
     @Query("UPDATE FormTrigger f SET f.submissionCount = f.submissionCount + 1 WHERE f.id = :id")
     int incrementSubmissionCountById(@Param("id") UUID id);
+
+    /**
+     * Atomically check-and-increment: only increments if form is active,
+     * not expired, and under submission limit. Prevents TOCTOU race conditions.
+     * Returns 1 if incremented (accepted), 0 if rejected.
+     */
+    @Modifying
+    @Query("UPDATE FormTrigger f SET f.submissionCount = f.submissionCount + 1, f.updatedAt = CURRENT_TIMESTAMP " +
+           "WHERE f.id = :id AND f.isActive = true " +
+           "AND (f.expiresAt IS NULL OR f.expiresAt > CURRENT_TIMESTAMP) " +
+           "AND (f.maxSubmissions = 0 OR f.submissionCount < f.maxSubmissions)")
+    int incrementSubmissionCountIfAllowed(@Param("id") UUID id);
 }

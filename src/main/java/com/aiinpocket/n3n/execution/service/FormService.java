@@ -180,6 +180,17 @@ public class FormService {
     }
 
     /**
+     * Atomically check-and-increment submission count.
+     * Returns true if the submission was accepted (form active, not expired, under limit).
+     * Returns false if the form is no longer accepting submissions.
+     * This prevents TOCTOU race conditions between canAcceptSubmission() and incrementSubmissionCount().
+     */
+    @Transactional
+    public boolean tryIncrementSubmissionCount(UUID triggerId) {
+        return formTriggerRepository.incrementSubmissionCountIfAllowed(triggerId) > 0;
+    }
+
+    /**
      * Expire old form triggers.
      */
     @Transactional

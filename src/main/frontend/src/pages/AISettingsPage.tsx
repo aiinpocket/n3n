@@ -96,7 +96,7 @@ const AISettingsPage: React.FC = () => {
       await deleteConfig(id)
       message.success(t('ai.deleteSuccess'))
     } catch (error) {
-      message.error(extractApiError(error))
+      message.error(extractApiError(error, t('common.deleteFailed')))
     }
   }
 
@@ -105,7 +105,7 @@ const AISettingsPage: React.FC = () => {
       await setAsDefault(id)
       message.success(t('ai.setAsDefaultSuccess'))
     } catch (error) {
-      message.error(extractApiError(error))
+      message.error(extractApiError(error, t('common.updateFailed')))
     }
   }
 

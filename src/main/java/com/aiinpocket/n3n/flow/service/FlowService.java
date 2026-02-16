@@ -239,10 +239,11 @@ public class FlowService {
         flowShareRepository.deleteByFlowId(id);
         webhookRepository.deactivateByFlowId(id);
         int schedulesRemoved = schedulerService.unscheduleByFlowId(id);
+        flowVersionRepository.deleteByFlowId(id);
 
         flow.setIsDeleted(true);
         flowRepository.save(flow);
-        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated, {} schedules removed", id, schedulesRemoved);
+        log.info("Flow deleted: id={}, shares cleaned up, webhooks deactivated, {} schedules removed, versions deleted", id, schedulesRemoved);
         eventPublisher.publishEvent(new FlowSyncEvent(id, SyncAction.DELETE, null));
     }
 

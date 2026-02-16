@@ -141,23 +141,25 @@ class FormControllerTest {
         HttpServletRequest httpRequest = mockRequest();
 
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
+        when(formService.tryIncrementSubmissionCount(trigger.getId())).thenReturn(true);
         when(executionService.startExecution(eq(trigger.getFlowId()), eq(trigger.getCreatedBy()), anyMap()))
                 .thenReturn(ExecutionResponse.builder().id(executionId).build());
 
         var response = formController.submitForm("test-token", Map.of("email", "test@example.com"), httpRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(formService).incrementSubmissionCount(trigger.getId());
+        verify(formService).tryIncrementSubmissionCount(trigger.getId());
         verify(ipRateLimiter).checkAllowed(eq("form-submit"), anyString(), eq(10), eq(60));
     }
 
     @Test
     void submitForm_shouldReturnGoneWhenFormNotAccepting() {
         FormTrigger trigger = activeFormTrigger(UUID.randomUUID());
-        trigger.setIsActive(false);
         HttpServletRequest httpRequest = mockRequest();
 
         when(formService.getFormTriggerByToken("test-token")).thenReturn(trigger);
+        // Atomic check-and-increment returns false when form is inactive/expired/at limit
+        when(formService.tryIncrementSubmissionCount(trigger.getId())).thenReturn(false);
 
         var response = formController.submitForm("test-token", Map.of("email", "test@example.com"), httpRequest);
 

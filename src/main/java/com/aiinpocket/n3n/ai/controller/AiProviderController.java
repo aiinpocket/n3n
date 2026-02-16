@@ -145,7 +145,10 @@ public class AiProviderController {
      */
     @PostMapping("/models")
     public ResponseEntity<List<AiModelResponse>> fetchModelsWithKey(
-            @Valid @RequestBody FetchModelsRequest request) {
+            @Valid @RequestBody FetchModelsRequest request,
+            @AuthenticationPrincipal UserDetails user) {
+        // user is already authenticated by SecurityConfig (/api/** requires auth)
+        // We bind it here for completeness, though this method doesn't need userId
         return ResponseEntity.ok(providerService.fetchModelsWithKey(
                 request.provider(),
                 request.apiKey(),

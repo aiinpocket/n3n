@@ -60,7 +60,6 @@ public class OAuth2Controller {
             @PathVariable @Size(max = 100) String provider,
             @RequestParam UUID credentialId,
             @RequestParam(required = false) @Size(max = 1000) String scope,
-            @RequestParam(required = false) @Size(max = 2000) String redirectUri,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         UUID userId = UUID.fromString(userDetails.getUsername());
@@ -69,7 +68,8 @@ public class OAuth2Controller {
         credentialRepository.findByIdAndOwnerId(credentialId, userId)
             .orElseThrow(() -> new IllegalArgumentException("Credential not found or access denied"));
 
-        String authUrl = buildAuthorizationUrl(provider, credentialId, scope, redirectUri);
+        // Always use server-configured redirect URI to prevent open redirect attacks
+        String authUrl = buildAuthorizationUrl(provider, credentialId, scope);
 
         if (authUrl == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Unknown OAuth2 provider"));
@@ -225,11 +225,11 @@ public class OAuth2Controller {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    private String buildAuthorizationUrl(String provider, UUID credentialId, String scope, String redirectUri) {
+    private String buildAuthorizationUrl(String provider, UUID credentialId, String scope) {
         String clientId = System.getenv(provider.toUpperCase() + "_CLIENT_ID");
-        if (redirectUri == null) {
-            redirectUri = System.getenv("OAUTH2_REDIRECT_URI");
-        }
+        // Always use server-configured redirect URI — never accept user-supplied values
+        // to prevent open redirect attacks that could leak authorization codes
+        String redirectUri = System.getenv("OAUTH2_REDIRECT_URI");
 
         if (clientId == null || redirectUri == null) {
             return null;

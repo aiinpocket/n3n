@@ -96,7 +96,9 @@ public class FormController {
         try {
             FormTrigger trigger = formService.getFormTriggerByToken(token);
 
-            if (!trigger.canAcceptSubmission()) {
+            // Atomically check-and-increment to prevent TOCTOU race condition.
+            // This ensures two concurrent submissions can't both pass the limit check.
+            if (!formService.tryIncrementSubmissionCount(trigger.getId())) {
                 return ResponseEntity.status(HttpStatus.GONE)
                     .body(Map.of("error", "This form is not accepting submissions"));
             }
@@ -119,9 +121,6 @@ public class FormController {
                 trigger.getCreatedBy(),  // Use form creator as user
                 triggerInput
             );
-
-            // Increment submission count only after successful execution start
-            formService.incrementSubmissionCount(trigger.getId());
 
             // Get success message from config
             String successMessage = "Thank you for your submission!";
