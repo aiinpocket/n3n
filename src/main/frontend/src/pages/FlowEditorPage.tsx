@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react'
+import { useCallback, useEffect, useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { getLocale } from '../utils/locale'
 import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select, Drawer } from 'antd'
@@ -60,11 +60,11 @@ import { useFlowExecution } from '../hooks/useFlowExecution'
 import { useExecutionStore, NodeExecutionState } from '../stores/executionStore'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 import OptimizationPanel from '../components/flow/OptimizationPanel'
-import PublishFlowModal from '../components/ai/PublishFlowModal'
-import NodeRecommendationDrawer from '../components/ai/NodeRecommendationDrawer'
-import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
-import AIPanelDrawer from '../components/ai/AIPanelDrawer'
-import FlowExportModal from '../components/flow/FlowExportModal'
+const PublishFlowModal = lazy(() => import('../components/ai/PublishFlowModal'))
+const NodeRecommendationDrawer = lazy(() => import('../components/ai/NodeRecommendationDrawer'))
+const FlowGeneratorModal = lazy(() => import('../components/ai/FlowGeneratorModal'))
+const AIPanelDrawer = lazy(() => import('../components/ai/AIPanelDrawer'))
+const FlowExportModal = lazy(() => import('../components/flow/FlowExportModal'))
 import { useAIAssistantStore } from '../stores/aiAssistantStore'
 import { CommandPalette } from '../components/command'
 import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
@@ -195,7 +195,7 @@ export default function FlowEditorPage() {
   const [edgeConfigPosition, setEdgeConfigPosition] = useState<{ x: number; y: number } | null>(null)
 
   // AI Assistant Store
-  const { openPanel: openAIPanel } = useAIAssistantStore()
+  const { openPanel: openAIPanel, isPanelOpen: aiPanelOpen } = useAIAssistantStore()
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Check if the flow has a Form Trigger node
@@ -1216,7 +1216,7 @@ export default function FlowEditorPage() {
         }}
       />
 
-      <PublishFlowModal
+      {publishModalOpen && <Suspense fallback={null}><PublishFlowModal
         open={publishModalOpen}
         onClose={() => setPublishModalOpen(false)}
         flowDefinition={{
@@ -1245,15 +1245,15 @@ export default function FlowEditorPage() {
             setSelectedNodeId(nodeIds[0])
           }
         }}
-      />
+      /></Suspense>}
 
-      <FlowExportModal
+      {exportModalOpen && <Suspense fallback={null}><FlowExportModal
         visible={exportModalOpen}
         flowId={id || ''}
         flowName={currentFlow?.name || ''}
         version={currentVersion?.version || ''}
         onClose={() => setExportModalOpen(false)}
-      />
+      /></Suspense>}
 
       {/* Save as Template Modal */}
       <Modal
@@ -1387,7 +1387,7 @@ export default function FlowEditorPage() {
         )}
       </Modal>
 
-      <NodeRecommendationDrawer
+      {nodeRecommendationOpen && <Suspense fallback={null}><NodeRecommendationDrawer
         open={nodeRecommendationOpen}
         onClose={() => setNodeRecommendationOpen(false)}
         currentFlow={{
@@ -1402,9 +1402,9 @@ export default function FlowEditorPage() {
           })),
         }}
         onAddNode={handleAddNode}
-      />
+      /></Suspense>}
 
-      <FlowGeneratorModal
+      {flowGeneratorOpen && <Suspense fallback={null}><FlowGeneratorModal
         open={flowGeneratorOpen}
         onClose={() => {
           setFlowGeneratorOpen(false)
@@ -1434,7 +1434,7 @@ export default function FlowEditorPage() {
             message.success(t('flow.createdCanAdjust'))
           }
         }}
-      />
+      /></Suspense>}
 
       <CommandPalette
         open={commandPaletteOpen}
@@ -1475,7 +1475,7 @@ export default function FlowEditorPage() {
       />
 
       {/* AI Assistant Drawer */}
-      <AIPanelDrawer
+      {aiPanelOpen && <Suspense fallback={null}><AIPanelDrawer
         flowId={id}
         onOpenFlowGenerator={(desc) => {
           setFlowGeneratorInitialDesc(desc)
@@ -1514,7 +1514,7 @@ export default function FlowEditorPage() {
           })))
           message.success(t('editor.flowChangesApplied'))
         }}
-      />
+      /></Suspense>}
 
       {/* Execution Node Detail Drawer */}
       <Drawer
