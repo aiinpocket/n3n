@@ -55,7 +55,8 @@ export default function FlowListPage() {
     try {
       const data = await flowShareApi.getSharedWithMe()
       setSharedFlows(data)
-    } catch {
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.loadFailed')))
       setSharedFlows([])
     } finally {
       setSharedLoading(false)
@@ -165,7 +166,8 @@ export default function FlowListPage() {
     try {
       const data = await flowShareApi.getShares(flow.id)
       setShares(data)
-    } catch {
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.loadFailed')))
       setShares([])
     } finally {
       setSharesLoading(false)

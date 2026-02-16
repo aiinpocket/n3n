@@ -195,8 +195,8 @@ public class ExecutionNotificationService {
             .build();
 
         sendToExecution(executionId, event);
-        // Also send to approvals topic for approval dashboard
-        messagingTemplate.convertAndSend("/topic/approvals", event);
+        // Send to execution owner's personal approval queue (not public topic)
+        sendApprovalToOwner(executionId, event);
         log.debug("Sent approval created notification: execution={}, approval={}", executionId, approvalId);
     }
 
@@ -216,7 +216,7 @@ public class ExecutionNotificationService {
             .build();
 
         sendToExecution(executionId, event);
-        messagingTemplate.convertAndSend("/topic/approvals", event);
+        sendApprovalToOwner(executionId, event);
         log.debug("Sent approval action notification: execution={}, action={}", executionId, action);
     }
 
@@ -235,8 +235,23 @@ public class ExecutionNotificationService {
             .build();
 
         sendToExecution(executionId, event);
-        messagingTemplate.convertAndSend("/topic/approvals", event);
+        sendApprovalToOwner(executionId, event);
         log.debug("Sent approval resolved notification: execution={}, resolution={}", executionId, resolution);
+    }
+
+    /**
+     * Send approval event to the execution owner's personal queue only.
+     * This prevents leaking approval data to other users via public topics.
+     */
+    private void sendApprovalToOwner(UUID executionId, ExecutionEvent event) {
+        try {
+            executionRepository.findById(executionId).ifPresent(execution -> {
+                String userId = execution.getTriggeredBy().toString();
+                messagingTemplate.convertAndSendToUser(userId, "/queue/approvals", event);
+            });
+        } catch (Exception e) {
+            log.debug("Could not send user-specific approval event: {}", e.getMessage());
+        }
     }
 
     private void sendToExecution(UUID executionId, ExecutionEvent event) {
