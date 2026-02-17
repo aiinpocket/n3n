@@ -3,12 +3,12 @@
 # =============================================================
 # 部署到 TaipeiCenter K8s 叢集
 # Domain: https://n3n.kubeinpocket.com
-# Docker Registry: Nexus (192.168.30.122:8082)
+# Docker Registry: ghcr.io
 # Storage: NFS (nfs-client StorageClass)
 # TLS: Cloudflare Origin Certificate (自動)
 # =============================================================
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: ghcr.io/aiinpocket/n3n
@@ -46,20 +46,14 @@ service:
 # =============================================================
 # Ingress - n3n.kubeinpocket.com
 # =============================================================
-# TLS 由 Cloudflare Origin Certificate 自動處理
-# Nginx Ingress Controller 已設定 default-ssl-certificate
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    # File upload support
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    # WebSocket / SSE long connection timeout (1 hour)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    # Required for WebSocket upgrade
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    # Session affinity for WebSocket connections
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "N3N_AFFINITY"
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
@@ -70,8 +64,6 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-  # TLS is handled by Cloudflare Origin Certificate (default-ssl-certificate)
-  # No need to specify tls section
   tls: []
 
 # =============================================================
@@ -86,12 +78,12 @@ resources:
     memory: 1Gi
 
 # =============================================================
-# Autoscaling
+# Autoscaling - n3n app (min 1, max 3)
 # =============================================================
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 6
+  minReplicas: 1
+  maxReplicas: 3
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 
@@ -103,29 +95,20 @@ affinity: {}
 # Application Configuration
 # =============================================================
 config:
-  # JWT secret - MUST be set via --set or GitHub Secret
   jwtSecret: ""
-  # Encryption key (defaults to jwtSecret if not set)
   encryptionKey: ""
-  # CORS
   allowedOrigins: "https://n3n.kubeinpocket.com"
-  # Log level
   logLevel: INFO
-  # Execution
   executionRetentionDays: 30
   executionMaxConcurrent: 100
   executionTimeoutMs: 300000
-  # Container orchestration (docker until fabric8 client packaging is fixed)
   orchestratorType: docker
-  # DDL auto mode (validate for production, update for initial setup)
   ddlAuto: validate
-  # Swagger (disabled in production)
   swaggerEnabled: "false"
 
 # =============================================================
 # Persistence - Data volume (/data)
 # =============================================================
-# Stores master encryption key and other persistent data
 persistence:
   enabled: true
   storageClass: "nfs-client"
@@ -133,62 +116,35 @@ persistence:
   accessMode: ReadWriteMany
 
 # =============================================================
-# Database - Built-in PostgreSQL (Bitnami)
+# Database - Standalone PostgreSQL Deployment
 # =============================================================
 database:
-  external: false
+  external: true
+  host: "n3n-postgres"
+  port: 5432
+  name: n3n
+  username: n3n
+  password: ""
   poolSize: 20
   minIdle: 5
+  storageClass: "nfs-client"
+  storageSize: 20Gi
 
+# Disable bitnami subchart
 postgresql:
-  enabled: true
-  image:
-    tag: latest
-  auth:
-    username: n3n
-    # Password MUST be set via --set postgresql.auth.password=xxx
-    password: ""
-    database: n3n
-  # Fix NFS volume permissions (root-owned dirs → UID 1001)
-  volumePermissions:
-    enabled: true
-    image:
-      tag: latest
-  primary:
-    persistence:
-      enabled: true
-      storageClass: "nfs-client"
-      size: 20Gi
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 1Gi
-      requests:
-        cpu: 250m
-        memory: 512Mi
+  enabled: false
 
 # =============================================================
-# Redis - Built-in (Bitnami)
+# Redis - Standalone Redis Deployment
 # =============================================================
 redis:
-  enabled: true
-  architecture: standalone
-  image:
-    tag: latest
-  auth:
-    enabled: false
-  master:
-    persistence:
-      enabled: true
-      storageClass: "nfs-client"
-      size: 2Gi
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
+  external: true
+  host: "n3n-redis"
+  port: 6379
+  password: ""
+  enabled: false
+  storageClass: "nfs-client"
+  storageSize: 2Gi
 
 # =============================================================
 # Health Checks

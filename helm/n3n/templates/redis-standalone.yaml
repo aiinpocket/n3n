@@ -1,0 +1,88 @@
+{{- if .Values.redis.external }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "n3n.fullname" . }}-redis-data
+  labels:
+    app: {{ include "n3n.fullname" . }}-redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.redis.storageClass | default "nfs-client" }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.storageSize | default "2Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "n3n.fullname" . }}-redis
+  labels:
+    app: {{ include "n3n.fullname" . }}-redis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "n3n.fullname" . }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ include "n3n.fullname" . }}-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          command:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --save
+            - "60"
+            - "1"
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ include "n3n.fullname" . }}-redis-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.redis.host }}
+  labels:
+    app: {{ include "n3n.fullname" . }}-redis
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.redis.port | default 6379 }}
+      targetPort: 6379
+  selector:
+    app: {{ include "n3n.fullname" . }}-redis
+{{- end }}

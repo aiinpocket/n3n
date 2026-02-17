@@ -1,0 +1,99 @@
+{{- if .Values.database.external }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "n3n.fullname" . }}-postgres-data
+  labels:
+    app: {{ include "n3n.fullname" . }}-postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.database.storageClass | default "nfs-client" }}
+  resources:
+    requests:
+      storage: {{ .Values.database.storageSize | default "20Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "n3n.fullname" . }}-postgres
+  labels:
+    app: {{ include "n3n.fullname" . }}-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "n3n.fullname" . }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ include "n3n.fullname" . }}-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.database.name | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.database.username | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.database.password | quote }}
+            - name: TZ
+              value: "Asia/Taipei"
+            - name: PGTZ
+              value: "Asia/Taipei"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.database.username }}
+                - -d
+                - {{ .Values.database.name }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.database.username }}
+                - -d
+                - {{ .Values.database.name }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: {{ include "n3n.fullname" . }}-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.database.host }}
+  labels:
+    app: {{ include "n3n.fullname" . }}-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.database.port | default 5432 }}
+      targetPort: 5432
+  selector:
+    app: {{ include "n3n.fullname" . }}-postgres
+{{- end }}
