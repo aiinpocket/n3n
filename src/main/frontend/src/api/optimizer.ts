@@ -71,12 +71,12 @@ export const optimizerApi = {
  */
 export const getSuggestionTypeColor = (type: OptimizationSuggestion['type']): string => {
   const colors: Record<string, string> = {
-    parallel: '#22C55E',   // 綠色 - 並行優化
-    merge: '#6366F1',      // 紫色 - 合併優化
-    remove: '#F59E0B',     // 橙色 - 移除冗餘
-    reorder: '#3B82F6',    // 藍色 - 重排順序
+    parallel: '#7F9375',   // 鼠尾草綠 - 並行優化
+    merge: '#8D7BB0',      // 灰紫 - 合併優化
+    remove: '#C89B3C',     // 赭黃 - 移除冗餘
+    reorder: '#6E8FA6',    // 霧藍 - 重排順序
   }
-  return colors[type] || '#64748B'
+  return colors[type] || '#8A7E6E'
 }
 
 /**
@@ -98,12 +98,12 @@ export const getSuggestionTypeName = (type: OptimizationSuggestion['type']): str
 export const getPriorityLabel = (priority: 1 | 2 | 3): { text: string; color: string } => {
   switch (priority) {
     case 1:
-      return { text: 'optimizer.highPriority', color: '#EF4444' }
+      return { text: 'optimizer.highPriority', color: '#B04A3A' }
     case 2:
-      return { text: 'optimizer.mediumPriority', color: '#F59E0B' }
+      return { text: 'optimizer.mediumPriority', color: '#C89B3C' }
     case 3:
-      return { text: 'optimizer.lowPriority', color: '#22C55E' }
+      return { text: 'optimizer.lowPriority', color: '#7F9375' }
     default:
-      return { text: 'common.unknown', color: '#64748B' }
+      return { text: 'common.unknown', color: '#8A7E6E' }
   }
 }

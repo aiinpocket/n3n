@@ -58,7 +58,8 @@
     "operationFailed": "操作に失敗しました",
     "comingSoon": "近日公開",
     "deleteSuccess": "正常に削除しました",
-    "help": "ヘルプ"
+    "help": "ヘルプ",
+    "enterField": "{{field}}を入力してください"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -104,7 +105,7 @@
   },
   "nav": {
     "home": "ホーム",
-    "flows": "フロー",
+    "flows": "マイフロー",
     "executions": "実行履歴",
     "components": "コンポーネント",
     "credentials": "認証管理",
@@ -123,10 +124,7 @@
     "settings": "設定",
     "logout": "ログアウト",
     "gatewaySettings": "Gateway 設定",
-    "groupWorkflow": "ワークフロー",
     "groupConnect": "接続",
-    "groupResource": "リソース",
-    "groupAI": "AI",
     "groupSystem": "システム",
     "accountSettings": "アカウント設定",
     "dashboard": "ダッシュボード",
@@ -136,7 +134,10 @@
     "housekeeping": "ハウスキーピング",
     "schedules": "スケジュール",
     "cloudBackup": "クラウドバックアップ",
-    "artifacts": "成果物"
+    "artifacts": "成果物",
+    "groupCreate": "創作",
+    "groupAutomation": "自動化",
+    "groupAdvanced": "高度なツール"
   },
   "auth": {
     "login": "ログイン",
@@ -287,7 +288,10 @@
     "loadError": "フローの読み込みに失敗しました",
     "backToList": "フロー一覧に戻る",
     "noFlowLoaded": "フローが読み込まれていません",
-    "noFlowOrVersionLoaded": "フローまたはバージョンが読み込まれていません"
+    "noFlowOrVersionLoaded": "フローまたはバージョンが読み込まれていません",
+    "viewExecutions": "実行履歴",
+    "loadFailed": "フローの読み込みに失敗しました",
+    "selectCredential": "認証情報を選択"
   },
   "editor": {
     "savedJustNow": "保存済み",
@@ -620,7 +624,9 @@
     "viewData": "データ表示",
     "inputData": "入力データ",
     "outputData": "出力データ",
-    "noData": "データなし"
+    "noData": "データなし",
+    "goToFlows": "フロー一覧へ",
+    "output": "出力結果"
   },
   "service": {
     "title": "外部サービス",
@@ -1349,7 +1355,8 @@
     "viewDesc": "フローの閲覧のみ可能（編集不可）",
     "editDesc": "フロー内容の編集が可能",
     "adminDesc": "共有設定の管理が可能",
-    "pendingCannotChange": "招待が承認されるまで権限を変更できません"
+    "pendingCannotChange": "招待が承認されるまで権限を変更できません",
+    "invalidEmail": "有効なメールアドレスを入力してください"
   },
   "device": {
     "title": "デバイス管理",
@@ -1800,16 +1807,16 @@
     "recentExecutions": "最近の実行",
     "recentActivities": "最近のアクティビティ",
     "viewAll": "すべて表示",
-    "welcomeTitle": "N3N Flow へようこそ！",
-    "welcomeSubtitle": "いくつかの簡単なステップで自動化ワークフローの構築を始めましょう",
-    "step1Title": "フローを作成",
-    "step1Desc": "ビジュアルドラッグ＆ドロップエディタでワークフローを設計",
-    "step2Title": "ノードを追加",
-    "step2Desc": "トリガー、アクション、条件を接続してロジックを構築",
-    "step3Title": "実行",
-    "step3Desc": "ワークフローを実行し、リアルタイムで実行結果を監視",
-    "createFirstFlow": "最初のフローを作成",
-    "startFromTemplate": "Docker ツールを参照",
+    "welcomeTitle": "アイデアを作品に",
+    "welcomeSubtitle": "やりたいことを伝えれば、あとは AI と自動化におまかせ",
+    "step1Title": "アイデアを伝える",
+    "step1Desc": "やりたいことを一文で書くだけ",
+    "step2Title": "AI が組み立てる",
+    "step2Desc": "AI がツールをつなぎ、手順を自動で構成",
+    "step3Title": "定期的に自動作成",
+    "step3Desc": "スケジュールを設定すれば、作品が自動で完成しライブラリへ",
+    "createFirstFlow": "最初の創作を始める",
+    "startFromTemplate": "テンプレートから始める",
     "aiGenerate": "AI 生成",
     "quickCredentials": "認証情報",
     "quickCredentialsDesc": "APIキーとシークレットを安全に保存",
@@ -1821,7 +1828,7 @@
     "quickSecurityDesc": "Recovery Keyとアカウント設定",
     "loadFailed": "ダッシュボードデータの読み込みに失敗しました",
     "welcomeBack": "おかえりなさい、{{name}}さん",
-    "welcomeExplanation": "アプリやサービスを連携して、繰り返しの作業を自動化 — コーディング不要です。",
+    "welcomeExplanation": "技術の知識は不要。アイデアを書くだけで AI がフロー全体を組み立て、あとは定期的に作品が自動で生まれます。",
     "noActivities": "最近のアクティビティはありません",
     "noExecutions": "最近の実行はありません",
     "aiHeroTitle": "自動化したいことを AI に伝えるだけ",

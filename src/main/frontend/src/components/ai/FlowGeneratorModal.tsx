@@ -773,11 +773,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                   ? '12px 12px 2px 12px'
                   : '12px 12px 12px 2px',
                 background: msg.role === 'user'
-                  ? 'var(--color-primary, #14B8A6)'
-                  : 'var(--color-bg-container, #1E293B)',
+                  ? 'var(--color-primary, #C0653B)'
+                  : 'var(--color-bg-container, #FFFDF7)',
                 color: msg.role === 'user' ? '#fff' : 'inherit',
                 border: msg.role === 'assistant'
-                  ? '1px solid var(--color-border, #334155)'
+                  ? '1px solid var(--color-border, #E4DAC7)'
                   : 'none',
               }}
             >
@@ -815,7 +815,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
                 width: 28,
                 height: 28,
                 borderRadius: '50%',
-                background: 'var(--color-primary, #14B8A6)',
+                background: 'var(--color-primary, #C0653B)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -844,8 +844,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             <div style={{
               padding: '8px 12px',
               borderRadius: '12px 12px 12px 2px',
-              background: 'var(--color-bg-container, #1E293B)',
-              border: '1px solid var(--color-border, #334155)',
+              background: 'var(--color-bg-container, #FFFDF7)',
+              border: '1px solid var(--color-border, #E4DAC7)',
             }}>
               <Spin size="small" /> <Text type="secondary">{t('flowGenerator.thinking')}</Text>
             </div>
@@ -861,12 +861,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           size="small"
           style={{
             marginBottom: 8,
-            border: '1px solid var(--color-primary, #14B8A6)',
+            border: '1px solid var(--color-primary, #C0653B)',
             borderRadius: 8,
           }}
           title={
             <Space>
-              <CheckCircleOutlined style={{ color: 'var(--color-primary, #14B8A6)' }} />
+              <CheckCircleOutlined style={{ color: 'var(--color-primary, #C0653B)' }} />
               <span>{t('flowGenerator.requirementSummary')}</span>
             </Space>
           }
@@ -955,8 +955,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             percent={streamProgress}
             status="active"
             strokeColor={{
-              '0%': '#8B5CF6',
-              '100%': '#1890ff',
+              '0%': '#8D7BB0',
+              '100%': '#C0653B',
             }}
             showInfo={false}
           />

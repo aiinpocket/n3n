@@ -212,12 +212,12 @@ const BaseNode = memo(({ id, data, selected }: NodeProps) => {
           padding: '12px 20px',
           borderRadius: 8,
           background: color,
-          border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
+          border: selected ? '2px solid var(--color-primary)' : '2px solid transparent',
           color: '#fff',
           minWidth: 150,
           textAlign: 'center',
           boxShadow: selected
-            ? '0 4px 12px rgba(0,0,0,0.3)'
+            ? '0 4px 12px rgba(59, 50, 42, 0.18)'
             : '0 2px 8px rgba(0,0,0,0.15)',
           transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out',
           cursor: 'pointer',
@@ -331,12 +331,12 @@ const ConditionNode = memo(({ data, selected }: NodeProps) => {
         padding: '12px 20px',
         borderRadius: 8,
         background: color,
-        border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
+        border: selected ? '2px solid var(--color-primary)' : '2px solid transparent',
         color: '#fff',
         minWidth: 150,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out',
         cursor: 'pointer',
@@ -489,12 +489,12 @@ const ApprovalNode = memo(({ data, selected }: NodeProps) => {
         padding: '12px 20px',
         borderRadius: 8,
         background: color,
-        border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
+        border: selected ? '2px solid var(--color-primary)' : '2px solid transparent',
         color: '#fff',
         minWidth: 150,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out',
         cursor: 'pointer',
@@ -595,12 +595,12 @@ const SwitchNode = memo(({ data, selected }: NodeProps) => {
         padding: '12px 20px',
         borderRadius: 8,
         background: color,
-        border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
+        border: selected ? '2px solid var(--color-primary)' : '2px solid transparent',
         color: '#fff',
         minWidth: 180,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out',
         cursor: 'pointer',
@@ -711,12 +711,12 @@ const ExternalServiceNode = memo(({ data, selected }: NodeProps) => {
           padding: '12px 20px',
           borderRadius: 8,
           background: color,
-          border: selected ? '2px solid #F8FAFC' : '2px solid transparent',
+          border: selected ? '2px solid var(--color-primary)' : '2px solid transparent',
           color: '#fff',
           minWidth: 180,
           textAlign: 'center',
           boxShadow: selected
-            ? '0 4px 12px rgba(0,0,0,0.3)'
+            ? '0 4px 12px rgba(59, 50, 42, 0.18)'
             : '0 2px 8px rgba(0,0,0,0.15)',
           transition: 'box-shadow 0.2s ease-out, border-color 0.2s ease-out',
           cursor: 'pointer',

@@ -159,8 +159,8 @@ export const AIThinkingIndicator: React.FC<Props> = ({
             percent={progress}
             size="small"
             strokeColor={{
-              '0%': '#8B5CF6',
-              '100%': '#eb2f96',
+              '0%': '#8D7BB0',
+              '100%': '#C0653B',
             }}
             status="active"
           />

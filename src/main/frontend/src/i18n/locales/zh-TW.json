@@ -58,7 +58,8 @@
     "operationFailed": "操作失敗",
     "comingSoon": "即將推出",
     "deleteSuccess": "刪除成功",
-    "help": "幫助"
+    "help": "幫助",
+    "enterField": "請輸入{{field}}"
   },
   "error": {
     "title": "發生錯誤",
@@ -104,7 +105,7 @@
   },
   "nav": {
     "home": "首頁",
-    "flows": "流程",
+    "flows": "我的流程",
     "executions": "執行記錄",
     "components": "元件",
     "credentials": "認證管理",
@@ -123,10 +124,7 @@
     "settings": "設定",
     "logout": "登出",
     "gatewaySettings": "Gateway 設定",
-    "groupWorkflow": "工作流程",
     "groupConnect": "連接",
-    "groupResource": "資源",
-    "groupAI": "AI 智慧",
     "groupSystem": "系統",
     "accountSettings": "帳戶設定",
     "dashboard": "儀表板",
@@ -136,7 +134,10 @@
     "housekeeping": "系統清理",
     "schedules": "排程管理",
     "cloudBackup": "雲端備份",
-    "artifacts": "作品庫"
+    "artifacts": "作品庫",
+    "groupCreate": "創作",
+    "groupAutomation": "自動化",
+    "groupAdvanced": "進階工具"
   },
   "auth": {
     "login": "登入",
@@ -287,7 +288,10 @@
     "loadError": "載入流程失敗",
     "backToList": "返回流程列表",
     "noFlowLoaded": "尚未載入流程",
-    "noFlowOrVersionLoaded": "尚未載入流程或版本"
+    "noFlowOrVersionLoaded": "尚未載入流程或版本",
+    "viewExecutions": "執行記錄",
+    "loadFailed": "載入流程失敗",
+    "selectCredential": "選擇憑證"
   },
   "editor": {
     "savedJustNow": "剛剛儲存",
@@ -620,7 +624,9 @@
     "viewData": "查看數據",
     "inputData": "輸入數據",
     "outputData": "輸出數據",
-    "noData": "無可用數據"
+    "noData": "無可用數據",
+    "goToFlows": "前往流程列表",
+    "output": "輸出結果"
   },
   "service": {
     "title": "外部服務",
@@ -1349,7 +1355,8 @@
     "viewDesc": "可查看流程但不能修改",
     "editDesc": "可修改流程內容",
     "adminDesc": "可管理分享設定",
-    "pendingCannotChange": "對方接受邀請前無法變更權限"
+    "pendingCannotChange": "對方接受邀請前無法變更權限",
+    "invalidEmail": "請輸入有效的電子郵件"
   },
   "device": {
     "title": "設備管理",
@@ -1800,16 +1807,16 @@
     "recentExecutions": "最近執行",
     "recentActivities": "最近活動",
     "viewAll": "查看全部",
-    "welcomeTitle": "歡迎使用 N3N Flow！",
-    "welcomeSubtitle": "只需幾個簡單步驟，即可開始建立您的自動化工作流程",
-    "step1Title": "建立流程",
-    "step1Desc": "使用視覺化拖拉編輯器設計您的工作流程",
-    "step2Title": "加入節點",
-    "step2Desc": "連接觸發器、動作和條件來構建邏輯",
-    "step3Title": "執行",
-    "step3Desc": "運行工作流程並即時監控執行結果",
-    "createFirstFlow": "建立第一個流程",
-    "startFromTemplate": "瀏覽 Docker 工具",
+    "welcomeTitle": "把你的想法變成作品",
+    "welcomeSubtitle": "說出你想做的事，剩下的交給 AI 和自動化",
+    "step1Title": "說出你的想法",
+    "step1Desc": "用一句話描述你想完成的事",
+    "step2Title": "AI 幫你編排",
+    "step2Desc": "AI 自動串接工具、排好每個步驟",
+    "step3Title": "定時自動產出",
+    "step3Desc": "設好排程，作品定期自動完成並收進作品庫",
+    "createFirstFlow": "開始第一個創作",
+    "startFromTemplate": "從範本開始",
     "aiGenerate": "AI 生成",
     "quickCredentials": "憑證管理",
     "quickCredentialsDesc": "安全儲存 API 金鑰和密碼",
@@ -1821,7 +1828,7 @@
     "quickSecurityDesc": "Recovery Key 與帳戶設定",
     "loadFailed": "載入儀表板資料失敗",
     "welcomeBack": "歡迎回來，{{name}}",
-    "welcomeExplanation": "將您的應用程式和服務串接在一起，自動化重複性工作 — 完全不需要寫程式。",
+    "welcomeExplanation": "不用懂技術。描述你的靈感，AI 會編排好整個流程，之後定時自動產出你的作品。",
     "noActivities": "暫無最近活動",
     "noExecutions": "暫無最近執行",
     "aiHeroTitle": "想自動化什麼？直接告訴 AI",

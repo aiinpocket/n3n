@@ -1,62 +1,64 @@
-/* N3N Flow Platform - Design System */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* N3N Flow Platform - 紙上工作室設計系統（輕鬆文青風） */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* CSS Variables - Dark Theme */
+/* CSS Variables - Warm Paper Theme */
 :root {
-  /* Background Colors */
-  --color-bg-primary: #020617;
-  --color-bg-secondary: #0F172A;
-  --color-bg-elevated: #1E293B;
-  --color-bg-hover: #334155;
-  --color-bg-active: #475569;
+  /* Background Colors - 暖米白紙感 */
+  --color-bg-primary: #F6F1E7;
+  --color-bg-secondary: #EFE8DA;
+  --color-bg-elevated: #FFFDF7;
+  --color-bg-hover: #EDE5D3;
+  --color-bg-active: #E3D8C2;
+  --color-bg-container: #FBF7EE;
 
-  /* Brand Colors - Professional Teal/Cyan */
-  --color-primary: #14B8A6;
-  --color-primary-hover: #2DD4BF;
-  --color-primary-active: #0D9488;
-  --color-secondary: #06B6D4;
+  /* Brand Colors - 陶土橘 */
+  --color-primary: #C0653B;
+  --color-primary-hover: #A8542E;
+  --color-primary-active: #944826;
+  --color-secondary: #7F9375;
 
-  /* Semantic Colors */
-  --color-success: #22C55E;
-  --color-success-hover: #16A34A;
-  --color-warning: #F59E0B;
-  --color-warning-hover: #D97706;
-  --color-danger: #EF4444;
-  --color-danger-hover: #DC2626;
-  --color-info: #3B82F6;
-  --color-info-hover: #2563EB;
+  /* Semantic Colors - 低飽和柔和色 */
+  --color-success: #5F8F53;
+  --color-success-hover: #4E7A44;
+  --color-warning: #C08A2D;
+  --color-warning-hover: #A67624;
+  --color-danger: #BC5148;
+  --color-danger-hover: #A3423A;
+  --color-info: #5B87A8;
+  --color-info-hover: #4A7391;
 
-  /* Text Colors */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-tertiary: #78899C;
-  --color-text-muted: #78899C;
-  --color-text-inverse: #0F172A;
+  /* Text Colors - 暖墨色 */
+  --color-text-primary: #3B322A;
+  --color-text-secondary: #7A6E60;
+  --color-text-tertiary: #9C8F7F;
+  --color-text-muted: #9C8F7F;
+  --color-text-inverse: #FFFDF7;
 
   /* Border Colors */
-  --color-border: #334155;
-  --color-border-hover: #475569;
-  --color-border-focus: #14B8A6;
+  --color-border: #E4DAC7;
+  --color-border-hover: #CFC1A8;
+  --color-border-focus: #C0653B;
 
-  /* Node Colors */
-  --node-trigger: #22C55E;
-  --node-action: #3B82F6;
-  --node-condition: #F59E0B;
-  --node-loop: #A855F7;
-  --node-code: #14B8A6;
-  --node-http: #6366F1;
-  --node-agent: #EC4899;
-  --node-ai: #8B5CF6;
-  --node-output: #EF4444;
-  --node-wait: #F97316;
+  /* Node Colors - 柔和但可辨識 */
+  --node-trigger: #5F8F53;
+  --node-action: #5B87A8;
+  --node-condition: #C08A2D;
+  --node-loop: #8D7BB0;
+  --node-code: #4E8F86;
+  --node-http: #6D7FB3;
+  --node-agent: #C2688E;
+  --node-ai: #8D7BB0;
+  --node-output: #BC5148;
+  --node-wait: #C87E3F;
 
-  /* AI Feature Colors */
-  --color-ai: #8B5CF6;
-  --color-ai-hover: #7C3AED;
-  --color-ai-bg: rgba(139, 92, 246, 0.15);
+  /* AI Feature Colors - 藕紫 */
+  --color-ai: #8D7BB0;
+  --color-ai-hover: #77659C;
+  --color-ai-bg: rgba(141, 123, 176, 0.12);
 
-  /* Typography */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography - 襯線標題 + 人文無襯線內文 */
+  --font-sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Noto Serif TC', 'Songti TC', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 
   /* Font Sizes */
@@ -87,12 +89,12 @@
   --radius-2xl: 24px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
+  /* Shadows - 暖色柔陰影 */
+  --shadow-sm: 0 1px 2px rgba(93, 77, 60, 0.06);
+  --shadow-md: 0 4px 10px rgba(93, 77, 60, 0.08);
+  --shadow-lg: 0 10px 24px rgba(93, 77, 60, 0.10);
+  --shadow-xl: 0 20px 40px rgba(93, 77, 60, 0.12);
+  --shadow-glow: 0 0 20px rgba(192, 101, 59, 0.18);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -187,6 +189,16 @@ code, pre {
   font-family: var(--font-mono);
 }
 
+/* 標題用襯線字，帶書卷氣 */
+h1, h2, h3, h4, h5,
+.ant-typography h1, .ant-typography h2, .ant-typography h3,
+.ant-typography h4, .ant-typography h5,
+h1.ant-typography, h2.ant-typography, h3.ant-typography,
+h4.ant-typography, h5.ant-typography {
+  font-family: var(--font-serif);
+  letter-spacing: 0.015em;
+}
+
 /* Ant Design Dark Theme Overrides */
 .ant-layout {
   background: var(--color-bg-primary) !important;
@@ -224,12 +236,12 @@ code, pre {
 }
 
 .ant-menu-item-selected {
-  background: rgba(20, 184, 166, 0.15) !important;
+  background: rgba(192, 101, 59, 0.12) !important;
   color: var(--color-primary) !important;
 }
 
 .ant-menu-item-selected:hover {
-  background: rgba(20, 184, 166, 0.25) !important;
+  background: rgba(192, 101, 59, 0.20) !important;
 }
 
 /* Menu Item Group styling */
@@ -372,7 +384,7 @@ code, pre {
 .ant-select-focused .ant-select-selector,
 .ant-picker-focused {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(192, 101, 59, 0.18) !important;
 }
 
 .ant-input::placeholder {
@@ -456,7 +468,7 @@ code, pre {
 }
 
 .ant-tag-blue {
-  background: rgba(59, 130, 246, 0.2) !important;
+  background: rgba(91, 135, 168, 0.2) !important;
   color: var(--color-info) !important;
 }
 
@@ -559,8 +571,8 @@ code, pre {
 }
 
 .ant-alert-info {
-  background: rgba(59, 130, 246, 0.1) !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  background: rgba(91, 135, 168, 0.1) !important;
+  border: 1px solid rgba(91, 135, 168, 0.3) !important;
 }
 
 .ant-alert-success {

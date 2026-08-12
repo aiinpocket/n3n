@@ -58,7 +58,8 @@
     "operationFailed": "Operation failed",
     "comingSoon": "Coming soon",
     "deleteSuccess": "Deleted successfully",
-    "help": "Help"
+    "help": "Help",
+    "enterField": "Please enter {{field}}"
   },
   "error": {
     "title": "Something went wrong",
@@ -104,7 +105,7 @@
   },
   "nav": {
     "home": "Home",
-    "flows": "Flows",
+    "flows": "My Flows",
     "executions": "Executions",
     "components": "Components",
     "credentials": "Credentials",
@@ -123,10 +124,7 @@
     "settings": "Settings",
     "logout": "Logout",
     "gatewaySettings": "Gateway Settings",
-    "groupWorkflow": "Workflow",
     "groupConnect": "Connect",
-    "groupResource": "Resource",
-    "groupAI": "AI",
     "groupSystem": "System",
     "accountSettings": "Account Settings",
     "dashboard": "Dashboard",
@@ -136,7 +134,10 @@
     "housekeeping": "Housekeeping",
     "schedules": "Schedules",
     "cloudBackup": "Cloud Backup",
-    "artifacts": "Artifacts"
+    "artifacts": "Artifacts",
+    "groupCreate": "Create",
+    "groupAutomation": "Automation",
+    "groupAdvanced": "Advanced Tools"
   },
   "auth": {
     "login": "Login",
@@ -287,7 +288,10 @@
     "loadError": "Failed to Load Flow",
     "backToList": "Back to Flow List",
     "noFlowLoaded": "No flow loaded",
-    "noFlowOrVersionLoaded": "No flow or version loaded"
+    "noFlowOrVersionLoaded": "No flow or version loaded",
+    "viewExecutions": "Executions",
+    "loadFailed": "Failed to load flows",
+    "selectCredential": "Select credential"
   },
   "editor": {
     "savedJustNow": "Just saved",
@@ -620,7 +624,9 @@
     "viewData": "View Data",
     "inputData": "Input Data",
     "outputData": "Output Data",
-    "noData": "No data available"
+    "noData": "No data available",
+    "goToFlows": "Go to flows",
+    "output": "Output"
   },
   "service": {
     "title": "External Services",
@@ -1349,7 +1355,8 @@
     "viewDesc": "Can view the flow but cannot modify",
     "editDesc": "Can modify flow content",
     "adminDesc": "Can manage share settings",
-    "pendingCannotChange": "Cannot change permission until the invitation is accepted"
+    "pendingCannotChange": "Cannot change permission until the invitation is accepted",
+    "invalidEmail": "Please enter a valid email"
   },
   "device": {
     "title": "Device Management",
@@ -1800,16 +1807,16 @@
     "recentExecutions": "Recent Executions",
     "recentActivities": "Recent Activities",
     "viewAll": "View All",
-    "welcomeTitle": "Welcome to N3N Flow!",
-    "welcomeSubtitle": "Start building your automation workflows in a few simple steps",
-    "step1Title": "Create a Flow",
-    "step1Desc": "Design your workflow using the visual drag-and-drop editor",
-    "step2Title": "Add Nodes",
-    "step2Desc": "Connect triggers, actions, and conditions to build your logic",
-    "step3Title": "Execute",
-    "step3Desc": "Run your workflow and monitor execution results in real time",
-    "createFirstFlow": "Create Your First Flow",
-    "startFromTemplate": "Browse Docker Tools",
+    "welcomeTitle": "Turn Your Ideas into Creations",
+    "welcomeSubtitle": "Say what you want to make — AI and automation handle the rest",
+    "step1Title": "Share Your Idea",
+    "step1Desc": "Describe what you want to make in one sentence",
+    "step2Title": "AI Arranges It",
+    "step2Desc": "The AI wires up the tools and lays out every step",
+    "step3Title": "Creations on Schedule",
+    "step3Desc": "Set a schedule and finished work lands in your library automatically",
+    "createFirstFlow": "Start Your First Creation",
+    "startFromTemplate": "Start from a Template",
     "aiGenerate": "AI Generate",
     "quickCredentials": "Credentials",
     "quickCredentialsDesc": "Store API keys and secrets securely",
@@ -1821,7 +1828,7 @@
     "quickSecurityDesc": "Recovery key and account settings",
     "loadFailed": "Failed to load dashboard data",
     "welcomeBack": "Welcome back, {{name}}",
-    "welcomeExplanation": "Automate repetitive tasks by connecting your apps and services together — no coding required.",
+    "welcomeExplanation": "No tech skills needed. Describe your idea, the AI arranges the whole flow, and your creations are produced automatically on schedule.",
     "noActivities": "No recent activities",
     "noExecutions": "No recent executions",
     "aiHeroTitle": "What do you want to automate? Just tell the AI",

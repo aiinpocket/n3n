@@ -85,7 +85,7 @@ export default function GoogleLoginButton({ onCredential, onError }: GoogleLogin
           },
         })
         window.google.accounts.id.renderButton(containerRef.current, {
-          theme: 'filled_black',
+          theme: 'outline',
           size: 'large',
           text: 'signin_with',
           shape: 'rectangular',

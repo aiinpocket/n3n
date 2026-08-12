@@ -20,7 +20,7 @@ export type QuickActionCategory = 'create' | 'optimize' | 'analyze' | 'debug' | 
 export const QUICK_ACTION_CATEGORIES: Record<QuickActionCategory, { label: string; color: string }> = {
   create: { label: 'quickActions.category.create', color: '#52c41a' },
   optimize: { label: 'quickActions.category.optimize', color: '#1890ff' },
-  analyze: { label: 'quickActions.category.analyze', color: '#8B5CF6' },
+  analyze: { label: 'quickActions.category.analyze', color: '#8D7BB0' },
   debug: { label: 'quickActions.category.debug', color: '#fa8c16' },
   template: { label: 'quickActions.category.template', color: '#13c2c2' },
 }

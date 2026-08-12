@@ -52,12 +52,12 @@ const statusColors: Record<string, string> = {
 
 // Category colors for visual distinction
 const categoryColors: Record<string, string> = {
-  trigger: '#22C55E',
-  action: '#3B82F6',
-  condition: '#F59E0B',
-  transform: '#14B8A6',
-  output: '#EF4444',
-  utility: '#8B5CF6',
+  trigger: '#7F9375',
+  action: '#6E8FA6',
+  condition: '#C89B3C',
+  transform: '#A47148',
+  output: '#B04A3A',
+  utility: '#8D7BB0',
 }
 
 const categories = ['trigger', 'action', 'condition', 'transform', 'output', 'utility']

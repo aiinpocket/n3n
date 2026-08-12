@@ -130,7 +130,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: 'var(--color-primary)',
-                  color: '#042f2a',
+                  color: '#fff',
                   borderRadius: '50%',
                   fontSize: 12,
                   fontWeight: 600,

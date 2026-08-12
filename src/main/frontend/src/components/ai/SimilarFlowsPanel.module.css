@@ -24,7 +24,7 @@
 .searchStats {
   margin-bottom: 8px;
   padding: 4px 8px;
-  background: rgba(114, 46, 209, 0.05);
+  background: rgba(141, 123, 176, 0.05);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -49,12 +49,12 @@
 
 .flowCard:hover {
   border-color: var(--color-ai);
-  box-shadow: 0 2px 8px rgba(114, 46, 209, 0.15);
+  box-shadow: 0 2px 8px rgba(141, 123, 176, 0.15);
 }
 
 .flowCard:focus-within {
   border-color: var(--color-ai);
-  outline: 2px solid rgba(114, 46, 209, 0.3);
+  outline: 2px solid rgba(141, 123, 176, 0.3);
   outline-offset: 2px;
 }
 

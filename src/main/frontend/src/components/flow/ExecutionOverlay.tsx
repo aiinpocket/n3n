@@ -162,8 +162,8 @@ export default function ExecutionOverlay({
               size="small"
               status="active"
               strokeColor={{
-                '0%': '#108ee9',
-                '100%': '#87d068',
+                '0%': '#8D7BB0',
+                '100%': '#7F9375',
               }}
             />
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>

@@ -229,7 +229,7 @@ const ExecutionAwareBaseNode = memo(({ data, selected }: NodeProps) => {
           minWidth: 150,
           textAlign: 'center',
           boxShadow: selected
-            ? '0 4px 12px rgba(0,0,0,0.3)'
+            ? '0 4px 12px rgba(59, 50, 42, 0.18)'
             : '0 2px 8px rgba(0,0,0,0.15)',
           ...executionStyle,
         }}
@@ -308,7 +308,7 @@ const ExecutionAwareConditionNode = memo(({ data, selected }: NodeProps) => {
         minWidth: 150,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         ...executionStyle,
       }}
@@ -403,7 +403,7 @@ const ExecutionAwareExternalServiceNode = memo(({ data, selected }: NodeProps) =
           minWidth: 180,
           textAlign: 'center',
           boxShadow: selected
-            ? '0 4px 12px rgba(0,0,0,0.3)'
+            ? '0 4px 12px rgba(59, 50, 42, 0.18)'
             : '0 2px 8px rgba(0,0,0,0.15)',
           ...executionStyle,
         }}
@@ -489,7 +489,7 @@ const ExecutionAwareSkillNode = memo(({ data, selected }: NodeProps) => {
           minWidth: 150,
           textAlign: 'center',
           boxShadow: selected
-            ? '0 4px 12px rgba(0,0,0,0.3)'
+            ? '0 4px 12px rgba(59, 50, 42, 0.18)'
             : '0 2px 8px rgba(0,0,0,0.15)',
           ...executionStyle,
         }}
@@ -559,7 +559,7 @@ const ExecutionAwareApprovalNode = memo(({ data, selected }: NodeProps) => {
         minWidth: 150,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         ...executionStyle,
       }}
@@ -650,7 +650,7 @@ const ExecutionAwareSwitchNode = memo(({ data, selected }: NodeProps) => {
         minWidth: 180,
         textAlign: 'center',
         boxShadow: selected
-          ? '0 4px 12px rgba(0,0,0,0.3)'
+          ? '0 4px 12px rgba(59, 50, 42, 0.18)'
           : '0 2px 8px rgba(0,0,0,0.15)',
         ...executionStyle,
       }}

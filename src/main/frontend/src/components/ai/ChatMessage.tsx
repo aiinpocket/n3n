@@ -35,7 +35,7 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
           flex: 1,
           maxWidth: '80%',
           padding: 12,
-          background: isUser ? 'rgba(59, 130, 246, 0.1)' : 'var(--color-bg-elevated)',
+          background: isUser ? 'rgba(192, 101, 59, 0.1)' : 'var(--color-bg-elevated)',
           borderRadius: 8,
         }}
       >

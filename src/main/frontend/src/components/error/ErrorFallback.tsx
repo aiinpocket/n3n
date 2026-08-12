@@ -68,7 +68,7 @@ export default function ErrorFallback({
         alignItems: 'center',
         minHeight: '100vh',
         padding: 24,
-        background: 'var(--color-bg-container, #141414)',
+        background: 'var(--color-bg-container, #F6F1E7)',
       }}
     >
       <Result
@@ -140,7 +140,7 @@ export default function ErrorFallback({
                             wordBreak: 'break-all',
                             maxHeight: 150,
                             overflow: 'auto',
-                            background: 'var(--color-bg-layout, #1f1f1f)',
+                            background: 'var(--color-bg-layout, #EFE8DA)',
                             padding: 12,
                             borderRadius: 4,
                           }}

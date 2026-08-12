@@ -1062,10 +1062,11 @@ export default function FlowEditorPage() {
                 transform: 'translate(-50%, -50%)',
                 textAlign: 'center',
                 zIndex: 10,
-                background: 'rgba(15, 23, 42, 0.95)',
+                background: 'rgba(255, 253, 247, 0.96)',
                 borderRadius: 16,
                 padding: '40px 48px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 8px 32px rgba(59, 50, 42, 0.12)',
                 maxWidth: 480,
               }}
             >
@@ -1587,7 +1588,7 @@ export default function FlowEditorPage() {
               <div>
                 <Text strong>{t('execution.output')}: </Text>
                 <pre style={{
-                  background: 'var(--color-bg-container, #1e293b)',
+                  background: 'var(--color-bg-container, #FFFDF7)',
                   padding: 12,
                   borderRadius: 6,
                   maxHeight: 400,

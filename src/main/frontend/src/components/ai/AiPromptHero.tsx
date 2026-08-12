@@ -40,8 +40,8 @@ export default function AiPromptHero() {
       <Card
         style={{
           background:
-            'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, var(--color-bg-secondary) 60%)',
-          border: '1px solid rgba(139, 92, 246, 0.35)',
+            'linear-gradient(135deg, rgba(141, 123, 176, 0.08) 0%, var(--color-bg-secondary) 60%)',
+          border: '1px solid rgba(141, 123, 176, 0.35)',
           borderRadius: 16,
           marginBottom: 16,
         }}

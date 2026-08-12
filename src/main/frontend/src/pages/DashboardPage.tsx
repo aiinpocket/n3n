@@ -11,7 +11,8 @@ import {
   ClockCircleOutlined,
   HistoryOutlined,
   RocketOutlined,
-  AppstoreAddOutlined,
+  BulbOutlined,
+  GiftOutlined,
   SyncOutlined,
   BookOutlined,
   SafetyOutlined,
@@ -149,7 +150,7 @@ export default function DashboardPage() {
         <Card
           style={{
             background: 'linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%)',
-            border: '1px solid rgba(20, 184, 166, 0.3)',
+            border: '1px solid rgba(192, 101, 59, 0.25)',
             borderRadius: 16,
             marginBottom: 24,
           }}
@@ -175,17 +176,17 @@ export default function DashboardPage() {
                 {
                   title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step1Title')}</span>,
                   description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step1Desc')}</span>,
-                  icon: <ApartmentOutlined style={{ color: 'var(--color-primary)' }} />,
+                  icon: <BulbOutlined style={{ color: 'var(--color-primary)' }} />,
                 },
                 {
                   title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step2Title')}</span>,
                   description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step2Desc')}</span>,
-                  icon: <AppstoreAddOutlined style={{ color: 'var(--color-info)' }} />,
+                  icon: <ThunderboltOutlined style={{ color: 'var(--color-ai)' }} />,
                 },
                 {
                   title: <span style={{ color: 'var(--color-text-primary)' }}>{t('dashboard.step3Title')}</span>,
                   description: <span style={{ color: 'var(--color-text-secondary)' }}>{t('dashboard.step3Desc')}</span>,
-                  icon: <PlayCircleOutlined style={{ color: 'var(--color-success)' }} />,
+                  icon: <GiftOutlined style={{ color: 'var(--color-success)' }} />,
                 },
               ]}
             />
@@ -223,8 +224,8 @@ export default function DashboardPage() {
                   height: 48,
                   paddingInline: 24,
                   fontSize: 16,
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  borderColor: 'rgba(139, 92, 246, 0.5)',
+                  background: 'rgba(141, 123, 176, 0.12)',
+                  borderColor: 'rgba(141, 123, 176, 0.5)',
                   color: 'var(--color-ai)',
                 }}
               >
@@ -285,8 +286,8 @@ export default function DashboardPage() {
           size="small"
           style={{
             marginBottom: 16,
-            borderColor: 'rgba(250, 173, 20, 0.5)',
-            background: 'rgba(250, 173, 20, 0.06)',
+            borderColor: 'rgba(200, 155, 60, 0.5)',
+            background: 'rgba(200, 155, 60, 0.08)',
           }}
         >
           <Space wrap>
@@ -361,7 +362,7 @@ export default function DashboardPage() {
       {stats && stats.runningExecutions > 0 && (
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col span={24}>
-            <Card size="small" style={{ borderColor: 'rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)' }}>
+            <Card size="small" style={{ borderColor: 'rgba(110, 143, 166, 0.4)', background: 'rgba(110, 143, 166, 0.08)' }}>
               <Space>
                 <SyncOutlined spin style={{ color: 'var(--color-info)' }} />
                 <Text style={{ color: 'var(--color-text-secondary)' }}>

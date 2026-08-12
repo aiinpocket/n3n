@@ -119,7 +119,7 @@ const OAuth2CallbackPage: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'var(--color-bg-layout, #020617)',
+      background: 'var(--color-bg-layout, #F6F1E7)',
       padding: 24
     }}>
       <Card style={{ maxWidth: 560, width: '100%' }}>

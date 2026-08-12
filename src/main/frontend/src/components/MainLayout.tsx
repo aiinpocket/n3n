@@ -101,10 +101,10 @@ export default function MainLayout() {
   }, [location.pathname, t])
 
   const menuItems = [
-    // 核心功能區
+    // 創作
     {
       type: 'group' as const,
-      label: collapsed ? null : t('nav.groupWorkflow'),
+      label: collapsed ? null : t('nav.groupCreate'),
       children: [
         {
           key: '/',
@@ -112,19 +112,41 @@ export default function MainLayout() {
           label: t('nav.dashboard'),
         },
         {
+          key: '/ai-assistant',
+          icon: <RobotOutlined />,
+          label: t('nav.aiAssistant'),
+        },
+        {
           key: '/flows',
           icon: <ApartmentOutlined />,
           label: t('nav.flows'),
         },
         {
-          key: '/executions',
-          icon: <PlayCircleOutlined />,
-          label: t('nav.executions'),
-        },
-        {
           key: '/artifacts',
           icon: <FolderOpenOutlined />,
           label: t('nav.artifacts'),
+        },
+        {
+          key: '/templates',
+          icon: <BookOutlined />,
+          label: t('nav.templates'),
+        },
+      ],
+    },
+    // 自動化
+    {
+      type: 'group' as const,
+      label: collapsed ? null : t('nav.groupAutomation'),
+      children: [
+        {
+          key: '/schedules',
+          icon: <ClockCircleOutlined />,
+          label: t('nav.schedules'),
+        },
+        {
+          key: '/executions',
+          icon: <PlayCircleOutlined />,
+          label: t('nav.executions'),
         },
         {
           key: '/approvals',
@@ -140,47 +162,42 @@ export default function MainLayout() {
         },
       ],
     },
-    // 連接與整合
+    // 連接
     {
       type: 'group' as const,
       label: collapsed ? null : t('nav.groupConnect'),
       children: [
+        {
+          key: '/credentials',
+          icon: <KeyOutlined />,
+          label: t('nav.credentials'),
+        },
         {
           key: '/services',
           icon: <ApiOutlined />,
           label: t('nav.services'),
         },
         {
-          key: '/webhooks',
-          icon: <LinkOutlined />,
-          label: t('nav.webhooks'),
+          key: '/settings/ai',
+          icon: <SettingOutlined />,
+          label: t('nav.aiSettings'),
         },
         {
-          key: '/schedules',
-          icon: <ClockCircleOutlined />,
-          label: t('nav.schedules'),
-        },
-        {
-          key: '/devices',
-          icon: <DesktopOutlined />,
-          label: t('nav.devices'),
-        },
-        {
-          key: '/gateway',
-          icon: <ApiOutlined />,
-          label: t('nav.gateway'),
+          key: '/settings/ai-billing',
+          icon: <DollarOutlined />,
+          label: t('nav.aiBilling'),
         },
       ],
     },
-    // 資源管理
+    // 進階工具
     {
       type: 'group' as const,
-      label: collapsed ? null : t('nav.groupResource'),
+      label: collapsed ? null : t('nav.groupAdvanced'),
       children: [
         {
-          key: '/credentials',
-          icon: <KeyOutlined />,
-          label: t('nav.credentials'),
+          key: '/webhooks',
+          icon: <LinkOutlined />,
+          label: t('nav.webhooks'),
         },
         {
           key: '/components',
@@ -193,36 +210,19 @@ export default function MainLayout() {
           label: t('nav.skills'),
         },
         {
-          key: '/templates',
-          icon: <BookOutlined />,
-          label: t('nav.templates'),
-        },
-        {
           key: '/custom-tools',
           icon: <ToolOutlined />,
           label: t('nav.customTools'),
         },
-      ],
-    },
-    // AI 功能
-    {
-      type: 'group' as const,
-      label: collapsed ? null : t('nav.groupAI'),
-      children: [
         {
-          key: '/ai-assistant',
-          icon: <RobotOutlined />,
-          label: t('nav.aiAssistant'),
+          key: '/devices',
+          icon: <DesktopOutlined />,
+          label: t('nav.devices'),
         },
         {
-          key: '/settings/ai',
-          icon: <SettingOutlined />,
-          label: t('nav.aiSettings'),
-        },
-        {
-          key: '/settings/ai-billing',
-          icon: <DollarOutlined />,
-          label: t('nav.aiBilling'),
+          key: '/gateway',
+          icon: <ApiOutlined />,
+          label: t('nav.gateway'),
         },
       ],
     },
@@ -337,7 +337,9 @@ export default function MainLayout() {
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        theme="dark"
+        theme="light"
+        breakpoint="lg"
+        collapsedWidth={typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : 80}
         style={{ background: 'var(--color-bg-secondary)' }}
       >
         <div style={{
@@ -376,7 +378,7 @@ export default function MainLayout() {
         </div>
         <Menu
           mode="inline"
-          theme="dark"
+          theme="light"
           selectedKeys={[selectedKey]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
