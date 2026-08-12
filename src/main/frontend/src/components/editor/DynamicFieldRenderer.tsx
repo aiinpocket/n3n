@@ -129,8 +129,12 @@ export default function DynamicFieldRenderer({
       )
     }
 
-    // Select field with options
+    // Select field with options (single or multi)
     if (field.options && field.options.length > 0) {
+      const isMultiSelect = field.format === 'multiselect'
+      const selectValue = isMultiSelect
+        ? ((value as string[] | undefined) ?? (field.default as string[] | undefined))
+        : (value as string | undefined)
       return (
         <Form.Item
           key={field.name}
@@ -139,7 +143,8 @@ export default function DynamicFieldRenderer({
           required={field.required}
         >
           <Select
-            value={value as string}
+            mode={isMultiSelect ? 'multiple' : undefined}
+            value={selectValue}
             onChange={(v) => onChange(field.name, v)}
             placeholder={field.placeholder || t('common.selectField', { field: field.displayName })}
           >

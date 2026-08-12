@@ -15,7 +15,7 @@ import {
 } from 'antd'
 import { DollarOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { aiBillingApi, type ProviderBalance, type UsageSummaryRow } from '../api/aiBilling'
+import { aiBillingApi, type ProviderBalance, type UsageSummaryRow, type UserUsageRow } from '../api/aiBilling'
 
 const { Title, Text } = Typography
 
@@ -33,9 +33,11 @@ export default function AIBillingPage() {
   const { t } = useTranslation()
   const [balances, setBalances] = useState<ProviderBalance[]>([])
   const [usage, setUsage] = useState<UsageSummaryRow[]>([])
+  const [userUsage, setUserUsage] = useState<UserUsageRow[]>([])
   const [days, setDays] = useState(30)
   const [balancesLoading, setBalancesLoading] = useState(false)
   const [usageLoading, setUsageLoading] = useState(false)
+  const [userUsageLoading, setUserUsageLoading] = useState(false)
 
   const loadBalances = useCallback(async () => {
     setBalancesLoading(true)
@@ -59,13 +61,25 @@ export default function AIBillingPage() {
     }
   }, [t])
 
+  const loadUserUsage = useCallback(async (selectedDays: number) => {
+    setUserUsageLoading(true)
+    try {
+      setUserUsage(await aiBillingApi.getUsageByUser(selectedDays))
+    } catch {
+      message.error(t('aiBilling.loadUserUsageFailed'))
+    } finally {
+      setUserUsageLoading(false)
+    }
+  }, [t])
+
   useEffect(() => {
     loadBalances()
   }, [loadBalances])
 
   useEffect(() => {
     loadUsage(days)
-  }, [days, loadUsage])
+    loadUserUsage(days)
+  }, [days, loadUsage, loadUserUsage])
 
   const renderStatus = (record: ProviderBalance) => {
     switch (record.kind) {
@@ -166,6 +180,46 @@ export default function AIBillingPage() {
     },
   ]
 
+  const userUsageColumns = [
+    {
+      title: t('aiBilling.byUser.member'),
+      key: 'member',
+      render: (_: unknown, record: UserUsageRow) => (
+        <Space direction="vertical" size={0}>
+          <Text>{record.name ?? t('aiBilling.byUser.unknownMember')}</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>{record.email ?? '-'}</Text>
+        </Space>
+      ),
+    },
+    {
+      title: t('aiBilling.calls'),
+      dataIndex: 'calls',
+      key: 'calls',
+      align: 'right' as const,
+    },
+    {
+      title: t('aiBilling.inputTokens'),
+      dataIndex: 'inputTokens',
+      key: 'inputTokens',
+      align: 'right' as const,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: t('aiBilling.outputTokens'),
+      dataIndex: 'outputTokens',
+      key: 'outputTokens',
+      align: 'right' as const,
+      render: (value: number) => value.toLocaleString(),
+    },
+    {
+      title: t('aiBilling.estimatedCost'),
+      dataIndex: 'estimatedCostUsd',
+      key: 'estimatedCostUsd',
+      align: 'right' as const,
+      render: (value: number) => `$${value.toFixed(4)}`,
+    },
+  ]
+
   const totalEstimatedCost = usage.reduce((sum, row) => sum + row.estimatedCostUsd, 0)
 
   return (
@@ -174,7 +228,7 @@ export default function AIBillingPage() {
         <Title level={4} style={{ margin: 0 }}>
           <DollarOutlined /> {t('aiBilling.title')}
         </Title>
-        <Button icon={<ReloadOutlined />} onClick={() => { loadBalances(); loadUsage(days) }}>
+        <Button icon={<ReloadOutlined />} onClick={() => { loadBalances(); loadUsage(days); loadUserUsage(days) }}>
           {t('aiBilling.refresh')}
         </Button>
       </Space>
@@ -227,6 +281,19 @@ export default function AIBillingPage() {
           columns={usageColumns}
           dataSource={usage}
           loading={usageLoading}
+          pagination={false}
+          locale={{
+            emptyText: <Empty description={t('aiBilling.noUsage')} />,
+          }}
+        />
+      </Card>
+
+      <Card title={t('aiBilling.byUser.title')} style={{ marginTop: 16 }}>
+        <Table
+          rowKey="userId"
+          columns={userUsageColumns}
+          dataSource={userUsage}
+          loading={userUsageLoading}
           pagination={false}
           locale={{
             emptyText: <Empty description={t('aiBilling.noUsage')} />,

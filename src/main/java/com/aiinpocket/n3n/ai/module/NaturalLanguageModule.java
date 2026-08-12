@@ -61,6 +61,7 @@ public class NaturalLanguageModule {
     private final PromptBuilder promptBuilder;
     private final ObjectMapper objectMapper;
     private final PluginRepository pluginRepository;
+    private final com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService;
 
     public NaturalLanguageModule(
             SimpleAIProviderRegistry providerRegistry,
@@ -68,13 +69,28 @@ public class NaturalLanguageModule {
             NodeKnowledgeBase nodeKnowledgeBase,
             PromptBuilder promptBuilder,
             ObjectMapper objectMapper,
-            @Qualifier("pluginPluginRepository") PluginRepository pluginRepository) {
+            @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
+            com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService) {
         this.providerRegistry = providerRegistry;
         this.nodeHandlerRegistry = nodeHandlerRegistry;
         this.nodeKnowledgeBase = nodeKnowledgeBase;
         this.promptBuilder = promptBuilder;
         this.objectMapper = objectMapper;
         this.pluginRepository = pluginRepository;
+        this.userMemoryService = userMemoryService;
+    }
+
+    /**
+     * 載入使用者長期記憶區塊；失敗時安靜退回 null，不影響流程生成
+     */
+    private String loadUserMemory(UUID userId) {
+        try {
+            String memory = userMemoryService.buildMemoryContext(userId);
+            return memory != null && !memory.isBlank() ? memory : null;
+        } catch (Exception e) {
+            log.warn("Failed to load user memory for flow generation: {}", userId, e);
+            return null;
+        }
     }
 
     /**
@@ -102,7 +118,8 @@ public class NaturalLanguageModule {
 
             // Build enhanced prompts using PromptBuilder
             String systemPrompt = promptBuilder.buildSystemPrompt(sanitizedInput);
-            String userPrompt = promptBuilder.buildFlowGenerationPrompt(sanitizedInput, installedNodeTypes);
+            String userPrompt = promptBuilder.buildFlowGenerationPrompt(sanitizedInput, null,
+                    installedNodeTypes, null, null, null, loadUserMemory(userId));
 
             log.debug("Generated system prompt length: {}, user prompt length: {}",
                     systemPrompt.length(), userPrompt.length());
@@ -176,7 +193,8 @@ public class NaturalLanguageModule {
                 // Phase 3: Building prompts (20-30%)
                 emitProgress(sink, 25, "Building AI prompt...", "building_prompt");
                 String systemPrompt = promptBuilder.buildSystemPrompt(safeInput);
-                String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, requirementContext, installedNodeTypes, existingFlow, feedback, language);
+                String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, requirementContext,
+                        installedNodeTypes, existingFlow, feedback, language, loadUserMemory(userId));
                 emitProgress(sink, 30, "Prompt ready", "preparing");
 
                 // Phase 4: Calling AI (30-70%)

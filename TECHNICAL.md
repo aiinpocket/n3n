@@ -25,7 +25,7 @@ This document provides technical details for developers working on or integratin
 |-----------------|-----|--------|---------|-------|
 | **Development** | 2 cores | 4 GB | 10 GB SSD | Basic functionality only |
 | **Standard** | 4 cores | 8 GB | 20 GB SSD | Cloud AI integration |
-| **Production** | 8+ cores | 16-32 GB | 50 GB SSD | Local AI optimizer, high concurrency |
+| **Production** | 8+ cores | 16-32 GB | 50 GB SSD | High concurrency |
 
 ### Resource Consumption by Service
 
@@ -34,7 +34,6 @@ This document provides technical details for developers working on or integratin
 | N3N Application | 512 MB - 1 GB | 0.5 - 2 cores | Spring Boot with Virtual Threads |
 | PostgreSQL | 256 MB - 1 GB | 0.5 - 1 core | Depends on data volume |
 | Redis | 128 MB - 512 MB | 0.25 - 0.5 core | State & cache |
-| Flow Optimizer | 2 - 4 GB | 2 - 4 cores | Local LLM (Phi-3 Mini) |
 
 ### GPU Acceleration (Optional)
 
@@ -180,7 +179,6 @@ com.aiinpocket.n3n/
 ├── logging/         # Real-time log streaming (SSE) and log query
 ├── monitoring/      # System metrics, flow stats, health monitoring
 ├── oauth2/          # OAuth2 integration
-├── optimizer/       # Flow optimization via local LLM (Phi-3-Mini)
 ├── plugin/          # Custom Docker Tools system
 ├── scheduler/       # Schedule triggers (Quartz)
 ├── service/         # External service management
@@ -298,11 +296,6 @@ Cloud backup and restore with AES-256-GCM encryption (admin-only).
 - `BackupService` - Encrypted backup creation and restoration
 - `CloudStorageFactory` - S3/GCS/Azure storage provider abstraction
 - Field-level encryption for sensitive backup settings
-
-#### optimizer/
-Flow optimization suggestions via local LLM.
-- `FlowOptimizerController` - Analysis and status endpoints
-- `FlowOptimizerService` - Integration with Phi-3-Mini LLM service
 
 #### scheduler/
 Cron-based flow scheduling with Quartz integration.
@@ -725,14 +718,6 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 | POST | `/api/cloud-sync/import` | Import remote data with re-encryption |
 | GET | `/api/cloud-sync/status` | Get cloud sync status |
 
-### Flow Optimizer
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/flow-optimizer/analyze` | Analyze flow and get optimization suggestions |
-| GET | `/api/flow-optimizer/status` | Check optimizer service availability |
-| GET | `/api/flow-optimizer/config` | Get optimizer configuration |
-
 ### Housekeeping (Admin role required)
 
 | Method | Endpoint | Description |
@@ -778,6 +763,26 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 | POST | `/api/ai/flow/generate` | Generate flow definition using AI |
 | POST | `/api/ai/flow/generate/stream` | Stream flow generation (SSE) |
 | POST | `/api/ai/nodes/recommend` | Get AI node recommendations |
+| GET | `/api/ai/agent-tools` | List tools available to the AI Agent node |
+
+### AI Agent Tools
+
+The `aiAgent` node can call built-in tools during its ReAct loop. All registered
+tools are selectable in the node's "Enabled Tools" field; the default selection is
+`http_request`, `code_execution`, `web_search`, `list_flows`, `run_flow`.
+
+Highlights by category:
+
+- **utility / text / data**: calculator, datetime, cron, code_execution, json, xml, csv, markdown, base64, hash, encrypt, jwt, regex, template, diff, text_stats, slugify, uuid, random, url, validator, compress
+- **network / web / search**: http_request, web_search, web_scrape, vector_search
+- **platform** (ownership-scoped to the executing user, no cross-user access):
+  - `list_flows` / `run_flow` — list and run the user's own published flows (recursion-depth guarded)
+  - `list_artifacts` / `read_artifact` / `save_artifact` — the user's artifact library; `read_artifact` only returns text-like content (max 8000 chars), `save_artifact` respects the artifact max-file-size limit
+  - `list_schedules` — the user's cron schedules
+  - `memory_save` / `memory_recall` — per-user AI memory
+
+Tools are auto-registered: any `@Component` implementing `AgentNodeTool`
+(`execution/handler/handlers/ai/agent/tools/`) is picked up at startup.
 
 ### Node Types
 
@@ -1366,9 +1371,6 @@ docker build -t n3n:latest .
 
 # Run with compose (zero-config)
 docker compose up -d
-
-# Local AI optimizer starts automatically with the default setup
-# No separate profile needed — it's included by default
 ```
 
 ### Kubernetes
@@ -1420,14 +1422,6 @@ All environment variables are **optional** with sensible defaults.
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS allowed origins |
 | `MAX_LOGIN_ATTEMPTS` | `5` | Max failed login attempts before lockout |
 | `LOCK_DURATION_MINUTES` | `30` | Account lockout duration |
-
-#### AI Flow Optimizer (Optional)
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FLOW_OPTIMIZER_ENABLED` | `true` | Enable local AI optimizer (default enabled as AI-driven platform) |
-| `FLOW_OPTIMIZER_URL` | `http://localhost:8081` | Optimizer service URL |
-| `FLOW_OPTIMIZER_TIMEOUT` | `30000` | Request timeout in ms |
 
 #### Container Orchestration (Plugin System)
 

@@ -23,6 +23,26 @@ export interface ShareFlowRequest {
   permission: 'view' | 'edit' | 'admin'
 }
 
+export interface ShareLink {
+  id: string
+  token: string
+  permission: 'view' | 'edit'
+  createdAt: string
+  expiresAt?: string
+  url: string
+}
+
+export interface CreateShareLinkRequest {
+  permission: 'view' | 'edit'
+  expiresInDays?: number
+}
+
+export interface ClaimShareLinkResult {
+  flowId: string
+  permission: string
+  flowName: string
+}
+
 export const flowShareApi = {
   // Get flow shares
   getShares: async (flowId: string): Promise<FlowShare[]> => {
@@ -52,6 +72,29 @@ export const flowShareApi = {
   // Get flows shared with me
   getSharedWithMe: async (): Promise<FlowShare[]> => {
     const response = await apiClient.get('/flows/shared-with-me')
+    return response.data
+  },
+
+  // Create a share link (owner/admin only)
+  createShareLink: async (flowId: string, request: CreateShareLinkRequest): Promise<ShareLink> => {
+    const response = await apiClient.post(`/flows/${flowId}/share-links`, request)
+    return response.data
+  },
+
+  // List active share links (owner/admin only)
+  listShareLinks: async (flowId: string): Promise<ShareLink[]> => {
+    const response = await apiClient.get(`/flows/${flowId}/share-links`)
+    return response.data
+  },
+
+  // Revoke a share link
+  revokeShareLink: async (flowId: string, linkId: string): Promise<void> => {
+    await apiClient.delete(`/flows/${flowId}/share-links/${linkId}`)
+  },
+
+  // Claim a share link (any authenticated user)
+  claimShareLink: async (token: string): Promise<ClaimShareLinkResult> => {
+    const response = await apiClient.post(`/flows/share-links/${encodeURIComponent(token)}/claim`)
     return response.data
   }
 }

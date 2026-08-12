@@ -40,11 +40,11 @@ public class AiModuleConfig {
     private String feature;
 
     /**
-     * Provider type: llamafile, openai, ollama, gemini, claude
+     * Provider type: openai, ollama, gemini, claude
      */
     @Column(name = "provider_type", nullable = false)
     @Builder.Default
-    private String providerType = "llamafile";
+    private String providerType = "openai";
 
     /**
      * Display name for this configuration

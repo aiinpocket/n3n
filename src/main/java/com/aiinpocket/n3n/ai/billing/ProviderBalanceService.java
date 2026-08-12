@@ -1,6 +1,8 @@
 package com.aiinpocket.n3n.ai.billing;
 
 import com.aiinpocket.n3n.ai.repository.AiTokenUsageRepository;
+import com.aiinpocket.n3n.auth.entity.User;
+import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
 import com.aiinpocket.n3n.credential.service.CredentialService;
@@ -21,9 +23,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 查詢各 AI 供應商的剩餘餘額/配額。
+ * 查詢各 AI 供應商的剩餘餘額/配額（平台範圍，管理員專用）。
  *
- * 掃描使用者所有 AI 相關憑證，依供應商呼叫對應的官方餘額 API；
+ * AI 金鑰為平台共用：掃描平台上所有 AI 相關憑證，依供應商呼叫對應的官方餘額 API；
  * 不支援餘額查詢的供應商改以本地 token 用量估算已花費金額。
  */
 @Service
@@ -50,32 +52,33 @@ public class ProviderBalanceService {
     private final CredentialRepository credentialRepository;
     private final CredentialService credentialService;
     private final AiTokenUsageRepository tokenUsageRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
 
     /**
-     * 查詢使用者所有 AI 憑證的餘額狀態。
+     * 查詢平台所有 AI 憑證的餘額狀態（管理員專用）。
      */
-    public List<ProviderBalanceDto> getBalances(UUID userId) {
-        List<Credential> credentials = credentialRepository.findByOwnerIdAndTypeIn(
-                userId, CREDENTIAL_TYPE_TO_PROVIDER.keySet());
+    public List<ProviderBalanceDto> getPlatformBalances() {
+        List<Credential> credentials = credentialRepository.findByTypeIn(
+                CREDENTIAL_TYPE_TO_PROVIDER.keySet());
 
-        Map<String, Double> localSpent = computeLocalSpentByProvider(userId);
+        Map<String, Double> localSpent = computePlatformSpentByProvider();
 
         List<ProviderBalanceDto> results = new ArrayList<>();
         for (Credential credential : credentials) {
             String provider = CREDENTIAL_TYPE_TO_PROVIDER.get(credential.getType());
-            results.add(fetchBalance(userId, credential, provider, localSpent.get(provider)));
+            results.add(fetchBalance(credential, provider, localSpent.get(provider)));
         }
         return results;
     }
 
     /**
-     * 依 provider+model 彙總最近 N 天的本地用量與估算成本。
+     * 平台全域：依 provider+model 彙總最近 N 天的本地用量與估算成本。
      */
-    public List<Map<String, Object>> getUsageSummary(UUID userId, int days) {
+    public List<Map<String, Object>> getPlatformUsageSummary(int days) {
         Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
-        List<Object[]> rows = tokenUsageRepository.summarizeByProviderAndModel(userId, since);
+        List<Object[]> rows = tokenUsageRepository.summarizePlatformByProviderAndModel(since);
 
         List<Map<String, Object>> summary = new ArrayList<>();
         for (Object[] row : rows) {
@@ -97,10 +100,66 @@ public class ProviderBalanceService {
         return summary;
     }
 
-    private Map<String, Double> computeLocalSpentByProvider(UUID userId) {
+    /**
+     * 平台全域：依成員彙總最近 N 天的用量與估算成本（管理員專用）。
+     * 每列包含 userId / email / name / calls / tokens / estimatedCostUsd。
+     */
+    public List<Map<String, Object>> getUsageByUser(int days) {
+        Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
+        List<Object[]> rows = tokenUsageRepository.summarizeByUserAndModel(since);
+
+        // 依 userId 合併（查詢按 user+model 分組，成本需要 model 單價）
+        Map<UUID, UserUsageAccumulator> byUser = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            UUID userId = (UUID) row[0];
+            String model = (String) row[1];
+            long callCount = ((Number) row[2]).longValue();
+            long inputTokens = row[3] != null ? ((Number) row[3]).longValue() : 0;
+            long outputTokens = row[4] != null ? ((Number) row[4]).longValue() : 0;
+
+            UserUsageAccumulator acc = byUser.computeIfAbsent(userId, id -> new UserUsageAccumulator());
+            acc.calls += callCount;
+            acc.inputTokens += inputTokens;
+            acc.outputTokens += outputTokens;
+            acc.estimatedCostUsd += ModelPricing.estimateCostUsd(model, inputTokens, outputTokens);
+        }
+
+        // 批次載入成員資訊（email / name）
+        Map<UUID, User> users = userRepository.findAllById(byUser.keySet()).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<UUID, UserUsageAccumulator> entry : byUser.entrySet()) {
+            User user = users.get(entry.getKey());
+            UserUsageAccumulator acc = entry.getValue();
+
+            Map<String, Object> rowMap = new LinkedHashMap<>();
+            rowMap.put("userId", entry.getKey());
+            rowMap.put("email", user != null ? user.getEmail() : null);
+            rowMap.put("name", user != null ? user.getName() : null);
+            rowMap.put("calls", acc.calls);
+            rowMap.put("inputTokens", acc.inputTokens);
+            rowMap.put("outputTokens", acc.outputTokens);
+            rowMap.put("estimatedCostUsd", round(acc.estimatedCostUsd));
+            result.add(rowMap);
+        }
+        result.sort((a, b) -> Double.compare(
+                (double) b.get("estimatedCostUsd"), (double) a.get("estimatedCostUsd")));
+        return result;
+    }
+
+    /** 成員用量累加器（僅服務內部使用） */
+    private static final class UserUsageAccumulator {
+        private long calls;
+        private long inputTokens;
+        private long outputTokens;
+        private double estimatedCostUsd;
+    }
+
+    private Map<String, Double> computePlatformSpentByProvider() {
         Instant since = Instant.now().minus(90, ChronoUnit.DAYS);
         Map<String, Double> spent = new LinkedHashMap<>();
-        for (Object[] row : tokenUsageRepository.summarizeByProviderAndModel(userId, since)) {
+        for (Object[] row : tokenUsageRepository.summarizePlatformByProviderAndModel(since)) {
             String provider = (String) row[0];
             String model = (String) row[1];
             long inputTokens = row[3] != null ? ((Number) row[3]).longValue() : 0;
@@ -110,7 +169,7 @@ public class ProviderBalanceService {
         return spent;
     }
 
-    private ProviderBalanceDto fetchBalance(UUID userId, Credential credential,
+    private ProviderBalanceDto fetchBalance(Credential credential,
                                             String provider, Double localSpentUsd) {
         ProviderBalanceDto.ProviderBalanceDtoBuilder builder = ProviderBalanceDto.builder()
                 .credentialId(credential.getId())
@@ -119,7 +178,9 @@ public class ProviderBalanceService {
 
         String apiKey;
         try {
-            Map<String, Object> data = credentialService.getDecryptedData(credential.getId(), userId);
+            // 以憑證擁有者身分解密（平台共用金鑰由建立它的管理員擁有）
+            Map<String, Object> data = credentialService.getDecryptedData(
+                    credential.getId(), credential.getOwnerId());
             Object key = data.get("apiKey");
             if (key == null) {
                 key = data.get("key");

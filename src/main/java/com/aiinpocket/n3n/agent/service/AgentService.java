@@ -216,10 +216,14 @@ public class AgentService {
     }
 
     /**
-     * 取得使用者預設的 AI 設定
+     * 取得執行時要用的 AI 設定：
+     * 平台共用預設 → 任一平台共用啟用設定 →（相容舊資料）使用者自己的設定
      */
     private AiProviderConfig getDefaultConfig(UUID userId) {
-        return configRepository.findByOwnerIdAndIsDefaultTrue(userId)
+        return configRepository.findByIsSharedTrueAndIsDefaultTrue()
+            .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
+            .or(() -> configRepository.findByIsSharedTrueAndIsActiveTrue().stream().findFirst())
+            .or(() -> configRepository.findByOwnerIdAndIsDefaultTrue(userId))
             .or(() -> configRepository.findByOwnerIdAndIsActiveTrue(userId)
                 .stream().findFirst())
             .orElseThrow(() -> new AiProviderException("Please configure an AI Provider first"));
@@ -231,8 +235,10 @@ public class AgentService {
     private AiProviderSettings buildSettings(AiProviderConfig config, UUID userId) {
         String apiKey = null;
         if (config.getCredentialId() != null) {
+            // 平台共用設定的憑證屬於建立它的管理員（config.ownerId），
+            // 以 ownerId 解密才能讓所有成員共用這把金鑰
             Map<String, Object> decryptedData = credentialService.getDecryptedData(
-                config.getCredentialId(), userId);
+                config.getCredentialId(), config.getOwnerId());
             if (decryptedData != null && decryptedData.containsKey("apiKey")) {
                 apiKey = (String) decryptedData.get("apiKey");
             }

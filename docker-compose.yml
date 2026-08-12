@@ -20,8 +20,6 @@ services:
       # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
       # CORS（生產環境請在 .env 中設定你的域名）
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000}
-      # Flow Optimizer（已改用雲端 AI，本地 LLM 預設停用）
-      FLOW_OPTIMIZER_ENABLED: ${FLOW_OPTIMIZER_ENABLED:-false}
       # Artifacts（節點產出檔案儲存）
       ARTIFACT_STORAGE_PATH: /app/data/artifacts
     volumes:

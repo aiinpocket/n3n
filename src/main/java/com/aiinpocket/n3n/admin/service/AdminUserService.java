@@ -196,6 +196,14 @@ public class AdminUserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
+        // Prevent removing ADMIN from the last active admin (mirrors updateUserStatus guard)
+        Set<String> upperRoles = newRoles.stream().map(String::toUpperCase).collect(Collectors.toSet());
+        boolean removingAdmin = !upperRoles.contains("ADMIN")
+            && userRoleRepository.findByUserId(id).stream().anyMatch(r -> "ADMIN".equals(r.getRole()));
+        if (removingAdmin && "active".equals(user.getStatus()) && countActiveAdmins() <= 1) {
+            throw new IllegalArgumentException("Cannot remove ADMIN role from the last active admin");
+        }
+
         // Remove existing roles
         userRoleRepository.deleteByUserId(id);
 
@@ -206,6 +214,14 @@ public class AdminUserService {
                 .role(role.toUpperCase())
                 .build();
             userRoleRepository.save(userRole);
+        }
+
+        // Post-flush verification: ensure at least one active admin remains (TOCTOU defence)
+        if (removingAdmin) {
+            userRoleRepository.flush();
+            if (countActiveAdmins() < 1) {
+                throw new IllegalStateException("Operation would leave no active admins — rolled back");
+            }
         }
 
         log.info("Admin {} updated user {} roles to: {}", adminId, id, newRoles);

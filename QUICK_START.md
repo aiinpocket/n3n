@@ -117,9 +117,6 @@ N3N_PORT=9090 docker compose up -d
 # 改用 http://localhost:9090
 ```
 
-### 記憶體不足
-在 `.env` 設定 `FLOW_OPTIMIZER_ENABLED=false` 可節省 2-4 GB 記憶體。
-
 ---
 
 ## 下一步

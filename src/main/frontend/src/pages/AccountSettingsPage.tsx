@@ -8,6 +8,7 @@ import { authApi } from '../api/auth'
 import { extractApiError } from '../utils/errorMessages'
 import { securityApi, SecurityStatus } from '../api/security'
 import { activityApi, UserActivity } from '../api/activity'
+import MemorySettings from '../components/settings/MemorySettings'
 import logger from '../utils/logger'
 
 const { Title, Text } = Typography
@@ -370,6 +371,9 @@ export default function AccountSettingsPage() {
           </Button>
         </div>
       </Card>
+
+      {/* AI Memory */}
+      <MemorySettings />
 
       {/* Emergency Restore Modal */}
       <Modal

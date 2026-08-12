@@ -297,11 +297,9 @@ public class DiscoveryAgent implements Agent {
         }
 
         try {
-            // 取得所有可用節點的簡要資訊
+            // 取得所有可用節點的簡要資訊（整行截斷，不會切在行中間）
             List<NodeHandlerInfo> allNodes = nodeHandlerRegistry.listHandlerInfo();
-            String nodeList = allNodes.stream()
-                .map(n -> n.getType() + ": " + n.getDisplayName() + " (" + n.getDescription() + ")")
-                .collect(Collectors.joining("\n"));
+            String nodeList = buildBoundedNodeList(allNodes, NODE_LIST_MAX_CHARS);
 
             String prompt = String.format("""
                 User requirement: %s
@@ -310,6 +308,7 @@ public class DiscoveryAgent implements Agent {
                 %s
 
                 Analyze the user's requirement and recommend nodes needed for this flow.
+                Only recommend node types that appear in the list above.
                 Respond in JSON format:
                 {
                   "recommendedNodes": [
@@ -319,7 +318,7 @@ public class DiscoveryAgent implements Agent {
                   "flowStructure": "suggested flow structure description",
                   "missingCapabilities": ["missing capabilities (if any)"]
                 }
-                """, userInput, truncate(nodeList, 3000));
+                """, userInput, nodeList);
 
             String response = provider.chat(prompt, RECOMMENDATION_SYSTEM_PROMPT, 2000, 0.3);
             return parseRecommendationResponse(response, context);
@@ -332,8 +331,10 @@ public class DiscoveryAgent implements Agent {
 
     /**
      * 規則式推薦（Fallback）
+     * 僅在 AI provider 不可用或呼叫失敗時使用；結果以 fallback 標記，非 AI 產生。
      */
     private AgentResult ruleBasedRecommendation(AgentContext context) {
+        log.info("Using rule-based node recommendation fallback (AI provider unavailable or failed)");
         String input = context.getUserInput().toLowerCase();
         List<Map<String, Object>> recommendations = new ArrayList<>();
 
@@ -415,7 +416,7 @@ public class DiscoveryAgent implements Agent {
         return AgentResult.builder()
             .success(true)
             .content(sb.toString())
-            .data(Map.of("recommendedNodes", recommendations))
+            .data(Map.of("recommendedNodes", recommendations, "fallback", true))
             .requiresFollowUp(true)
             .nextAction("builder")
             .build();
@@ -512,9 +513,26 @@ public class DiscoveryAgent implements Agent {
         return content;
     }
 
-    private String truncate(String s, int maxLen) {
-        if (s == null) return "";
-        return s.length() > maxLen ? s.substring(0, maxLen) + "..." : s;
+    private static final int NODE_LIST_MAX_CHARS = 8000;
+
+    /**
+     * 以「整行」為單位組出節點清單，超出上限就停止（絕不切在行中間）。
+     * 排序固定（依 type），輸出具決定性。
+     */
+    private String buildBoundedNodeList(List<NodeHandlerInfo> allNodes, int maxChars) {
+        StringBuilder sb = new StringBuilder();
+        List<NodeHandlerInfo> sorted = allNodes.stream()
+            .sorted(Comparator.comparing(NodeHandlerInfo::getType))
+            .toList();
+        for (NodeHandlerInfo n : sorted) {
+            String line = n.getType() + ": " + n.getDisplayName()
+                + (n.getDescription() != null ? " (" + n.getDescription() + ")" : "") + "\n";
+            if (sb.length() + line.length() > maxChars) {
+                break;
+            }
+            sb.append(line);
+        }
+        return sb.toString();
     }
 
     private static final String RECOMMENDATION_SYSTEM_PROMPT = """

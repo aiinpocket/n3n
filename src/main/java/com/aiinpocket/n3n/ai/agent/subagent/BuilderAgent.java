@@ -2,6 +2,8 @@ package com.aiinpocket.n3n.ai.agent.subagent;
 
 import com.aiinpocket.n3n.ai.agent.*;
 import com.aiinpocket.n3n.ai.agent.tools.*;
+import com.aiinpocket.n3n.ai.codex.NodeCodex;
+import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
 import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,6 +34,7 @@ public class BuilderAgent implements Agent {
 
     private final AgentRegistry agentRegistry;
     private final SimpleAIProviderRegistry providerRegistry;
+    private final NodeKnowledgeBase nodeKnowledgeBase;
     private final AddNodeTool addNodeTool;
     private final RemoveNodeTool removeNodeTool;
     private final ConnectNodesTool connectNodesTool;
@@ -285,9 +288,11 @@ public class BuilderAgent implements Agent {
                   ]
                 }
 
-                Common node types: trigger, scheduleTrigger, webhookTrigger, httpRequest,
-                sendEmail, database, code, condition, slack, telegram
-                """, context.getUserInput());
+                Use ONLY node types from the catalog below. Node config objects MUST only
+                use fields listed in the given config schemas — do not invent config fields.
+
+                %s
+                """, context.getUserInput(), buildNodeCatalogSection(context.getUserInput()));
 
             String response = provider.chat(prompt, BUILDER_SYSTEM_PROMPT, 2000, 0.3);
             return parseAndBuildFromPlan(response, context);
@@ -296,6 +301,63 @@ public class BuilderAgent implements Agent {
             log.error("AI planning failed", e);
             return AgentResult.error("Flow planning failed");
         }
+    }
+
+    private static final int MAX_CATALOG_CHARS = 8000;
+    private static final int MAX_DETAILED_NODES = 8;
+
+    /**
+     * Registry-driven node catalog for the planning prompt:
+     * detailed schemas for the top search hits first, then a one-line-per-type
+     * catalog grouped by category. Bounded to MAX_CATALOG_CHARS with
+     * deterministic priority and whole-line truncation (never mid-line).
+     */
+    private String buildNodeCatalogSection(String userInput) {
+        StringBuilder sb = new StringBuilder();
+
+        // 1. Detailed descriptions (with config schemas) for the most relevant nodes
+        List<NodeCodex> relevantNodes = nodeKnowledgeBase.searchNodes(userInput, MAX_DETAILED_NODES);
+        Set<String> detailedTypes = new HashSet<>();
+        if (!relevantNodes.isEmpty()) {
+            appendBounded(sb, "## Relevant node types (with config schemas)\n");
+            for (NodeCodex node : relevantNodes) {
+                if (appendBounded(sb, node.toDetailedPromptDescription())) {
+                    detailedTypes.add(node.getType());
+                }
+            }
+        }
+
+        // 2. Full catalog, one line per type, grouped by category (sorted for determinism)
+        appendBounded(sb, "\n## All available node types\n");
+        Map<String, List<NodeCodex>> byCategory = new TreeMap<>();
+        for (NodeCodex codex : nodeKnowledgeBase.getAllCodex()) {
+            String category = codex.getCategory() != null ? codex.getCategory() : "other";
+            byCategory.computeIfAbsent(category, k -> new ArrayList<>()).add(codex);
+        }
+        for (Map.Entry<String, List<NodeCodex>> entry : byCategory.entrySet()) {
+            appendBounded(sb, "### " + entry.getKey() + "\n");
+            entry.getValue().sort(Comparator.comparing(NodeCodex::getType));
+            for (NodeCodex node : entry.getValue()) {
+                if (detailedTypes.contains(node.getType())) {
+                    continue; // already shown in detail above
+                }
+                appendBounded(sb, "- " + node.getType() + ": "
+                    + (node.getDescription() != null ? node.getDescription() : "") + "\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Appends the block only if it fully fits within MAX_CATALOG_CHARS.
+     */
+    private boolean appendBounded(StringBuilder sb, String block) {
+        if (sb.length() + block.length() > MAX_CATALOG_CHARS) {
+            return false;
+        }
+        sb.append(block);
+        return true;
     }
 
     private AgentResult parseAndBuildFromPlan(String response, AgentContext context) {

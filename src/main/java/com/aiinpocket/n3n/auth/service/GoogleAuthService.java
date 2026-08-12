@@ -35,6 +35,7 @@ public class GoogleAuthService {
     private final PasswordEncoder passwordEncoder;
     private final ActivityService activityService;
     private final AuthService authService;
+    private final AdminEmailBinder adminEmailBinder;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -66,7 +67,13 @@ public class GoogleAuthService {
             .map(existing -> loginExistingUser(existing))
             .orElseGet(() -> createGoogleUser(tokenInfo));
 
+        // 名單內的管理員 Email 於登入時自動補上 ADMIN 角色（涵蓋既有與新建帳號）
+        adminEmailBinder.ensureAdminRole(user);
+
         activityService.logLogin(user.getId(), user.getEmail());
+
+        // 涵蓋既有用戶登入與新建 Google 帳號兩種情境
+        authService.publishUserAuthenticated(user);
 
         return authService.generateAuthResponse(user, ipAddress, userAgent);
     }

@@ -59,6 +59,9 @@ class AuthServiceTest extends BaseServiceTest {
     @Mock
     private com.aiinpocket.n3n.credential.service.MasterKeyProvider masterKeyProvider;
 
+    @Mock
+    private AdminEmailBinder adminEmailBinder;
+
     @InjectMocks
     private AuthService authService;
 
@@ -158,6 +161,34 @@ class AuthServiceTest extends BaseServiceTest {
         assertThat(response.getAccessToken()).isEqualTo("accessToken");
         assertThat(response.getRefreshToken()).isEqualTo("refreshToken");
         assertThat(response.getUser().getEmail()).isEqualTo(request.getEmail());
+        // 管理員 Email 綁定於每次登入時檢查（冪等）
+        verify(adminEmailBinder).ensureAdminRole(user);
+    }
+
+    @Test
+    void login_boundAdminEmail_rolesIncludeGrantedAdmin() {
+        // Given：binder 於登入時授予 ADMIN，roles 於授予後才查詢
+        LoginRequest request = TestDataFactory.createLoginRequest();
+        User user = TestDataFactory.createUser(request.getEmail(), "Bound Admin");
+        UserRole userRole = TestDataFactory.createUserRole(user.getId(), "USER");
+        UserRole adminRole = TestDataFactory.createUserRole(user.getId(), "ADMIN");
+
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(request.getPassword(), user.getPasswordHash())).thenReturn(true);
+        when(adminEmailBinder.ensureAdminRole(user)).thenReturn(true);
+        when(userRoleRepository.findByUserId(user.getId())).thenReturn(List.of(userRole, adminRole));
+        when(jwtService.generateAccessToken(any(), anyString(), anyString(), any())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken()).thenReturn("refreshToken");
+        when(jwtService.getAccessTokenExpirationMs()).thenReturn(3600000L);
+        when(jwtService.hashRefreshToken(anyString())).thenReturn("hashedToken");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        AuthResponse response = authService.login(request, "127.0.0.1", "TestBrowser");
+
+        // Then
+        assertThat(response.getUser().getRoles()).contains("ADMIN", "USER");
+        verify(adminEmailBinder).ensureAdminRole(user);
     }
 
     @Test

@@ -110,6 +110,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/logs/**").hasRole("ADMIN")
                 .requestMatchers("/api/settings/gateway/**").hasRole("ADMIN")
                 .requestMatchers("/api/cloud-sync/**").hasRole("ADMIN")
+                // AI Provider 金鑰為平台共用，僅管理員可管理；帳務同樣僅管理員可見
+                // （一般成員的可用性查詢走 /api/ai/availability，不在此規則內）
+                .requestMatchers("/api/ai/providers/**").hasRole("ADMIN")
+                .requestMatchers("/api/ai/billing/**").hasRole("ADMIN")
                 // All other API requests require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

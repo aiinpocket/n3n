@@ -340,7 +340,6 @@
     "externalServices": "外部サービス",
     "aiGenerateFlow": "自然言語からフローを生成",
     "aiNodeRecommend": "AIノード推薦",
-    "aiOptimize": "AI最適化分析",
     "aiFeatures": "AI機能",
     "versionHistory": "バージョン履歴",
     "noChanges": "保存する変更がありません",
@@ -427,42 +426,8 @@
     }
   },
   "optimizer": {
-    "title": "AIフロー最適化",
-    "analyze": "分析",
-    "analyzing": "分析中...",
-    "startAnalysis": "分析開始",
-    "description": "AIを使用してフロー構造を分析し、並列実行可能なノード、マージ可能なリクエスト、実行順序の最適化を特定します。",
-    "poweredBy": "Phi-3-MiniローカルAIモデルを使用",
-    "analyzingFlow": "フローを分析中...",
-    "aiThinking": "AIが最適化提案を考えています",
-    "analysisFailed": "分析失敗",
-    "analyzeFailed": "最適化サービスに接続できません",
-    "noSuggestions": "フローは既に最適です",
-    "flowIsOptimal": "最適化項目が見つかりません。フロー構造は良好です！",
-    "suggestionsFound": "{{count}}件の最適化提案が見つかりました",
-    "analysisTime": "分析に{{time}}秒かかりました",
-    "affectedNodes": "関連ノード",
-    "clickToHighlight": "クリックしてこのノードをハイライト",
     "nodes": "ノード数",
-    "edges": "エッジ数",
-    "parallel": "並列実行",
-    "merge": "リクエストマージ",
-    "remove": "冗長削除",
-    "reorder": "順序最適化",
-    "highPriority": "高影響",
-    "mediumPriority": "中",
-    "lowPriority": "低",
-    "applySuggestion": "この提案を適用",
-    "applyAll": "すべて適用",
-    "applyAllConfirmTitle": "すべての提案を適用しますか？",
-    "applyAllConfirmContent": "{{count}}件の最適化提案をフローに適用します。Ctrl+Zで元に戻せます。",
-    "applied": "適用済み",
-    "applySuccess": "{{count}}件の提案を適用しました",
-    "applyFailed": "提案の適用に失敗しました",
-    "flowOptimized": "フロー最適化を適用しました",
-    "noFlow": "フローが読み込まれていません",
-    "requiresNodes": "分析するには少なくとも1つのノードを追加してください",
-    "serviceHint": "ローカルAIオプティマイザー (Phi-3-Mini) が起動していない可能性があります。最適化なしでフローを公開することもできます。"
+    "edges": "エッジ数"
   },
   "aiAssistant": {
     "analyzing": "AI分析",
@@ -946,26 +911,23 @@
     "localFeatures": {
       "title": "組み込みAI機能",
       "free": "無料 - APIキー不要",
-      "optimizerEnabled": "フローオプティマイザーはデフォルトで有効です",
-      "optimizerDesc": "組み込みフローオプティマイザーがワークフローを自動的に分析し改善を提案します。ローカルで実行 — APIキーや設定は不要です。",
-      "flowOptimizer": "フローオプティマイザー",
-      "flowOptimizerDesc": "AIによるワークフロー分析で、パフォーマンスと構造の改善を提案",
       "dagAnalysis": "DAG分析",
       "dagAnalysisDesc": "ボトルネック、並列実行の機会、冗長なパスを自動検出"
-    },
-    "cloudFeatures": {
-      "title": "クラウドAIプロバイダー",
-      "apiKeyRequired": "APIキーが必要",
-      "info": "クラウドAI機能",
-      "infoList": {
-        "nlGeneration": "自然言語フロー生成：やりたいことを説明するだけで、AIがフローを構築"
-      },
-      "optional": "クラウドAIはオプションです。組み込み機能はAPIキーなしで利用できます。"
     },
     "generator": {
       "createAndPublish": "作成して公開",
       "publishedSuccess": "フローを作成して公開しました。すぐに実行できます",
       "publishedWithSchedule": "フローを作成して公開しました。スケジュールは自動的に有効化されました"
+    },
+    "platform": {
+      "title": "プラットフォーム AI 設定",
+      "sharedTag": "全メンバー共用",
+      "info": "ここのキーは、プラットフォーム全員の創作の燃料です",
+      "infoList": {
+        "shared": "管理者が一括管理し、全メンバーの AI 機能がこのキーを共用します",
+        "nlGeneration": "自然言語フロー生成：メンバーが説明すると AI がフローを組み立てます"
+      },
+      "emptyHint": "まだプラットフォームキーがありません。1 つ設定すれば、全員が AI と一緒に創作を始められます。"
     }
   },
   "chat": {
@@ -989,7 +951,7 @@
     "flowCreateFailed": "フローの作成に失敗しました",
     "emptyRecommendation": "AIの推薦がここに表示されます",
     "noAiConfig": "AIプロバイダーが未設定です",
-    "noAiConfigDesc": "AIアシスタントを使用するには、AIプロバイダー（Claude、OpenAI、Gemini、またはOllama）を設定してください。",
+    "noAiConfigDesc": "プラットフォームの AI キーがまだ設定されていません。管理者に設定を依頼してください。",
     "goToSettings": "AI設定へ",
     "deleteConfirm": "この会話を削除しますか？",
     "searchHistory": "会話を検索..."
@@ -1356,7 +1318,30 @@
     "editDesc": "フロー内容の編集が可能",
     "adminDesc": "共有設定の管理が可能",
     "pendingCannotChange": "招待が承認されるまで権限を変更できません",
-    "invalidEmail": "有効なメールアドレスを入力してください"
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "linkSection": "共有リンク",
+    "linkHint": "リンクを仲間に渡して、一緒にフローを編集しましょう",
+    "createLink": "リンクを作成",
+    "linkExpiryPlaceholder": "無期限",
+    "linkExpiryDays": "日",
+    "copyLink": "リンクをコピー",
+    "linkCopied": "リンクをクリップボードにコピーしました",
+    "linkCopyFailed": "コピーに失敗しました。リンクを手動で選択してください",
+    "revokeLink": "無効化",
+    "revokeLinkConfirm": "無効化すると、このリンクは二度と開けなくなります。よろしいですか？",
+    "noLinks": "共有リンクはまだありません",
+    "linkCreated": "リンクの準備ができました",
+    "linkCreateFailed": "リンクの作成に失敗しました",
+    "linkRevoked": "リンクを無効化しました",
+    "linkRevokeFailed": "リンクの無効化に失敗しました",
+    "linkExpiresAt": "{{date}} まで有効",
+    "linkNeverExpires": "無期限",
+    "claiming": "フローを開いています…",
+    "claimSuccess": "「{{name}}」へようこそ。一緒に編集しましょう",
+    "claimFailed": "このリンクは無効のようです。共有者に新しいリンクをもらってください",
+    "claimFailedTitle": "リンクを開けませんでした",
+    "claimInvalidLink": "リンクの形式が正しくありません",
+    "claimBackHome": "ホームに戻る"
   },
   "device": {
     "title": "デバイス管理",
@@ -1986,7 +1971,7 @@
     "aiRecommend": "AI 推薦",
     "aiAnalyzing": "AI 分析中...",
     "aiUnavailable": "AIサービスが一時的に利用できません",
-    "aiUnavailableDesc": "ローカルAIサービス (Llamafile) が実行されていません。サービスを起動するか、別のAIプロバイダーを設定してください。",
+    "aiUnavailableDesc": "AIプロバイダーが設定されていません。AI設定でプロバイダーを設定してください。",
     "noRecommendations": "推薦がありません"
   },
   "dataMapping": {
@@ -2181,7 +2166,13 @@
     "outputTokens": "出力トークン",
     "estimatedCost": "推定コスト",
     "noCredentials": "AI認証情報がまだありません。先に「認証情報」でAPIキーを追加してください",
-    "noUsage": "この期間のAI使用記録はありません"
+    "noUsage": "この期間のAI使用記録はありません",
+    "loadUserUsageFailed": "メンバー使用量の読み込みに失敗しました",
+    "byUser": {
+      "title": "メンバー別使用量",
+      "member": "メンバー",
+      "unknownMember": "（退会したメンバー）"
+    }
   },
   "nodeTypes": {
     "trigger": {
@@ -3082,5 +3073,35 @@
     "filterVideo": "動画",
     "filterAudio": "音声",
     "filterText": "ドキュメント"
+  },
+  "memory": {
+    "title": "AI メモリー",
+    "description": "AI アシスタントは会話の中であなたの好みや習慣をそっと覚えていきます。ここはその小さなノート。いつでも読み返したり、書き直したり、ページを破り捨てたりできます。",
+    "add": "覚えてもらう",
+    "addPlaceholder": "AI に覚えてほしいこと。例：通知は Slack で受け取りたい",
+    "added": "覚えました",
+    "addFailed": "保存に失敗しました。もう一度お試しください",
+    "updated": "メモリーを更新しました",
+    "updateFailed": "更新に失敗しました。もう一度お試しください",
+    "deleted": "忘れました",
+    "deleteFailed": "削除に失敗しました。もう一度お試しください",
+    "deleteConfirm": "この記憶を AI に忘れさせますか？",
+    "clearAll": "すべて忘れる",
+    "cleared": "メモリーをすべて消去しました",
+    "clearFailed": "消去に失敗しました。もう一度お試しください",
+    "clearAllConfirmTitle": "すべてのメモリーを消去しますか？",
+    "clearAllConfirmDesc": "AI はあなたに関するすべてのメモを忘れます。この操作は元に戻せません。",
+    "empty": "まだ何も覚えていません。AI と話すか、最初のひとつを書き込んでみてください。",
+    "category": {
+      "preference": "好み",
+      "fact": "事実",
+      "project": "プロジェクト",
+      "style": "スタイル",
+      "general": "一般"
+    },
+    "source": {
+      "assistant": "AI が記録",
+      "user": "自分で記入"
+    }
   }
 }

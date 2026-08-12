@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +16,9 @@ const REASON_KEYS: Record<string, string> = {
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
+  const returnTo = (location.state as { from?: string } | null)?.from || '/'
   const { login, loginWithGoogle, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
   const { t } = useTranslation()
@@ -29,7 +31,7 @@ export default function LoginPage() {
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
       await login(values.email, values.password)
-      navigate('/')
+      navigate(returnTo, { replace: true })
     } catch {
       // Error is handled in store
     }
@@ -39,12 +41,12 @@ export default function LoginPage() {
     setGoogleError(null)
     try {
       await loginWithGoogle(credential)
-      navigate('/')
+      navigate(returnTo, { replace: true })
     } catch {
       // API error message is handled in store; keep a generic fallback too
       setGoogleError(t('auth.googleLoginFailed'))
     }
-  }, [loginWithGoogle, navigate, t])
+  }, [loginWithGoogle, navigate, returnTo, t])
 
   const handleGoogleError = useCallback(() => {
     setGoogleError(t('auth.googleLoginFailed'))

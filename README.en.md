@@ -477,6 +477,19 @@ Use the **AI Balance** page to view remaining balances and usage across all prov
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GOOGLE_OAUTH_CLIENT_ID` | (empty, disabled) | Google OAuth Client ID. When set, a "Sign in with Google" button appears on the login page; first sign-in auto-creates an account |
+| `ADMIN_EMAILS` | `mopacke2422@gmail.com` | Comma-separated admin email list; accounts on this list are automatically granted the admin role on sign-in |
+
+### Platform-shared AI keys & member management
+
+AI provider API keys are configured once by an administrator in "AI Settings" and shared platform-wide — members never need their own keys. "AI Billing" shows platform totals and per-member usage breakdowns; both pages are admin-only. Admins can grant the admin role to other members on the "User Management" page.
+
+### Share links & co-editing
+
+The share dialog in "My Flows" can generate share links (view or edit permission, optional expiry, revocable anytime). Hand the link to a teammate — once they sign in, they can edit the same flow with you.
+
+### Personal AI memory
+
+The AI assistant remembers each user's preferences and habits (isolated per user), so flow generation gets closer to what you want over time. Review, edit, or delete memories anytime under "Account Settings → AI Memory".
 
 > Create an OAuth Client ID (Web application) in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) and add your site origin to Authorized JavaScript origins. No redirect URI needed.
 

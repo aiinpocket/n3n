@@ -11,6 +11,7 @@ import type { FlowShare } from '../api/flowShare'
 import FlowExportModal from '../components/flow/FlowExportModal'
 import FlowImportModal from '../components/flow/FlowImportModal'
 import FlowGeneratorModal from '../components/ai/FlowGeneratorModal'
+import ShareLinkSection from '../components/flow/ShareLinkSection'
 import { templateApi } from '../api/template'
 import { Typography, Result } from 'antd'
 import { extractApiError } from '../utils/errorMessages'
@@ -734,6 +735,8 @@ export default function FlowListPage() {
               </List.Item>
             )}
           />
+
+          {shareFlow && <ShareLinkSection flowId={shareFlow.id} visible={shareModalOpen} />}
         </Space>
       </Modal>
 

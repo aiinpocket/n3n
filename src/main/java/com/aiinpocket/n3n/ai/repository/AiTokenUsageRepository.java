@@ -25,4 +25,31 @@ public interface AiTokenUsageRepository extends JpaRepository<AiTokenUsage, UUID
             ORDER BY SUM(u.inputTokens) + SUM(u.outputTokens) DESC
             """)
     List<Object[]> summarizeByProviderAndModel(@Param("userId") UUID userId, @Param("since") Instant since);
+
+    /**
+     * 平台全域：依 provider + model 彙總指定期間的 token 用量（不分使用者）。
+     * 回傳欄位順序：provider, model, callCount, inputTokens, outputTokens
+     */
+    @Query("""
+            SELECT u.provider, u.model, COUNT(u), SUM(u.inputTokens), SUM(u.outputTokens)
+            FROM AiTokenUsage u
+            WHERE u.createdAt >= :since
+            GROUP BY u.provider, u.model
+            ORDER BY SUM(u.inputTokens) + SUM(u.outputTokens) DESC
+            """)
+    List<Object[]> summarizePlatformByProviderAndModel(@Param("since") Instant since);
+
+    /**
+     * 平台全域：依 userId + model 彙總指定期間的 token 用量，
+     * 供管理員的成員用量報表使用（model 保留以便估算成本）。
+     * 回傳欄位順序：userId, model, callCount, inputTokens, outputTokens
+     */
+    @Query("""
+            SELECT u.userId, u.model, COUNT(u), SUM(u.inputTokens), SUM(u.outputTokens)
+            FROM AiTokenUsage u
+            WHERE u.createdAt >= :since
+            GROUP BY u.userId, u.model
+            ORDER BY SUM(u.inputTokens) + SUM(u.outputTokens) DESC
+            """)
+    List<Object[]> summarizeByUserAndModel(@Param("since") Instant since);
 }

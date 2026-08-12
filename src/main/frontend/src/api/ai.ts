@@ -58,7 +58,21 @@ export interface TestConnectionResponse {
   latencyMs?: number
 }
 
+export interface AiAvailability {
+  configured: boolean
+  provider: string | null
+  defaultModel: string | null
+}
+
 // ==================== API Functions ====================
+
+/**
+ * 查詢平台 AI 是否已設定（所有成員可用，不含任何金鑰資訊）
+ */
+export async function getAiAvailability(): Promise<AiAvailability> {
+  const response = await apiClient.get('/ai/availability')
+  return response.data
+}
 
 /**
  * 取得可用的 AI Provider 類型

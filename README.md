@@ -478,6 +478,19 @@ N3N 的 AI 功能（流程生成、多模態節點、流程優化）使用雲端
 | 變數 | 預設值 | 說明 |
 |------|--------|------|
 | `GOOGLE_OAUTH_CLIENT_ID` | （空，功能停用） | Google OAuth Client ID，設定後登入頁自動出現「使用 Google 登入」按鈕，首次登入自動建立帳號 |
+| `ADMIN_EMAILS` | `mopacke2422@gmail.com` | 管理者 Email 清單（逗號分隔），名單內的帳號登入時自動取得管理者權限 |
+
+### 平台共用 AI 金鑰與成員管理
+
+AI 供應商的 API Key 由管理者在「AI 設定」統一設定，全站成員共用，成員不需要自備金鑰；「AI 餘額管理」提供平台總用量與依成員分列的用量統計，皆僅限管理者存取。管理者可在「用戶管理」頁面授予其他成員管理者角色。
+
+### 分享連結與共編
+
+在「我的流程」的分享視窗可以產生分享連結（檢視或共編權限、可設定有效期限、可隨時撤銷），把連結交給夥伴，對方登入後即可一起編輯同一條流程。
+
+### 個人化 AI 記憶
+
+AI 助手會記住每位使用者的偏好與習慣（各自獨立、互不可見），讓流程生成越用越貼近你的需求；在「帳戶設定 → AI 記憶」可以隨時檢視、修改或刪除。
 
 > 在 [Google Cloud Console](https://console.cloud.google.com/apis/credentials) 建立 OAuth Client ID（Web application），Authorized JavaScript origins 填入你的網站來源即可，不需要 redirect URI。
 

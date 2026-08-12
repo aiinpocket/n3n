@@ -62,6 +62,14 @@ public class AiProviderConfig {
     @Builder.Default
     private Boolean isDefault = false;
 
+    /**
+     * 平台共用設定：由管理員建立、所有成員的 AI 功能共同使用。
+     * ownerId 保留為「建立者」。
+     */
+    @Column(name = "is_shared", nullable = false)
+    @Builder.Default
+    private Boolean isShared = false;
+
     @Column(name = "rate_limit_rpm")
     private Integer rateLimitRpm;
 

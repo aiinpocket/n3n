@@ -301,6 +301,58 @@ class AdminUserServiceTest extends BaseServiceTest {
 
             verify(userRoleRepository).save(argThat(r -> "ADMIN".equals(r.getRole())));
         }
+
+        @Test
+        @DisplayName("拒絕移除最後一位活躍管理員的 ADMIN 角色")
+        void updateUserRoles_lastActiveAdmin_demotionRefused() {
+            UserRole adminRole = UserRole.builder().userId(userId).role("ADMIN").build();
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(userRoleRepository.findByUserId(userId)).thenReturn(List.of(adminRole));
+            // testUser 是唯一的活躍管理員
+            when(userRoleRepository.findByRole("ADMIN")).thenReturn(List.of(adminRole));
+            when(userRepository.findAllById(List.of(userId))).thenReturn(List.of(testUser));
+
+            assertThatThrownBy(() -> adminUserService.updateUserRoles(userId, Set.of("USER"), adminId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("last active admin");
+
+            verify(userRoleRepository, never()).deleteByUserId(any());
+            verify(userRoleRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("有其他活躍管理員時允許移除 ADMIN 角色（含 post-flush 再驗證）")
+        void updateUserRoles_demotionAllowedWhenAnotherActiveAdminExists() {
+            UUID otherAdminId = UUID.randomUUID();
+            User otherAdmin = User.builder()
+                .id(otherAdminId)
+                .email("other-admin@example.com")
+                .status("active")
+                .build();
+            UserRole targetAdminRole = UserRole.builder().userId(userId).role("ADMIN").build();
+            UserRole otherAdminRole = UserRole.builder().userId(otherAdminId).role("ADMIN").build();
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(userRoleRepository.findByUserId(userId)).thenReturn(List.of(targetAdminRole));
+            // 第一次檢查：兩位活躍管理員；post-flush 再驗證：仍剩另一位
+            when(userRoleRepository.findByRole("ADMIN"))
+                .thenReturn(List.of(targetAdminRole, otherAdminRole))
+                .thenReturn(List.of(otherAdminRole));
+            when(userRepository.findAllById(anyList()))
+                .thenAnswer(inv -> {
+                    List<UUID> ids = inv.getArgument(0);
+                    List<User> found = new ArrayList<>();
+                    if (ids.contains(userId)) found.add(testUser);
+                    if (ids.contains(otherAdminId)) found.add(otherAdmin);
+                    return found;
+                });
+
+            adminUserService.updateUserRoles(userId, Set.of("USER"), adminId);
+
+            verify(userRoleRepository).deleteByUserId(userId);
+            verify(userRoleRepository).save(argThat(r -> "USER".equals(r.getRole())));
+            verify(userRoleRepository).flush();
+        }
     }
 
     @Nested

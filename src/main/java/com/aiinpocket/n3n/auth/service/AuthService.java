@@ -12,10 +12,12 @@ import com.aiinpocket.n3n.auth.exception.*;
 import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
+import com.aiinpocket.n3n.auth.event.UserAuthenticatedEvent;
 import com.aiinpocket.n3n.credential.service.MasterKeyProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,8 @@ public class AuthService {
     private final ActivityService activityService;
     private final com.aiinpocket.n3n.common.service.EmailService emailService;
     private final MasterKeyProvider masterKeyProvider;
+    private final ApplicationEventPublisher eventPublisher;
+    private final AdminEmailBinder adminEmailBinder;
 
     private static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
 
@@ -68,6 +72,11 @@ public class AuthService {
         user.setLockedUntil(null);
         user.setLastLoginAt(Instant.now());
         userRepository.save(user);
+
+        // 名單內的管理員 Email 於登入時自動補上 ADMIN 角色
+        adminEmailBinder.ensureAdminRole(user);
+
+        publishUserAuthenticated(user);
 
         return generateAuthResponse(user, ipAddress, userAgent);
     }
@@ -122,8 +131,16 @@ public class AuthService {
             log.info("User registered: {}", user.getEmail());
         }
 
+        // 名單內的管理員 Email 於註冊時自動補上 ADMIN 角色
+        if (adminEmailBinder.ensureAdminRole(user) && !roles.contains("ADMIN")) {
+            roles = java.util.stream.Stream.concat(roles.stream(), java.util.stream.Stream.of("ADMIN"))
+                .toList();
+        }
+
         // Audit log: user registration
         activityService.logUserCreate(user.getId(), user.getEmail(), String.join(",", roles));
+
+        publishUserAuthenticated(user);
 
         // Generate tokens so user is auto-logged-in after registration
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getName(), roles);
@@ -361,6 +378,18 @@ public class AuthService {
         }
 
         return builder.build();
+    }
+
+    /**
+     * 發布使用者認證成功事件（例如觸發自動接受流程分享邀請）。
+     * 發布失敗只記錄日誌，絕不影響登入 / 註冊。Package-private 供 GoogleAuthService 重用。
+     */
+    void publishUserAuthenticated(User user) {
+        try {
+            eventPublisher.publishEvent(new UserAuthenticatedEvent(user.getId(), user.getEmail()));
+        } catch (Exception e) {
+            log.error("Failed to publish UserAuthenticatedEvent for user {}: {}", user.getId(), e.getMessage(), e);
+        }
     }
 
     /** Package-private for reuse by GoogleAuthService. */

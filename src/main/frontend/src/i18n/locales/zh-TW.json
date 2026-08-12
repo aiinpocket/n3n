@@ -340,7 +340,6 @@
     "externalServices": "外部服務",
     "aiGenerateFlow": "自然語言生成流程",
     "aiNodeRecommend": "智慧節點推薦",
-    "aiOptimize": "AI 優化分析",
     "aiFeatures": "AI 功能",
     "versionHistory": "版本記錄",
     "noChanges": "無變更需要儲存",
@@ -427,42 +426,8 @@
     }
   },
   "optimizer": {
-    "title": "AI 流程優化",
-    "analyze": "分析流程",
-    "analyzing": "分析中...",
-    "startAnalysis": "開始分析",
-    "description": "使用 AI 分析流程結構，找出可並行執行的節點、可合併的請求，以及優化執行順序的建議。",
-    "poweredBy": "由 Phi-3-Mini 本地 AI 模型驅動",
-    "analyzingFlow": "正在分析流程...",
-    "aiThinking": "AI 正在思考優化建議",
-    "analysisFailed": "分析失敗",
-    "analyzeFailed": "無法連接到優化服務",
-    "noSuggestions": "流程已是最佳化狀態",
-    "flowIsOptimal": "未發現可優化的項目，您的流程結構良好！",
-    "suggestionsFound": "找到 {{count}} 項優化建議",
-    "analysisTime": "分析耗時 {{time}} 秒",
-    "affectedNodes": "相關節點",
-    "clickToHighlight": "點擊高亮此節點",
     "nodes": "節點數",
-    "edges": "連線數",
-    "parallel": "並行執行",
-    "merge": "合併請求",
-    "remove": "移除冗餘",
-    "reorder": "優化順序",
-    "highPriority": "高影響",
-    "mediumPriority": "中等",
-    "lowPriority": "低",
-    "applySuggestion": "套用此建議",
-    "applyAll": "全部套用",
-    "applyAllConfirmTitle": "確定要全部套用嗎？",
-    "applyAllConfirmContent": "這將套用 {{count}} 項優化建議到您的流程中。您可以使用 Ctrl+Z 復原。",
-    "applied": "已套用",
-    "applySuccess": "已成功套用 {{count}} 項建議",
-    "applyFailed": "套用建議失敗",
-    "flowOptimized": "已成功套用流程優化",
-    "noFlow": "尚未載入流程",
-    "requiresNodes": "請先新增至少一個節點再進行分析",
-    "serviceHint": "本地 AI 優化器 (Phi-3-Mini) 可能未啟動。您仍可直接發布流程而不進行優化。"
+    "edges": "連線數"
   },
   "aiAssistant": {
     "analyzing": "AI 分析",
@@ -946,21 +911,18 @@
     "localFeatures": {
       "title": "內建 AI 功能",
       "free": "免費 - 無需 API Key",
-      "optimizerEnabled": "流程優化器已預設啟用",
-      "optimizerDesc": "內建流程優化器會自動分析您的工作流程並提供改進建議。在本機執行，無需 API 金鑰或額外設定。",
-      "flowOptimizer": "流程優化器",
-      "flowOptimizerDesc": "AI 驅動的工作流程分析，提供效能與結構改進建議",
       "dagAnalysis": "DAG 分析",
       "dagAnalysisDesc": "自動偵測瓶頸、平行執行機會及冗餘路徑"
     },
-    "cloudFeatures": {
-      "title": "雲端 AI 供應商",
-      "apiKeyRequired": "需要 API Key",
-      "info": "雲端 AI 功能",
+    "platform": {
+      "title": "平台 AI 設定",
+      "sharedTag": "所有成員共用",
+      "info": "這裡的金鑰，是全站夥伴共同的創作燃料",
       "infoList": {
-        "nlGeneration": "自然語言流程生成：描述您的需求，AI 幫您建立流程"
+        "shared": "由管理員統一設定，所有成員的 AI 功能共用這幾把金鑰",
+        "nlGeneration": "自然語言流程生成：成員描述需求，AI 幫他們把流程長出來"
       },
-      "optional": "雲端 AI 為選用功能。內建功能無需任何 API Key 即可使用。"
+      "emptyHint": "還沒有任何平台金鑰。設定一把，讓所有成員都能開始與 AI 一起創作。"
     },
     "generator": {
       "createAndPublish": "建立並發布",
@@ -989,7 +951,7 @@
     "flowCreateFailed": "建立流程失敗",
     "emptyRecommendation": "AI 會在這裡顯示推薦的元件和流程預覽",
     "noAiConfig": "尚未設定 AI 提供者",
-    "noAiConfigDesc": "請先設定 AI 提供者（Claude、OpenAI、Gemini 或 Ollama）才能使用 AI 助手。",
+    "noAiConfigDesc": "平台的 AI 金鑰還沒就緒，請找管理員幫忙設定，馬上就能開始創作。",
     "goToSettings": "前往 AI 設定",
     "deleteConfirm": "確定刪除此對話？",
     "searchHistory": "搜尋對話..."
@@ -1356,7 +1318,30 @@
     "editDesc": "可修改流程內容",
     "adminDesc": "可管理分享設定",
     "pendingCannotChange": "對方接受邀請前無法變更權限",
-    "invalidEmail": "請輸入有效的電子郵件"
+    "invalidEmail": "請輸入有效的電子郵件",
+    "linkSection": "分享連結",
+    "linkHint": "把連結交給夥伴，邀請他們一起編輯這條流程",
+    "createLink": "產生連結",
+    "linkExpiryPlaceholder": "永久有效",
+    "linkExpiryDays": "天",
+    "copyLink": "複製連結",
+    "linkCopied": "連結已放進剪貼簿，去分享吧",
+    "linkCopyFailed": "複製失敗，請手動選取連結",
+    "revokeLink": "撤銷",
+    "revokeLinkConfirm": "撤銷後，這條連結就再也打不開了，確定嗎？",
+    "noLinks": "還沒有任何分享連結",
+    "linkCreated": "連結已備好，等你分享給夥伴",
+    "linkCreateFailed": "建立連結失敗",
+    "linkRevoked": "連結已撤銷",
+    "linkRevokeFailed": "撤銷連結失敗",
+    "linkExpiresAt": "有效至 {{date}}",
+    "linkNeverExpires": "永久有效",
+    "claiming": "正在為你打開這條流程⋯⋯",
+    "claimSuccess": "歡迎加入「{{name}}」，一起編輯吧",
+    "claimFailed": "這條連結似乎失效了，向分享者要一條新的吧",
+    "claimFailedTitle": "打不開這條連結",
+    "claimInvalidLink": "連結格式不正確",
+    "claimBackHome": "回到首頁"
   },
   "device": {
     "title": "設備管理",
@@ -1986,7 +1971,7 @@
     "aiRecommend": "AI 推薦",
     "aiAnalyzing": "AI 分析中...",
     "aiUnavailable": "AI 服務暫時不可用",
-    "aiUnavailableDesc": "本地 AI 服務 (Llamafile) 未執行。請啟動服務或配置其他 AI 提供者。",
+    "aiUnavailableDesc": "尚未設定 AI 提供者。請前往 AI 設定配置 AI 提供者。",
     "noRecommendations": "暫無推薦"
   },
   "dataMapping": {
@@ -2181,7 +2166,13 @@
     "outputTokens": "輸出 Tokens",
     "estimatedCost": "估算成本",
     "noCredentials": "尚未設定任何 AI 憑證，請先到「憑證管理」新增 API Key",
-    "noUsage": "此期間內沒有 AI 用量記錄"
+    "noUsage": "此期間內沒有 AI 用量記錄",
+    "loadUserUsageFailed": "載入成員用量失敗",
+    "byUser": {
+      "title": "成員用量",
+      "member": "成員",
+      "unknownMember": "（已離開的成員）"
+    }
   },
   "nodeTypes": {
     "trigger": {
@@ -3082,5 +3073,35 @@
     "filterVideo": "影片",
     "filterAudio": "音訊",
     "filterText": "文件"
+  },
+  "memory": {
+    "title": "AI 記憶",
+    "description": "AI 助手會在對話裡悄悄記下你的偏好與習慣，讓每一次相遇都更懂你。這裡是它的小筆記本——你隨時可以翻閱、修改，或整頁撕去。",
+    "add": "記下來",
+    "addPlaceholder": "想讓 AI 記住什麼？例如：我偏好用 Slack 接收通知",
+    "added": "已經記下來了",
+    "addFailed": "沒記住，請再試一次",
+    "updated": "記憶已更新",
+    "updateFailed": "更新失敗，請再試一次",
+    "deleted": "已忘記這件事",
+    "deleteFailed": "刪除失敗，請再試一次",
+    "deleteConfirm": "確定要讓 AI 忘記這件事嗎？",
+    "clearAll": "全部忘記",
+    "cleared": "記憶已全部清空",
+    "clearFailed": "清除失敗，請再試一次",
+    "clearAllConfirmTitle": "清空所有記憶？",
+    "clearAllConfirmDesc": "AI 將忘記關於你的一切筆記，此動作無法復原。",
+    "empty": "還沒有任何記憶。與 AI 多聊聊，或親手寫下第一筆。",
+    "category": {
+      "preference": "偏好",
+      "fact": "事實",
+      "project": "專案",
+      "style": "風格",
+      "general": "一般"
+    },
+    "source": {
+      "assistant": "AI 記下",
+      "user": "親筆"
+    }
   }
 }

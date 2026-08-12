@@ -212,4 +212,34 @@ public class NodeCodex {
 
         return sb.toString();
     }
+
+    /**
+     * Generate a detailed prompt description including a compacted config
+     * schema (bounded, deterministic) and at most one configuration example.
+     * Used for the top search-relevant nodes so the LLM can produce valid configs.
+     */
+    public String toDetailedPromptDescription() {
+        StringBuilder sb = new StringBuilder(toPromptDescription());
+
+        String schemaText = ConfigSchemaCompactor.compact(configSchema);
+        if (!schemaText.isBlank()) {
+            sb.append("- Config Schema (only these fields are valid):\n");
+            for (String line : schemaText.split("\n")) {
+                sb.append("  ").append(line).append("\n");
+            }
+        }
+
+        if (examples != null && !examples.isEmpty()) {
+            NodeExample example = examples.get(0);
+            if (example != null && example.getConfig() != null) {
+                sb.append("- Example");
+                if (example.getScenario() != null && !example.getScenario().isBlank()) {
+                    sb.append(" (").append(example.getScenario()).append(")");
+                }
+                sb.append(" config: ").append(example.getConfig()).append("\n");
+            }
+        }
+
+        return sb.toString();
+    }
 }

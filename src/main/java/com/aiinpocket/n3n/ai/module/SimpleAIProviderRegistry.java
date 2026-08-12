@@ -20,15 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SimpleAIProviderRegistry {
 
-    private final LlamafileSimpleProvider llamafileProvider;
     private final AiModuleConfigRepository configRepository;
     private final FailoverAIProviderWrapper failoverWrapper;
 
     public SimpleAIProviderRegistry(
-            LlamafileSimpleProvider llamafileProvider,
             AiModuleConfigRepository configRepository,
             @Lazy FailoverAIProviderWrapper failoverWrapper) {
-        this.llamafileProvider = llamafileProvider;
         this.configRepository = configRepository;
         this.failoverWrapper = failoverWrapper;
     }
@@ -36,17 +33,41 @@ public class SimpleAIProviderRegistry {
     private final Map<String, SimpleAIProvider> staticProviders = new ConcurrentHashMap<>();
     private final Map<UUID, SimpleAIProvider> dynamicProviders = new ConcurrentHashMap<>();
 
+    /**
+     * Sentinel provider returned when no AI provider is configured.
+     * isAvailable() returns false so callers degrade gracefully;
+     * chat() throws a clear error instead of an NPE if invoked anyway.
+     */
+    private static final SimpleAIProvider UNCONFIGURED_PROVIDER = new SimpleAIProvider() {
+        @Override
+        public String getName() {
+            return "unconfigured";
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return false;
+        }
+
+        @Override
+        public String chat(String prompt, String systemPrompt, int maxTokens, double temperature) {
+            throw new IllegalStateException(
+                "No AI provider configured. Please configure an AI provider in AI Settings (AI 供應商尚未設定)");
+        }
+    };
+
     @PostConstruct
     public void init() {
-        staticProviders.put("llamafile", llamafileProvider);
-        log.info("SimpleAIProviderRegistry initialized with {} static providers", staticProviders.size());
+        log.info("SimpleAIProviderRegistry initialized ({} static providers)", staticProviders.size());
     }
 
     /**
-     * Get the default provider (Llamafile)
+     * Get the default provider.
+     * Resolves to a platform/user-configured provider if one exists for the "default" feature;
+     * otherwise returns an unavailable sentinel (isAvailable() == false) so callers degrade cleanly.
      */
     public SimpleAIProvider getDefaultProvider() {
-        return llamafileProvider;
+        return UNCONFIGURED_PROVIDER;
     }
 
     /**
@@ -87,7 +108,17 @@ public class SimpleAIProviderRegistry {
             }
         }
 
-        // Fall back to default (Llamafile)
+        // Platform fallback: AI keys are platform-shared (admin-managed).
+        // If this user has no config for the feature, reuse the earliest
+        // active config anyone (i.e. an admin) created for it.
+        Optional<AiModuleConfig> platformConfig = configRepository
+            .findByFeatureAndIsActiveTrueOrderByCreatedAtAsc(feature)
+            .stream().findFirst();
+        if (platformConfig.isPresent()) {
+            return getProviderByConfigId(platformConfig.get().getId());
+        }
+
+        // No configured provider found — return unavailable sentinel so callers degrade cleanly
         return getDefaultProvider();
     }
 
@@ -137,7 +168,6 @@ public class SimpleAIProviderRegistry {
                 config.getModel(),
                 config.getTimeoutMs()
             );
-            case "llamafile" -> llamafileProvider;
             default -> throw new IllegalArgumentException("Unsupported provider type: " + config.getProviderType());
         };
     }

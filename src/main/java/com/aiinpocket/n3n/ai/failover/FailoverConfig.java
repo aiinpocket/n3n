@@ -18,10 +18,10 @@ public class FailoverConfig {
 
     /**
      * Provider 優先順序列表
-     * 支援的值: "user_default", "llamafile", "openai", "claude", "gemini", "ollama"
+     * 支援的值: "user_default", "openai", "claude", "gemini", "ollama"
      */
     @Builder.Default
-    private List<String> providerOrder = List.of("user_default", "llamafile");
+    private List<String> providerOrder = List.of("user_default");
 
     /**
      * 每個 Provider 的最大重試次數
@@ -58,15 +58,5 @@ public class FailoverConfig {
      */
     public static FailoverConfig defaultConfig() {
         return FailoverConfig.builder().build();
-    }
-
-    /**
-     * 建立僅使用本地 Llamafile 的設定
-     */
-    public static FailoverConfig localOnly() {
-        return FailoverConfig.builder()
-            .providerOrder(List.of("llamafile"))
-            .enableCircuitBreaker(false)
-            .build();
     }
 }

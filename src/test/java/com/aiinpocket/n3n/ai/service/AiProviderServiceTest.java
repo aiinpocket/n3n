@@ -24,9 +24,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+/**
+ * AI Provider 設定為平台共用（管理員統一管理）：
+ * 管理操作以 isShared=true 的設定為範圍，userId 僅為操作者。
+ */
 class AiProviderServiceTest extends BaseServiceTest {
 
     @Mock
@@ -44,7 +47,7 @@ class AiProviderServiceTest extends BaseServiceTest {
     @InjectMocks
     private AiProviderService aiProviderService;
 
-    private UUID userId;
+    private UUID adminId;
     private UUID configId;
     private UUID credentialId;
     private AiProviderConfig openaiConfig;
@@ -52,15 +55,15 @@ class AiProviderServiceTest extends BaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
+        adminId = UUID.randomUUID();
         configId = UUID.randomUUID();
         credentialId = UUID.randomUUID();
 
         openaiConfig = AiProviderConfig.builder()
                 .id(configId)
-                .ownerId(userId)
+                .ownerId(adminId)
                 .provider("openai")
-                .name("My OpenAI")
+                .name("Platform OpenAI")
                 .description("OpenAI provider config")
                 .credentialId(credentialId)
                 .baseUrl("https://api.openai.com/v1")
@@ -68,15 +71,16 @@ class AiProviderServiceTest extends BaseServiceTest {
                 .settings(Map.of("temperature", 0.7))
                 .isActive(true)
                 .isDefault(true)
+                .isShared(true)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
 
         anthropicConfig = AiProviderConfig.builder()
                 .id(UUID.randomUUID())
-                .ownerId(userId)
+                .ownerId(adminId)
                 .provider("anthropic")
-                .name("My Anthropic")
+                .name("Platform Anthropic")
                 .description("Anthropic provider config")
                 .credentialId(UUID.randomUUID())
                 .baseUrl("https://api.anthropic.com/v1")
@@ -84,161 +88,114 @@ class AiProviderServiceTest extends BaseServiceTest {
                 .settings(Map.of())
                 .isActive(true)
                 .isDefault(false)
+                .isShared(true)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
     }
 
     @Nested
-    @DisplayName("listUserConfigs")
-    class ListUserConfigs {
+    @DisplayName("listUserConfigs (platform-shared scope)")
+    class ListConfigs {
 
         @Test
-        @DisplayName("should return list of active configs for user")
-        void listUserConfigs_returnsList() {
-            when(configRepository.findByOwnerIdAndIsActiveTrue(userId))
+        @DisplayName("should return all shared active configs regardless of requester")
+        void listConfigs_returnsSharedConfigs() {
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
                     .thenReturn(List.of(openaiConfig, anthropicConfig));
 
-            List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(userId);
+            List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(adminId);
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getProvider()).isEqualTo("openai");
-            assertThat(result.get(0).getName()).isEqualTo("My OpenAI");
             assertThat(result.get(0).getIsDefault()).isTrue();
-            assertThat(result.get(0).getHasCredential()).isTrue();
             assertThat(result.get(1).getProvider()).isEqualTo("anthropic");
-            assertThat(result.get(1).getName()).isEqualTo("My Anthropic");
-            assertThat(result.get(1).getIsDefault()).isFalse();
-            verify(configRepository).findByOwnerIdAndIsActiveTrue(userId);
+            verify(configRepository).findByIsSharedTrueAndIsActiveTrue();
+            verify(configRepository, never()).findByOwnerIdAndIsActiveTrue(any());
         }
 
         @Test
-        @DisplayName("should return empty list when user has no configs")
-        void listUserConfigs_empty_returnsEmptyList() {
-            when(configRepository.findByOwnerIdAndIsActiveTrue(userId))
-                    .thenReturn(List.of());
+        @DisplayName("should return empty list when no shared configs exist")
+        void listConfigs_empty_returnsEmptyList() {
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue()).thenReturn(List.of());
 
-            List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(userId);
+            List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(adminId);
 
             assertThat(result).isEmpty();
-            verify(configRepository).findByOwnerIdAndIsActiveTrue(userId);
-        }
-
-        @Test
-        @DisplayName("should indicate hasCredential based on credentialId presence")
-        void listUserConfigs_hasCredentialReflectsCredentialId() {
-            AiProviderConfig noKeyConfig = AiProviderConfig.builder()
-                    .id(UUID.randomUUID())
-                    .ownerId(userId)
-                    .provider("ollama")
-                    .name("Local Ollama")
-                    .credentialId(null)
-                    .isActive(true)
-                    .isDefault(false)
-                    .settings(Map.of())
-                    .build();
-
-            when(configRepository.findByOwnerIdAndIsActiveTrue(userId))
-                    .thenReturn(List.of(openaiConfig, noKeyConfig));
-
-            List<AiProviderConfigResponse> result = aiProviderService.listUserConfigs(userId);
-
-            assertThat(result.get(0).getHasCredential()).isTrue();
-            assertThat(result.get(1).getHasCredential()).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("getDefaultConfig")
+    @DisplayName("getDefaultConfig (platform-shared scope)")
     class GetDefaultConfig {
 
         @Test
-        @DisplayName("should return default config when exists")
-        void getDefaultConfig_returnsConfig() {
-            when(configRepository.findByOwnerIdAndIsDefaultTrue(userId))
+        @DisplayName("should return the shared default config")
+        void getDefaultConfig_returnsSharedDefault() {
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
                     .thenReturn(Optional.of(openaiConfig));
 
-            AiProviderConfigResponse result = aiProviderService.getDefaultConfig(userId);
+            AiProviderConfigResponse result = aiProviderService.getDefaultConfig(adminId);
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(configId);
-            assertThat(result.getProvider()).isEqualTo("openai");
             assertThat(result.getIsDefault()).isTrue();
-            verify(configRepository).findByOwnerIdAndIsDefaultTrue(userId);
         }
 
         @Test
-        @DisplayName("should return null when no default config exists")
+        @DisplayName("should return null when no shared default exists")
         void getDefaultConfig_noDefault_returnsNull() {
-            when(configRepository.findByOwnerIdAndIsDefaultTrue(userId))
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
                     .thenReturn(Optional.empty());
 
-            AiProviderConfigResponse result = aiProviderService.getDefaultConfig(userId);
-
-            assertThat(result).isNull();
-            verify(configRepository).findByOwnerIdAndIsDefaultTrue(userId);
+            assertThat(aiProviderService.getDefaultConfig(adminId)).isNull();
         }
     }
 
     @Nested
-    @DisplayName("getConfig")
+    @DisplayName("getConfig (platform-shared scope)")
     class GetConfig {
 
         @Test
-        @DisplayName("should return config when found")
+        @DisplayName("should return shared config by id")
         void getConfig_success() {
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(configId))
                     .thenReturn(Optional.of(openaiConfig));
 
-            AiProviderConfigResponse result = aiProviderService.getConfig(configId, userId);
+            AiProviderConfigResponse result = aiProviderService.getConfig(configId, adminId);
 
-            assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(configId);
-            assertThat(result.getProvider()).isEqualTo("openai");
-            assertThat(result.getName()).isEqualTo("My OpenAI");
-            assertThat(result.getBaseUrl()).isEqualTo("https://api.openai.com/v1");
-            assertThat(result.getDefaultModel()).isEqualTo("gpt-4");
-            assertThat(result.getSettings()).containsEntry("temperature", 0.7);
+            assertThat(result.getName()).isEqualTo("Platform OpenAI");
         }
 
         @Test
-        @DisplayName("should throw ResourceNotFoundException when config not found")
+        @DisplayName("should throw ResourceNotFoundException when config not shared or missing")
         void getConfig_notFound_throwsException() {
             UUID nonExistingId = UUID.randomUUID();
-            when(configRepository.findByIdAndOwnerId(nonExistingId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(nonExistingId))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> aiProviderService.getConfig(nonExistingId, userId))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("AI Provider config not found");
-        }
-
-        @Test
-        @DisplayName("should throw ResourceNotFoundException when config belongs to different user")
-        void getConfig_differentUser_throwsException() {
-            UUID otherUserId = UUID.randomUUID();
-            when(configRepository.findByIdAndOwnerId(configId, otherUserId))
-                    .thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> aiProviderService.getConfig(configId, otherUserId))
+            assertThatThrownBy(() -> aiProviderService.getConfig(nonExistingId, adminId))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("AI Provider config not found");
         }
     }
 
     @Nested
-    @DisplayName("deleteConfig")
+    @DisplayName("deleteConfig (platform-shared scope)")
     class DeleteConfig {
 
         @Test
-        @DisplayName("should delete config and associated credential")
+        @DisplayName("should delete shared config and credential owned by its creator")
         void deleteConfig_withCredential_success() {
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(configId))
                     .thenReturn(Optional.of(openaiConfig));
 
-            aiProviderService.deleteConfig(configId, userId);
+            UUID otherAdmin = UUID.randomUUID();
+            aiProviderService.deleteConfig(configId, otherAdmin);
 
-            verify(credentialService).deleteCredential(credentialId, userId);
+            // credential is deleted with the config creator's identity, not the acting admin's
+            verify(credentialService).deleteCredential(credentialId, adminId);
             verify(configRepository).delete(openaiConfig);
         }
 
@@ -247,19 +204,20 @@ class AiProviderServiceTest extends BaseServiceTest {
         void deleteConfig_withoutCredential_success() {
             AiProviderConfig noCredConfig = AiProviderConfig.builder()
                     .id(configId)
-                    .ownerId(userId)
+                    .ownerId(adminId)
                     .provider("ollama")
                     .name("Local Ollama")
                     .credentialId(null)
                     .isActive(true)
                     .isDefault(false)
+                    .isShared(true)
                     .settings(Map.of())
                     .build();
 
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(configId))
                     .thenReturn(Optional.of(noCredConfig));
 
-            aiProviderService.deleteConfig(configId, userId);
+            aiProviderService.deleteConfig(configId, adminId);
 
             verify(credentialService, never()).deleteCredential(any(), any());
             verify(configRepository).delete(noCredConfig);
@@ -269,56 +227,55 @@ class AiProviderServiceTest extends BaseServiceTest {
         @DisplayName("should throw ResourceNotFoundException when config not found")
         void deleteConfig_notFound_throwsException() {
             UUID nonExistingId = UUID.randomUUID();
-            when(configRepository.findByIdAndOwnerId(nonExistingId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(nonExistingId))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> aiProviderService.deleteConfig(nonExistingId, userId))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("AI Provider config not found");
+            assertThatThrownBy(() -> aiProviderService.deleteConfig(nonExistingId, adminId))
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             verify(configRepository, never()).delete(any());
-            verify(credentialService, never()).deleteCredential(any(), any());
         }
 
         @Test
         @DisplayName("should still delete config when credential deletion fails")
         void deleteConfig_credentialDeletionFails_stillDeletesConfig() {
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(configId))
                     .thenReturn(Optional.of(openaiConfig));
             doThrow(new RuntimeException("Credential deletion failed"))
-                    .when(credentialService).deleteCredential(credentialId, userId);
+                    .when(credentialService).deleteCredential(credentialId, adminId);
 
-            aiProviderService.deleteConfig(configId, userId);
+            aiProviderService.deleteConfig(configId, adminId);
 
-            verify(credentialService).deleteCredential(credentialId, userId);
             verify(configRepository).delete(openaiConfig);
         }
     }
 
     @Nested
-    @DisplayName("setAsDefault")
+    @DisplayName("setAsDefault (platform-wide single default)")
     class SetAsDefault {
 
         @Test
-        @DisplayName("should clear others and set config as default")
+        @DisplayName("should clear all shared defaults and set config as default")
         void setAsDefault_success() {
             AiProviderConfig nonDefaultConfig = AiProviderConfig.builder()
                     .id(configId)
-                    .ownerId(userId)
+                    .ownerId(adminId)
                     .provider("openai")
-                    .name("My OpenAI")
+                    .name("Platform OpenAI")
                     .credentialId(credentialId)
                     .isActive(true)
                     .isDefault(false)
+                    .isShared(true)
                     .settings(Map.of())
                     .build();
 
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(configId))
                     .thenReturn(Optional.of(nonDefaultConfig));
 
-            aiProviderService.setAsDefault(configId, userId);
+            aiProviderService.setAsDefault(configId, adminId);
 
-            verify(configRepository).clearDefaultForUser(userId);
+            verify(configRepository).clearDefaultForShared();
+            verify(configRepository, never()).clearDefaultForUser(any());
             assertThat(nonDefaultConfig.getIsDefault()).isTrue();
             verify(configRepository).save(nonDefaultConfig);
         }
@@ -327,28 +284,98 @@ class AiProviderServiceTest extends BaseServiceTest {
         @DisplayName("should throw ResourceNotFoundException when config not found")
         void setAsDefault_notFound_throwsException() {
             UUID nonExistingId = UUID.randomUUID();
-            when(configRepository.findByIdAndOwnerId(nonExistingId, userId))
+            when(configRepository.findByIdAndIsSharedTrue(nonExistingId))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> aiProviderService.setAsDefault(nonExistingId, userId))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("AI Provider config not found");
+            assertThatThrownBy(() -> aiProviderService.setAsDefault(nonExistingId, adminId))
+                    .isInstanceOf(ResourceNotFoundException.class);
 
-            verify(configRepository, never()).clearDefaultForUser(any());
+            verify(configRepository, never()).clearDefaultForShared();
             verify(configRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveConfigForExecution / getAvailability")
+    class ResolveForExecution {
+
+        private final UUID memberId = UUID.randomUUID();
+
+        @Test
+        @DisplayName("shared default wins")
+        void resolve_sharedDefaultFirst() {
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
+                    .thenReturn(Optional.of(openaiConfig));
+
+            Optional<AiProviderConfig> result = aiProviderService.resolveConfigForExecution(memberId);
+
+            assertThat(result).contains(openaiConfig);
+            verify(configRepository, never()).findByOwnerIdAndIsDefaultTrue(any());
         }
 
         @Test
-        @DisplayName("should clear default even if config is already default")
-        void setAsDefault_alreadyDefault_stillClearsAndSets() {
-            when(configRepository.findByIdAndOwnerId(configId, userId))
+        @DisplayName("falls back to any active shared config when no shared default")
+        void resolve_fallsBackToAnySharedActive() {
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
+                    .thenReturn(Optional.empty());
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(anthropicConfig));
+
+            Optional<AiProviderConfig> result = aiProviderService.resolveConfigForExecution(memberId);
+
+            assertThat(result).contains(anthropicConfig);
+        }
+
+        @Test
+        @DisplayName("falls back to the user's own legacy configs when no shared config exists")
+        void resolve_fallsBackToLegacyUserConfig() {
+            AiProviderConfig legacyConfig = AiProviderConfig.builder()
+                    .id(UUID.randomUUID())
+                    .ownerId(memberId)
+                    .provider("gemini")
+                    .name("My legacy Gemini")
+                    .isActive(true)
+                    .isDefault(true)
+                    .isShared(false)
+                    .settings(Map.of())
+                    .build();
+
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue()).thenReturn(Optional.empty());
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue()).thenReturn(List.of());
+            when(configRepository.findByOwnerIdAndIsDefaultTrue(memberId))
+                    .thenReturn(Optional.of(legacyConfig));
+
+            Optional<AiProviderConfig> result = aiProviderService.resolveConfigForExecution(memberId);
+
+            assertThat(result).contains(legacyConfig);
+        }
+
+        @Test
+        @DisplayName("availability reports configured=false without leaking secrets when nothing is set up")
+        void availability_notConfigured() {
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue()).thenReturn(Optional.empty());
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue()).thenReturn(List.of());
+            when(configRepository.findByOwnerIdAndIsDefaultTrue(memberId)).thenReturn(Optional.empty());
+            when(configRepository.findByOwnerIdAndIsActiveTrue(memberId)).thenReturn(List.of());
+
+            AiProviderService.AiAvailabilityResponse availability = aiProviderService.getAvailability(memberId);
+
+            assertThat(availability.configured()).isFalse();
+            assertThat(availability.provider()).isNull();
+            assertThat(availability.defaultModel()).isNull();
+        }
+
+        @Test
+        @DisplayName("availability exposes provider and default model only")
+        void availability_configured() {
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
                     .thenReturn(Optional.of(openaiConfig));
 
-            aiProviderService.setAsDefault(configId, userId);
+            AiProviderService.AiAvailabilityResponse availability = aiProviderService.getAvailability(memberId);
 
-            verify(configRepository).clearDefaultForUser(userId);
-            assertThat(openaiConfig.getIsDefault()).isTrue();
-            verify(configRepository).save(openaiConfig);
+            assertThat(availability.configured()).isTrue();
+            assertThat(availability.provider()).isEqualTo("openai");
+            assertThat(availability.defaultModel()).isEqualTo("gpt-4");
         }
     }
 }

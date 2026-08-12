@@ -2,7 +2,7 @@ package com.aiinpocket.n3n.ai.module;
 
 /**
  * Simplified AI Provider interface for the modular AI assistant system.
- * Supports multiple AI backends: Llamafile, Ollama, OpenAI, Gemini, Claude.
+ * Supports multiple AI backends: Ollama, OpenAI, Gemini, Claude.
  * This is separate from the main AiProvider interface which is more complex.
  */
 public interface SimpleAIProvider {

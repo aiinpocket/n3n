@@ -151,6 +151,7 @@ public class IntentAnalyzer {
 
     /**
      * 基於規則的意圖分析（Fallback）
+     * 僅在 AI provider 不可用或呼叫失敗時使用；結果以 entities.fallback=true 標記，非 AI 產生。
      */
     private Intent ruleBasedAnalysis(String input) {
         if (input == null || input.isBlank()) {
@@ -162,6 +163,7 @@ public class IntentAnalyzer {
 
         String lower = input.toLowerCase();
         Map<String, Object> entities = new HashMap<>();
+        entities.put("fallback", true);
 
         // 建立流程 (zh + en + ja)
         if (containsAny(lower, "建立", "創建", "新增", "做一個", "幫我做", "設計",

@@ -53,6 +53,9 @@ class GoogleAuthServiceTest extends BaseServiceTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private AdminEmailBinder adminEmailBinder;
+
     @InjectMocks
     private GoogleAuthService googleAuthService;
 
@@ -103,6 +106,32 @@ class GoogleAuthServiceTest extends BaseServiceTest {
         verify(userRoleRepository, never()).save(any(UserRole.class));
         assertThat(user.getLoginAttempts()).isZero();
         assertThat(user.getLastLoginAt()).isNotNull();
+        // 管理員 Email 綁定於每次 Google 登入時檢查（涵蓋既有帳號）
+        verify(adminEmailBinder).ensureAdminRole(user);
+    }
+
+    @Test
+    void login_validToken_newUser_adminEmailBinderInvoked() {
+        // Given: 新帳號自動建立後也要跑管理員 Email 綁定
+        when(tokenVerifier.verify(CREDENTIAL)).thenReturn(validTokenInfo());
+        when(userRepository.findByEmail("google-user@example.com")).thenReturn(Optional.empty());
+        when(userRoleRepository.findByRole("ADMIN")).thenReturn(List.of(
+            UserRole.builder().userId(UUID.randomUUID()).role("ADMIN").build()
+        ));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-random-password");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User saved = inv.getArgument(0);
+            if (saved.getId() == null) saved.setId(UUID.randomUUID());
+            return saved;
+        });
+        when(authService.generateAuthResponse(any(User.class), anyString(), anyString()))
+            .thenAnswer(inv -> authResponseFor(inv.getArgument(0)));
+
+        // When
+        googleAuthService.login(CREDENTIAL, IP, USER_AGENT);
+
+        // Then
+        verify(adminEmailBinder).ensureAdminRole(any(User.class));
     }
 
     @Test

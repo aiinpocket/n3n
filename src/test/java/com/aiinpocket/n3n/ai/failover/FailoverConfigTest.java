@@ -12,7 +12,7 @@ class FailoverConfigTest {
     void defaultConfig_shouldHaveExpectedDefaults() {
         FailoverConfig config = FailoverConfig.defaultConfig();
 
-        assertThat(config.getProviderOrder()).containsExactly("user_default", "llamafile");
+        assertThat(config.getProviderOrder()).containsExactly("user_default");
         assertThat(config.getMaxRetries()).isEqualTo(2);
         assertThat(config.getRetryDelayMs()).isEqualTo(1000);
         assertThat(config.isEnableCircuitBreaker()).isTrue();
@@ -21,17 +21,9 @@ class FailoverConfigTest {
     }
 
     @Test
-    void localOnly_shouldOnlyUseLlamafile() {
-        FailoverConfig config = FailoverConfig.localOnly();
-
-        assertThat(config.getProviderOrder()).containsExactly("llamafile");
-        assertThat(config.isEnableCircuitBreaker()).isFalse();
-    }
-
-    @Test
     void builder_shouldAllowCustomConfiguration() {
         FailoverConfig config = FailoverConfig.builder()
-            .providerOrder(List.of("openai", "claude", "llamafile"))
+            .providerOrder(List.of("openai", "claude", "ollama"))
             .maxRetries(3)
             .retryDelayMs(500)
             .enableCircuitBreaker(true)
@@ -39,7 +31,7 @@ class FailoverConfigTest {
             .circuitBreakerResetMs(30000)
             .build();
 
-        assertThat(config.getProviderOrder()).containsExactly("openai", "claude", "llamafile");
+        assertThat(config.getProviderOrder()).containsExactly("openai", "claude", "ollama");
         assertThat(config.getMaxRetries()).isEqualTo(3);
         assertThat(config.getRetryDelayMs()).isEqualTo(500);
         assertThat(config.getCircuitBreakerThreshold()).isEqualTo(5);

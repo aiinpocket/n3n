@@ -135,7 +135,7 @@
     "relatedNodes": ["text", "filter", "code"],
     "bestPractices": "使用正規表達式時注意效能，避免過於複雜的 pattern"
   },
-  "dateTime": {
+  "datetime": {
     "displayName": "日期時間",
     "keywords": ["date", "time", "datetime", "日期", "時間", "格式化", "timestamp"],
     "useCases": ["日期格式化", "時間計算", "時區轉換"],
@@ -440,5 +440,249 @@
     "keywords": ["duplicate", "重複", "unique", "去重", "distinct"],
     "useCases": ["資料去重", "唯一值篩選"],
     "relatedNodes": ["filter", "aggregate"]
+  },
+  "action": {
+    "displayName": "動作",
+    "keywords": ["action", "動作", "處理", "process"],
+    "useCases": ["對輸入資料執行可設定的動作"]
+  },
+  "agent": {
+    "displayName": "裝置代理",
+    "keywords": ["agent", "desktop", "裝置", "代理", "本機", "macos", "windows"],
+    "useCases": ["在已連線的桌面裝置代理上執行能力（macOS / Windows）"]
+  },
+  "aiChain": {
+    "displayName": "AI Chain",
+    "keywords": ["ai", "chain", "llm", "對話鏈", "conversation", "router", "鏈"],
+    "useCases": ["建立 LLM Chain / Conversation Chain / Sequential Chain / Router Chain"],
+    "relatedNodes": ["aiPipeline", "aiRag"]
+  },
+  "aiPipeline": {
+    "displayName": "AI Pipeline",
+    "keywords": ["ai", "pipeline", "rag", "map-reduce", "摘要", "summarize", "管線"],
+    "useCases": ["建立 RAG、Map-Reduce、摘要等 AI 處理管線"],
+    "relatedNodes": ["aiChain", "aiRag"]
+  },
+  "aiRag": {
+    "displayName": "RAG 問答",
+    "keywords": ["rag", "retrieval", "問答", "文件", "knowledge", "檢索", "embedding"],
+    "useCases": ["以檢索增強生成（RAG）對文件做問答"],
+    "relatedNodes": ["aiTextSplitter", "aiChain"]
+  },
+  "aiRouter": {
+    "displayName": "AI 路由",
+    "keywords": ["ai", "router", "分類", "classify", "路由", "分流"],
+    "useCases": ["以 AI 分類內容並路由到不同輸出分支"],
+    "relatedNodes": ["condition", "aiChain"]
+  },
+  "aiTextSplitter": {
+    "displayName": "AI 文字分塊",
+    "keywords": ["split", "chunk", "分塊", "切割", "embedding", "rag", "text splitter"],
+    "useCases": ["將長文字切成 chunks 供 RAG / embedding / 批次處理"],
+    "relatedNodes": ["aiRag"]
+  },
+  "aiTransform": {
+    "displayName": "AI 資料轉換",
+    "keywords": ["ai", "transform", "轉換", "自然語言", "natural language", "資料處理"],
+    "useCases": ["用自然語言描述轉換邏輯，AI 自動產生並執行程式碼"],
+    "relatedNodes": ["code", "transform"]
+  },
+  "aiTts": {
+    "displayName": "AI 文字轉語音",
+    "keywords": ["tts", "語音", "text to speech", "audio", "openai", "elevenlabs", "配音"],
+    "useCases": ["將文字轉成自然語音音訊（OpenAI TTS / ElevenLabs）"],
+    "relatedNodes": ["saveArtifact"]
+  },
+  "aiVision": {
+    "displayName": "AI 視覺分析",
+    "keywords": ["vision", "image", "圖片", "影像", "ocr", "辨識", "多模態", "multimodal"],
+    "useCases": ["以多模態 AI 分析圖片：描述、擷取文字（OCR）、針對圖片問答"],
+    "relatedNodes": ["falAi"]
+  },
+  "base64": {
+    "displayName": "Base64",
+    "keywords": ["base64", "編碼", "解碼", "encode", "decode"],
+    "useCases": ["Base64 字串編碼與解碼"],
+    "relatedNodes": ["convertFile", "compression"]
+  },
+  "bigQuery": {
+    "displayName": "BigQuery",
+    "keywords": ["bigquery", "google", "資料倉儲", "warehouse", "sql", "查詢"],
+    "useCases": ["執行 BigQuery 查詢與管理資料倉儲"],
+    "relatedNodes": ["googleCloudStorage", "database"]
+  },
+  "browser": {
+    "displayName": "瀏覽器自動化",
+    "keywords": ["browser", "瀏覽器", "自動化", "爬蟲", "scrape", "chrome", "cdp"],
+    "useCases": ["以 Chrome DevTools Protocol 自動化瀏覽器操作"],
+    "relatedNodes": ["httpRequest"]
+  },
+  "compareDatasets": {
+    "displayName": "資料集比對",
+    "keywords": ["compare", "diff", "比對", "差異", "dataset", "資料集"],
+    "useCases": ["比較兩組資料集並輸出差異"],
+    "relatedNodes": ["itemLists", "transform"]
+  },
+  "compression": {
+    "displayName": "壓縮",
+    "keywords": ["compress", "gzip", "壓縮", "解壓縮", "base64"],
+    "useCases": ["以 GZIP 壓縮/解壓縮資料，或 Base64 編解碼"],
+    "relatedNodes": ["base64", "convertFile"]
+  },
+  "convertFile": {
+    "displayName": "檔案格式轉換",
+    "keywords": ["convert", "轉換", "csv", "json", "base64", "格式"],
+    "useCases": ["CSV 與 JSON 互轉、文字與 Base64 互轉"],
+    "relatedNodes": ["spreadsheet", "base64"]
+  },
+  "email": {
+    "displayName": "寄送 Email (SMTP)",
+    "keywords": ["email", "smtp", "郵件", "寄信", "mail"],
+    "useCases": ["透過 SMTP 伺服器寄送電子郵件"],
+    "relatedNodes": ["sendEmail", "emailTrigger"]
+  },
+  "emailTrigger": {
+    "displayName": "Email 觸發 (IMAP)",
+    "keywords": ["email", "imap", "收信", "郵件", "觸發", "trigger"],
+    "useCases": ["收到新郵件（IMAP）時觸發工作流程"],
+    "relatedNodes": ["email", "sendEmail"]
+  },
+  "errorTrigger": {
+    "displayName": "錯誤觸發",
+    "keywords": ["error", "錯誤", "觸發", "失敗", "告警", "alert"],
+    "useCases": ["其他工作流程發生錯誤時觸發，用於集中告警"],
+    "relatedNodes": ["slack", "sendEmail"]
+  },
+  "executeCommand": {
+    "displayName": "執行系統指令",
+    "keywords": ["command", "shell", "指令", "命令", "執行", "script"],
+    "useCases": ["執行系統命令並取得輸出"],
+    "relatedNodes": ["code", "agent"]
+  },
+  "externalService": {
+    "displayName": "外部服務",
+    "keywords": ["external", "service", "外部", "端點", "endpoint", "整合"],
+    "useCases": ["呼叫在節點設定中配置的外部服務端點"],
+    "relatedNodes": ["httpRequest"]
+  },
+  "facebook": {
+    "displayName": "Facebook",
+    "keywords": ["facebook", "fb", "粉專", "貼文", "社群", "graph api"],
+    "useCases": ["管理 Facebook 粉絲專頁、貼文、留言與洞察報告"],
+    "relatedNodes": ["instagram", "threads"]
+  },
+  "falAi": {
+    "displayName": "AI 圖片/影片 (fal.ai)",
+    "keywords": ["fal", "image", "video", "圖片", "影片", "生成", "flux", "veo", "kling"],
+    "useCases": ["以 fal.ai 生成圖片（FLUX）與影片（Veo / Kling / Hailuo）"],
+    "relatedNodes": ["aiVision", "saveArtifact"]
+  },
+  "googleCloudStorage": {
+    "displayName": "Google Cloud Storage",
+    "keywords": ["gcs", "google", "storage", "雲端儲存", "bucket", "物件"],
+    "useCases": ["管理 GCS bucket 與物件的上傳下載"],
+    "relatedNodes": ["bigQuery", "googlePubSub"]
+  },
+  "googlePubSub": {
+    "displayName": "Google Pub/Sub",
+    "keywords": ["pubsub", "google", "訊息佇列", "發布", "訂閱", "queue"],
+    "useCases": ["發布與訂閱 Google Cloud Pub/Sub 訊息"],
+    "relatedNodes": ["googleCloudStorage", "kafka"]
+  },
+  "instagram": {
+    "displayName": "Instagram",
+    "keywords": ["instagram", "ig", "貼文", "社群", "限時動態", "graph api"],
+    "useCases": ["管理 Instagram 商業帳號的貼文、留言、限時動態與洞察"],
+    "relatedNodes": ["facebook", "threads"]
+  },
+  "itemLists": {
+    "displayName": "清單操作",
+    "keywords": ["list", "array", "清單", "陣列", "合併", "切割", "排序", "flatten"],
+    "useCases": ["進階清單操作：串接、切割、限制筆數、攤平、洗牌、分塊"],
+    "relatedNodes": ["transform", "compareDatasets"]
+  },
+  "jwt": {
+    "displayName": "JWT",
+    "keywords": ["jwt", "token", "簽章", "驗證", "json web token"],
+    "useCases": ["建立、驗證與解碼 JSON Web Token"],
+    "relatedNodes": ["httpRequest"]
+  },
+  "markdown": {
+    "displayName": "Markdown",
+    "keywords": ["markdown", "md", "轉換", "html", "文件"],
+    "useCases": ["Markdown 文字的轉換與資料擷取"],
+    "relatedNodes": ["saveArtifact", "text"]
+  },
+  "noOp": {
+    "displayName": "無操作",
+    "keywords": ["noop", "pass", "佔位", "debug", "不處理"],
+    "useCases": ["資料原樣通過，作為佔位或除錯用"],
+    "relatedNodes": ["action"]
+  },
+  "rateLimiter": {
+    "displayName": "速率限制",
+    "keywords": ["rate", "limit", "限流", "節流", "throttle"],
+    "useCases": ["控制資料項流經工作流程的速率"],
+    "relatedNodes": ["retry", "loop"]
+  },
+  "readFile": {
+    "displayName": "讀取檔案",
+    "keywords": ["read", "file", "讀檔", "檔案", "csv", "json"],
+    "useCases": ["讀取文字、二進位（Base64）、逐行、JSON 或 CSV 檔案"],
+    "relatedNodes": ["writeFile", "convertFile"]
+  },
+  "respondWebhook": {
+    "displayName": "回應 Webhook",
+    "keywords": ["webhook", "response", "回應", "http", "回覆"],
+    "useCases": ["將 HTTP 回應傳回給 webhook 呼叫端"],
+    "relatedNodes": ["webhookTrigger"]
+  },
+  "retry": {
+    "displayName": "重試",
+    "keywords": ["retry", "重試", "backoff", "失敗", "容錯"],
+    "useCases": ["以可設定的退避策略重試失敗的操作"],
+    "relatedNodes": ["rateLimiter", "condition"]
+  },
+  "saveArtifact": {
+    "displayName": "儲存 Artifact",
+    "keywords": ["artifact", "儲存", "檔案", "下載", "save", "文件庫"],
+    "useCases": ["將文字 / HTML / Markdown / JSON / base64 內容存入使用者的 artifact 檔案庫"],
+    "relatedNodes": ["aiTts", "falAi", "markdown"]
+  },
+  "spreadsheet": {
+    "displayName": "試算表 / CSV",
+    "keywords": ["csv", "spreadsheet", "試算表", "表格", "excel", "tabular"],
+    "useCases": ["解析與產生 CSV、JSON 與表格資料互轉"],
+    "relatedNodes": ["convertFile", "googleSheets"]
+  },
+  "threads": {
+    "displayName": "Threads",
+    "keywords": ["threads", "貼文", "社群", "回覆", "meta"],
+    "useCases": ["建立 Threads 貼文、回覆討論串、取得洞察"],
+    "relatedNodes": ["instagram", "facebook"]
+  },
+  "urlParser": {
+    "displayName": "URL 解析",
+    "keywords": ["url", "解析", "query", "參數", "網址", "parse"],
+    "useCases": ["解析、組建與操作 URL"],
+    "relatedNodes": ["httpRequest"]
+  },
+  "whatsapp": {
+    "displayName": "WhatsApp",
+    "keywords": ["whatsapp", "訊息", "通知", "business", "cloud api"],
+    "useCases": ["透過 WhatsApp Business Cloud API 發送訊息"],
+    "relatedNodes": ["telegram", "slack"]
+  },
+  "writeFile": {
+    "displayName": "寫入檔案",
+    "keywords": ["write", "file", "寫檔", "檔案", "輸出", "append"],
+    "useCases": ["寫入文字、二進位、JSON 或 CSV 檔案，支援附加模式"],
+    "relatedNodes": ["readFile", "saveArtifact"]
+  },
+  "xml": {
+    "displayName": "XML",
+    "keywords": ["xml", "解析", "parse", "xpath", "產生"],
+    "useCases": ["解析、產生與查詢 XML 資料"],
+    "relatedNodes": ["json", "convertFile"]
   }
 }

@@ -23,6 +23,16 @@ export interface UsageSummaryRow {
   estimatedCostUsd: number
 }
 
+export interface UserUsageRow {
+  userId: string
+  email: string | null
+  name: string | null
+  calls: number
+  inputTokens: number
+  outputTokens: number
+  estimatedCostUsd: number
+}
+
 export const aiBillingApi = {
   getBalances: async (): Promise<ProviderBalance[]> => {
     const response = await apiClient.get<ProviderBalance[]>('/ai/billing/balances')
@@ -31,6 +41,13 @@ export const aiBillingApi = {
 
   getUsage: async (days = 30): Promise<UsageSummaryRow[]> => {
     const response = await apiClient.get<UsageSummaryRow[]>('/ai/billing/usage', {
+      params: { days },
+    })
+    return response.data
+  },
+
+  getUsageByUser: async (days = 30): Promise<UserUsageRow[]> => {
+    const response = await apiClient.get<UserUsageRow[]>('/ai/billing/usage/by-user', {
       params: { days },
     })
     return response.data

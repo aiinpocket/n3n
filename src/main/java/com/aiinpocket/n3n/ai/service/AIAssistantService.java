@@ -11,6 +11,7 @@ import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.module.FlowOptimizationModule;
 import com.aiinpocket.n3n.ai.module.NaturalLanguageModule;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.plugin.entity.PluginInstallation;
@@ -36,6 +37,7 @@ public class AIAssistantService {
     private final SupervisorAgent supervisorAgent;
     private final SimpleAIProviderRegistry simpleAIProviderRegistry;
     private final ConversationManager conversationManager;
+    private final UserMemoryService userMemoryService;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -210,16 +212,27 @@ public class AIAssistantService {
             .userInput(request.getMessage())
             .flowId(request.getFlowId());
 
-        // 載入對話歷史
+        // 載入對話歷史（並在最前面注入使用者長期記憶）
         try {
             List<Map<String, Object>> historyMaps = conversationManager.getContextForAI(conversationId, userId);
-            List<Message> history = historyMaps.stream()
+            List<Message> history = new ArrayList<>();
+
+            // 使用者長期記憶：以 system 訊息置於歷史最前，讓各代理都能看見
+            String memoryContext = loadUserMemoryContext(userId);
+            if (!memoryContext.isEmpty()) {
+                history.add(Message.builder()
+                    .role("system")
+                    .content("使用者的長期記憶（來自過去互動）:\n" + memoryContext)
+                    .build());
+            }
+
+            historyMaps.stream()
                 .map(m -> Message.builder()
                     .role((String) m.get("role"))
                     .content((String) m.get("content"))
                     .build())
-                .toList();
-            builder.conversationHistory(new ArrayList<>(history));
+                .forEach(history::add);
+            builder.conversationHistory(history);
         } catch (Exception e) {
             log.warn("Failed to load conversation history for {}", conversationId, e);
         }
@@ -231,6 +244,19 @@ public class AIAssistantService {
         }
 
         return builder.build();
+    }
+
+    /**
+     * 載入使用者長期記憶區塊；失敗時安靜退回空字串，不影響對話
+     */
+    private String loadUserMemoryContext(UUID userId) {
+        try {
+            String context = userMemoryService.buildMemoryContext(userId);
+            return context != null ? context : "";
+        } catch (Exception e) {
+            log.warn("Failed to load user memory context for {}", userId, e);
+            return "";
+        }
     }
 
     private String truncateForTitle(String message) {

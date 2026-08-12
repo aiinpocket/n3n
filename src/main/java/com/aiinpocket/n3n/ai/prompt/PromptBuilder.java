@@ -32,7 +32,7 @@ public class PromptBuilder {
     private String systemPromptTemplate;
     private List<FewShotExample> fewShotExamples;
 
-    private static final int MAX_RELEVANT_NODES = 10;
+    private static final int MAX_RELEVANT_NODES = 16;
     private static final int MAX_FEW_SHOT_EXAMPLES = 3;
 
     @PostConstruct
@@ -106,6 +106,17 @@ public class PromptBuilder {
      */
     public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
             Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback, String language) {
+        return buildFlowGenerationPrompt(userInput, context, installedNodeTypes, existingFlow, feedback, language, null);
+    }
+
+    /**
+     * Build user prompt for flow generation with full context plus optional user memory.
+     *
+     * @param userMemory pre-built user memory block (bulleted list); ignored when null/blank
+     */
+    public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
+            Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback, String language,
+            String userMemory) {
         StringBuilder sb = new StringBuilder();
 
         // If iterating on existing flow, adjust the instruction
@@ -166,6 +177,26 @@ public class PromptBuilder {
                 sb.append("- **Error Handling**: ").append(context.getErrorHandling()).append("\n");
             }
             sb.append("\n");
+        }
+
+        // ===== 使用者偏好與記憶（user memory block）=====
+        if (userMemory != null && !userMemory.isBlank()) {
+            sb.append("## 使用者偏好與記憶\n\n");
+            sb.append("以下是這位使用者過去互動累積的偏好與背景，設計流程時請納入考量：\n");
+            sb.append(userMemory).append("\n\n");
+        }
+        // ===== end user memory block =====
+
+        // Detailed schemas for the nodes most relevant to this request
+        List<NodeCodex> relevantNodes = nodeKnowledgeBase.searchNodes(userInput, MAX_RELEVANT_NODES);
+        if (!relevantNodes.isEmpty()) {
+            sb.append("# Relevant Nodes (with config schemas)\n\n");
+            sb.append("These nodes are most relevant to the request. ");
+            sb.append("Node `config` objects MUST only use fields listed in the given Config Schema — ");
+            sb.append("do not invent config fields.\n\n");
+            for (NodeCodex node : relevantNodes) {
+                sb.append(node.toDetailedPromptDescription()).append("\n");
+            }
         }
 
         sb.append("# Available Nodes\n\n");
@@ -457,24 +488,58 @@ public class PromptBuilder {
     private int calculateExampleRelevance(FewShotExample example, String query) {
         int score = 0;
 
-        if (example.title.toLowerCase().contains(query)) {
-            score += 3;
-        }
+        String exampleText = (example.title + " " + example.userRequest).toLowerCase();
 
-        if (example.userRequest.toLowerCase().contains(query)) {
-            score += 2;
-        }
-
-        for (String keyword : example.keywords) {
-            if (query.contains(keyword.toLowerCase())) {
+        // Keyword-token overlap: split the query into tokens (whitespace,
+        // punctuation, and CJK character boundaries) and count matches.
+        for (String token : tokenizeQuery(query)) {
+            if (exampleText.contains(token)) {
                 score += 2;
             }
-            if (keyword.toLowerCase().contains(query)) {
+            for (String keyword : example.keywords) {
+                if (keyword.toLowerCase().contains(token)) {
+                    score += 2;
+                    break;
+                }
+            }
+        }
+
+        // Whole-keyword hits in the query still count (e.g. "slack")
+        for (String keyword : example.keywords) {
+            if (query.contains(keyword.toLowerCase())) {
                 score += 1;
             }
         }
 
         return score;
+    }
+
+    /**
+     * Tokenize a lower-cased query for relevance matching:
+     * Latin/digit runs stay as words; each CJK character is its own token.
+     */
+    private List<String> tokenizeQuery(String lowerQuery) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder word = new StringBuilder();
+        for (int i = 0; i < lowerQuery.length(); i++) {
+            char c = lowerQuery.charAt(i);
+            if (Character.isLetterOrDigit(c) && c < 0x2E80) {
+                word.append(c);
+                continue;
+            }
+            if (word.length() > 1) {
+                tokens.add(word.toString());
+            }
+            word.setLength(0);
+            // CJK ideographs, kana, and hangul each become a single token
+            if (Character.isLetter(c)) {
+                tokens.add(String.valueOf(c));
+            }
+        }
+        if (word.length() > 1) {
+            tokens.add(word.toString());
+        }
+        return tokens;
     }
 
     private String getCategoryDisplayName(String category) {

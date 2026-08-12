@@ -46,6 +46,7 @@ const ArtifactsPage = lazy(() => import('./pages/ArtifactsPage'))
 const SchedulerPage = lazy(() => import('./pages/SchedulerPage'))
 const FormPage = lazy(() => import('./pages/FormPage'))
 const OAuth2CallbackPage = lazy(() => import('./pages/OAuth2CallbackPage'))
+const ShareClaimPage = lazy(() => import('./pages/ShareClaimPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Map i18n language to Ant Design locale
@@ -95,8 +96,9 @@ function SetupCheck({ children }: { children: React.ReactNode }) {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   }
   return <>{children}</>
 }
@@ -205,6 +207,7 @@ function App() {
             <Route index element={<DashboardPage />} />
             <Route path="flows" element={<FlowListPage />} />
             <Route path="flows/:id/edit" element={<FlowEditorPage />} />
+            <Route path="share/:token" element={<ShareClaimPage />} />
             <Route path="executions" element={<ExecutionListPage />} />
             <Route path="executions/new" element={<ExecutionPage />} />
             <Route path="executions/:id" element={<ExecutionPage />} />
@@ -214,8 +217,8 @@ function App() {
             <Route path="services/:id" element={<ServiceDetailPage />} />
             <Route path="services/:id/edit" element={<ServiceFormPage />} />
             <Route path="credentials" element={<CredentialListPage />} />
-            <Route path="settings/ai" element={<AISettingsPage />} />
-            <Route path="settings/ai-billing" element={<AIBillingPage />} />
+            <Route path="settings/ai" element={<AdminRoute><AISettingsPage /></AdminRoute>} />
+            <Route path="settings/ai-billing" element={<AdminRoute><AIBillingPage /></AdminRoute>} />
             <Route path="artifacts" element={<ArtifactsPage />} />
             <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />

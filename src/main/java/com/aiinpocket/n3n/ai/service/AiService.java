@@ -34,8 +34,8 @@ public class AiService {
      */
     public String generateText(String prompt, String model) {
         SimpleAIProvider provider = providerRegistry.getDefaultProvider();
-        if (provider == null) {
-            throw new IllegalStateException("No AI provider configured");
+        if (provider == null || !provider.isAvailable()) {
+            throw new IllegalStateException("No AI provider configured. Please configure an AI provider in AI Settings");
         }
 
         try {
@@ -155,6 +155,7 @@ public class AiService {
      * @return true 如果有可用的 AI 提供者
      */
     public boolean isAvailable() {
-        return providerRegistry.getDefaultProvider() != null;
+        SimpleAIProvider provider = providerRegistry.getDefaultProvider();
+        return provider != null && provider.isAvailable();
     }
 }

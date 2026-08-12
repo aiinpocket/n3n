@@ -340,7 +340,6 @@
     "externalServices": "External Services",
     "aiGenerateFlow": "Generate flow from natural language",
     "aiNodeRecommend": "AI Node Recommendation",
-    "aiOptimize": "AI Optimization",
     "aiFeatures": "AI Features",
     "versionHistory": "Version History",
     "noChanges": "No changes to save",
@@ -427,42 +426,8 @@
     }
   },
   "optimizer": {
-    "title": "AI Flow Optimization",
-    "analyze": "Analyze",
-    "analyzing": "Analyzing...",
-    "startAnalysis": "Start Analysis",
-    "description": "Use AI to analyze flow structure, identify parallelizable nodes, mergeable requests, and execution order optimizations.",
-    "poweredBy": "Powered by Phi-3-Mini local AI model",
-    "analyzingFlow": "Analyzing flow...",
-    "aiThinking": "AI is thinking about optimization suggestions",
-    "analysisFailed": "Analysis Failed",
-    "analyzeFailed": "Unable to connect to optimization service",
-    "noSuggestions": "Flow is already optimal",
-    "flowIsOptimal": "No optimizations found, your flow structure is good!",
-    "suggestionsFound": "Found {{count}} optimization suggestions",
-    "analysisTime": "Analysis took {{time}} seconds",
-    "affectedNodes": "Affected nodes",
-    "clickToHighlight": "Click to highlight this node",
     "nodes": "Nodes",
-    "edges": "Edges",
-    "parallel": "Parallel Execution",
-    "merge": "Merge Requests",
-    "remove": "Remove Redundant",
-    "reorder": "Optimize Order",
-    "highPriority": "High Impact",
-    "mediumPriority": "Medium",
-    "lowPriority": "Low",
-    "applySuggestion": "Apply this suggestion",
-    "applyAll": "Apply All",
-    "applyAllConfirmTitle": "Apply All Suggestions?",
-    "applyAllConfirmContent": "This will apply {{count}} optimization suggestions to your flow. You can undo with Ctrl+Z.",
-    "applied": "Applied",
-    "applySuccess": "Successfully applied {{count}} suggestions",
-    "applyFailed": "Failed to apply suggestions",
-    "flowOptimized": "Flow optimization applied successfully",
-    "noFlow": "No flow loaded",
-    "requiresNodes": "Add at least one node before analyzing",
-    "serviceHint": "The local AI optimizer (Phi-3-Mini) may not be running. You can still publish your flow without optimization."
+    "edges": "Edges"
   },
   "aiAssistant": {
     "analyzing": "AI Analysis",
@@ -946,26 +911,23 @@
     "localFeatures": {
       "title": "Built-in AI Features",
       "free": "Free - No API Key Required",
-      "optimizerEnabled": "Flow Optimizer is enabled by default",
-      "optimizerDesc": "The built-in flow optimizer analyzes your workflow and suggests improvements automatically. Runs locally on your machine — no API key or configuration needed.",
-      "flowOptimizer": "Flow Optimizer",
-      "flowOptimizerDesc": "AI-powered analysis of your workflow for performance and structure improvements",
       "dagAnalysis": "DAG Analysis",
       "dagAnalysisDesc": "Automatic detection of bottlenecks, parallel execution opportunities, and redundant paths"
-    },
-    "cloudFeatures": {
-      "title": "Cloud AI Providers",
-      "apiKeyRequired": "API Key Required",
-      "info": "Cloud AI Features",
-      "infoList": {
-        "nlGeneration": "Natural language flow generation: describe what you want, AI builds the flow"
-      },
-      "optional": "Cloud AI is optional. Built-in features work without any API key."
     },
     "generator": {
       "createAndPublish": "Create & Publish",
       "publishedSuccess": "Flow created and published — ready to run",
       "publishedWithSchedule": "Flow created and published — schedules were automatically mounted"
+    },
+    "platform": {
+      "title": "Platform AI Settings",
+      "sharedTag": "Shared by all members",
+      "info": "These keys fuel AI features for everyone on this platform",
+      "infoList": {
+        "shared": "Managed by admins — every member's AI features share these keys",
+        "nlGeneration": "Natural language flow generation: members describe, AI builds"
+      },
+      "emptyHint": "No platform keys yet. Add one so every member can start creating with AI."
     }
   },
   "chat": {
@@ -989,7 +951,7 @@
     "flowCreateFailed": "Failed to create flow",
     "emptyRecommendation": "AI recommendations will appear here",
     "noAiConfig": "AI Provider Not Configured",
-    "noAiConfigDesc": "Set up an AI provider (Claude, OpenAI, Gemini, or Ollama) to start using the AI assistant.",
+    "noAiConfigDesc": "The platform AI keys aren't set up yet — ask an admin to add one and you're good to go.",
     "goToSettings": "AI Settings",
     "deleteConfirm": "Delete this conversation?",
     "searchHistory": "Search conversations..."
@@ -1356,7 +1318,30 @@
     "editDesc": "Can modify flow content",
     "adminDesc": "Can manage share settings",
     "pendingCannotChange": "Cannot change permission until the invitation is accepted",
-    "invalidEmail": "Please enter a valid email"
+    "invalidEmail": "Please enter a valid email",
+    "linkSection": "Share links",
+    "linkHint": "Hand this link to a teammate and edit the flow together",
+    "createLink": "Create link",
+    "linkExpiryPlaceholder": "Never expires",
+    "linkExpiryDays": "days",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard",
+    "linkCopyFailed": "Copy failed, please select the link manually",
+    "revokeLink": "Revoke",
+    "revokeLinkConfirm": "Once revoked, this link can never be opened again. Continue?",
+    "noLinks": "No share links yet",
+    "linkCreated": "Link is ready to share",
+    "linkCreateFailed": "Failed to create link",
+    "linkRevoked": "Link revoked",
+    "linkRevokeFailed": "Failed to revoke link",
+    "linkExpiresAt": "Valid until {{date}}",
+    "linkNeverExpires": "Never expires",
+    "claiming": "Opening this flow for you...",
+    "claimSuccess": "Welcome to \"{{name}}\" — happy editing",
+    "claimFailed": "This link seems to have expired. Ask the sharer for a new one.",
+    "claimFailedTitle": "Could not open this link",
+    "claimInvalidLink": "Invalid link format",
+    "claimBackHome": "Back to home"
   },
   "device": {
     "title": "Device Management",
@@ -1986,7 +1971,7 @@
     "aiRecommend": "AI Recommend",
     "aiAnalyzing": "AI analyzing...",
     "aiUnavailable": "AI service temporarily unavailable",
-    "aiUnavailableDesc": "Local AI service (Llamafile) is not running. Please start the service or configure another AI provider.",
+    "aiUnavailableDesc": "No AI provider is configured. Please configure an AI provider in AI Settings.",
     "noRecommendations": "No recommendations"
   },
   "dataMapping": {
@@ -2181,7 +2166,13 @@
     "outputTokens": "Output Tokens",
     "estimatedCost": "Est. Cost",
     "noCredentials": "No AI credentials yet — add an API key in Credentials first",
-    "noUsage": "No AI usage recorded in this period"
+    "noUsage": "No AI usage recorded in this period",
+    "loadUserUsageFailed": "Failed to load member usage",
+    "byUser": {
+      "title": "Usage by Member",
+      "member": "Member",
+      "unknownMember": "(departed member)"
+    }
   },
   "nodeTypes": {
     "trigger": {
@@ -3082,5 +3073,35 @@
     "filterVideo": "Videos",
     "filterAudio": "Audio",
     "filterText": "Documents"
+  },
+  "memory": {
+    "title": "AI Memory",
+    "description": "The AI assistant quietly remembers your preferences and habits across conversations. This is its little notebook — browse, edit, or tear out any page whenever you like.",
+    "add": "Remember",
+    "addPlaceholder": "What should the AI remember? e.g. I prefer Slack notifications",
+    "added": "Got it, remembered",
+    "addFailed": "Failed to save memory, please try again",
+    "updated": "Memory updated",
+    "updateFailed": "Failed to update memory, please try again",
+    "deleted": "Forgotten",
+    "deleteFailed": "Failed to delete memory, please try again",
+    "deleteConfirm": "Make the AI forget this?",
+    "clearAll": "Forget everything",
+    "cleared": "All memories cleared",
+    "clearFailed": "Failed to clear memories, please try again",
+    "clearAllConfirmTitle": "Clear all memories?",
+    "clearAllConfirmDesc": "The AI will forget every note about you. This cannot be undone.",
+    "empty": "No memories yet. Chat with the AI, or write the first one yourself.",
+    "category": {
+      "preference": "Preference",
+      "fact": "Fact",
+      "project": "Project",
+      "style": "Style",
+      "general": "General"
+    },
+    "source": {
+      "assistant": "Noted by AI",
+      "user": "Written by you"
+    }
   }
 }

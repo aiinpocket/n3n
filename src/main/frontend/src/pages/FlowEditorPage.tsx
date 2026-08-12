@@ -15,7 +15,6 @@ import {
   ApiOutlined,
   PauseCircleOutlined,
   EyeOutlined,
-  RocketOutlined,
   BulbOutlined,
   ThunderboltOutlined,
   UndoOutlined,
@@ -60,7 +59,6 @@ import type { EdgeType } from '../types'
 import { useFlowExecution } from '../hooks/useFlowExecution'
 import { useExecutionStore, NodeExecutionState } from '../stores/executionStore'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
-import OptimizationPanel from '../components/flow/OptimizationPanel'
 const PublishFlowModal = lazy(() => import('../components/ai/PublishFlowModal'))
 const NodeRecommendationDrawer = lazy(() => import('../components/ai/NodeRecommendationDrawer'))
 const FlowGeneratorModal = lazy(() => import('../components/ai/FlowGeneratorModal'))
@@ -178,7 +176,6 @@ export default function FlowEditorPage() {
 
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [servicePanelOpen, setServicePanelOpen] = useState(false)
-  const [optimizationPanelOpen, setOptimizationPanelOpen] = useState(false)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [nodeRecommendationOpen, setNodeRecommendationOpen] = useState(false)
   const [flowGeneratorOpen, setFlowGeneratorOpen] = useState(false)
@@ -429,13 +426,6 @@ export default function FlowEditorPage() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
       e.preventDefault()
       setNodeSearchOpen(true)
-    }
-    // Ctrl+Alt+O or Cmd+Alt+O to open optimization panel
-    if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'o' || e.key === 'O')) {
-      e.preventDefault()
-      if (nodes.length > 0) {
-        setOptimizationPanelOpen(true)
-      }
     }
   }
   useEffect(() => {
@@ -861,14 +851,6 @@ export default function FlowEditorPage() {
                     label: t('editor.aiNodeRecommend'),
                     onClick: () => setNodeRecommendationOpen(true),
                   },
-                  { type: 'divider' },
-                  {
-                    key: 'optimize',
-                    icon: <RocketOutlined />,
-                    label: <>{t('editor.aiOptimize')} <Tag style={{ margin: 0, fontSize: 10 }}>Ctrl+Alt+O</Tag></>,
-                    disabled: nodes.length === 0,
-                    onClick: () => setOptimizationPanelOpen(true),
-                  },
                 ],
               }}
               placement="bottomRight"
@@ -1206,46 +1188,6 @@ export default function FlowEditorPage() {
           </Form.Item>
         </Form>
       </Modal>
-
-      <OptimizationPanel
-        visible={optimizationPanelOpen}
-        onClose={() => setOptimizationPanelOpen(false)}
-        flowId={id}
-        flowDefinition={nodes.length > 0 ? {
-          nodes: nodes.map(n => ({
-            id: n.id,
-            type: n.type || 'unknown',
-            position: n.position,
-            data: n.data as Record<string, unknown>,
-          })),
-          edges: edges.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-          })),
-        } : null}
-        onHighlightNodes={(nodeIds) => {
-          if (nodeIds.length > 0) {
-            setSelectedNodeId(nodeIds[0])
-          }
-        }}
-        onApplyOptimization={(updatedDef) => {
-          pushHistory()
-          const newNodes = updatedDef.nodes.map((n, i) => ({
-            id: n.id,
-            type: n.type || 'unknown',
-            position: n.position || { x: 250, y: i * 120 + 50 },
-            data: n.data as Record<string, unknown>,
-          }))
-          setNodes(newNodes)
-          setEdges(updatedDef.edges.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-          })))
-          message.success(t('optimizer.flowOptimized'))
-        }}
-      />
 
       {publishModalOpen && <Suspense fallback={null}><PublishFlowModal
         open={publishModalOpen}

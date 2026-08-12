@@ -25,9 +25,8 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { SettingOutlined } from '@ant-design/icons'
 import * as agentApi from '../api/agent'
-import { getConfigs as getAiConfigs } from '../api/ai'
+import { getAiAvailability } from '../api/ai'
 import type {
   Conversation,
   ConversationDetail,
@@ -58,7 +57,8 @@ const AIAssistantPage: React.FC = () => {
   // Fetch conversations and check AI config on mount
   useEffect(() => {
     fetchConversations()
-    getAiConfigs().then((configs) => setHasAiConfig(configs.length > 0)).catch(() => setHasAiConfig(false))
+    // AI 金鑰為平台共用（管理員設定），一般成員以可用性端點確認
+    getAiAvailability().then((availability) => setHasAiConfig(availability.configured)).catch(() => setHasAiConfig(false))
   }, [])
 
   // Scroll to bottom when messages change
@@ -232,11 +232,6 @@ const AIAssistantPage: React.FC = () => {
           showIcon
           message={t('chat.noAiConfig')}
           description={t('chat.noAiConfigDesc')}
-          action={
-            <Button size="small" icon={<SettingOutlined />} onClick={() => navigate('/settings/ai')}>
-              {t('chat.goToSettings')}
-            </Button>
-          }
           style={{ flexShrink: 0 }}
         />
       )}

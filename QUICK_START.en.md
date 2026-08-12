@@ -116,9 +116,6 @@ N3N_PORT=9090 docker compose up -d
 # Then use http://localhost:9090
 ```
 
-### Low Memory
-Set `FLOW_OPTIMIZER_ENABLED=false` in `.env` to save 2-4 GB of memory.
-
 ---
 
 ## Next Steps

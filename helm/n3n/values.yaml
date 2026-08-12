@@ -99,12 +99,6 @@ config:
   # Swagger/OpenAPI UI
   swaggerEnabled: "false"
 
-# Flow Optimizer (local Phi-3-Mini LLM for flow analysis)
-flowOptimizer:
-  enabled: true
-  url: "http://n3n-flow-optimizer:8081"  # Use K8s Service name; override with localhost:8081 for local dev
-  timeoutMs: 30000
-
 # Database configuration
 database:
   # Use external database or built-in PostgreSQL

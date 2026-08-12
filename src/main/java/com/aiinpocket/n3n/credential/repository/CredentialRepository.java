@@ -19,6 +19,11 @@ public interface CredentialRepository extends JpaRepository<Credential, UUID> {
 
     List<Credential> findByOwnerIdAndTypeIn(UUID ownerId, java.util.Collection<String> types);
 
+    /**
+     * 平台全域：依類型查詢所有憑證（供管理員的 AI 帳務總覽使用）
+     */
+    List<Credential> findByTypeIn(java.util.Collection<String> types);
+
     @Query("""
         SELECT c FROM Credential c
         WHERE c.ownerId = :userId

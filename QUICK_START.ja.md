@@ -117,9 +117,6 @@ N3N_PORT=9090 docker compose up -d
 # http://localhost:9090 を使用
 ```
 
-### メモリ不足
-`.env` に `FLOW_OPTIMIZER_ENABLED=false` を設定すると、2〜4 GB のメモリを節約できます。
-
 ---
 
 ## 次のステップ

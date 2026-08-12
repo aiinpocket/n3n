@@ -50,4 +50,33 @@ public interface AiProviderConfigRepository extends JpaRepository<AiProviderConf
      * 計算使用者設定數量
      */
     long countByOwnerIdAndIsActiveTrue(UUID ownerId);
+
+    // ==================== 平台共用設定（管理員統一管理） ====================
+
+    /**
+     * 取得所有平台共用且啟用的設定
+     */
+    List<AiProviderConfig> findByIsSharedTrueAndIsActiveTrue();
+
+    /**
+     * 取得平台共用的預設設定
+     */
+    Optional<AiProviderConfig> findByIsSharedTrueAndIsDefaultTrue();
+
+    /**
+     * 依 ID 取得平台共用設定
+     */
+    Optional<AiProviderConfig> findByIdAndIsSharedTrue(UUID id);
+
+    /**
+     * 檢查平台共用設定名稱是否已存在
+     */
+    boolean existsByIsSharedTrueAndName(String name);
+
+    /**
+     * 清除所有平台共用設定的預設標記（平台僅一個預設）
+     */
+    @Modifying
+    @Query("UPDATE AiProviderConfig c SET c.isDefault = false WHERE c.isShared = true")
+    void clearDefaultForShared();
 }

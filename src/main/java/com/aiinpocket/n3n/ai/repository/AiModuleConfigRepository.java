@@ -18,4 +18,10 @@ public interface AiModuleConfigRepository extends JpaRepository<AiModuleConfig, 
     Optional<AiModuleConfig> findByUserIdAndFeatureAndIsActiveTrue(UUID userId, String feature);
 
     Optional<AiModuleConfig> findByUserIdAndFeature(UUID userId, String feature);
+
+    /**
+     * 平台 fallback：取得任一使用者為此功能設定的啟用配置
+     * （AI 金鑰為平台共用，成員沒有自己的配置時沿用平台配置）
+     */
+    List<AiModuleConfig> findByFeatureAndIsActiveTrueOrderByCreatedAtAsc(String feature);
 }

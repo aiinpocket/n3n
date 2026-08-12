@@ -43,6 +43,13 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
 
     private static final int DEFAULT_MAX_ITERATIONS = 10;
 
+    /**
+     * Default tool selection. Users may enable any registered tool;
+     * these are just the pre-selected ones.
+     */
+    private static final List<String> DEFAULT_TOOLS = List.of(
+        "http_request", "code_execution", "web_search", "list_flows", "run_flow");
+
     public AiAgentNodeHandler(
         AiProviderFactory providerFactory,
         AgentNodeToolRegistry toolRegistry,
@@ -117,11 +124,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                         .withDescription("The task for the agent to accomplish")
                         .withPlaceholder("Describe what you want the agent to do...")
                         .required(),
-                    FieldDef.multiSelect("tools", "Enabled Tools",
-                            List.of("http_request", "code_execution", "web_search",
-                                    "list_flows", "run_flow"))
-                        .withDefault(List.of("http_request", "web_search"))
-                        .withDescription("Tools available to the agent"),
+                    buildToolsField(),
                     FieldDef.integer("maxIterations", "Max Iterations")
                         .withDefault(DEFAULT_MAX_ITERATIONS)
                         .withRange(1, 50)
@@ -136,6 +139,35 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
         ));
 
         return operations;
+    }
+
+    /**
+     * Build the "Enabled Tools" multi-select from the live tool registry so
+     * every registered tool is selectable. Falls back to the default tool ids
+     * if the registry has not been populated yet (tools register on
+     * ApplicationReadyEvent; the schema is built per-request afterwards).
+     */
+    private FieldDef buildToolsField() {
+        List<Map<String, Object>> summaries = toolRegistry.getToolSummaries().stream()
+            .sorted(Comparator.comparing(s -> String.valueOf(s.get("id"))))
+            .toList();
+
+        List<String> ids = summaries.stream()
+            .map(s -> String.valueOf(s.get("id")))
+            .toList();
+        List<String> labels = summaries.stream()
+            .map(s -> s.get("name") + " (" + s.get("category") + ")")
+            .toList();
+
+        if (ids.isEmpty()) {
+            ids = DEFAULT_TOOLS;
+            labels = DEFAULT_TOOLS;
+        }
+
+        return FieldDef.multiSelect("tools", "Enabled Tools", ids)
+            .withOptionLabels(labels)
+            .withDefault(DEFAULT_TOOLS)
+            .withDescription("Tools available to the agent");
     }
 
     @Override
@@ -155,7 +187,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
         String model = getRequiredParam(params, "model");
         String systemPrompt = getParam(params, "systemPrompt", getDefaultSystemPrompt());
         String task = getRequiredParam(params, "task");
-        List<String> enabledTools = getListParam(params, "tools", List.of("http_request", "web_search"));
+        List<String> enabledTools = getListParam(params, "tools", DEFAULT_TOOLS);
         int maxIterations = getIntParam(params, "maxIterations", DEFAULT_MAX_ITERATIONS);
         double temperature = getDoubleParam(params, "temperature", 0.3);
 
@@ -377,7 +409,7 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                 String systemPrompt = getStringConfig(context, "systemPrompt", getDefaultSystemPrompt());
                 String task = getStringConfig(context, "task", "");
                 @SuppressWarnings("unchecked")
-                List<String> enabledTools = (List<String>) context.getConfig("tools", List.of("http_request", "web_search"));
+                List<String> enabledTools = (List<String>) context.getConfig("tools", DEFAULT_TOOLS);
                 int maxIterations = getIntConfig(context, "maxIterations", DEFAULT_MAX_ITERATIONS);
                 double temperature = getDoubleConfig(context, "temperature", 0.3);
 

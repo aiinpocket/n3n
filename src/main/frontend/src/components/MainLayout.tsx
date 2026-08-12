@@ -177,16 +177,6 @@ export default function MainLayout() {
           icon: <ApiOutlined />,
           label: t('nav.services'),
         },
-        {
-          key: '/settings/ai',
-          icon: <SettingOutlined />,
-          label: t('nav.aiSettings'),
-        },
-        {
-          key: '/settings/ai-billing',
-          icon: <DollarOutlined />,
-          label: t('nav.aiBilling'),
-        },
       ],
     },
     // 進階工具
@@ -249,6 +239,16 @@ export default function MainLayout() {
           label: t('nav.activities'),
         },
         ...(user?.roles?.includes('ADMIN') ? [
+          {
+            key: '/settings/ai',
+            icon: <SettingOutlined />,
+            label: t('nav.aiSettings'),
+          },
+          {
+            key: '/settings/ai-billing',
+            icon: <DollarOutlined />,
+            label: t('nav.aiBilling'),
+          },
           {
             key: '/settings/gateway',
             icon: <CloudServerOutlined />,
