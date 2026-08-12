@@ -116,6 +116,7 @@
     "customTools": "自訂工具",
     "aiAssistant": "AI 助手",
     "aiSettings": "AI 設定",
+    "aiBilling": "AI 餘額管理",
     "monitoring": "系統監控",
     "logs": "系統日誌",
     "activities": "活動記錄",
@@ -2130,6 +2131,34 @@
       "description": "輸出結果"
     }
   },
+  "aiBilling": {
+    "title": "AI 餘額管理",
+    "refresh": "重新整理",
+    "infoTitle": "一頁掌握所有 AI 供應商的餘額與用量",
+    "infoDescription": "OpenRouter 與 fal.ai 提供官方餘額查詢；ElevenLabs 顯示字元配額；OpenAI / Anthropic / Gemini 不提供餘額 API，改以本地記錄的 token 用量估算花費。",
+    "balancesTitle": "供應商餘額",
+    "credentialName": "憑證名稱",
+    "provider": "供應商",
+    "remainingBalance": "剩餘餘額 / 配額",
+    "usageOnlyTooltip": "此供應商不提供餘額查詢 API，金額為近 90 天本地用量估算",
+    "usageOnlyHint": "估算值（供應商無餘額 API）",
+    "spent": "已花費（估算）",
+    "queryFailed": "查詢失敗",
+    "loadBalancesFailed": "載入餘額失敗",
+    "loadUsageFailed": "載入用量失敗",
+    "usageTitle": "Token 用量統計",
+    "totalEstimated": "估算總花費",
+    "last7Days": "最近 7 天",
+    "last30Days": "最近 30 天",
+    "last90Days": "最近 90 天",
+    "model": "模型",
+    "calls": "呼叫次數",
+    "inputTokens": "輸入 Tokens",
+    "outputTokens": "輸出 Tokens",
+    "estimatedCost": "估算成本",
+    "noCredentials": "尚未設定任何 AI 憑證，請先到「憑證管理」新增 API Key",
+    "noUsage": "此期間內沒有 AI 用量記錄"
+  },
   "nodeTypes": {
     "trigger": {
       "label": "手動觸發",
@@ -2230,6 +2259,18 @@
     "gemini": {
       "label": "Google Gemini",
       "description": "直接呼叫 Google Gemini API"
+    },
+    "falAi": {
+      "label": "AI 圖片/影片生成",
+      "description": "使用 fal.ai 生成圖片（FLUX）與影片（Veo/Kling），支援參考圖片 + 劇情描述"
+    },
+    "aiTts": {
+      "label": "AI 語音合成",
+      "description": "使用 OpenAI 或 ElevenLabs 將文字轉為語音"
+    },
+    "aiVision": {
+      "label": "AI 視覺理解",
+      "description": "使用多模態模型分析圖片內容（描述、OCR、問答）"
     },
     "condition": {
       "label": "條件判斷",

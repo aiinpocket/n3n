@@ -32,8 +32,12 @@ public class DashboardController {
 
         long totalFlows = flowRepository.countByCreatedByAndIsDeletedFalse(userId);
 
-        // Single aggregated query instead of 4 separate COUNT queries
+        // Single aggregated query instead of 4 separate COUNT queries.
+        // JPA 對單列聚合查詢會回傳 Object[]{Object[]{...}}，需先解開外層包裝
         Object[] stats = executionRepository.getUserDashboardStats(userId);
+        if (stats.length == 1 && stats[0] instanceof Object[] inner) {
+            stats = inner;
+        }
         long totalExecutions = stats[0] != null ? ((Number) stats[0]).longValue() : 0L;
         long successfulExecutions = stats[1] != null ? ((Number) stats[1]).longValue() : 0L;
         long failedExecutions = stats[2] != null ? ((Number) stats[2]).longValue() : 0L;

@@ -53,7 +53,6 @@ N3N 平台內建多項服務，請根據使用場景選擇適當的硬體配置�
 | **PostgreSQL** | ~256 MB | 關聯式資料庫 |
 | **Redis** | ~128 MB | 快取與執行狀態 |
 | **MongoDB** | ~256 MB | NoSQL 資料庫（工作流程節點使用） |
-| **Flow Optimizer** | ~2-4 GB | 本地 LLM（選配） |
 
 ---
 
@@ -95,7 +94,7 @@ N3N 是一個**視覺化流程自動化平台**，讓你可以：
 git clone https://github.com/aiinpocket/n3n.git
 cd n3n
 
-# 啟動服務（首次需要下載映像檔與 AI 模型，可能需要 10-30 分鐘）
+# 啟動服務（首次需要下載映像檔，約需數分鐘）
 docker compose up -d
 ```
 
@@ -109,7 +108,7 @@ docker compose up -d
 
 ### 3. 開始使用
 
-> **首次啟動需要等待**：首次啟動需下載 Docker 映像檔與 AI 模型（約 2.3GB），取決於網路速度可能需要 10-30 分鐘。後續重啟僅需 60-90 秒。可用以下指令追蹤進度：
+> **首次啟動需要等待**：首次啟動需下載 Docker 映像檔，取決於網路速度可能需要幾分鐘。後續重啟僅需 60-90 秒。可用以下指令追蹤進度：
 > ```bash
 > # 追蹤啟動進度
 > docker compose logs -f app
@@ -118,8 +117,6 @@ docker compose up -d
 > ```
 > 當看到 `Started N3nApplication` 字樣時，即可開啟瀏覽器。
 >
-> **注意**：本地 AI 優化器首次啟動需額外下載模型，其他功能可正常使用。
-> 追蹤 AI 優化器進度：`docker compose logs -f flow-optimizer`
 
 打開瀏覽器，前往：**http://localhost:8080**
 
@@ -266,17 +263,6 @@ Get-PSDrive C
 
 如果空間不足，可以清理 Docker 舊映像：`docker system prune -a`
 
-### 記憶體不足怎麼辦？
-
-如果你的電腦記憶體不到 8 GB，可以停用 Flow Optimizer 節省 2-4 GB：
-
-```bash
-# 在 .env 中設定
-FLOW_OPTIMIZER_ENABLED=false
-
-# 重啟服務
-docker compose up -d
-```
 
 ---
 
@@ -482,16 +468,21 @@ N3N 採用**零配置設計**，所有設定都有合理的預設值。以下環
 
 > **auto 模式**：系統啟動時自動偵測環境（K8s Service Account → Docker Socket → Docker CLI），選擇對應的容器編排引擎。
 
-### AI 流程優化器（預設啟用）
+### AI 供應商（雲端）
 
-| 變數 | 預設值 | 說明 |
-|------|--------|------|
-| `FLOW_OPTIMIZER_ENABLED` | `true` | 本地 AI 優化器（預設啟用） |
-| `FLOW_OPTIMIZER_URL` | `http://flow-optimizer:8081` | 優化器服務位址 |
+N3N 的 AI 功能（流程生成、多模態節點、流程優化）使用雲端 AI 供應商。
+在「憑證管理」或「AI 設定」頁面填入 API Key 即可使用：
 
-本地 AI 優化器隨 `docker compose up -d` 自動啟動，無需額外設定或 API 金鑰。
+| 供應商 | 用途 | 餘額查詢 |
+|--------|------|---------|
+| OpenRouter | 統一入口，一把 Key 可用上百個模型（Claude / GPT / Gemini） | 支援（官方 API） |
+| OpenAI | 對話、視覺理解、TTS、圖片生成 | 本地估算 |
+| Anthropic (Claude) | 對話、流程生成 | 本地估算 |
+| Google (Gemini) | 對話、多模態 | 本地估算 |
+| fal.ai | AI 圖片生成（FLUX）、AI 影片生成（Veo / Kling / Hailuo） | 支援（官方 API） |
+| ElevenLabs | AI 語音合成 | 支援（字元配額） |
 
-> **注意**：本地 AI 優化器在本機執行，首次啟動時需要下載模型（約 2.3GB），且需要至少 4GB 記憶體。
+前往「AI 餘額管理」頁面可以一次查看所有供應商的剩餘餘額與用量統計。
 
 ---
 

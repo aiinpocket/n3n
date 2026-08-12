@@ -36,7 +36,8 @@ const providerColors: Record<string, string> = {
   claude: 'orange',
   openai: 'green',
   gemini: 'blue',
-  ollama: 'purple',
+  openrouter: 'purple',
+  ollama: 'default',
 }
 
 const AISettingsPage: React.FC = () => {
@@ -64,6 +65,7 @@ const AISettingsPage: React.FC = () => {
     claude: 'Claude (Anthropic)',
     openai: 'ChatGPT (OpenAI)',
     gemini: 'Gemini (Google)',
+    openrouter: 'OpenRouter',
     ollama: 'Ollama (Local)',
   }
 

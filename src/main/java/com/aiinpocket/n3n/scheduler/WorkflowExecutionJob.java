@@ -42,13 +42,17 @@ public class WorkflowExecutionJob implements Job {
             // We use lazy lookup to avoid circular dependencies
             Object executionService = applicationContext.getBean("executionService");
 
-            // Prepare trigger data
-            Map<String, Object> triggerData = Map.of(
-                "triggeredBy", "schedule",
-                "scheduleId", scheduleId,
-                "scheduledTime", context.getScheduledFireTime(),
-                "actualFireTime", context.getFireTime()
-            );
+            // Prepare trigger data, merging the schedule's configured input payload
+            Map<String, Object> triggerData = new java.util.LinkedHashMap<>();
+            triggerData.put("triggeredBy", "schedule");
+            triggerData.put("scheduleId", scheduleId);
+            triggerData.put("scheduledTime", context.getScheduledFireTime());
+            triggerData.put("actualFireTime", context.getFireTime());
+            scheduleRepository.findByQuartzScheduleId(scheduleId).ifPresent(schedule -> {
+                if (schedule.getInput() != null && !schedule.getInput().isEmpty()) {
+                    triggerData.put("input", schedule.getInput());
+                }
+            });
 
             // Call startExecution via reflection to avoid compile-time dependency
             java.lang.reflect.Method startMethod = executionService.getClass()
@@ -61,14 +65,19 @@ public class WorkflowExecutionJob implements Job {
 
             log.info("Scheduled execution completed for flow {}: {}", flowId, result);
 
-            // Update lastRunAt on the Schedule entity (lookup by Quartz schedule ID, not DB primary key)
+            // Update lastRunAt / nextRunAt on the Schedule entity
+            // (lookup by Quartz schedule ID, not DB primary key)
             try {
+                java.util.Date nextFireTime = context.getNextFireTime();
                 scheduleRepository.findByQuartzScheduleId(scheduleId).ifPresent(schedule -> {
                     schedule.setLastRunAt(Instant.now());
+                    if (nextFireTime != null) {
+                        schedule.setNextRunAt(nextFireTime.toInstant());
+                    }
                     scheduleRepository.save(schedule);
                 });
             } catch (Exception updateErr) {
-                log.warn("Failed to update lastRunAt for schedule {}: {}", scheduleId, updateErr.getMessage());
+                log.warn("Failed to update run times for schedule {}: {}", scheduleId, updateErr.getMessage());
             }
 
         } catch (Exception e) {

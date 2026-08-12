@@ -121,6 +121,21 @@ public class CredentialTypeSeeder {
                                         "apiKey", Map.of("type", "string", "format", "password", "title", "API Key"),
                                         "projectId", Map.of("type", "string", "title", "Project ID")),
                                 "required", List.of("apiKey"))),
+                new SeedType("openrouter", "OpenRouter", "OpenRouter API credentials (unified access to 100+ models)",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key")),
+                                "required", List.of("apiKey"))),
+                new SeedType("fal", "fal.ai", "fal.ai API credentials (image/video generation)",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key")),
+                                "required", List.of("apiKey"))),
+                new SeedType("elevenlabs", "ElevenLabs", "ElevenLabs API credentials (text-to-speech)",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "apiKey", Map.of("type", "string", "format", "password", "title", "API Key")),
+                                "required", List.of("apiKey"))),
                 // Google Workspace credentials
                 new SeedType("googleSheets", "Google Sheets", "Google Sheets API credentials",
                         Map.of("type", "object",

@@ -72,7 +72,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .description("Send a message to an AI model and receive a response")
                 .fields(List.of(
                     FieldDef.select("provider", "Provider",
-                            List.of("openai", "claude", "gemini", "ollama"))
+                            List.of("openai", "claude", "gemini", "openrouter", "ollama"))
                         .withDefault("openai")
                         .withDescription("AI provider to use")
                         .required(),

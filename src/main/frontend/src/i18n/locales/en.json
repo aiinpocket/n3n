@@ -116,7 +116,8 @@
     "customTools": "Custom Tools",
     "aiAssistant": "AI Assistant",
     "aiSettings": "AI Settings",
-    "monitoring": "Monitoring",
+    "aiBilling": "AI Balance",
+    "monitoring":"Monitoring",
     "logs": "Logs",
     "activities": "Activities",
     "settings": "Settings",
@@ -2130,6 +2131,34 @@
       "description": "Output results"
     }
   },
+  "aiBilling": {
+    "title": "AI Balance",
+    "refresh": "Refresh",
+    "infoTitle": "All your AI provider balances and usage in one place",
+    "infoDescription": "OpenRouter and fal.ai expose official balance APIs; ElevenLabs shows character quota; OpenAI / Anthropic / Gemini have no balance API, so spend is estimated from locally tracked token usage.",
+    "balancesTitle": "Provider Balances",
+    "credentialName": "Credential",
+    "provider": "Provider",
+    "remainingBalance": "Remaining Balance / Quota",
+    "usageOnlyTooltip": "This provider has no balance API; amount is estimated from local usage over the last 90 days",
+    "usageOnlyHint": "Estimate (no balance API)",
+    "spent": "spent (est.)",
+    "queryFailed": "Query failed",
+    "loadBalancesFailed": "Failed to load balances",
+    "loadUsageFailed": "Failed to load usage",
+    "usageTitle": "Token Usage",
+    "totalEstimated": "Total estimated",
+    "last7Days": "Last 7 days",
+    "last30Days": "Last 30 days",
+    "last90Days": "Last 90 days",
+    "model": "Model",
+    "calls": "Calls",
+    "inputTokens": "Input Tokens",
+    "outputTokens": "Output Tokens",
+    "estimatedCost": "Est. Cost",
+    "noCredentials": "No AI credentials yet — add an API key in Credentials first",
+    "noUsage": "No AI usage recorded in this period"
+  },
   "nodeTypes": {
     "trigger": {
       "label": "Manual Trigger",
@@ -2230,6 +2259,18 @@
     "gemini": {
       "label": "Google Gemini",
       "description": "Directly call Google Gemini API"
+    },
+    "falAi": {
+      "label": "AI Image / Video",
+      "description": "Generate images (FLUX) and videos (Veo/Kling) with fal.ai, supports reference image + storyline"
+    },
+    "aiTts": {
+      "label": "AI Text to Speech",
+      "description": "Convert text to speech with OpenAI or ElevenLabs"
+    },
+    "aiVision": {
+      "label": "AI Vision",
+      "description": "Analyze images with multimodal models (describe, OCR, Q&A)"
     },
     "condition": {
       "label": "If",

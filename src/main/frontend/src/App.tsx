@@ -24,6 +24,7 @@ const ServiceFormPage = lazy(() => import('./pages/ServiceFormPage'))
 const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'))
 const CredentialListPage = lazy(() => import('./pages/CredentialListPage'))
 const AISettingsPage = lazy(() => import('./pages/AISettingsPage'))
+const AIBillingPage = lazy(() => import('./pages/AIBillingPage'))
 const AIAssistantPage = lazy(() => import('./pages/AIAssistantPage'))
 const SkillsPage = lazy(() => import('./pages/SkillsPage'))
 const WebhooksPage = lazy(() => import('./pages/WebhooksPage'))
@@ -213,6 +214,7 @@ function App() {
             <Route path="services/:id/edit" element={<ServiceFormPage />} />
             <Route path="credentials" element={<CredentialListPage />} />
             <Route path="settings/ai" element={<AISettingsPage />} />
+            <Route path="settings/ai-billing" element={<AIBillingPage />} />
             <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />

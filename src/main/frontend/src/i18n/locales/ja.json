@@ -116,6 +116,7 @@
     "customTools": "カスタムツール",
     "aiAssistant": "AIアシスタント",
     "aiSettings": "AI設定",
+    "aiBilling": "AI残高管理",
     "monitoring": "システム監視",
     "logs": "システムログ",
     "activities": "アクティビティ",
@@ -2130,6 +2131,34 @@
       "description": "結果を出力"
     }
   },
+  "aiBilling": {
+    "title": "AI残高管理",
+    "refresh": "更新",
+    "infoTitle": "すべてのAIプロバイダーの残高と使用量を一括表示",
+    "infoDescription": "OpenRouterとfal.aiは公式残高APIに対応。ElevenLabsは文字クォータを表示。OpenAI / Anthropic / Geminiは残高APIがないため、ローカルで記録したトークン使用量から費用を推定します。",
+    "balancesTitle": "プロバイダー残高",
+    "credentialName": "認証情報",
+    "provider": "プロバイダー",
+    "remainingBalance": "残高 / クォータ",
+    "usageOnlyTooltip": "このプロバイダーは残高APIがないため、過去90日間のローカル使用量から推定した金額です",
+    "usageOnlyHint": "推定値（残高APIなし）",
+    "spent": "使用済み（推定）",
+    "queryFailed": "取得失敗",
+    "loadBalancesFailed": "残高の読み込みに失敗しました",
+    "loadUsageFailed": "使用量の読み込みに失敗しました",
+    "usageTitle": "トークン使用量",
+    "totalEstimated": "推定合計",
+    "last7Days": "過去7日間",
+    "last30Days": "過去30日間",
+    "last90Days": "過去90日間",
+    "model": "モデル",
+    "calls": "呼び出し回数",
+    "inputTokens": "入力トークン",
+    "outputTokens": "出力トークン",
+    "estimatedCost": "推定コスト",
+    "noCredentials": "AI認証情報がまだありません。先に「認証情報」でAPIキーを追加してください",
+    "noUsage": "この期間のAI使用記録はありません"
+  },
   "nodeTypes": {
     "trigger": {
       "label": "手動トリガー",
@@ -2230,6 +2259,18 @@
     "gemini": {
       "label": "Google Gemini",
       "description": "Google Gemini APIを直接呼び出し"
+    },
+    "falAi": {
+      "label": "AI画像・動画生成",
+      "description": "fal.aiで画像（FLUX）と動画（Veo/Kling）を生成。参考画像＋ストーリー指定に対応"
+    },
+    "aiTts": {
+      "label": "AI音声合成",
+      "description": "OpenAIまたはElevenLabsでテキストを音声に変換"
+    },
+    "aiVision": {
+      "label": "AI画像理解",
+      "description": "マルチモーダルモデルで画像を分析（説明、OCR、質問応答）"
     },
     "condition": {
       "label": "条件分岐",

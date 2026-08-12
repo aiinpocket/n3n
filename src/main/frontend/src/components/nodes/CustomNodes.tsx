@@ -42,6 +42,9 @@ import {
   SafetyCertificateOutlined,
   Html5Outlined,
   FileMarkdownOutlined,
+  VideoCameraOutlined,
+  SoundOutlined,
+  EyeOutlined,
   FileOutlined,
   FileAddOutlined,
   FileExcelOutlined,
@@ -141,6 +144,10 @@ const iconComponents: Record<string, React.ReactNode> = {
   // Interactive
   CheckCircleOutlined: <CheckCircleOutlined />,
   ThunderboltOutlined: <ThunderboltOutlined />,
+  // AI Media
+  VideoCameraOutlined: <VideoCameraOutlined />,
+  SoundOutlined: <SoundOutlined />,
+  EyeOutlined: <EyeOutlined />,
   // Output
   ExportOutlined: <ExportOutlined />,
   SendOutlined: <SendOutlined />,

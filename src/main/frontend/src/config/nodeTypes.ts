@@ -296,6 +296,30 @@ export const nodeTypes: NodeTypeConfig[] = [
     description: 'nodeTypes.gemini.description',
     category: 'ai',
   },
+  {
+    value: 'falAi',
+    label: 'nodeTypes.falAi.label',
+    color: '#EB2F96',
+    icon: 'VideoCameraOutlined',
+    description: 'nodeTypes.falAi.description',
+    category: 'ai',
+  },
+  {
+    value: 'aiTts',
+    label: 'nodeTypes.aiTts.label',
+    color: '#8B5CF6',
+    icon: 'SoundOutlined',
+    description: 'nodeTypes.aiTts.description',
+    category: 'ai',
+  },
+  {
+    value: 'aiVision',
+    label: 'nodeTypes.aiVision.label',
+    color: '#8B5CF6',
+    icon: 'EyeOutlined',
+    description: 'nodeTypes.aiVision.description',
+    category: 'ai',
+  },
 
   // ==================== Flow Control ====================
   {

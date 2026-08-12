@@ -240,8 +240,18 @@ public class ScheduleController {
         UUID userId = UUID.fromString(userDetails.getUsername());
         Schedule schedule = findScheduleWithOwnerCheck(id, userId);
 
-        if (schedule.getQuartzScheduleId() != null) {
+        // 重啟後 Quartz (RAMJobStore) 內的 job 會遺失，且暫停中的排程不會在啟動時
+        // 重新註冊，因此 resume 時若 job 已不存在需重新排程而非只呼叫 resume。
+        if (schedule.getQuartzScheduleId() != null
+                && schedulerService.exists(schedule.getQuartzScheduleId())) {
             schedulerService.resume(schedule.getQuartzScheduleId());
+        } else {
+            String newQuartzId = schedulerService.scheduleCron(
+                    schedule.getFlowId(),
+                    schedule.getCronExpression(),
+                    schedule.getTimezone(),
+                    schedule.getCreatedBy());
+            schedule.setQuartzScheduleId(newQuartzId);
         }
         schedule.setIsActive(true);
         schedule.setNextRunAt(getNextRunInstant(schedule.getQuartzScheduleId()));

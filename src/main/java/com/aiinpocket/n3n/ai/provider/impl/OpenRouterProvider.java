@@ -15,16 +15,19 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * OpenAI ChatGPT API Provider
+ * OpenRouter Provider
+ *
+ * 單一 API Key 即可使用 OpenAI / Anthropic / Google / Meta 等上百個模型，
+ * 並且提供官方餘額查詢 API（GET /api/v1/credits），適合作為統一入口。
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OpenAiProvider implements AiProvider {
+public class OpenRouterProvider implements AiProvider {
 
-    private static final String PROVIDER_ID = "openai";
-    private static final String DISPLAY_NAME = "ChatGPT (OpenAI)";
-    private static final String DEFAULT_BASE_URL = "https://api.openai.com";
+    private static final String PROVIDER_ID = "openrouter";
+    private static final String DISPLAY_NAME = "OpenRouter";
+    private static final String DEFAULT_BASE_URL = "https://openrouter.ai/api";
     private static final int DEFAULT_TIMEOUT_MS = 120000;
 
     private final ObjectMapper objectMapper;
@@ -54,9 +57,7 @@ public class OpenAiProvider implements AiProvider {
     public CompletableFuture<List<AiModel>> fetchModels(String apiKey, String baseUrl) {
         String url = resolveBaseUrl(baseUrl) + "/v1/models";
 
-        WebClient client = webClientBuilder.build();
-
-        return client.get()
+        return webClientBuilder.build().get()
                 .uri(url)
                 .header("Authorization", "Bearer " + apiKey)
                 .retrieve()
@@ -75,84 +76,50 @@ public class OpenAiProvider implements AiProvider {
             if (data.isArray()) {
                 for (JsonNode modelNode : data) {
                     String id = modelNode.path("id").asText();
-                    // 只返回 chat 模型
-                    if (id.startsWith("gpt-")) {
-                        models.add(AiModel.builder()
-                                .id(id)
-                                .displayName(formatModelName(id))
-                                .providerId(PROVIDER_ID)
-                                .contextWindow(getContextWindow(id))
-                                .maxOutputTokens(getMaxOutputTokens(id))
-                                .supportsVision(id.contains("vision") || id.contains("gpt-4o") || id.contains("gpt-4-turbo"))
-                                .supportsStreaming(true)
-                                .build());
+                    if (id.isBlank()) {
+                        continue;
                     }
+                    JsonNode architecture = modelNode.path("architecture");
+                    boolean supportsVision = architecture.path("input_modalities").toString().contains("image");
+                    models.add(AiModel.builder()
+                            .id(id)
+                            .displayName(modelNode.path("name").asText(id))
+                            .providerId(PROVIDER_ID)
+                            .contextWindow(modelNode.path("context_length").asInt(8192))
+                            .maxOutputTokens(modelNode.path("top_provider").path("max_completion_tokens").asInt(4096))
+                            .supportsVision(supportsVision)
+                            .supportsStreaming(true)
+                            .build());
                 }
             }
-
-            // 排序：新模型在前
-            models.sort((a, b) -> b.getId().compareTo(a.getId()));
-            return models;
-
+            return models.isEmpty() ? getStaticModelList() : models;
         } catch (Exception e) {
-            log.error("Failed to parse OpenAI models response", e);
+            log.error("Failed to parse OpenRouter models response", e);
             return getStaticModelList();
         }
     }
 
     private List<AiModel> getStaticModelList() {
         return List.of(
-                AiModel.builder()
-                        .id("gpt-4o")
-                        .displayName("GPT-4o")
-                        .providerId(PROVIDER_ID)
-                        .contextWindow(128000)
-                        .maxOutputTokens(16384)
-                        .supportsVision(true)
-                        .supportsStreaming(true)
-                        .build(),
-                AiModel.builder()
-                        .id("gpt-4o-mini")
-                        .displayName("GPT-4o Mini")
-                        .providerId(PROVIDER_ID)
-                        .contextWindow(128000)
-                        .maxOutputTokens(16384)
-                        .supportsVision(true)
-                        .supportsStreaming(true)
-                        .build(),
-                AiModel.builder()
-                        .id("gpt-4-turbo")
-                        .displayName("GPT-4 Turbo")
-                        .providerId(PROVIDER_ID)
-                        .contextWindow(128000)
-                        .maxOutputTokens(4096)
-                        .supportsVision(true)
-                        .supportsStreaming(true)
-                        .build()
+                staticModel("anthropic/claude-sonnet-4.5", "Claude Sonnet 4.5", 200000, true),
+                staticModel("openai/gpt-5", "GPT-5", 400000, true),
+                staticModel("openai/gpt-5-mini", "GPT-5 Mini", 400000, true),
+                staticModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", 1000000, true),
+                staticModel("google/gemini-2.5-flash", "Gemini 2.5 Flash", 1000000, true),
+                staticModel("meta-llama/llama-4-maverick", "Llama 4 Maverick", 131072, false)
         );
     }
 
-    private String formatModelName(String id) {
-        return id.replace("-", " ")
-                .replace("gpt ", "GPT-")
-                .replace("turbo", "Turbo")
-                .replace("mini", "Mini");
-    }
-
-    private int getContextWindow(String modelId) {
-        if (modelId.contains("gpt-4o") || modelId.contains("gpt-4-turbo")) {
-            return 128000;
-        } else if (modelId.contains("gpt-4")) {
-            return 8192;
-        }
-        return 16385; // GPT-3.5
-    }
-
-    private int getMaxOutputTokens(String modelId) {
-        if (modelId.contains("gpt-4o")) {
-            return 16384;
-        }
-        return 4096;
+    private AiModel staticModel(String id, String name, int contextWindow, boolean vision) {
+        return AiModel.builder()
+                .id(id)
+                .displayName(name)
+                .providerId(PROVIDER_ID)
+                .contextWindow(contextWindow)
+                .maxOutputTokens(16384)
+                .supportsVision(vision)
+                .supportsStreaming(true)
+                .build();
     }
 
     @Override
@@ -160,14 +127,10 @@ public class OpenAiProvider implements AiProvider {
         String url = resolveBaseUrl(settings.getBaseUrl()) + "/v1/chat/completions";
         long startTime = System.currentTimeMillis();
 
-        WebClient client = buildClient(settings);
-        String body = buildRequestBody(request, false);
-
-        return client.post()
+        return buildClient().post()
                 .uri(url)
-                .header("Authorization", "Bearer " + settings.getApiKey())
-                .header("Content-Type", "application/json")
-                .bodyValue(body)
+                .headers(h -> applyHeaders(h::add, settings))
+                .bodyValue(buildRequestBody(request, false))
                 .retrieve()
                 .bodyToMono(String.class)
                 .timeout(Duration.ofMillis(settings.getTimeoutMs()))
@@ -179,14 +142,10 @@ public class OpenAiProvider implements AiProvider {
     public Flux<AiStreamChunk> chatStream(AiChatRequest request, AiProviderSettings settings) {
         String url = resolveBaseUrl(settings.getBaseUrl()) + "/v1/chat/completions";
 
-        WebClient client = buildClient(settings);
-        String body = buildRequestBody(request, true);
-
-        return client.post()
+        return buildClient().post()
                 .uri(url)
-                .header("Authorization", "Bearer " + settings.getApiKey())
-                .header("Content-Type", "application/json")
-                .bodyValue(body)
+                .headers(h -> applyHeaders(h::add, settings))
+                .bodyValue(buildRequestBody(request, true))
                 .retrieve()
                 .bodyToFlux(String.class)
                 .timeout(Duration.ofMillis(settings.getTimeoutMs()))
@@ -195,11 +154,9 @@ public class OpenAiProvider implements AiProvider {
 
     @Override
     public CompletableFuture<Boolean> testConnection(String apiKey, String baseUrl) {
-        String url = resolveBaseUrl(baseUrl) + "/v1/models";
+        String url = resolveBaseUrl(baseUrl) + "/v1/key";
 
-        WebClient client = webClientBuilder.build();
-
-        return client.get()
+        return webClientBuilder.build().get()
                 .uri(url)
                 .header("Authorization", "Bearer " + apiKey)
                 .retrieve()
@@ -215,15 +172,22 @@ public class OpenAiProvider implements AiProvider {
         return Map.of(
                 "type", "object",
                 "properties", Map.of(
-                        "organization", Map.of(
+                        "appName", Map.of(
                                 "type", "string",
-                                "description", "OpenAI Organization ID"
+                                "description", "Application name shown on OpenRouter dashboard"
                         )
                 )
         );
     }
 
-    private WebClient buildClient(AiProviderSettings settings) {
+    private void applyHeaders(java.util.function.BiConsumer<String, String> add, AiProviderSettings settings) {
+        add.accept("Authorization", "Bearer " + settings.getApiKey());
+        add.accept("Content-Type", "application/json");
+        add.accept("HTTP-Referer", "https://github.com/aiinpocket/n3n");
+        add.accept("X-Title", "N3N Flow Platform");
+    }
+
+    private WebClient buildClient() {
         return webClientBuilder
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
                 .build();
@@ -239,12 +203,10 @@ public class OpenAiProvider implements AiProvider {
 
         List<Map<String, Object>> messages = new ArrayList<>();
 
-        // 加入 system 訊息
         if (request.getSystemPrompt() != null && !request.getSystemPrompt().isBlank()) {
             messages.add(Map.of("role", "system", "content", request.getSystemPrompt()));
         }
 
-        // 加入其他訊息（支援 multiContent 多模態圖片內容）
         for (AiMessage msg : request.getMessages()) {
             messages.add(OpenAiContentMapper.toOpenAiMessage(msg));
         }
@@ -275,9 +237,6 @@ public class OpenAiProvider implements AiProvider {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
 
-            String id = root.path("id").asText();
-            String model = root.path("model").asText();
-
             JsonNode choices = root.path("choices");
             String content = "";
             String stopReason = null;
@@ -296,16 +255,15 @@ public class OpenAiProvider implements AiProvider {
                     .build();
 
             return AiResponse.builder()
-                    .id(id)
-                    .model(model)
+                    .id(root.path("id").asText())
+                    .model(root.path("model").asText())
                     .content(content)
                     .stopReason(stopReason)
                     .usage(aiUsage)
                     .latencyMs(latencyMs)
                     .build();
-
         } catch (Exception e) {
-            log.error("Failed to parse OpenAI response: {}", responseBody, e);
+            log.error("Failed to parse OpenRouter response", e);
             throw new RuntimeException("Failed to parse response", e);
         }
     }
@@ -319,6 +277,10 @@ public class OpenAiProvider implements AiProvider {
         if (event.startsWith("data:")) {
             data = event.substring(5).trim();
         }
+        // OpenRouter 會送出 ": OPENROUTER PROCESSING" keep-alive 註解
+        if (data.startsWith(":")) {
+            return null;
+        }
         if (data.isBlank() || data.equals("[DONE]")) {
             return AiStreamChunk.done("stop", null);
         }
@@ -329,8 +291,7 @@ public class OpenAiProvider implements AiProvider {
 
             if (choices.isArray() && !choices.isEmpty()) {
                 JsonNode firstChoice = choices.get(0);
-                JsonNode delta = firstChoice.path("delta");
-                String content = delta.path("content").asText("");
+                String content = firstChoice.path("delta").path("content").asText("");
                 String finishReason = firstChoice.path("finish_reason").asText(null);
 
                 if (finishReason != null) {
@@ -341,7 +302,7 @@ public class OpenAiProvider implements AiProvider {
                 }
             }
         } catch (Exception e) {
-            log.warn("Failed to parse stream event: {}", event, e);
+            log.warn("Failed to parse OpenRouter stream event: {}", event, e);
         }
 
         return null;

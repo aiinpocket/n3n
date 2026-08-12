@@ -607,6 +607,7 @@ class ScheduleControllerTest {
         Date nextFire = Date.from(Instant.now().plusSeconds(3600));
 
         when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
+        when(schedulerService.exists(schedule.getQuartzScheduleId())).thenReturn(true);
         when(schedulerService.getNextFireTime(schedule.getQuartzScheduleId())).thenReturn(nextFire);
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
         when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
@@ -618,6 +619,33 @@ class ScheduleControllerTest {
         assertThat(response.getBody().getNextRunAt()).isEqualTo(nextFire.toInstant());
 
         verify(schedulerService).resume(schedule.getQuartzScheduleId());
+    }
+
+    @Test
+    void resumeSchedule_shouldRescheduleWhenQuartzJobMissing() throws SchedulerException {
+        // 重啟後 Quartz (RAMJobStore) 內的 job 遺失時，resume 應重新註冊排程
+        Schedule schedule = sampleSchedule();
+        schedule.setIsActive(false);
+        String newQuartzId = "quartz-recreated-" + UUID.randomUUID();
+        Date nextFire = Date.from(Instant.now().plusSeconds(3600));
+
+        when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
+        when(schedulerService.exists(schedule.getQuartzScheduleId())).thenReturn(false);
+        when(schedulerService.scheduleCron(schedule.getFlowId(), schedule.getCronExpression(),
+                schedule.getTimezone(), schedule.getCreatedBy())).thenReturn(newQuartzId);
+        when(schedulerService.getNextFireTime(newQuartzId)).thenReturn(nextFire);
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(flowRepository.findByIdAndIsDeletedFalse(schedule.getFlowId())).thenReturn(Optional.empty());
+
+        var response = scheduleController.resumeSchedule(schedule.getId(), testUser());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().isActive()).isTrue();
+        assertThat(response.getBody().getNextRunAt()).isEqualTo(nextFire.toInstant());
+
+        verify(schedulerService, never()).resume(any());
+        verify(schedulerService).scheduleCron(schedule.getFlowId(), schedule.getCronExpression(),
+                schedule.getTimezone(), schedule.getCreatedBy());
     }
 
     @Test
@@ -825,6 +853,7 @@ class ScheduleControllerTest {
         schedule.setIsActive(false);
 
         when(scheduleRepository.findByIdAndCreatedBy(schedule.getId(), userId)).thenReturn(Optional.of(schedule));
+        when(schedulerService.exists(schedule.getQuartzScheduleId())).thenReturn(true);
         when(schedulerService.getNextFireTime(schedule.getQuartzScheduleId()))
                 .thenThrow(new SchedulerException("Quartz error"));
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(inv -> inv.getArgument(0));

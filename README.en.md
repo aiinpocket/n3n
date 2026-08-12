@@ -53,7 +53,6 @@ N3N includes multiple built-in services. Choose the appropriate hardware based o
 | **PostgreSQL** | ~256 MB | Relational database |
 | **Redis** | ~128 MB | Cache and execution state |
 | **MongoDB** | ~256 MB | NoSQL database (used by workflow nodes) |
-| **Flow Optimizer** | ~2-4 GB | Local LLM (optional) |
 
 ---
 
@@ -109,7 +108,7 @@ docker compose up -d
 
 ### 3. Start Using
 
-> **First startup takes time**: The initial startup requires downloading Docker images and the AI model (~2.3GB), which may take 10-30 minutes depending on network speed. Subsequent restarts only take 60-90 seconds. You can track progress with:
+> **First startup takes time**: The initial startup requires downloading Docker images, which may take a few minutes depending on network speed. Subsequent restarts only take 60-90 seconds. You can track progress with:
 > ```bash
 > # Follow startup progress
 > docker compose logs -f app
@@ -262,18 +261,6 @@ Get-PSDrive C
 ```
 
 If space is insufficient, clean up old Docker images: `docker system prune -a`
-
-### Not enough memory?
-
-If your computer has less than 8 GB of memory, you can disable the Flow Optimizer to save 2-4 GB:
-
-```bash
-# Set in .env
-FLOW_OPTIMIZER_ENABLED=false
-
-# Restart services
-docker compose up -d
-```
 
 ---
 
@@ -479,16 +466,21 @@ N3N uses a **zero-configuration design** — all settings have sensible defaults
 
 > **Auto mode**: On startup, the system auto-detects the environment (K8s Service Account → Docker Socket → Docker CLI) and selects the appropriate container engine.
 
-### AI Flow Optimizer (Enabled by Default)
+### AI Providers (Cloud)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FLOW_OPTIMIZER_ENABLED` | `true` | Local AI optimizer (enabled by default) |
-| `FLOW_OPTIMIZER_URL` | `http://flow-optimizer:8081` | Optimizer service URL |
+N3N's AI features (flow generation, multimodal nodes, flow optimization) use cloud AI providers.
+Enter API keys in Credentials or AI Settings:
 
-The local AI optimizer starts automatically with `docker compose up -d`, no extra setup or API keys required.
+| Provider | Purpose | Balance query |
+|----------|---------|---------------|
+| OpenRouter | Unified gateway — one key for 100+ models (Claude / GPT / Gemini) | Yes (official API) |
+| OpenAI | Chat, vision, TTS, image generation | Local estimate |
+| Anthropic (Claude) | Chat, flow generation | Local estimate |
+| Google (Gemini) | Chat, multimodal | Local estimate |
+| fal.ai | AI image (FLUX) and video generation (Veo / Kling / Hailuo) | Yes (official API) |
+| ElevenLabs | AI text-to-speech | Yes (character quota) |
 
-> **Note**: The local AI optimizer runs on your machine. First startup requires downloading the model (~2.3GB) and at least 4GB of memory.
+Use the **AI Balance** page to view remaining balances and usage across all providers at once.
 
 ---
 

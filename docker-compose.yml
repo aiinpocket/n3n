@@ -20,9 +20,8 @@ services:
       # 如需叢集部署共用同一密鑰，可設定：JWT_SECRET=<base64 encoded 32-byte key>
       # CORS（生產環境請在 .env 中設定你的域名）
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000}
-      # Flow Optimizer（記憶體不足時可在 .env 中設為 false）
-      FLOW_OPTIMIZER_ENABLED: ${FLOW_OPTIMIZER_ENABLED:-true}
-      FLOW_OPTIMIZER_URL: http://flow-optimizer:8081
+      # Flow Optimizer（已改用雲端 AI，本地 LLM 預設停用）
+      FLOW_OPTIMIZER_ENABLED: ${FLOW_OPTIMIZER_ENABLED:-false}
     volumes:
       - app_data:/data
     depends_on:
@@ -143,40 +142,6 @@ services:
           memory: 1G
         reservations:
           memory: 256M
-    restart: unless-stopped
-
-  # Flow Optimizer Service (Local AI - Phi-3-Mini for flow optimization)
-  # Enabled by default - provides AI flow optimization without external API keys
-  flow-optimizer:
-    build:
-      context: ./flow-optimizer
-      dockerfile: Dockerfile
-    container_name: n3n-flow-optimizer
-    # Internal service — no ports exposed by default.
-    # ports:
-    #   - "8081:8081"
-    environment:
-      LLAMAFILE_HOST: "0.0.0.0"
-      LLAMAFILE_PORT: "8081"
-      LLAMAFILE_THREADS: "4"
-      LLAMAFILE_CTX_SIZE: "4096"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 2G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 600s
-      retries: 5
     restart: unless-stopped
 
 volumes:
