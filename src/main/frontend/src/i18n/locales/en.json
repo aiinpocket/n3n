@@ -955,6 +955,11 @@
         "nlGeneration": "Natural language flow generation: describe what you want, AI builds the flow"
       },
       "optional": "Cloud AI is optional. Built-in features work without any API key."
+    },
+    "generator": {
+      "createAndPublish": "Create & Publish",
+      "publishedSuccess": "Flow created and published — ready to run",
+      "publishedWithSchedule": "Flow created and published — schedules were automatically mounted"
     }
   },
   "chat": {

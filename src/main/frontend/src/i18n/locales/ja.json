@@ -955,6 +955,11 @@
         "nlGeneration": "自然言語フロー生成：やりたいことを説明するだけで、AIがフローを構築"
       },
       "optional": "クラウドAIはオプションです。組み込み機能はAPIキーなしで利用できます。"
+    },
+    "generator": {
+      "createAndPublish": "作成して公開",
+      "publishedSuccess": "フローを作成して公開しました。すぐに実行できます",
+      "publishedWithSchedule": "フローを作成して公開しました。スケジュールは自動的に有効化されました"
     }
   },
   "chat": {

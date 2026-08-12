@@ -955,6 +955,11 @@
         "nlGeneration": "自然語言流程生成：描述您的需求，AI 幫您建立流程"
       },
       "optional": "雲端 AI 為選用功能。內建功能無需任何 API Key 即可使用。"
+    },
+    "generator": {
+      "createAndPublish": "建立並發布",
+      "publishedSuccess": "流程已建立並發布，可立即執行",
+      "publishedWithSchedule": "流程已建立並發布，排程已自動掛載啟用"
     }
   },
   "chat": {

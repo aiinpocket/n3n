@@ -118,7 +118,8 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
                         .withPlaceholder("Describe what you want the agent to do...")
                         .required(),
                     FieldDef.multiSelect("tools", "Enabled Tools",
-                            List.of("http_request", "code_execution", "web_search"))
+                            List.of("http_request", "code_execution", "web_search",
+                                    "list_flows", "run_flow"))
                         .withDefault(List.of("http_request", "web_search"))
                         .withDescription("Tools available to the agent"),
                     FieldDef.integer("maxIterations", "Max Iterations")
@@ -331,7 +332,8 @@ public class AiAgentNodeHandler extends AbstractAiNodeHandler {
             );
 
             CompletableFuture<AgentNodeTool.ToolResult> future = tool.execute(arguments, toolContext);
-            return future.get(120, java.util.concurrent.TimeUnit.SECONDS);
+            long timeoutSeconds = Math.max(tool.getTimeoutSeconds(), 120);
+            return future.get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
 
         } catch (java.util.concurrent.TimeoutException e) {
             log.warn("Tool execution timed out: {}", toolCall.getName());

@@ -33,7 +33,9 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import type { GenerateFlowResponse, RequirementClarificationResponse, RequirementSummary } from '../../api/aiAssistant'
+import { flowApi, type FlowDefinition } from '../../api/flow'
 import { aiAssistantApi } from '../../api/aiAssistant'
 import {
   installMissingNodes,
@@ -65,6 +67,40 @@ interface Props {
 
 type Step = 'input' | 'conversation' | 'generating' | 'preview' | 'error'
 
+/** Initial version created by the one-click "Create & Publish" action */
+const INITIAL_VERSION = '1.0.0'
+/** Node type whose publication auto-registers Quartz schedules on the backend */
+const SCHEDULE_TRIGGER_TYPE = 'scheduleTrigger'
+/** Max length for a flow name derived from the AI understanding text */
+const MAX_FLOW_NAME_LENGTH = 50
+
+/**
+ * Transform the AI-generated flow definition into the exact shape the flow
+ * editor persists (see flowEditorStore.saveVersion) and can load back
+ * (see flowEditorStore.loadFlow). Node layout mirrors how FlowEditorPage
+ * maps `state.generatedFlow` into React Flow nodes.
+ */
+const buildEditorDefinition = (
+  flowDef: NonNullable<GenerateFlowResponse['flowDefinition']>
+): FlowDefinition => ({
+  nodes: flowDef.nodes.map((n, i) => ({
+    id: n.id,
+    type: n.type,
+    position: { x: 250, y: i * 120 + 50 },
+    data: {
+      label: n.label || n.type,
+      nodeType: n.type,
+      ...n.config,
+    },
+  })),
+  edges: flowDef.edges.map((e, i) => ({
+    id: `edge-${i}`,
+    source: e.source,
+    target: e.target,
+    edgeType: 'success',
+  })),
+})
+
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
@@ -78,7 +114,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   initialDescription,
 }) => {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const [step, setStep] = useState<Step>('input')
+  const [isPublishing, setIsPublishing] = useState(false)
   const [userInput, setUserInput] = useState('')
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -255,6 +293,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStreamMissingNodes([])
     setThinkingStage(0)
     setThinkingThoughts([])
+    setIsPublishing(false)
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
@@ -507,6 +546,59 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     if (result?.flowDefinition) {
       onCreateFlow?.(result.flowDefinition)
       handleClose()
+    }
+  }
+
+  /** Derive a human-friendly flow name from the AI understanding text */
+  const deriveFlowName = (): string => {
+    const firstLine = (result?.understanding || '').split('\n')[0].trim()
+    if (!firstLine) return t('flow.aiGeneratedName')
+    return firstLine.length > MAX_FLOW_NAME_LENGTH
+      ? `${firstLine.slice(0, MAX_FLOW_NAME_LENGTH)}…`
+      : firstLine
+  }
+
+  /**
+   * One-click create & publish: create flow → save version 1.0.0 with the
+   * generated definition → publish (backend auto-registers Quartz schedules
+   * for scheduleTrigger nodes) → navigate to the editor.
+   */
+  const handleCreateAndPublish = async () => {
+    if (!result?.flowDefinition || isPublishing) return
+
+    setIsPublishing(true)
+    const definition = buildEditorDefinition(result.flowDefinition)
+    const hasScheduleTrigger = result.flowDefinition.nodes.some(
+      (n) => n.type === SCHEDULE_TRIGGER_TYPE
+    )
+    let createdFlowId: string | null = null
+
+    try {
+      const flow = await flowApi.createFlow({
+        name: deriveFlowName(),
+        description: result.understanding || t('flow.aiGeneratedDescription'),
+      })
+      createdFlowId = flow.id
+      await flowApi.saveVersion(flow.id, { version: INITIAL_VERSION, definition })
+      await flowApi.publishVersion(flow.id, INITIAL_VERSION)
+
+      message.success(
+        hasScheduleTrigger
+          ? t('ai.generator.publishedWithSchedule')
+          : t('ai.generator.publishedSuccess')
+      )
+      navigate(`/flows/${flow.id}/edit`)
+      handleClose()
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.createFailed')))
+      // If the flow was created but a later step failed, still open the
+      // editor so the user's generated flow is not lost.
+      if (createdFlowId) {
+        navigate(`/flows/${createdFlowId}/edit`)
+        handleClose()
+      }
+    } finally {
+      if (mountedRef.current) setIsPublishing(false)
     }
   }
 
@@ -1230,13 +1322,23 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       case 'preview':
         return (
           <Space>
-            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
+            <Button onClick={handleReset} disabled={isPublishing}>
+              {t('flowGenerator.redescribe')}
+            </Button>
             <Button
-              type="primary"
               icon={<CheckCircleOutlined />}
               onClick={handleCreateFlow}
+              disabled={isPublishing}
             >
               {t('flowGenerator.createFlow')}
+            </Button>
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined />}
+              loading={isPublishing}
+              onClick={handleCreateAndPublish}
+            >
+              {t('ai.generator.createAndPublish')}
             </Button>
           </Space>
         )
