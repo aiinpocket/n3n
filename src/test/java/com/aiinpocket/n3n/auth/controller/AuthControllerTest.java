@@ -42,6 +42,9 @@ class AuthControllerTest {
     private AuthService authService;
 
     @Mock
+    private com.aiinpocket.n3n.auth.service.GoogleAuthService googleAuthService;
+
+    @Mock
     private LoginRateLimiter loginRateLimiter;
 
     @Mock

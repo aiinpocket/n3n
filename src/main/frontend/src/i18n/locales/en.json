@@ -117,7 +117,7 @@
     "aiAssistant": "AI Assistant",
     "aiSettings": "AI Settings",
     "aiBilling": "AI Balance",
-    "monitoring":"Monitoring",
+    "monitoring": "Monitoring",
     "logs": "Logs",
     "activities": "Activities",
     "settings": "Settings",
@@ -135,7 +135,8 @@
     "approvals": "Approvals",
     "housekeeping": "Housekeeping",
     "schedules": "Schedules",
-    "cloudBackup": "Cloud Backup"
+    "cloudBackup": "Cloud Backup",
+    "artifacts": "Artifacts"
   },
   "auth": {
     "login": "Login",
@@ -179,7 +180,9 @@
     "appSubtitle": "AI-Powered Workflow Automation",
     "emailPlaceholder": "you@example.com",
     "emailInvalid": "Invalid email format",
-    "passwordTooShort": "Password must be at least 12 characters"
+    "passwordTooShort": "Password must be at least 12 characters",
+    "orContinueWith": "Or continue with",
+    "googleLoginFailed": "Google sign-in failed. Please try again."
   },
   "setup": {
     "title": "Welcome to N3N Flow",
@@ -1815,7 +1818,16 @@
     "welcomeBack": "Welcome back, {{name}}",
     "welcomeExplanation": "Automate repetitive tasks by connecting your apps and services together — no coding required.",
     "noActivities": "No recent activities",
-    "noExecutions": "No recent executions"
+    "noExecutions": "No recent executions",
+    "aiHeroTitle": "What do you want to automate? Just tell the AI",
+    "aiHeroSubtitle": "Describe your need in one sentence — the AI builds a runnable flow, and publishing schedules it automatically",
+    "aiHeroPlaceholder": "e.g. Every morning at 9, summarize yesterday's sales data into a report and email it to me",
+    "aiHeroButton": "Let AI build it",
+    "aiHeroExample1": "Generate and send a weekly ops report every Monday",
+    "aiHeroExample2": "Turn product photos into a promo video with voice-over",
+    "aiHeroExample3": "Monitor competitor sites daily and notify me of changes",
+    "aiHeroEmptyHint": "Please describe what you want to automate first",
+    "needsAttention": "{{total}} flow(s) are waiting for your action"
   },
   "diff": {
     "nodes": "nodes",
@@ -2571,6 +2583,10 @@
     "pinnedData": {
       "label": "Pinned Data",
       "description": "Use fixed data as node output"
+    },
+    "saveArtifact": {
+      "label": "Save Artifact",
+      "description": "Save text, HTML, Markdown, JSON or base64 content into your artifact library for browsing and downloading"
     }
   },
   "quickActions": {
@@ -3030,5 +3046,29 @@
     "importErrors": "import errors",
     "noRemoteData": "No remote data found for this recovery key",
     "reEncryptNote": "All imported data will be re-encrypted with your current master key and uploaded back to cloud."
+  },
+  "artifacts": {
+    "title": "Artifacts",
+    "summary": "{{total}} files, {{size}} used",
+    "loadFailed": "Failed to load artifacts",
+    "downloadFailed": "Download failed",
+    "previewFailed": "Preview failed",
+    "deleted": "Deleted",
+    "deleteConfirm": "Delete this file? This cannot be undone.",
+    "filename": "Filename",
+    "type": "Type",
+    "size": "Size",
+    "source": "Source",
+    "createdAt": "Created",
+    "preview": "Preview",
+    "download": "Download",
+    "openFlow": "Open source flow",
+    "empty": "No artifacts yet",
+    "emptyHint": "AI videos, audio, images and outputs of the \"Save Artifact\" node will appear here automatically",
+    "filterAll": "All types",
+    "filterImage": "Images",
+    "filterVideo": "Videos",
+    "filterAudio": "Audio",
+    "filterText": "Documents"
   }
 }

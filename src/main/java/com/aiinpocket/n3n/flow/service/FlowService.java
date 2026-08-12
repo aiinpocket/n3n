@@ -13,6 +13,7 @@ import com.aiinpocket.n3n.flow.repository.FlowVersionRepository;
 import com.aiinpocket.n3n.execution.repository.FormTriggerRepository;
 import com.aiinpocket.n3n.service.ExternalServiceService;
 import com.aiinpocket.n3n.service.dto.EndpointSchemaResponse;
+import com.aiinpocket.n3n.scheduler.ScheduleSyncService;
 import com.aiinpocket.n3n.scheduler.SchedulerService;
 import com.aiinpocket.n3n.scheduler.repository.ScheduleRepository;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
@@ -44,6 +45,7 @@ public class FlowService {
     private final FormTriggerRepository formTriggerRepository;
     private final SchedulerService schedulerService;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleSyncService scheduleSyncService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
@@ -407,6 +409,12 @@ public class FlowService {
         v.setStatus(Status.FlowVersion.PUBLISHED);
         v = flowVersionRepository.save(v);
         log.info("Flow version published: flowId={}, version={}", flowId, version);
+
+        // 發布即自動掛載排程：流程內的 scheduleTrigger 節點同步為 Quartz 排程，
+        // 使用者（非技術背景）不需再到排程頁手動建立
+        FlowVersion published = v;
+        flowRepository.findByIdAndIsDeletedFalse(flowId).ifPresent(flow ->
+            scheduleSyncService.syncFromDefinition(flowId, published.getDefinition(), flow.getCreatedBy()));
 
         return FlowVersionResponse.from(v);
     }

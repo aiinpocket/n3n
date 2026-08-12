@@ -135,7 +135,8 @@
     "approvals": "待審批",
     "housekeeping": "系統清理",
     "schedules": "排程管理",
-    "cloudBackup": "雲端備份"
+    "cloudBackup": "雲端備份",
+    "artifacts": "作品庫"
   },
   "auth": {
     "login": "登入",
@@ -179,7 +180,9 @@
     "appSubtitle": "AI 驅動的工作流程自動化",
     "emailPlaceholder": "you@example.com",
     "emailInvalid": "電子郵件格式無效",
-    "passwordTooShort": "密碼至少需要 12 個字元"
+    "passwordTooShort": "密碼至少需要 12 個字元",
+    "orContinueWith": "或使用以下方式繼續",
+    "googleLoginFailed": "Google 登入失敗，請再試一次"
   },
   "setup": {
     "title": "歡迎使用 N3N Flow",
@@ -1815,7 +1818,16 @@
     "welcomeBack": "歡迎回來，{{name}}",
     "welcomeExplanation": "將您的應用程式和服務串接在一起，自動化重複性工作 — 完全不需要寫程式。",
     "noActivities": "暫無最近活動",
-    "noExecutions": "暫無最近執行"
+    "noExecutions": "暫無最近執行",
+    "aiHeroTitle": "想自動化什麼？直接告訴 AI",
+    "aiHeroSubtitle": "用一句話描述你的需求，AI 會自動編排出可執行的流程，發布後即可定時執行",
+    "aiHeroPlaceholder": "例如：每天早上 9 點彙整昨天的銷售資料，寫成摘要報告寄給我",
+    "aiHeroButton": "讓 AI 幫我編排",
+    "aiHeroExample1": "每週一產生上週營運週報並寄出",
+    "aiHeroExample2": "把產品照片生成宣傳短影片和配音",
+    "aiHeroExample3": "每天監控競品網站有更新就通知我",
+    "aiHeroEmptyHint": "請先描述你想自動化的事情",
+    "needsAttention": "有 {{total}} 個流程正在等你處理"
   },
   "diff": {
     "nodes": "節點",
@@ -2571,6 +2583,10 @@
     "pinnedData": {
       "label": "固定資料",
       "description": "使用固定資料作為節點輸出"
+    },
+    "saveArtifact": {
+      "label": "儲存產出檔案",
+      "description": "將文字、HTML、Markdown、JSON 或 base64 內容存入個人作品庫，可隨時瀏覽與下載"
     }
   },
   "quickActions": {
@@ -3030,5 +3046,29 @@
     "importErrors": "個匯入錯誤",
     "noRemoteData": "此助記詞未找到遠端資料",
     "reEncryptNote": "所有匯入的資料將使用您當前的主金鑰重新加密，並上傳回雲端。"
+  },
+  "artifacts": {
+    "title": "作品庫",
+    "summary": "共 {{total}} 個檔案，佔用 {{size}}",
+    "loadFailed": "載入作品庫失敗",
+    "downloadFailed": "下載失敗",
+    "previewFailed": "預覽失敗",
+    "deleted": "已刪除",
+    "deleteConfirm": "確定要刪除這個檔案嗎？刪除後無法復原。",
+    "filename": "檔案名稱",
+    "type": "類型",
+    "size": "大小",
+    "source": "來源",
+    "createdAt": "建立時間",
+    "preview": "預覽",
+    "download": "下載",
+    "openFlow": "開啟來源流程",
+    "empty": "還沒有任何產出檔案",
+    "emptyHint": "流程中的 AI 影片、語音、圖片與「儲存產出檔案」節點的產出會自動出現在這裡",
+    "filterAll": "全部類型",
+    "filterImage": "圖片",
+    "filterVideo": "影片",
+    "filterAudio": "音訊",
+    "filterText": "文件"
   }
 }

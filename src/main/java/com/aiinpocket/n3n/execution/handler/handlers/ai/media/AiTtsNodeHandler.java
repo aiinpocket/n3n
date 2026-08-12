@@ -1,5 +1,8 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.media;
 
+import com.aiinpocket.n3n.artifact.dto.ArtifactMeta;
+import com.aiinpocket.n3n.artifact.entity.Artifact;
+import com.aiinpocket.n3n.artifact.service.ArtifactService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.handler.multiop.FieldDef;
@@ -30,6 +33,7 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private final ObjectMapper objectMapper;
+    private final ArtifactService artifactService;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -48,7 +52,8 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
 
     @Override
     public String getDescription() {
-        return "Convert text to natural speech audio using OpenAI TTS or ElevenLabs. Outputs base64-encoded MP3.";
+        return "Convert text to natural speech audio using OpenAI TTS or ElevenLabs. "
+                + "Saves the MP3 into your artifact library and outputs a download URL.";
     }
 
     @Override
@@ -93,9 +98,12 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
                             "alloy", "ash", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"))
                         .withDefault("alloy"),
                     FieldDef.textarea("instructions", "Voice Instructions")
-                        .withDescription("Optional tone/style instructions (gpt-4o-mini-tts only)")
+                        .withDescription("Optional tone/style instructions (gpt-4o-mini-tts only)"),
+                    FieldDef.bool("includeBase64", "Include Base64 Audio in Output")
+                        .withDefault(false)
+                        .withDescription("Also include base64-encoded audio in node output (increases execution state size)")
                 ))
-                .outputDescription("Returns 'audioBase64' (MP3) and 'mimeType'")
+                .outputDescription("Returns 'artifactId', 'downloadUrl', 'mimeType' and 'sizeBytes'")
                 .build(),
             OperationDef.create("elevenLabsSpeech", "ElevenLabs TTS")
                 .description("Generate speech with ElevenLabs voices")
@@ -112,9 +120,12 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
                         .required(),
                     FieldDef.select("modelId", "Model", List.of(
                             "eleven_multilingual_v2", "eleven_turbo_v2_5", "eleven_flash_v2_5"))
-                        .withDefault("eleven_multilingual_v2")
+                        .withDefault("eleven_multilingual_v2"),
+                    FieldDef.bool("includeBase64", "Include Base64 Audio in Output")
+                        .withDefault(false)
+                        .withDescription("Also include base64-encoded audio in node output (increases execution state size)")
                 ))
-                .outputDescription("Returns 'audioBase64' (MP3) and 'mimeType'")
+                .outputDescription("Returns 'artifactId', 'downloadUrl', 'mimeType' and 'sizeBytes'")
                 .build()
         ));
 
@@ -131,8 +142,8 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
 
         try {
             return switch (operation) {
-                case "openaiSpeech" -> openaiSpeech(credential, params);
-                case "elevenLabsSpeech" -> elevenLabsSpeech(credential, params);
+                case "openaiSpeech" -> openaiSpeech(context, credential, params);
+                case "elevenLabsSpeech" -> elevenLabsSpeech(context, credential, params);
                 default -> NodeExecutionResult.failure("Unknown operation: " + resource + "." + operation);
             };
         } catch (Exception e) {
@@ -141,7 +152,7 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
         }
     }
 
-    private NodeExecutionResult openaiSpeech(Map<String, Object> credential, Map<String, Object> params)
+    private NodeExecutionResult openaiSpeech(NodeExecutionContext context, Map<String, Object> credential, Map<String, Object> params)
             throws IOException {
         String apiKey = getCredentialValue(credential, "apiKey");
         if (apiKey == null || apiKey.isBlank()) {
@@ -167,10 +178,10 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
                 .post(RequestBody.create(objectMapper.writeValueAsString(body), JSON))
                 .build();
 
-        return executeAudioRequest(request, "OpenAI TTS");
+        return executeAudioRequest(context, params, request, "OpenAI TTS");
     }
 
-    private NodeExecutionResult elevenLabsSpeech(Map<String, Object> credential, Map<String, Object> params)
+    private NodeExecutionResult elevenLabsSpeech(NodeExecutionContext context, Map<String, Object> credential, Map<String, Object> params)
             throws IOException {
         String apiKey = getCredentialValue(credential, "apiKey");
         if (apiKey == null || apiKey.isBlank()) {
@@ -192,10 +203,12 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
                 .post(RequestBody.create(objectMapper.writeValueAsString(body), JSON))
                 .build();
 
-        return executeAudioRequest(request, "ElevenLabs TTS");
+        return executeAudioRequest(context, params, request, "ElevenLabs TTS");
     }
 
-    private NodeExecutionResult executeAudioRequest(Request request, String label) throws IOException {
+    private NodeExecutionResult executeAudioRequest(
+            NodeExecutionContext context, Map<String, Object> params, Request request, String label)
+            throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful() || response.body() == null) {
                 String errorBody = response.body() != null ? response.body().string() : "";
@@ -204,10 +217,33 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
             }
 
             byte[] audio = response.body().bytes();
+            boolean includeBase64 = getBoolParam(params, "includeBase64", false);
+
             Map<String, Object> output = new LinkedHashMap<>();
-            output.put("audioBase64", Base64.getEncoder().encodeToString(audio));
             output.put("mimeType", "audio/mpeg");
             output.put("sizeBytes", audio.length);
+
+            // 存入使用者 artifact 庫；失敗時退回輸出 base64，避免資料遺失
+            try {
+                ArtifactMeta meta = ArtifactMeta.builder()
+                        .filename("tts-" + System.currentTimeMillis() + ".mp3")
+                        .mimeType("audio/mpeg")
+                        .flowId(context.getFlowId())
+                        .executionId(context.getExecutionId())
+                        .nodeId(context.getNodeId())
+                        .sourceNodeType(getType())
+                        .build();
+                Artifact artifact = artifactService.save(context.getUserId(), meta, audio);
+                output.put("artifactId", artifact.getId().toString());
+                output.put("downloadUrl", ArtifactService.downloadUrl(artifact.getId()));
+            } catch (Exception e) {
+                log.warn("Failed to save TTS artifact: {}", e.getMessage());
+                includeBase64 = true;
+            }
+
+            if (includeBase64) {
+                output.put("audioBase64", Base64.getEncoder().encodeToString(audio));
+            }
             return NodeExecutionResult.success(output);
         }
     }
@@ -220,10 +256,16 @@ public class AiTtsNodeHandler extends MultiOperationNodeHandler {
                        "description", "Text to synthesize (can also come from node config)")
             ),
             "outputs", List.of(
+                Map.of("name", "artifactId", "type", "string",
+                       "description", "Saved artifact ID"),
+                Map.of("name", "downloadUrl", "type", "string",
+                       "description", "Relative download URL of the audio artifact"),
                 Map.of("name", "audioBase64", "type", "string",
-                       "description", "Base64-encoded MP3 audio"),
+                       "description", "Base64-encoded MP3 audio (only when 'includeBase64' is enabled)"),
                 Map.of("name", "mimeType", "type", "string",
-                       "description", "Audio MIME type")
+                       "description", "Audio MIME type"),
+                Map.of("name", "sizeBytes", "type", "integer",
+                       "description", "Audio size in bytes")
             )
         );
     }

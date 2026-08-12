@@ -12,6 +12,7 @@ import {
   RobotOutlined,
   SettingOutlined,
   DollarOutlined,
+  FolderOpenOutlined,
   ToolOutlined,
   LinkOutlined,
   DesktopOutlined,
@@ -69,6 +70,7 @@ export default function MainLayout() {
       '/': t('nav.dashboard'),
       '/flows': t('nav.flows'),
       '/executions': t('nav.executions'),
+      '/artifacts': t('nav.artifacts'),
       '/services': t('nav.services'),
       '/components': t('nav.components'),
       '/webhooks': t('nav.webhooks'),
@@ -118,6 +120,11 @@ export default function MainLayout() {
           key: '/executions',
           icon: <PlayCircleOutlined />,
           label: t('nav.executions'),
+        },
+        {
+          key: '/artifacts',
+          icon: <FolderOpenOutlined />,
+          label: t('nav.artifacts'),
         },
         {
           key: '/approvals',

@@ -329,7 +329,11 @@ public class AuthService {
         }
     }
 
-    private AuthResponse generateAuthResponse(User user, String ipAddress, String userAgent) {
+    /**
+     * Package-private so other auth services (e.g. GoogleAuthService) can issue
+     * the exact same token response as a password login.
+     */
+    AuthResponse generateAuthResponse(User user, String ipAddress, String userAgent) {
         List<String> roles = userRoleRepository.findByUserId(user.getId())
             .stream()
             .map(UserRole::getRole)
@@ -359,7 +363,8 @@ public class AuthService {
         return builder.build();
     }
 
-    private void validateUserStatus(User user) {
+    /** Package-private for reuse by GoogleAuthService. */
+    void validateUserStatus(User user) {
         switch (user.getStatus()) {
             case "pending" -> throw new EmailNotVerifiedException("Please verify your email first");
             case "suspended" -> throw new AccountSuspendedException("Account has been suspended");

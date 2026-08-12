@@ -7,7 +7,18 @@ export interface UserProfile {
   roles: string[]
 }
 
+export interface GoogleAuthConfig {
+  enabled: boolean
+  clientId: string | null
+}
+
 export const authApi = {
+  getGoogleConfig: async (): Promise<GoogleAuthConfig> => {
+    const response = await apiClient.get<GoogleAuthConfig>('/auth/google/config')
+    return response.data
+  },
+
+
   updateProfile: async (name: string): Promise<UserProfile> => {
     const response = await apiClient.put<UserProfile>('/auth/profile', { name })
     return response.data

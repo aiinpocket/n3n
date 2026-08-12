@@ -55,11 +55,13 @@ public class SecurityConfig {
                 // For production, consider using nonce-based CSP
                 .contentSecurityPolicy(csp -> csp.policyDirectives(
                     "default-src 'self'; " +
-                    "script-src 'self'; " +  // Removed 'unsafe-inline' - use proper bundling
-                    "style-src 'self' 'unsafe-inline'; " +  // Keep for React inline styles
-                    "img-src 'self' data: https:; " +  // Allow HTTPS images
-                    "font-src 'self' data:; " +  // Allow fonts
+                    "script-src 'self' https://accounts.google.com; " +  // accounts.google.com for Google Sign-In (GIS)
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +  // React inline styles + Google Fonts
+                    "img-src 'self' data: blob: https:; " +  // Allow HTTPS images + blob (artifact preview)
+                    "media-src 'self' blob:; " +  // Artifact audio/video preview via blob URL
+                    "font-src 'self' data: https://fonts.gstatic.com; " +  // Allow fonts + Google Fonts files
                     "connect-src 'self' wss: https:; " +  // Removed insecure ws:, only allow wss:
+                    "frame-src https://accounts.google.com; " +  // Google Sign-In button iframe
                     "frame-ancestors 'none'; " +  // Prevent clickjacking
                     "form-action 'self'; " +  // Restrict form submissions
                     "base-uri 'self'; " +  // Prevent base tag injection
@@ -79,7 +81,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/google", "/api/auth/google/config").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 // Agent pairing completion (uses pairing code for auth)
                 .requestMatchers("/api/agent/pair/complete").permitAll()

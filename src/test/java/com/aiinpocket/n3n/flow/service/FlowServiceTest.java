@@ -64,6 +64,9 @@ class FlowServiceTest extends BaseServiceTest {
     private com.aiinpocket.n3n.scheduler.repository.ScheduleRepository scheduleRepository;
 
     @Mock
+    private com.aiinpocket.n3n.scheduler.ScheduleSyncService scheduleSyncService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks

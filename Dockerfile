@@ -47,6 +47,9 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup -g 1000 n3n && adduser -u 1000 -G n3n -D n3n
 
+# 資料目錄（named volume 首次建立時會繼承此擁有者，避免 root-owned volume 導致寫入失敗）
+RUN mkdir -p /app/data/artifacts /app/data/keys && chown -R n3n:n3n /app/data
+
 # Copy layered JAR (each layer is a separate Docker layer)
 # Order: least-changing → most-changing (best cache utilization)
 COPY --from=backend-build --chown=n3n:n3n /app/extracted/dependencies/ ./

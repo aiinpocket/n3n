@@ -2,6 +2,12 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 services:
+  app:
+    environment:
+      ARTIFACT_STORAGE_PATH: /app/data/artifacts
+    volumes:
+      - n3n_artifacts:/app/data/artifacts
+
   postgres:
     ports:
       - "5432:5432"

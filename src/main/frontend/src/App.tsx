@@ -42,6 +42,7 @@ const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const HousekeepingPage = lazy(() => import('./pages/HousekeepingPage'))
 const CloudBackupPage = lazy(() => import('./pages/CloudBackupPage'))
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'))
+const ArtifactsPage = lazy(() => import('./pages/ArtifactsPage'))
 const SchedulerPage = lazy(() => import('./pages/SchedulerPage'))
 const FormPage = lazy(() => import('./pages/FormPage'))
 const OAuth2CallbackPage = lazy(() => import('./pages/OAuth2CallbackPage'))
@@ -215,6 +216,7 @@ function App() {
             <Route path="credentials" element={<CredentialListPage />} />
             <Route path="settings/ai" element={<AISettingsPage />} />
             <Route path="settings/ai-billing" element={<AIBillingPage />} />
+            <Route path="artifacts" element={<ArtifactsPage />} />
             <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />

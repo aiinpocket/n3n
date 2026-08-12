@@ -34,17 +34,6 @@ N3N 平台內建多項服務，請根據使用場景選擇適當的硬體配置�
 
 > 適合：日常使用、中等複雜度流程、使用 OpenAI/Claude/Gemini 等雲端 AI
 
-### 進階需求（本地 AI 優化器）
-
-| 項目 | 規格 |
-|------|------|
-| **CPU** | 8 核心以上 |
-| **記憶體** | 16 GB 以上（建議 32 GB）|
-| **硬碟** | 50 GB SSD |
-| **GPU** | 選配：NVIDIA GPU 8GB+ VRAM 可加速推理 |
-
-> 適合：使用本地 AI 流程優化器、高負載/多流程並行、企業部署
-
 ### 內建服務資源佔用
 
 | 服務 | 記憶體佔用 | 說明 |
@@ -483,6 +472,27 @@ N3N 的 AI 功能（流程生成、多模態節點、流程優化）使用雲端
 | ElevenLabs | AI 語音合成 | 支援（字元配額） |
 
 前往「AI 餘額管理」頁面可以一次查看所有供應商的剩餘餘額與用量統計。
+
+### Google 登入（選填）
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `GOOGLE_OAUTH_CLIENT_ID` | （空，功能停用） | Google OAuth Client ID，設定後登入頁自動出現「使用 Google 登入」按鈕，首次登入自動建立帳號 |
+
+> 在 [Google Cloud Console](https://console.cloud.google.com/apis/credentials) 建立 OAuth Client ID（Web application），Authorized JavaScript origins 填入你的網站來源即可，不需要 redirect URI。
+
+### 作品庫（產出檔案儲存）
+
+流程產生的 AI 影片、語音、圖片與文件會自動存入每位使用者專屬的作品庫，可在「作品庫」頁面預覽、下載與刪除。
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `ARTIFACT_STORAGE_PATH` | `./data/artifacts` | 作品檔案儲存路徑（Docker 部署時掛載 volume） |
+| `ARTIFACT_MAX_FILE_SIZE_MB` | `512` | 單一檔案大小上限（MB） |
+
+### 排程自動掛載
+
+流程中若包含「排程觸發」節點，**發布流程時會自動註冊定時執行**，不需要再到排程頁手動建立；關閉瀏覽器後排程仍在伺服器端持續運行。
 
 ---
 

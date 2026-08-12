@@ -28,6 +28,7 @@ import { activityApi, type UserActivity } from '../api/activity'
 import { getLocale } from '../utils/locale'
 import { useAuthStore } from '../stores/authStore'
 import CloudImportSection from '../components/CloudImportSection'
+import AiPromptHero from '../components/ai/AiPromptHero'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentActivities, setRecentActivities] = useState<UserActivity[]>([])
   const [recentExecutions, setRecentExecutions] = useState<ExecutionResponse[]>([])
+  const [waitingExecutions, setWaitingExecutions] = useState<ExecutionResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
@@ -45,10 +47,11 @@ export default function DashboardPage() {
     setLoading(true)
     setLoadError(false)
     try {
-      const [statsRes, execRes, activitiesRes] = await Promise.allSettled([
+      const [statsRes, execRes, activitiesRes, waitingRes] = await Promise.allSettled([
         dashboardApi.getStats(),
         executionApi.list(0, 5),
         activityApi.listMy(0, 5),
+        executionApi.list(0, 5, 'waiting'),
       ])
 
       if (statsRes.status === 'fulfilled') {
@@ -63,6 +66,10 @@ export default function DashboardPage() {
       if (activitiesRes.status === 'fulfilled') {
         const activities = (activitiesRes.value.content || []).slice(0, 5)
         setRecentActivities(activities)
+      }
+
+      if (waitingRes.status === 'fulfilled') {
+        setWaitingExecutions(waitingRes.value.content || [])
       }
 
       const allFailed = statsRes.status === 'rejected' && execRes.status === 'rejected' && activitiesRes.status === 'rejected'
@@ -138,6 +145,7 @@ export default function DashboardPage() {
   if (stats && stats.totalFlows === 0) {
     return (
       <div>
+        <AiPromptHero />
         <Card
           style={{
             background: 'linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%)',
@@ -267,6 +275,38 @@ export default function DashboardPage() {
         <Title level={3} style={{ color: 'var(--color-text-primary)', margin: 0 }}>
           {userName ? t('dashboard.welcomeBack', { name: userName }) : t('dashboard.title')}
         </Title>
+      </Space>
+
+      <AiPromptHero />
+
+      {/* 需要人工處理的執行（等待批准/輸入）— 一眼看到哪裡卡住 */}
+      {waitingExecutions.length > 0 && (
+        <Card
+          size="small"
+          style={{
+            marginBottom: 16,
+            borderColor: 'rgba(250, 173, 20, 0.5)',
+            background: 'rgba(250, 173, 20, 0.06)',
+          }}
+        >
+          <Space wrap>
+            <PauseCircleOutlined style={{ color: 'var(--color-warning)' }} />
+            <Text strong style={{ color: 'var(--color-text-primary)' }}>
+              {t('dashboard.needsAttention', { total: waitingExecutions.length })}
+            </Text>
+            {waitingExecutions.slice(0, 3).map((e) => (
+              <Button key={e.id} type="link" size="small" onClick={() => navigate(`/executions/${e.id}`)}>
+                {e.flowName || e.id.substring(0, 8)}
+              </Button>
+            ))}
+            <Button type="link" size="small" onClick={() => navigate('/executions?status=waiting')}>
+              {t('dashboard.viewAll')}
+            </Button>
+          </Space>
+        </Card>
+      )}
+
+      <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
         <Space>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/flows')}>
             {t('flow.newFlow')}

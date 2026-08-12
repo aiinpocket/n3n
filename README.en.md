@@ -34,17 +34,6 @@ N3N includes multiple built-in services. Choose the appropriate hardware based o
 
 > Suitable for: daily use, moderate complexity flows, using OpenAI/Claude/Gemini cloud AI
 
-### Advanced (Local AI Optimizer)
-
-| Item | Spec |
-|------|------|
-| **CPU** | 8+ cores |
-| **RAM** | 16 GB+ (32 GB recommended) |
-| **Disk** | 50 GB SSD |
-| **GPU** | Optional: NVIDIA GPU 8GB+ VRAM for faster inference |
-
-> Suitable for: local AI flow optimizer, high-load/parallel flows, enterprise deployment
-
 ### Built-in Service Resource Usage
 
 | Service | Memory | Description |
@@ -481,6 +470,28 @@ Enter API keys in Credentials or AI Settings:
 | ElevenLabs | AI text-to-speech | Yes (character quota) |
 
 Use the **AI Balance** page to view remaining balances and usage across all providers at once.
+
+
+### Google Sign-In (optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GOOGLE_OAUTH_CLIENT_ID` | (empty, disabled) | Google OAuth Client ID. When set, a "Sign in with Google" button appears on the login page; first sign-in auto-creates an account |
+
+> Create an OAuth Client ID (Web application) in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) and add your site origin to Authorized JavaScript origins. No redirect URI needed.
+
+### Artifact Library (generated file storage)
+
+AI videos, audio, images and documents produced by flows are stored in each user's private artifact library — preview, download and delete them on the **Artifacts** page.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ARTIFACT_STORAGE_PATH` | `./data/artifacts` | Artifact storage path (mounted as a volume in Docker) |
+| `ARTIFACT_MAX_FILE_SIZE_MB` | `512` | Max size per file (MB) |
+
+### Automatic schedule mounting
+
+If a flow contains a **Schedule Trigger** node, publishing the flow automatically registers the schedule — no manual setup on the Schedules page. Schedules keep running server-side even after you close the browser.
 
 ---
 

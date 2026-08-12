@@ -1,9 +1,11 @@
+import { useCallback, useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, Alert, Space } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 
 const { Title, Text } = Typography
 
@@ -15,9 +17,10 @@ const REASON_KEYS: Record<string, string> = {
 export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { login, isLoading, error, clearError } = useAuthStore()
+  const { login, loginWithGoogle, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
   const { t } = useTranslation()
+  const [googleError, setGoogleError] = useState<string | null>(null)
 
   const reason = searchParams.get('reason')
   const reasonKey = reason ? REASON_KEYS[reason] : null
@@ -31,6 +34,21 @@ export default function LoginPage() {
       // Error is handled in store
     }
   }
+
+  const handleGoogleCredential = useCallback(async (credential: string) => {
+    setGoogleError(null)
+    try {
+      await loginWithGoogle(credential)
+      navigate('/')
+    } catch {
+      // API error message is handled in store; keep a generic fallback too
+      setGoogleError(t('auth.googleLoginFailed'))
+    }
+  }, [loginWithGoogle, navigate, t])
+
+  const handleGoogleError = useCallback(() => {
+    setGoogleError(t('auth.googleLoginFailed'))
+  }, [t])
 
   return (
     <div style={{
@@ -120,6 +138,21 @@ export default function LoginPage() {
               </Button>
             </Form.Item>
           </Form>
+
+          {googleError && !error && (
+            <Alert
+              message={googleError}
+              type="error"
+              showIcon
+              closable
+              onClose={() => setGoogleError(null)}
+            />
+          )}
+
+          <GoogleLoginButton
+            onCredential={handleGoogleCredential}
+            onError={handleGoogleError}
+          />
 
           <div style={{ textAlign: 'center' }}>
             <Link to="/reset-password" style={{ color: 'var(--color-primary)' }}>

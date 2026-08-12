@@ -22,8 +22,11 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000}
       # Flow Optimizer（已改用雲端 AI，本地 LLM 預設停用）
       FLOW_OPTIMIZER_ENABLED: ${FLOW_OPTIMIZER_ENABLED:-false}
+      # Artifacts（節點產出檔案儲存）
+      ARTIFACT_STORAGE_PATH: /app/data/artifacts
     volumes:
       - app_data:/data
+      - n3n_artifacts:/app/data/artifacts
     depends_on:
       postgres:
         condition: service_healthy
@@ -146,6 +149,7 @@ services:
 
 volumes:
   app_data:
+  n3n_artifacts:
   postgres_data:
   redis_data:
   mongodb_data:

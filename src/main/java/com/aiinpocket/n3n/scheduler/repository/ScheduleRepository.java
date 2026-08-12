@@ -21,5 +21,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
 
     void deleteByFlowId(UUID flowId);
 
+    List<Schedule> findByFlowId(UUID flowId);
+
     List<Schedule> findByIsActiveTrue();
 }

@@ -8,6 +8,7 @@ import com.aiinpocket.n3n.auth.exception.BadCredentialsException;
 import com.aiinpocket.n3n.auth.security.IpRateLimiter;
 import com.aiinpocket.n3n.auth.security.LoginRateLimiter;
 import com.aiinpocket.n3n.auth.service.AuthService;
+import com.aiinpocket.n3n.auth.service.GoogleAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
     private final LoginRateLimiter loginRateLimiter;
     private final IpRateLimiter ipRateLimiter;
     private final ActivityService activityService;
@@ -60,6 +62,38 @@ public class AuthController {
             // 記錄登入失敗審計日誌
             activityService.logLoginFailed(request.getEmail(), "Invalid credentials");
 
+            throw e;
+        }
+    }
+
+    /**
+     * Google Sign-In 前端設定（未設定 client-id 時 enabled=false）
+     */
+    @GetMapping("/google/config")
+    public ResponseEntity<GoogleConfigResponse> getGoogleConfig() {
+        return ResponseEntity.ok(new GoogleConfigResponse(
+            googleAuthService.isEnabled(),
+            googleAuthService.getClientId()
+        ));
+    }
+
+    /**
+     * 以 Google ID Token 登入，回應格式與 /login 相同
+     */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request,
+            HttpServletRequest httpRequest) {
+        String ipAddress = getClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        // 與登入端點相同的 IP 頻率限制
+        ipRateLimiter.checkAllowed("google-login", ipAddress, 10, 60);
+
+        try {
+            return ResponseEntity.ok(googleAuthService.login(request.getCredential(), ipAddress, userAgent));
+        } catch (BadCredentialsException e) {
+            activityService.logLoginFailed("google-sign-in", "Invalid Google credential");
             throw e;
         }
     }
@@ -160,6 +194,8 @@ public class AuthController {
     }
 
     public record SetupStatusResponse(boolean setupRequired) {}
+
+    public record GoogleConfigResponse(boolean enabled, String clientId) {}
 
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");

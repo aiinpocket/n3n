@@ -44,6 +44,7 @@ import {
   FileMarkdownOutlined,
   VideoCameraOutlined,
   SoundOutlined,
+  FolderOpenOutlined,
   EyeOutlined,
   FileOutlined,
   FileAddOutlined,
@@ -147,6 +148,7 @@ const iconComponents: Record<string, React.ReactNode> = {
   // AI Media
   VideoCameraOutlined: <VideoCameraOutlined />,
   SoundOutlined: <SoundOutlined />,
+  FolderOpenOutlined: <FolderOpenOutlined />,
   EyeOutlined: <EyeOutlined />,
   // Output
   ExportOutlined: <ExportOutlined />,

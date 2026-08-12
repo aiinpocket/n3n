@@ -135,7 +135,8 @@
     "approvals": "承認待ち",
     "housekeeping": "ハウスキーピング",
     "schedules": "スケジュール",
-    "cloudBackup": "クラウドバックアップ"
+    "cloudBackup": "クラウドバックアップ",
+    "artifacts": "成果物"
   },
   "auth": {
     "login": "ログイン",
@@ -179,7 +180,9 @@
     "appSubtitle": "AI駆動のワークフロー自動化",
     "emailPlaceholder": "you@example.com",
     "emailInvalid": "無効なメールアドレス形式です",
-    "passwordTooShort": "パスワードは12文字以上必要です"
+    "passwordTooShort": "パスワードは12文字以上必要です",
+    "orContinueWith": "または次の方法で続行",
+    "googleLoginFailed": "Google ログインに失敗しました。もう一度お試しください。"
   },
   "setup": {
     "title": "N3N Flow へようこそ",
@@ -1815,7 +1818,16 @@
     "welcomeBack": "おかえりなさい、{{name}}さん",
     "welcomeExplanation": "アプリやサービスを連携して、繰り返しの作業を自動化 — コーディング不要です。",
     "noActivities": "最近のアクティビティはありません",
-    "noExecutions": "最近の実行はありません"
+    "noExecutions": "最近の実行はありません",
+    "aiHeroTitle": "自動化したいことを AI に伝えるだけ",
+    "aiHeroSubtitle": "一文でニーズを書けば、AI が実行可能なフローを自動構成。公開すればスケジュール実行も自動設定されます",
+    "aiHeroPlaceholder": "例：毎朝 9 時に前日の売上データをまとめてレポートをメールで送る",
+    "aiHeroButton": "AI に作らせる",
+    "aiHeroExample1": "毎週月曜に週次レポートを生成して送信",
+    "aiHeroExample2": "商品写真からナレーション付きプロモ動画を生成",
+    "aiHeroExample3": "競合サイトを毎日監視して更新があれば通知",
+    "aiHeroEmptyHint": "まず自動化したい内容を入力してください",
+    "needsAttention": "{{total}} 件のフローがあなたの対応を待っています"
   },
   "diff": {
     "nodes": "ノード",
@@ -2571,6 +2583,10 @@
     "pinnedData": {
       "label": "固定データ",
       "description": "固定データをノード出力として使用"
+    },
+    "saveArtifact": {
+      "label": "成果物を保存",
+      "description": "テキスト・HTML・Markdown・JSON・base64 の内容を成果物ライブラリに保存し、後から閲覧・ダウンロードできます"
     }
   },
   "quickActions": {
@@ -3030,5 +3046,29 @@
     "importErrors": "件のインポートエラー",
     "noRemoteData": "このリカバリキーのリモートデータが見つかりません",
     "reEncryptNote": "インポートされたデータは現在のマスターキーで再暗号化され、クラウドにアップロードされます。"
+  },
+  "artifacts": {
+    "title": "成果物",
+    "summary": "{{total}} ファイル、{{size}} 使用中",
+    "loadFailed": "成果物の読み込みに失敗しました",
+    "downloadFailed": "ダウンロードに失敗しました",
+    "previewFailed": "プレビューに失敗しました",
+    "deleted": "削除しました",
+    "deleteConfirm": "このファイルを削除しますか？元に戻せません。",
+    "filename": "ファイル名",
+    "type": "種類",
+    "size": "サイズ",
+    "source": "ソース",
+    "createdAt": "作成日時",
+    "preview": "プレビュー",
+    "download": "ダウンロード",
+    "openFlow": "ソースフローを開く",
+    "empty": "まだ成果物がありません",
+    "emptyHint": "AI 動画・音声・画像や「成果物を保存」ノードの出力が自動的にここに表示されます",
+    "filterAll": "すべて",
+    "filterImage": "画像",
+    "filterVideo": "動画",
+    "filterAudio": "音声",
+    "filterText": "ドキュメント"
   }
 }

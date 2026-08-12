@@ -82,6 +82,7 @@ interface AuthState {
   recoveryKey: string[] | null
   checkSetupStatus: () => Promise<void>
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: (credential: string) => Promise<void>
   register: (email: string, password: string, name: string) => Promise<boolean | undefined>
   logout: () => Promise<void>
   refreshAccessToken: () => Promise<void>
@@ -120,6 +121,29 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/login', { email, password })
+          const { accessToken, refreshToken, user, recoveryKey, needsRecoveryKeyBackup } = response.data
+
+          set({
+            accessToken,
+            refreshToken,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+            // 如果需要備份 Recovery Key，顯示 Modal
+            showRecoveryKeyModal: needsRecoveryKeyBackup || false,
+            recoveryKey: recoveryKey || null,
+          })
+        } catch (error: unknown) {
+          const message = extractApiError(error)
+          set({ error: message, isLoading: false })
+          throw error
+        }
+      },
+
+      loginWithGoogle: async (credential: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const response = await apiClient.post('/auth/google', { credential })
           const { accessToken, refreshToken, user, recoveryKey, needsRecoveryKeyBackup } = response.data
 
           set({

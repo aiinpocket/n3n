@@ -1,5 +1,8 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.media;
 
+import com.aiinpocket.n3n.artifact.dto.ArtifactMeta;
+import com.aiinpocket.n3n.artifact.entity.Artifact;
+import com.aiinpocket.n3n.artifact.service.ArtifactService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.handler.multiop.FieldDef;
@@ -34,6 +37,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
     private static final long POLL_INTERVAL_MS = 5000;
 
     private final ObjectMapper objectMapper;
+    private final ArtifactService artifactService;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -197,10 +201,10 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
 
         try {
             if ("image".equals(resource) && "generate".equals(operation)) {
-                return generateImage(apiKey, params);
+                return generateImage(context, apiKey, params);
             }
             if ("video".equals(resource)) {
-                return generateVideo(apiKey, operation, params);
+                return generateVideo(context, apiKey, operation, params);
             }
             return NodeExecutionResult.failure("Unknown operation: " + resource + "." + operation);
         } catch (Exception e) {
@@ -211,7 +215,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
 
     // ==================== Image (sync endpoint) ====================
 
-    private NodeExecutionResult generateImage(String apiKey, Map<String, Object> params) throws IOException {
+    private NodeExecutionResult generateImage(NodeExecutionContext context, String apiKey, Map<String, Object> params) throws IOException {
         String model = getRequiredParam(params, "model");
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("prompt", getRequiredParam(params, "prompt"));
@@ -243,6 +247,21 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
             Map<String, Object> output = new LinkedHashMap<>();
             output.put("images", images);
             output.put("imageUrl", images.isEmpty() ? null : images.get(0));
+
+            // 將遠端圖片（URL 會過期）存入使用者 artifact 庫；失敗時仍回傳遠端 URL
+            List<String> artifactIds = new ArrayList<>();
+            for (String url : images) {
+                Artifact artifact = saveUrlAsArtifact(context, url, "image/png", "image", "png");
+                if (artifact != null) {
+                    artifactIds.add(artifact.getId().toString());
+                }
+            }
+            if (!artifactIds.isEmpty()) {
+                output.put("artifactIds", artifactIds);
+                output.put("artifactId", artifactIds.get(0));
+                output.put("downloadUrl", ArtifactService.downloadUrl(UUID.fromString(artifactIds.get(0))));
+            }
+
             output.put("raw", objectMapper.convertValue(root, Map.class));
             return NodeExecutionResult.success(output);
         }
@@ -250,7 +269,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
 
     // ==================== Video (queue endpoint + polling) ====================
 
-    private NodeExecutionResult generateVideo(String apiKey, String operation, Map<String, Object> params)
+    private NodeExecutionResult generateVideo(NodeExecutionContext context, String apiKey, String operation, Map<String, Object> params)
             throws IOException, InterruptedException {
         String model = getRequiredParam(params, "model");
         int timeoutSeconds = getIntParam(params, "timeoutSeconds", 600);
@@ -311,7 +330,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
             }
 
             if ("COMPLETED".equals(status)) {
-                return fetchVideoResult(apiKey, responseUrl);
+                return fetchVideoResult(context, apiKey, responseUrl);
             }
             if ("FAILED".equals(status) || "CANCELLED".equals(status)) {
                 return NodeExecutionResult.failure("fal.ai video generation " + status.toLowerCase());
@@ -321,7 +340,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
         return NodeExecutionResult.failure("fal.ai video generation timed out after " + timeoutSeconds + "s");
     }
 
-    private NodeExecutionResult fetchVideoResult(String apiKey, String responseUrl) throws IOException {
+    private NodeExecutionResult fetchVideoResult(NodeExecutionContext context, String apiKey, String responseUrl) throws IOException {
         Request resultRequest = new Request.Builder()
                 .url(responseUrl)
                 .header("Authorization", "Key " + apiKey)
@@ -343,9 +362,59 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
 
             Map<String, Object> output = new LinkedHashMap<>();
             output.put("videoUrl", videoUrl.isBlank() ? null : videoUrl);
+
+            // 將遠端影片（URL 會過期）存入使用者 artifact 庫；失敗時仍回傳遠端 URL
+            if (!videoUrl.isBlank()) {
+                Artifact artifact = saveUrlAsArtifact(context, videoUrl, "video/mp4", "video", "mp4");
+                if (artifact != null) {
+                    output.put("artifactId", artifact.getId().toString());
+                    output.put("downloadUrl", ArtifactService.downloadUrl(artifact.getId()));
+                }
+            }
+
             output.put("raw", objectMapper.convertValue(root, Map.class));
             return NodeExecutionResult.success(output);
         }
+    }
+
+    /**
+     * 從遠端 URL 儲存 artifact；失敗時記 warning 並回傳 null（不讓節點失敗）。
+     */
+    private Artifact saveUrlAsArtifact(NodeExecutionContext context, String url,
+                                       String defaultMimeType, String prefix, String defaultExt) {
+        try {
+            ArtifactMeta meta = ArtifactMeta.builder()
+                    .filename(filenameFromUrl(url, prefix, defaultExt))
+                    .mimeType(defaultMimeType)
+                    .flowId(context.getFlowId())
+                    .executionId(context.getExecutionId())
+                    .nodeId(context.getNodeId())
+                    .sourceNodeType(getType())
+                    .build();
+            return artifactService.saveFromUrl(context.getUserId(), meta, url);
+        } catch (Exception e) {
+            log.warn("Failed to save fal.ai artifact from URL: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 從 URL path 取得檔名，取不到時使用 "{prefix}-{timestamp}.{ext}"。
+     */
+    private static String filenameFromUrl(String url, String prefix, String defaultExt) {
+        try {
+            String path = java.net.URI.create(url).getPath();
+            if (path != null) {
+                int slash = path.lastIndexOf('/');
+                String name = slash >= 0 ? path.substring(slash + 1) : path;
+                if (!name.isBlank() && name.contains(".")) {
+                    return name;
+                }
+            }
+        } catch (Exception ignored) {
+            // fall through to generated name
+        }
+        return prefix + "-" + System.currentTimeMillis() + "." + defaultExt;
     }
 
     private String safeMessage(Exception e) {
@@ -367,6 +436,10 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
                        "description", "Generated video URL"),
                 Map.of("name", "images", "type", "array",
                        "description", "Generated image URLs"),
+                Map.of("name", "artifactId", "type", "string",
+                       "description", "Saved artifact ID (local copy of the generated media)"),
+                Map.of("name", "downloadUrl", "type", "string",
+                       "description", "Relative download URL of the saved artifact"),
                 Map.of("name", "raw", "type", "object",
                        "description", "Full provider response")
             )

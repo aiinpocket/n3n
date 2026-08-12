@@ -817,6 +817,14 @@ export const nodeTypes: NodeTypeConfig[] = [
     category: 'files',
   },
   {
+    value: 'saveArtifact',
+    label: 'nodeTypes.saveArtifact.label',
+    color: '#eb2f96',
+    icon: 'FolderOpenOutlined',
+    description: 'nodeTypes.saveArtifact.description',
+    category: 'files',
+  },
+  {
     value: 'convertFile',
     label: 'nodeTypes.convertFile.label',
     color: '#eb2f96',
