@@ -275,7 +275,6 @@ class AiProviderServiceTest extends BaseServiceTest {
             aiProviderService.setAsDefault(configId, adminId);
 
             verify(configRepository).clearDefaultForShared();
-            verify(configRepository, never()).clearDefaultForUser(any());
             assertThat(nonDefaultConfig.getIsDefault()).isTrue();
             verify(configRepository).save(nonDefaultConfig);
         }

@@ -132,19 +132,6 @@ export async function sendMessage(
 }
 
 /**
- * 更新對話標題
- */
-export async function updateConversationTitle(
-  id: string,
-  title: string
-): Promise<Conversation> {
-  const response = await apiClient.patch(`/agent/conversations/${id}`, {
-    title,
-  })
-  return response.data
-}
-
-/**
  * 完成對話
  */
 export async function completeConversation(
@@ -154,14 +141,6 @@ export async function completeConversation(
   const response = await apiClient.post(`/agent/conversations/${id}/complete`, {
     flowId,
   })
-  return response.data
-}
-
-/**
- * 取消對話
- */
-export async function cancelConversation(id: string): Promise<Conversation> {
-  const response = await apiClient.post(`/agent/conversations/${id}/cancel`)
   return response.data
 }
 

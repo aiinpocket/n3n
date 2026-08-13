@@ -952,7 +952,6 @@
     "emptyRecommendation": "AI 會在這裡顯示推薦的元件和流程預覽",
     "noAiConfig": "尚未設定 AI 提供者",
     "noAiConfigDesc": "平台的 AI 金鑰還沒就緒，請找管理員幫忙設定，馬上就能開始創作。",
-    "goToSettings": "前往 AI 設定",
     "deleteConfirm": "確定刪除此對話？",
     "searchHistory": "搜尋對話..."
   },
@@ -2231,37 +2230,13 @@
       "label": "RAG 問答",
       "description": "基於檢索增強生成的文檔問答系統"
     },
-    "aiConversation": {
-      "label": "對話鏈",
-      "description": "帶記憶的多輪對話處理鏈"
-    },
     "aiRouter": {
       "label": "AI 路由",
       "description": "根據輸入內容智能路由到不同處理分支"
     },
-    "aiSequence": {
-      "label": "順序鏈",
-      "description": "依序執行多個 AI 處理步驟"
-    },
-    "aiVectorStore": {
-      "label": "向量存儲",
-      "description": "管理向量數據庫的索引和存儲"
-    },
-    "aiDocLoader": {
-      "label": "文檔載入",
-      "description": "載入 PDF、文字、網頁等文檔"
-    },
     "aiTextSplitter": {
       "label": "文本分割",
       "description": "將長文檔分割成較小的區塊"
-    },
-    "aiSummarize": {
-      "label": "AI 摘要",
-      "description": "自動生成文檔或對話摘要"
-    },
-    "aiClassify": {
-      "label": "AI 分類",
-      "description": "使用 AI 自動分類內容"
     },
     "openai": {
       "label": "OpenAI",
@@ -3146,6 +3121,63 @@
     "dnsHost": "主機 / 名稱",
     "dnsValue": "值",
     "dnsCopied": "已複製"
+  },
+  "apps": {
+    "title": "小應用",
+    "subtitle": "把自己的 docker-compose 或 Dockerfile 專案打包成 zip 交給平台，它會在沙盒裡替你把應用跑起來，還掛上專屬的網址。",
+    "create": "上架一個應用",
+    "createTitle": "上架一個應用",
+    "createHint": "上傳含 docker-compose.yml 或 Dockerfile 的 .zip，平台會先讀一讀，把需要填的參數整理成表單給你。",
+    "createAndDeploy": "建立並部署",
+    "createFailed": "建立失敗",
+    "uploadText": "把 .zip 拖進來，或點一下選擇檔案",
+    "uploadHint": "zip 裡要有 docker-compose.yml 或 Dockerfile",
+    "analyzeFailed": "這個 zip 讀不懂，請確認裡面有 docker-compose.yml 或 Dockerfile",
+    "manifestType": "類型",
+    "manifestServices": "服務",
+    "manifestWeb": "對外服務",
+    "manifestNoWeb": "沒有宣告對外埠",
+    "name": "應用名稱",
+    "nameRequired": "請給這個應用取個名字",
+    "namePlaceholder": "例如：我的部落格",
+    "paramsIntro": "這個應用想先問你幾件事——填好參數再出發。",
+    "paramRequired": "「{{name}}」是必填的",
+    "paramSecretHint": "這是秘密參數，會加密存放、不會再顯示原文",
+    "paramPlaceholder": "請輸入",
+    "deployStarted": "「{{name}}」開始部署了，請稍候片刻",
+    "deployFailed": "部署失敗",
+    "loadFailed": "載入失敗",
+    "actionFailed": "操作失敗",
+    "stopped": "「{{name}}」已停下來休息",
+    "started": "「{{name}}」重新上線了",
+    "statusRunning": "運轉中",
+    "statusDeploying": "部署中",
+    "statusFailed": "出了點狀況",
+    "statusStopped": "休息中",
+    "statusCreated": "尚未部署",
+    "open": "開啟",
+    "stop": "停止",
+    "start": "啟動",
+    "logs": "日誌",
+    "redeploy": "重新部署",
+    "redeployTitle": "重新部署「{{name}}」",
+    "redeployHint": "會以最新參數重建容器，站上會短暫中斷。",
+    "redeploySecretNote": "秘密參數不會回填舊值；必填的秘密參數請重新輸入一次。",
+    "deleteConfirm": "確定要下架這個應用嗎？",
+    "deleteTitle": "下架「{{name}}」",
+    "deleteWarning": "應用的容器與映像會一併移除，資料無法復原。想清楚了嗎？",
+    "deleteOk": "確定下架",
+    "deleted": "已下架這個應用",
+    "deleteFailed": "刪除失敗",
+    "logsTitle": "「{{name}}」的日誌",
+    "logsRefresh": "重新整理",
+    "logsEmpty": "還沒有日誌",
+    "logsFailed": "日誌載入失敗",
+    "empty": "還沒有任何應用",
+    "emptyHint": "把你的專案打包成 zip 上傳，第一個小應用就會在這裡落腳。",
+    "noUrlYet": "部署完成後就會有網址",
+    "disabledTitle": "小應用還沒開張",
+    "disabledHint": "此功能由管理員開啟後可用。請管理員設定 APPS_ENABLED=true 並以 docker-compose.apps.yml 覆蓋檔啟動。"
   },
   "memory": {
     "title": "AI 記憶",

@@ -116,30 +116,6 @@ export async function chat(request: ChatStreamRequest) {
   return response.data
 }
 
-/**
- * Get conversation history
- */
-export async function getConversationHistory(conversationId: string) {
-  const response = await client.get(`/ai-assistant/conversations/${conversationId}`)
-  return response.data
-}
-
-/**
- * List user's conversations
- */
-export async function listConversations(flowId?: string) {
-  const params = flowId ? { flowId } : {}
-  const response = await client.get('/ai-assistant/conversations', { params })
-  return response.data
-}
-
-/**
- * Delete a conversation
- */
-export async function deleteConversation(conversationId: string): Promise<void> {
-  await client.delete(`/ai-assistant/conversations/${conversationId}`)
-}
-
 // ==================== Flow Generation Stream ====================
 
 export interface RequirementContext {

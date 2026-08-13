@@ -161,14 +161,6 @@ export async function installMissingNodes(nodeTypes: string[]): Promise<{ succes
   return response.data
 }
 
-export async function installPluginById(pluginId: string, version?: string): Promise<{ success: boolean; message: string; taskId: string }> {
-  const response = await apiClient.post<{ success: boolean; message: string; taskId: string }>(
-    `/plugins/install/${pluginId}`,
-    version ? { version } : {}
-  )
-  return response.data
-}
-
 // Installation task API
 export async function getActiveInstallTasks(): Promise<InstallTask[]> {
   const response = await apiClient.get<InstallTask[]>('/plugins/install/tasks')

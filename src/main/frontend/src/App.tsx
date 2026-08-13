@@ -48,6 +48,7 @@ const FormPage = lazy(() => import('./pages/FormPage'))
 const OAuth2CallbackPage = lazy(() => import('./pages/OAuth2CallbackPage'))
 const ShareClaimPage = lazy(() => import('./pages/ShareClaimPage'))
 const SitesPage = lazy(() => import('./pages/SitesPage'))
+const AppsPage = lazy(() => import('./pages/AppsPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Map i18n language to Ant Design locale
@@ -222,6 +223,7 @@ function App() {
             <Route path="settings/ai-billing" element={<AdminRoute><AIBillingPage /></AdminRoute>} />
             <Route path="artifacts" element={<ArtifactsPage />} />
             <Route path="sites" element={<SitesPage />} />
+            <Route path="apps" element={<AppsPage />} />
             <Route path="settings/account" element={<AccountSettingsPage />} />
             <Route path="ai-assistant" element={<AIAssistantPage />} />
             <Route path="skills" element={<SkillsPage />} />

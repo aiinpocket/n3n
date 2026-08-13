@@ -361,9 +361,9 @@ N3N 支援三種連線類型，讓你清楚區分正常流程與錯誤處理：
 
 | 連線類型 | 顏色 | 說明 |
 |---------|------|------|
-| **成功路徑** | 🟢 綠色 | 節點執行成功後走這條路線 |
-| **錯誤路徑** | 🔴 紅色虛線 | 節點執行失敗時走這條路線 |
-| **總是執行** | 🔵 藍色 | 無論成功或失敗都會執行 |
+| **成功路徑** | 綠色 | 節點執行成功後走這條路線 |
+| **錯誤路徑** | 紅色虛線 | 節點執行失敗時走這條路線 |
+| **總是執行** | 藍色 | 無論成功或失敗都會執行 |
 
 在流程編輯器中，點擊連線即可設定其類型。
 
@@ -519,11 +519,13 @@ AI 助手會記住每位使用者的偏好與習慣（各自獨立、互不可�
 
 之後每座站台都住在 `https://{slug}.sites.example.com/`。想用自己的網域？在站台抽屜輸入網域，照指示建立 TXT 與 CNAME 記錄後按「驗證」即可。
 
+**上傳自己的應用**：不只靜態站台——把含 `docker-compose.yml` 或 `Dockerfile` 的專案打包成 zip 上傳到「小應用」，平台會在沙盒容器裡跑起來、掛上同一個 wildcard 子網域。功能預設關閉，啟用方式：`docker network create n3n-apps`，再以 `docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d` 啟動（詳見 `docs/ARCHITECTURE_ASSESSMENT.md`）。
+
 ---
 
 ## 進階資訊
 
-如果你是開發者，想了解技術細節，請參考 [TECHNICAL.md](TECHNICAL.md)。
+如果你是開發者，想了解技術細節，請參考 [TECHNICAL.md](TECHNICAL.md)；模組地圖與「新程式碼放哪裡」的指南請見 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ---
 

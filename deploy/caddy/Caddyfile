@@ -19,9 +19,10 @@
     reverse_proxy app:8080
 }
 
-# 預設（Option A）：on-demand TLS —— 任何其他 HTTPS 請求（站台子網域與
-# 已驗證自訂網域）在第一次造訪時各自簽發憑證；ask 端點擋掉未知網域。
-# 不需要 DNS provider plugin，開箱即用。
+# 預設（Option A）：on-demand TLS —— 任何其他 HTTPS 請求（站台子網域、
+# 已驗證自訂網域，以及小應用 {slug}.{SITE_BASE_DOMAIN} 子網域）在第一次
+# 造訪時各自簽發憑證；ask 端點擋掉未知網域（tls-check 對執行中的小應用
+# 子網域同樣回 200，無需額外設定）。不需要 DNS provider plugin，開箱即用。
 https:// {
     tls {
         on_demand

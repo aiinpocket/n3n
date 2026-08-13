@@ -28,29 +28,11 @@ export interface PairingSession {
 // ==================== API Functions ====================
 
 /**
- * Initiate a pairing session (generates pairing code)
- */
-export async function initiatePairing(): Promise<PairingSession> {
-  const response = await apiClient.post('/agent/pair/initiate')
-  return response.data
-}
-
-/**
  * List paired devices for the current user
  */
 export async function listDevices(): Promise<DeviceInfo[]> {
   const response = await apiClient.get('/agent/devices')
   return response.data.devices || response.data
-}
-
-/**
- * Update device settings (external address, direct connection, allowed IPs)
- */
-export async function updateDevice(
-  deviceId: string,
-  request: DeviceUpdateRequest
-): Promise<void> {
-  await apiClient.put(`/agent/devices/${deviceId}`, request)
 }
 
 /**

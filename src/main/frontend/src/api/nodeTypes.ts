@@ -15,11 +15,6 @@ export interface NodeTypeInfo {
   }
 }
 
-export async function fetchNodeTypes(): Promise<NodeTypeInfo[]> {
-  const response = await apiClient.get<NodeTypeInfo[]>('/node-types')
-  return response.data
-}
-
 export async function fetchNodeType(type: string): Promise<NodeTypeInfo> {
   const response = await apiClient.get<NodeTypeInfo>(`/node-types/${type}`)
   return response.data

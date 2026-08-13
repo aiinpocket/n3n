@@ -75,3 +75,43 @@ GCE VM（e2-standard-4：4 vCPU / 16GB RAM，約 $100/月）
 4. **自訂網域**：使用者在站台抽屜輸入網域 → 平台產生 `n3n-verify-xxxx` token → 使用者建立 `TXT _n3n-verify.{domain}` 與 `CNAME {domain} → {slug}.sites.example.com` → 按「驗證」由後端做真實 DNS 查詢，通過後 Host 路由與 TLS 簽發即生效。
 
 站台在子網域上已是獨立 origin，回應仍保留 CSP sandbox header 作縱深防禦。
+
+### 小應用（動態容器）
+
+使用者可上傳含 `docker-compose.yml` 或 `Dockerfile` 的 zip，平台在沙盒容器中跑起來並掛在 `{slug}.{SITE_BASE_DOMAIN}` 子網域（與靜態站台共用 wildcard 網域與 TLS 機制，slug 命名空間雙向互斥）。
+
+**啟用流程**（功能預設關閉——執行使用者容器等同任意程式碼執行，須由營運者明確開啟）：
+
+1. `docker network create n3n-apps` —— 平台與使用者容器共用的 bridge network，compose 啟動前必須先存在（部署時 `DockerContainerRuntime.ensureNetwork` 也會自動建立，但那發生在第一次部署，晚於 compose up 掛載 external network 的時點）。
+2. `docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d`（網域模式再加 `--profile domain`）—— 覆蓋檔為 app 服務掛上 docker.sock、設 `APPS_ENABLED=true`、並把 app 容器接上 `n3n-apps` 網路。
+3. 完成。TLS 不需額外設定：Caddy 的 on-demand TLS 簽發前問的 `/api/public/sites/tls-check` 對「執行中的小應用子網域」同樣回 200。
+
+**請求路徑**：`AppProxyFilter`（order -111，早於 HostSiteFilter 的 -110 與 Security chain 的 -100）以 Host 解析 slug，命中執行中的小應用即串流反向代理到 `n3napp-{slug}-{webService}:{internalPort}`（共用 n3n-apps 網路的容器 DNS 名稱；`APPS_PROXY_TARGET=host-port` 時改走 `127.0.0.1:{hostPort}`，供平台直接跑在主機上的部署）。hop-by-hop headers 剝除、補 X-Forwarded-*，其餘 headers 原樣通過——應用在自己的子網域 origin 上，安全 header 由它自己決定。WebSocket v1 未支援（回 501）。
+
+**安全模型回顧**：功能旗標預設關閉（關閉時所有 API 回 404、不建 Docker client）；每人應用數量上限；容器一律硬化（cap-drop ALL、no-new-privileges、記憶體/CPU/pids 上限、專用 bridge network、無 bind mount）；清理一律以 `n3n.app.id` label 篩選；秘密參數 AES-256-GCM 加密存放、API 永不回傳原文。掛載 docker.sock 等同給 app 容器主機 root 權限——只在信任平台使用者的環境啟用。
+
+**WordPress 範例**：把下列 `docker-compose.yml` 打包成 zip 上傳——
+
+```yaml
+services:
+  wordpress:
+    image: wordpress:6
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: wordpress
+    depends_on:
+      - db
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wp
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+```
+
+平台解析後自動偵測出 `DB_PASSWORD` 參數（名稱含 PASS → 判定為秘密、以密碼框呈現並加密存放）、web 服務為 `wordpress`（第一個有 ports 的服務）、容器內埠 80；填好參數按「建立並部署」，兩個容器會在專用網路裡以服務名互連，WordPress 掛上 `{slug}.{SITE_BASE_DOMAIN}`。

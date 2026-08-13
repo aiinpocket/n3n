@@ -46,15 +46,6 @@ export interface TokenGenerationResult {
 
 // ==================== Agent Registration API ====================
 
-/**
- * Generate a new agent registration token
- * Returns JSON config (doesn't download)
- */
-export async function generateAgentToken(): Promise<TokenGenerationResult> {
-  const response = await apiClient.post<TokenGenerationResult>('/agents/tokens/json')
-  return response.data
-}
-
 export interface InstallCommandResult {
   command: string
   registrationId: string

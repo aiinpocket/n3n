@@ -248,16 +248,6 @@ export function getSuggestionTypeColor(type: OptimizationSuggestion['type']): st
   return colors[type] || '#666'
 }
 
-export function getSuggestionTypeName(type: OptimizationSuggestion['type']): string {
-  const names: Record<string, string> = {
-    parallel: 'optimization.parallel',
-    merge: 'optimization.merge',
-    remove: 'optimization.remove',
-    reorder: 'optimization.reorder',
-  }
-  return names[type] || type
-}
-
 export function getPriorityLabel(priority: number): { text: string; color: string } {
   switch (priority) {
     case 1:

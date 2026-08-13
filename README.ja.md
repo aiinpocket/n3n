@@ -509,11 +509,13 @@ AI が建てた小さなサイトに専用アドレスを与えるには、次�
 
 各サイトは `https://{slug}.sites.example.com/` で公開されます。独自ドメインを使いたい場合は、サイトのドロワーにドメインを入力し、案内どおり TXT と CNAME レコードを作成して「検証」を押してください。
 
+**自分のアプリをアップロード**：静的サイトだけでなく、`docker-compose.yml` や `Dockerfile` を含むプロジェクトを zip にまとめて「小さなアプリ」にアップロードすると、サンドボックス化されたコンテナで実行され、同じワイルドカードサブドメインで公開されます。デフォルトでは無効。有効化は `docker network create n3n-apps` の後、`docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d` で起動してください（詳細は `docs/ARCHITECTURE_ASSESSMENT.md`）。
+
 ---
 
 ## 詳細情報
 
-開発者で技術的な詳細を知りたい場合は、[TECHNICAL.md](TECHNICAL.md)をご覧ください。
+開発者で技術的な詳細を知りたい場合は、[TECHNICAL.md](TECHNICAL.md)をご覧ください。モジュールマップと「新しいコードの置き場所」ガイドは [ARCHITECTURE.md](ARCHITECTURE.md)（繁体字中国語）を参照してください。
 
 ---
 

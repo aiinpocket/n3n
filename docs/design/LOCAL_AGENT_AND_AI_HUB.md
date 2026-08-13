@@ -13,7 +13,7 @@
 
 ## OpenClaw vs N3N 功能比較
 
-### N3N 已有功能 ✅
+### N3N 已有功能
 
 | 類別 | 功能 |
 |------|------|
@@ -27,18 +27,18 @@
 | 憑證 | 加密儲存、Recovery Key |
 | 版本控制 | Flow 版本管理 |
 
-### OpenClaw 有但 N3N 缺少的功能 ❌
+### OpenClaw 有但 N3N 缺少的功能
 
 | 功能 | 優先級 | 複雜度 | 說明 |
 |------|--------|--------|------|
-| **Local Agent** | 🔴 高 | 高 | macOS/Windows/Linux 本地控制 |
-| **Browser Control** | 🔴 高 | 中 | Chromium 自動化 |
-| **WhatsApp** | 🟡 中 | 中 | WhatsApp Business API |
-| **Telegram** | 🟡 中 | 低 | Telegram Bot API |
-| **Discord** | 🟡 中 | 低 | Discord Bot |
-| **Signal** | 🟡 中 | 中 | Signal CLI |
-| **iMessage** | 🟡 中 | 高 | 需要 macOS + BlueBubbles |
-| **Canvas (A2UI)** | 🟢 低 | 高 | Agent 視覺畫布 |
+| **Local Agent** | 高 | 高 | macOS/Windows/Linux 本地控制 |
+| **Browser Control** | 高 | 中 | Chromium 自動化 |
+| **WhatsApp** | 中 | 中 | WhatsApp Business API |
+| **Telegram** | 中 | 低 | Telegram Bot API |
+| **Discord** | 中 | 低 | Discord Bot |
+| **Signal** | 中 | 中 | Signal CLI |
+| **iMessage** | 中 | 高 | 需要 macOS + BlueBubbles |
+| **Canvas (A2UI)** | 低 | 高 | Agent 視覺畫布 |
 
 ---
 
@@ -505,18 +505,18 @@ N3N Platform ─── WebSocket ───▶ Local Agent ─── CDP ──�
 
 | 通道 | 狀態 | API | 說明 |
 |------|------|-----|------|
-| Slack | ✅ 已有 | Web API | 訊息、檔案 |
-| Facebook | ✅ 已有 | Graph API | 貼文、訊息 |
-| Instagram | ✅ 已有 | Graph API | 貼文、Stories |
-| Threads | ✅ 已有 | Threads API | 貼文、回覆 |
-| Email | ✅ 已有 | SMTP | 發送郵件 |
-| **Telegram** | ❌ 缺少 | Bot API | 機器人訊息 |
-| **Discord** | ❌ 缺少 | Bot API | 伺服器訊息 |
-| **WhatsApp** | ❌ 缺少 | Business API | 商業訊息 |
-| **Line** | ❌ 缺少 | Messaging API | 推播訊息 |
-| **Signal** | ❌ 缺少 | signal-cli | 加密訊息 |
-| **iMessage** | ❌ 缺少 | BlueBubbles | 需 macOS |
-| **Teams** | ❌ 缺少 | Graph API | 企業訊息 |
+| Slack | 已有 | Web API | 訊息、檔案 |
+| Facebook | 已有 | Graph API | 貼文、訊息 |
+| Instagram | 已有 | Graph API | 貼文、Stories |
+| Threads | 已有 | Threads API | 貼文、回覆 |
+| Email | 已有 | SMTP | 發送郵件 |
+| **Telegram** | 缺少 | Bot API | 機器人訊息 |
+| **Discord** | 缺少 | Bot API | 伺服器訊息 |
+| **WhatsApp** | 缺少 | Business API | 商業訊息 |
+| **Line** | 缺少 | Messaging API | 推播訊息 |
+| **Signal** | 缺少 | signal-cli | 加密訊息 |
+| **iMessage** | 缺少 | BlueBubbles | 需 macOS |
+| **Teams** | 缺少 | Graph API | 企業訊息 |
 
 ### 優先實作順序
 
@@ -650,7 +650,7 @@ interface DiscordOperations {
 │  │  Featured Plugins                                          │  │
 │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐ │  │
 │  │  │ macOS Agent   │  │ Gmail Skill   │  │ Notion Node   │ │  │
-│  │  │ ★★★★★ 4.8    │  │ ★★★★☆ 4.2    │  │ ★★★★★ 4.9    │ │  │
+│  │  │ 5 星 4.8    │  │ 4 星 4.2    │  │ 5 星 4.9    │ │  │
 │  │  │ 10K downloads │  │ 5K downloads  │  │ 8K downloads  │ │  │
 │  │  └───────────────┘  └───────────────┘  └───────────────┘ │  │
 │  └───────────────────────────────────────────────────────────┘  │

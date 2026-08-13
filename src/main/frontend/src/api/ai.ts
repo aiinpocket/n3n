@@ -91,14 +91,6 @@ export async function getConfigs(): Promise<AiProviderConfig[]> {
 }
 
 /**
- * 取得單一 AI 設定
- */
-export async function getConfig(id: string): Promise<AiProviderConfig> {
-  const response = await apiClient.get(`/ai/providers/configs/${id}`)
-  return response.data
-}
-
-/**
  * 建立新的 AI 設定
  */
 export async function createConfig(request: CreateAiProviderRequest): Promise<AiProviderConfig> {

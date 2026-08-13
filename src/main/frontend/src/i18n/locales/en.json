@@ -952,7 +952,6 @@
     "emptyRecommendation": "AI recommendations will appear here",
     "noAiConfig": "AI Provider Not Configured",
     "noAiConfigDesc": "The platform AI keys aren't set up yet — ask an admin to add one and you're good to go.",
-    "goToSettings": "AI Settings",
     "deleteConfirm": "Delete this conversation?",
     "searchHistory": "Search conversations..."
   },
@@ -2231,37 +2230,13 @@
       "label": "RAG Q&A",
       "description": "Document Q&A system based on retrieval-augmented generation"
     },
-    "aiConversation": {
-      "label": "Conversation Chain",
-      "description": "Multi-turn conversation processing chain with memory"
-    },
     "aiRouter": {
       "label": "AI Router",
       "description": "Intelligently route to different processing branches based on input content"
     },
-    "aiSequence": {
-      "label": "Sequential Chain",
-      "description": "Execute multiple AI processing steps in sequence"
-    },
-    "aiVectorStore": {
-      "label": "Vector Store",
-      "description": "Manage vector database indexing and storage"
-    },
-    "aiDocLoader": {
-      "label": "Document Loader",
-      "description": "Load PDF, text, web page and other documents"
-    },
     "aiTextSplitter": {
       "label": "Text Splitter",
       "description": "Split long documents into smaller chunks"
-    },
-    "aiSummarize": {
-      "label": "AI Summarize",
-      "description": "Automatically generate document or conversation summaries"
-    },
-    "aiClassify": {
-      "label": "AI Classify",
-      "description": "Automatically classify content using AI"
     },
     "openai": {
       "label": "OpenAI",
@@ -3146,6 +3121,63 @@
     "dnsHost": "Host / Name",
     "dnsValue": "Value",
     "dnsCopied": "Copied"
+  },
+  "apps": {
+    "title": "Little Apps",
+    "subtitle": "Pack your docker-compose or Dockerfile project into a zip and hand it over — the platform runs it in a sandbox and gives it its own address.",
+    "create": "Ship an app",
+    "createTitle": "Ship an app",
+    "createHint": "Upload a .zip containing docker-compose.yml or a Dockerfile. The platform reads it first and turns the required settings into a form for you.",
+    "createAndDeploy": "Create & deploy",
+    "createFailed": "Failed to create",
+    "uploadText": "Drop your .zip here, or click to choose a file",
+    "uploadHint": "The zip must contain docker-compose.yml or a Dockerfile",
+    "analyzeFailed": "Could not read this zip — make sure it contains docker-compose.yml or a Dockerfile",
+    "manifestType": "Type",
+    "manifestServices": "Services",
+    "manifestWeb": "Web service",
+    "manifestNoWeb": "No exposed port declared",
+    "name": "App name",
+    "nameRequired": "Please give this app a name",
+    "namePlaceholder": "e.g. My blog",
+    "paramsIntro": "This app would like to ask you a few things first — fill in the parameters before setting off.",
+    "paramRequired": "\"{{name}}\" is required",
+    "paramSecretHint": "This is a secret parameter — stored encrypted and never shown again",
+    "paramPlaceholder": "Enter a value",
+    "deployStarted": "\"{{name}}\" is deploying, give it a moment",
+    "deployFailed": "Deployment failed",
+    "loadFailed": "Failed to load",
+    "actionFailed": "Action failed",
+    "stopped": "\"{{name}}\" is taking a rest",
+    "started": "\"{{name}}\" is back online",
+    "statusRunning": "Running",
+    "statusDeploying": "Deploying",
+    "statusFailed": "Something went wrong",
+    "statusStopped": "Resting",
+    "statusCreated": "Not deployed yet",
+    "open": "Open",
+    "stop": "Stop",
+    "start": "Start",
+    "logs": "Logs",
+    "redeploy": "Redeploy",
+    "redeployTitle": "Redeploy \"{{name}}\"",
+    "redeployHint": "Containers will be rebuilt with the latest parameters; the app will be briefly unavailable.",
+    "redeploySecretNote": "Secret parameters never echo their old values — please re-enter any required secrets.",
+    "deleteConfirm": "Take this app down?",
+    "deleteTitle": "Take down \"{{name}}\"",
+    "deleteWarning": "Its containers and images will be removed together, and the data cannot be recovered. Are you sure?",
+    "deleteOk": "Take it down",
+    "deleted": "The app has been taken down",
+    "deleteFailed": "Failed to delete",
+    "logsTitle": "Logs of \"{{name}}\"",
+    "logsRefresh": "Refresh",
+    "logsEmpty": "No logs yet",
+    "logsFailed": "Failed to load logs",
+    "empty": "No apps yet",
+    "emptyHint": "Pack your project into a zip and upload it — your first little app will settle in here.",
+    "noUrlYet": "An address will appear once deployed",
+    "disabledTitle": "Little Apps is not open yet",
+    "disabledHint": "This feature becomes available once an administrator enables it. Ask your admin to set APPS_ENABLED=true and start with the docker-compose.apps.yml override."
   },
   "memory": {
     "title": "AI Memory",

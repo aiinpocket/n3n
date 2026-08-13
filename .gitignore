@@ -37,6 +37,11 @@ src/main/frontend/node_modules/
 src/main/frontend/dist/
 src/main/frontend/.eslintcache
 src/main/frontend/tsconfig.tsbuildinfo
+src/main/frontend/tests/**/__pycache__/
+
+# 注意：src/main/resources/static/assets 內的 bundle 由前端建置產生並提交，
+# 部署可能依賴已提交的 bundle，請勿整個 static 目錄加入 ignore；
+# 更新 index.html 參照後，記得刪除舊 hash 的 bundle。
 
 ### E2E Testing (Playwright) ###
 src/main/frontend/e2e/

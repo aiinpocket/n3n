@@ -7,6 +7,7 @@ import com.aiinpocket.n3n.site.dto.SiteFileUpsertEntry;
 import com.aiinpocket.n3n.site.entity.Site;
 import com.aiinpocket.n3n.site.entity.SiteFile;
 import com.aiinpocket.n3n.site.repository.SiteFileRepository;
+import com.aiinpocket.n3n.hostedapp.repository.HostedAppRepository;
 import com.aiinpocket.n3n.site.repository.SiteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,9 @@ class SiteServiceTest extends BaseServiceTest {
     @Mock
     private SiteFileRepository siteFileRepository;
 
+    @Mock
+    private HostedAppRepository hostedAppRepository;
+
     private SiteService service;
 
     private final UUID ownerId = UUID.randomUUID();
@@ -43,7 +47,7 @@ class SiteServiceTest extends BaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SiteService(siteRepository, siteFileRepository);
+        service = new SiteService(siteRepository, siteFileRepository, hostedAppRepository);
         ReflectionTestUtils.setField(service, "maxFilesPerSite", 3);
         ReflectionTestUtils.setField(service, "maxFileBytes", 100L);
         ReflectionTestUtils.setField(service, "maxSiteBytes", 200L);
@@ -79,6 +83,33 @@ class SiteServiceTest extends BaseServiceTest {
         assertThat(site.getSlug()).matches("^[a-z0-9-]{3,64}$");
         assertThat(site.getSlug()).startsWith("hello-world-");
         assertThat(site.isPublished()).isTrue();
+    }
+
+    @Test
+    @DisplayName("slug 與小應用碰撞：hosted_apps 已占用的 slug 不可用（雙向命名空間互斥）")
+    void slugCollidingWithHostedAppIsRejected() {
+        when(siteRepository.countByOwnerId(ownerId)).thenReturn(0L);
+        when(siteRepository.existsBySlug(anyString())).thenReturn(false);
+        // 小應用側永遠回「已存在」→ 所有候選 slug 都被判定碰撞
+        when(hostedAppRepository.existsBySlug(anyString())).thenReturn(true);
+
+        assertThatThrownBy(() -> service.create(ownerId, "Hello World", null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("unique site slug");
+        verify(siteRepository, never()).save(any(Site.class));
+    }
+
+    @Test
+    @DisplayName("建立網站時有查過小應用命名空間")
+    void slugChecksHostedAppNamespace() {
+        when(siteRepository.countByOwnerId(ownerId)).thenReturn(0L);
+        when(siteRepository.existsBySlug(anyString())).thenReturn(false);
+        when(hostedAppRepository.existsBySlug(anyString())).thenReturn(false);
+        when(siteRepository.save(any(Site.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Site site = service.create(ownerId, "Hello World", null);
+
+        verify(hostedAppRepository).existsBySlug(site.getSlug());
     }
 
     @Test

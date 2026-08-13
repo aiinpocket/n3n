@@ -31,6 +31,7 @@ import {
   ClearOutlined,
   ClockCircleOutlined,
   GlobalOutlined,
+  RocketOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -73,6 +74,7 @@ export default function MainLayout() {
       '/executions': t('nav.executions'),
       '/artifacts': t('nav.artifacts'),
       '/sites': t('sites.title'),
+      '/apps': t('apps.title'),
       '/services': t('nav.services'),
       '/components': t('nav.components'),
       '/webhooks': t('nav.webhooks'),
@@ -132,6 +134,11 @@ export default function MainLayout() {
           key: '/sites',
           icon: <GlobalOutlined />,
           label: t('sites.title'),
+        },
+        {
+          key: '/apps',
+          icon: <RocketOutlined />,
+          label: t('apps.title'),
         },
         {
           key: '/templates',

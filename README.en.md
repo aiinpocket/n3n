@@ -518,11 +518,13 @@ Want the little sites the AI builds to have their own addresses? Three steps:
 
 Every site then lives at `https://{slug}.sites.example.com/`. Want your own domain? Enter it in the site drawer, create the TXT and CNAME records as instructed, then click Verify.
 
+**Upload your own apps**: beyond static sites — pack a project containing `docker-compose.yml` or a `Dockerfile` into a zip and upload it to Little Apps; the platform runs it in sandboxed containers on the same wildcard subdomain. Disabled by default; enable with `docker network create n3n-apps`, then start via `docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d` (see `docs/ARCHITECTURE_ASSESSMENT.md`).
+
 ---
 
 ## Advanced Information
 
-If you're a developer and want to learn technical details, please refer to [TECHNICAL.md](TECHNICAL.md).
+If you're a developer and want to learn technical details, please refer to [TECHNICAL.md](TECHNICAL.md). For the module map and a guide on where new code belongs, see [ARCHITECTURE.md](ARCHITECTURE.md) (in Traditional Chinese).
 
 ---
 

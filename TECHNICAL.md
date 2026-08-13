@@ -1,6 +1,6 @@
 # N3N Technical Documentation
 
-This document provides technical details for developers working on or integrating with N3N.
+This document provides technical details for developers working on or integrating with N3N. For the module map, per-module responsibilities, and guidance on where new code belongs, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Table of Contents
 
@@ -308,6 +308,44 @@ Skill management and execution.
 - `SkillController` - Full CRUD, built-in skill listing, and direct execution
 - `SkillService` - Core skill logic
 - Built-in skill categories: `http`, `web`, `data`, `file`, `notify`, `system`
+
+#### hostedapp/ — Hosted Apps（沙盒動態應用）
+使用者上傳應用 zip（docker-compose 或 Dockerfile），平台解析出需填寫的參數
+（環境變數表單），以強化限制的 Docker 容器部署於專用網路。
+
+**功能旗標（預設關閉）**：`n3n.apps.enabled=${APPS_ENABLED:false}`。執行使用者
+容器等同任意程式碼執行，必須由營運者明確啟用。關閉時：不建立 Docker client
+（`DockerContainerRuntime` 為 `@ConditionalOnProperty` bean），`/api/apps/**`
+除 `/availability` 外一律回 404。
+
+- `HostedAppController` - `/api/apps`（list / analyze / create / deploy / stop / start / delete / logs / availability）
+- `AppZipAnalyzer` + `ComposeManifestParser` / `DockerfileManifestParser` - zip 解析
+  （zip-slip / zip-bomb 防禦沿用 site 模組做法）、參數萃取（`${VAR}`、`${VAR:?}`、
+  空值 = 必填；`${VAR:-def}`、Dockerfile `ENV` = 帶預設；`ARG` 無預設 = 必填；
+  名稱含 PASS/SECRET/TOKEN/KEY 標記為 secret）
+- `HostedAppService` - CRUD、必填參數驗證、擁有者隔離（非擁有者 404）、每人數量上限
+- `AppDeployService` - Virtual Thread 非同步部署（pull / build → 硬化容器 → 啟動）
+- `ContainerRuntime` 介面 + `DockerContainerRuntime`（docker-java 3.7.1）——測試全 mock
+
+**容器硬化（每個容器無條件套用）**：
+- `cap-drop ALL`、僅加回 `NET_BIND_SERVICE`；`no-new-privileges`
+- 記憶體 / CPU 上限（`APPS_MEMORY_MB` / `APPS_CPUS`）、`pids-limit 256`
+- 禁止任何 bind mount（compose 僅允許 named volume）；禁止 privileged /
+  cap_add / devices / network_mode / pid / ipc / security_opt；服務數上限 4
+- compose 的 host-port 一律忽略，對外埠由平台從 `APPS_PORT_RANGE` 配置
+- 專用 bridge network（`APPS_NETWORK`，自動建立），network-alias = service 名
+- 清理一律以 label（`n3n.app.id`）篩選，絕不觸碰非本平台建立的容器/映像
+
+**秘密參數**：manifest 判定為 secret 的參數值以 credential 模組的
+`EncryptionService`（AES-256-GCM，主金鑰由 MasterKeyProvider 管理）加密後存入
+`hosted_apps.params`（`enc:v1:` 前綴），部署時解密注入容器 env。
+
+**威脅模型注意**：本功能需要將 Docker socket 掛載給平台容器
+（`APPS_DOCKER_HOST`），等同賦予平台 root 等級的主機控制權——請只在信任的
+環境啟用。使用者容器隔離於 `n3n-apps` 網路，無路由可達平台 DB / Redis 網路；
+但共用主機 kernel，不等同 VM 隔離。上傳 zip 另受
+`spring.servlet.multipart.max-file-size`（預設 30MB）限制，調高
+`APPS_MAX_ZIP_MB` 時需一併調整。
 
 ---
 
@@ -1486,6 +1524,19 @@ All environment variables are **optional** with sensible defaults.
 3. Docker socket (`/var/run/docker.sock`) → Docker
 4. `docker` CLI availability → Docker
 5. Fallback → Docker
+
+#### Hosted Apps（沙盒動態應用）
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APPS_ENABLED` | `false` | 啟用 Hosted Apps（執行使用者容器 = 任意程式碼執行，務必審慎） |
+| `APPS_DOCKER_HOST` | `unix:///var/run/docker.sock` | Docker daemon 位址 |
+| `APPS_NETWORK` | `n3n-apps` | 使用者容器專用 bridge network（自動建立） |
+| `APPS_MAX_PER_USER` | `2` | 每位使用者的應用數量上限 |
+| `APPS_MEMORY_MB` | `512` | 每個容器記憶體上限（MB） |
+| `APPS_CPUS` | `0.5` | 每個容器 CPU 上限 |
+| `APPS_MAX_ZIP_MB` | `100` | 上傳 zip 大小上限（另受 `MULTIPART_MAX_FILE_SIZE` 限制） |
+| `APPS_PORT_RANGE` | `28000-28999` | 對外埠配置範圍 |
 
 #### Execution Settings
 

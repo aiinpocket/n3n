@@ -42,7 +42,7 @@
 
 ### 使用 Docker Compose（開發環境）
 
-開發環境使用預設的 `docker-compose.yml`，會啟動所有服務（App、PostgreSQL、Redis、MongoDB、Flow Optimizer）：
+開發環境使用預設的 `docker-compose.yml`，會啟動所有服務（App、Caddy、PostgreSQL、Redis、MongoDB）：
 
 ```bash
 # 1. Clone 專案
@@ -161,7 +161,7 @@ helm show values ./helm/n3n
 kubectl create namespace n3n
 
 # 建立 secrets
-# ⚠️ 多實例部署（replicas > 1）必須設定 master-key 和 jwt-secret
+# 注意：多實例部署（replicas > 1）必須設定 master-key 和 jwt-secret
 #    以確保所有 Pod 使用相同的加密密鑰
 kubectl create secret generic n3n-secrets \
   --namespace n3n \
@@ -335,7 +335,7 @@ stringData:
   db-username: "n3n"
   db-password: "your-db-password"
   redis-password: "your-redis-password"
-  # ⚠️ 多實例部署必須設定，確保所有 Pod 共用相同加密密鑰
+  # 注意：多實例部署必須設定，確保所有 Pod 共用相同加密密鑰
   # 產生方式：openssl rand -base64 32
   N3N_MASTER_KEY: "your-base64-encoded-master-key"
   # 產生方式：openssl rand -base64 64

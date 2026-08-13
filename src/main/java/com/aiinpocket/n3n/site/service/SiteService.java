@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.site.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.hostedapp.repository.HostedAppRepository;
 import com.aiinpocket.n3n.site.dto.SiteFileMeta;
 import com.aiinpocket.n3n.site.dto.SiteFileUpsertEntry;
 import com.aiinpocket.n3n.site.entity.Site;
@@ -36,6 +37,7 @@ public class SiteService {
 
     private final SiteRepository siteRepository;
     private final SiteFileRepository siteFileRepository;
+    private final HostedAppRepository hostedAppRepository;
 
     @Value("${n3n.sites.max-files:200}")
     private int maxFilesPerSite;
@@ -350,7 +352,9 @@ public class SiteService {
             } catch (IllegalArgumentException e) {
                 continue; // 極少見（隨機尾碼撞到保留字不可能，但 base 過短等情況重試）
             }
-            if (!siteRepository.existsBySlug(candidate)) {
+            // 站台與小應用共用 {slug}.{base-domain} 命名空間，兩邊都要查
+            if (!siteRepository.existsBySlug(candidate)
+                    && !hostedAppRepository.existsBySlug(candidate)) {
                 return candidate;
             }
         }

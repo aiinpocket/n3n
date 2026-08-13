@@ -952,7 +952,6 @@
     "emptyRecommendation": "AIの推薦がここに表示されます",
     "noAiConfig": "AIプロバイダーが未設定です",
     "noAiConfigDesc": "プラットフォームの AI キーがまだ設定されていません。管理者に設定を依頼してください。",
-    "goToSettings": "AI設定へ",
     "deleteConfirm": "この会話を削除しますか？",
     "searchHistory": "会話を検索..."
   },
@@ -2231,37 +2230,13 @@
       "label": "RAG Q&A",
       "description": "検索拡張生成に基づくドキュメントQ&Aシステム"
     },
-    "aiConversation": {
-      "label": "会話チェーン",
-      "description": "メモリ付きマルチターン会話処理チェーン"
-    },
     "aiRouter": {
       "label": "AIルーター",
       "description": "入力内容に基づいて異なる処理ブランチにインテリジェントルーティング"
     },
-    "aiSequence": {
-      "label": "シーケンシャルチェーン",
-      "description": "複数のAI処理ステップを順番に実行"
-    },
-    "aiVectorStore": {
-      "label": "ベクトルストア",
-      "description": "ベクトルデータベースのインデックスとストレージを管理"
-    },
-    "aiDocLoader": {
-      "label": "ドキュメントローダー",
-      "description": "PDF、テキスト、Webページなどのドキュメントを読み込み"
-    },
     "aiTextSplitter": {
       "label": "テキスト分割",
       "description": "長いドキュメントを小さなチャンクに分割"
-    },
-    "aiSummarize": {
-      "label": "AI要約",
-      "description": "ドキュメントや会話の要約を自動生成"
-    },
-    "aiClassify": {
-      "label": "AI分類",
-      "description": "AIを使用してコンテンツを自動分類"
     },
     "openai": {
       "label": "OpenAI",
@@ -3146,6 +3121,63 @@
     "dnsHost": "ホスト / 名前",
     "dnsValue": "値",
     "dnsCopied": "コピーしました"
+  },
+  "apps": {
+    "title": "小さなアプリ",
+    "subtitle": "docker-compose や Dockerfile のプロジェクトを zip にまとめて渡すと、プラットフォームがサンドボックスで動かし、専用のアドレスを用意します。",
+    "create": "アプリを開店する",
+    "createTitle": "アプリを開店する",
+    "createHint": "docker-compose.yml か Dockerfile を含む .zip をアップロードしてください。まず中身を読み取り、必要な設定をフォームにして案内します。",
+    "createAndDeploy": "作成してデプロイ",
+    "createFailed": "作成に失敗しました",
+    "uploadText": ".zip をここにドロップ、またはクリックして選択",
+    "uploadHint": "zip には docker-compose.yml か Dockerfile が必要です",
+    "analyzeFailed": "この zip を読み取れませんでした。docker-compose.yml か Dockerfile が含まれているか確認してください",
+    "manifestType": "タイプ",
+    "manifestServices": "サービス",
+    "manifestWeb": "公開サービス",
+    "manifestNoWeb": "公開ポートの宣言がありません",
+    "name": "アプリ名",
+    "nameRequired": "アプリに名前を付けてください",
+    "namePlaceholder": "例：私のブログ",
+    "paramsIntro": "このアプリはまずいくつか質問があるようです。パラメータを埋めてから出発しましょう。",
+    "paramRequired": "「{{name}}」は必須です",
+    "paramSecretHint": "これは秘密のパラメータです。暗号化して保存され、二度と表示されません",
+    "paramPlaceholder": "入力してください",
+    "deployStarted": "「{{name}}」のデプロイが始まりました。少しお待ちください",
+    "deployFailed": "デプロイに失敗しました",
+    "loadFailed": "読み込みに失敗しました",
+    "actionFailed": "操作に失敗しました",
+    "stopped": "「{{name}}」はひと休みに入りました",
+    "started": "「{{name}}」が再びオンラインになりました",
+    "statusRunning": "稼働中",
+    "statusDeploying": "デプロイ中",
+    "statusFailed": "問題が発生しました",
+    "statusStopped": "休憩中",
+    "statusCreated": "未デプロイ",
+    "open": "開く",
+    "stop": "停止",
+    "start": "起動",
+    "logs": "ログ",
+    "redeploy": "再デプロイ",
+    "redeployTitle": "「{{name}}」を再デプロイ",
+    "redeployHint": "最新のパラメータでコンテナを作り直します。アプリは一時的に利用できなくなります。",
+    "redeploySecretNote": "秘密のパラメータの旧値は表示されません。必須の秘密パラメータはもう一度入力してください。",
+    "deleteConfirm": "このアプリを閉店しますか？",
+    "deleteTitle": "「{{name}}」を閉店する",
+    "deleteWarning": "コンテナとイメージも一緒に削除され、データは元に戻せません。よろしいですか？",
+    "deleteOk": "閉店する",
+    "deleted": "アプリを閉店しました",
+    "deleteFailed": "削除に失敗しました",
+    "logsTitle": "「{{name}}」のログ",
+    "logsRefresh": "更新",
+    "logsEmpty": "まだログがありません",
+    "logsFailed": "ログの読み込みに失敗しました",
+    "empty": "まだアプリがありません",
+    "emptyHint": "プロジェクトを zip にまとめてアップロードすれば、最初の小さなアプリがここに住み着きます。",
+    "noUrlYet": "デプロイが完了するとアドレスが表示されます",
+    "disabledTitle": "小さなアプリはまだ開店前です",
+    "disabledHint": "この機能は管理者が有効化すると利用できます。APPS_ENABLED=true を設定し、docker-compose.apps.yml オーバーライドで起動するよう管理者に依頼してください。"
   },
   "memory": {
     "title": "AI メモリー",
