@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.ai.module;
 
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,17 +23,15 @@ public class FlowOptimizationModule {
 
     public static final String FEATURE_NAME = "flowOptimization";
 
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final ObjectMapper objectMapper;
 
     /**
      * Analyze a flow and return optimization suggestions
      */
     public OptimizationResult analyzeFlow(Map<String, Object> definition, UUID userId) {
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
-
-        if (!provider.isAvailable()) {
-            log.warn("AI provider {} not available for flow optimization", provider.getName());
+        if (!aiClient.isAvailable(userId)) {
+            log.warn("AI provider not available for flow optimization");
             return OptimizationResult.unavailable();
         }
 
@@ -41,7 +40,7 @@ public class FlowOptimizationModule {
             String prompt = buildOptimizationPrompt(flowJson);
             String systemPrompt = getSystemPrompt();
 
-            String response = provider.chat(prompt, systemPrompt, 2048, 0.3);
+            String response = aiClient.chat(prompt, systemPrompt, 2048, 0.3, userId);
             return parseOptimizationResponse(response);
         } catch (Exception e) {
             log.error("Flow optimization failed", e);

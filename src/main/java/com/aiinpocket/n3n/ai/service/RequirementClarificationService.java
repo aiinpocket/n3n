@@ -5,8 +5,7 @@ import com.aiinpocket.n3n.ai.dto.RequirementClarificationRequest;
 import com.aiinpocket.n3n.ai.dto.RequirementClarificationResponse;
 import com.aiinpocket.n3n.ai.dto.RequirementClarificationResponse.RequirementSummary;
 import com.aiinpocket.n3n.ai.entity.Conversation;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class RequirementClarificationService {
 
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final ConversationManager conversationManager;
     private final ObjectMapper objectMapper;
 
@@ -115,9 +114,7 @@ public class RequirementClarificationService {
             return RequirementClarificationResponse.error("Invalid input");
         }
 
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature("assistant", userId);
-
-        if (!provider.isAvailable()) {
+        if (!aiClient.isAvailable(userId)) {
             return RequirementClarificationResponse.error("AI service is not available");
         }
 
@@ -136,7 +133,7 @@ public class RequirementClarificationService {
             // Build prompt and call AI
             String prompt = buildPrompt(request);
             String systemPrompt = getSystemPrompt(request.getLanguage());
-            String response = provider.chat(prompt, systemPrompt, 2048, 0.7);
+            String response = aiClient.chat(prompt, systemPrompt, 2048, 0.7, userId);
 
             RequirementClarificationResponse clarifyResponse = parseResponse(response, conversationId);
 

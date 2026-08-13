@@ -451,29 +451,23 @@
     "keywords": ["agent", "desktop", "裝置", "代理", "本機", "macos", "windows"],
     "useCases": ["在已連線的桌面裝置代理上執行能力（macOS / Windows）"]
   },
-  "aiChain": {
-    "displayName": "AI Chain",
-    "keywords": ["ai", "chain", "llm", "對話鏈", "conversation", "router", "鏈"],
-    "useCases": ["建立 LLM Chain / Conversation Chain / Sequential Chain / Router Chain"],
-    "relatedNodes": ["aiPipeline", "aiRag"]
-  },
   "aiPipeline": {
     "displayName": "AI Pipeline",
-    "keywords": ["ai", "pipeline", "rag", "map-reduce", "摘要", "summarize", "管線"],
+    "keywords": ["ai", "pipeline", "chain", "llm", "rag", "map-reduce", "摘要", "summarize", "管線", "鏈"],
     "useCases": ["建立 RAG、Map-Reduce、摘要等 AI 處理管線"],
-    "relatedNodes": ["aiChain", "aiRag"]
+    "relatedNodes": ["aiRag"]
   },
   "aiRag": {
     "displayName": "RAG 問答",
     "keywords": ["rag", "retrieval", "問答", "文件", "knowledge", "檢索", "embedding"],
     "useCases": ["以檢索增強生成（RAG）對文件做問答"],
-    "relatedNodes": ["aiTextSplitter", "aiChain"]
+    "relatedNodes": ["aiTextSplitter", "aiPipeline"]
   },
   "aiRouter": {
     "displayName": "AI 路由",
     "keywords": ["ai", "router", "分類", "classify", "路由", "分流"],
     "useCases": ["以 AI 分類內容並路由到不同輸出分支"],
-    "relatedNodes": ["condition", "aiChain"]
+    "relatedNodes": ["condition", "aiPipeline"]
   },
   "aiTextSplitter": {
     "displayName": "AI 文字分塊",

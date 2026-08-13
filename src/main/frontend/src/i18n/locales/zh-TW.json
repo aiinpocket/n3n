@@ -2208,7 +2208,7 @@
     },
     "aiChain": {
       "label": "AI 處理鏈",
-      "description": "LLM 鏈、對話鏈、順序鏈和路由鏈"
+      "description": "（相容舊流程，請改用 AI 流水線）LLM 鏈、對話鏈、順序鏈和路由鏈"
     },
     "aiPipeline": {
       "label": "AI 流水線",

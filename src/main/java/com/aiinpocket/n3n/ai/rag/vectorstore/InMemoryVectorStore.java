@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class InMemoryVectorStore implements VectorStore {
+public class InMemoryVectorStore implements RagVectorStore {
 
     private final AiService aiService;
     private final Map<String, Document> documents = new ConcurrentHashMap<>();

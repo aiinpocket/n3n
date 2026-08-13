@@ -10,7 +10,7 @@ import com.aiinpocket.n3n.ai.dto.*;
 import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.module.FlowOptimizationModule;
 import com.aiinpocket.n3n.ai.module.NaturalLanguageModule;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.ai.usermemory.service.MemoryExtractionService;
 import com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
@@ -36,7 +36,7 @@ public class AIAssistantService {
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final PluginInstallationRepository pluginInstallationRepository;
     private final SupervisorAgent supervisorAgent;
-    private final SimpleAIProviderRegistry simpleAIProviderRegistry;
+    private final AssistantAiClient assistantAiClient;
     private final ConversationManager conversationManager;
     private final UserMemoryService userMemoryService;
     private final MemoryExtractionService memoryExtractionService;
@@ -812,7 +812,7 @@ public class AIAssistantService {
             // 使用 Failover 機制呼叫 AI
             String aiResponse;
             try {
-                aiResponse = simpleAIProviderRegistry.chatWithFailover(
+                aiResponse = assistantAiClient.chat(
                     prompt,
                     CODE_GENERATION_SYSTEM_PROMPT,
                     2000, // maxTokens

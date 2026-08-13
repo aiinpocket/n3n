@@ -1,7 +1,7 @@
 package com.aiinpocket.n3n.gateway.node;
 
 import com.aiinpocket.n3n.base.BaseServiceTest;
-import com.aiinpocket.n3n.gateway.handler.GatewayWebSocketHandler;
+import com.aiinpocket.n3n.gateway.handler.SecureGatewayWebSocketHandler;
 import com.aiinpocket.n3n.gateway.protocol.GatewayResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ class NodeInvokerTest extends BaseServiceTest {
     private NodeRegistry nodeRegistry;
 
     @Mock
-    private GatewayWebSocketHandler gatewayHandler;
+    private SecureGatewayWebSocketHandler gatewayHandler;
 
     @InjectMocks
     private NodeInvoker nodeInvoker;

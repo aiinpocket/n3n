@@ -4,8 +4,7 @@ import com.aiinpocket.n3n.ai.agent.*;
 import com.aiinpocket.n3n.ai.agent.tools.*;
 import com.aiinpocket.n3n.ai.codex.NodeCodex;
 import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ import java.util.regex.Pattern;
 public class BuilderAgent implements Agent {
 
     private final AgentRegistry agentRegistry;
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final NodeKnowledgeBase nodeKnowledgeBase;
     private final AddNodeTool addNodeTool;
     private final RemoveNodeTool removeNodeTool;
@@ -264,10 +263,7 @@ public class BuilderAgent implements Agent {
      * 使用 AI 規劃並建構流程
      */
     private AgentResult planAndBuildFlow(AgentContext context) {
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(
-            "builder", context.getUserId());
-
-        if (!provider.isAvailable()) {
+        if (!aiClient.isAvailable(context.getUserId())) {
             return AgentResult.error("AI service unavailable, please select nodes through search first");
         }
 
@@ -294,7 +290,7 @@ public class BuilderAgent implements Agent {
                 %s
                 """, context.getUserInput(), buildNodeCatalogSection(context.getUserInput()));
 
-            String response = provider.chat(prompt, BUILDER_SYSTEM_PROMPT, 2000, 0.3);
+            String response = aiClient.chat(prompt, BUILDER_SYSTEM_PROMPT, 2000, 0.3, context.getUserId());
             return parseAndBuildFromPlan(response, context);
 
         } catch (Exception e) {

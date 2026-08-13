@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.ai.usermemory.service;
 
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.ai.usermemory.entity.UserMemory;
 import com.aiinpocket.n3n.ai.usermemory.repository.UserMemoryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -57,7 +57,7 @@ public class MemoryExtractionService {
         [{"content": "...", "category": "preference|fact|project|style|general"}]
         """;
 
-    private final SimpleAIProviderRegistry aiProviderRegistry;
+    private final AssistantAiClient aiClient;
     private final UserMemoryService userMemoryService;
     private final UserMemoryRepository userMemoryRepository;
     private final ObjectMapper objectMapper;
@@ -89,7 +89,7 @@ public class MemoryExtractionService {
             if (!shouldExtract(conversationId)) {
                 return;
             }
-            if (!aiProviderRegistry.getProviderForFeature("default", userId).isAvailable()) {
+            if (!aiClient.isAvailable(userId)) {
                 log.debug("Memory extraction skipped: no AI provider configured for user {}", userId);
                 return;
             }
@@ -124,7 +124,7 @@ public class MemoryExtractionService {
         }
 
         String prompt = "請從以下對話萃取值得長期記住的使用者事實：\n\n" + conversationText;
-        String rawResponse = aiProviderRegistry.chatWithFailover(
+        String rawResponse = aiClient.chat(
             prompt, EXTRACTION_SYSTEM_PROMPT, 800, 0.2, userId);
 
         List<ExtractedFact> facts = parseFacts(rawResponse);

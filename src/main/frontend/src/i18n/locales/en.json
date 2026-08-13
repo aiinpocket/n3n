@@ -2208,7 +2208,7 @@
     },
     "aiChain": {
       "label": "AI Chain",
-      "description": "LLM Chain, Conversation Chain, Sequential Chain and Router Chain"
+      "description": "(Legacy compatibility, use AI Pipeline instead) LLM Chain, Conversation Chain, Sequential Chain and Router Chain"
     },
     "aiPipeline": {
       "label": "AI Pipeline",

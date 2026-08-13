@@ -1,8 +1,7 @@
 package com.aiinpocket.n3n.ai.agent.subagent;
 
 import com.aiinpocket.n3n.ai.agent.*;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,7 +25,7 @@ import java.util.*;
 public class ResponderAgent implements Agent {
 
     private final AgentRegistry agentRegistry;
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
 
     @PostConstruct
     public void init() {
@@ -152,10 +151,7 @@ public class ResponderAgent implements Agent {
             return AgentResult.success("No flow available to explain. Would you like to create a new one?");
         }
 
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(
-            "responder", context.getUserId());
-
-        if (provider.isAvailable()) {
+        if (aiClient.isAvailable(context.getUserId())) {
             try {
                 String flowDescription = describeFlow(draft);
                 String prompt = String.format("""
@@ -170,7 +166,7 @@ public class ResponderAgent implements Agent {
                     3. Final output or result
                     """, flowDescription);
 
-                String response = provider.chat(prompt, EXPLAIN_SYSTEM_PROMPT, 1000, 0.5);
+                String response = aiClient.chat(prompt, EXPLAIN_SYSTEM_PROMPT, 1000, 0.5, context.getUserId());
                 return AgentResult.success(response);
 
             } catch (Exception e) {
@@ -325,16 +321,14 @@ public class ResponderAgent implements Agent {
             );
         }
 
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(
-            "responder", context.getUserId());
-
-        if (provider.isAvailable()) {
+        if (aiClient.isAvailable(context.getUserId())) {
             try {
-                String response = provider.chat(
+                String response = aiClient.chat(
                     userInput,
                     CHITCHAT_SYSTEM_PROMPT,
                     500,
-                    0.7
+                    0.7,
+                    context.getUserId()
                 );
                 return AgentResult.success(response);
             } catch (Exception e) {

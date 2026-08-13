@@ -63,15 +63,12 @@ N3N 是一個「模組化單體」（modular monolith）：
 | `ai/codex/` | 程式碼生成輔助 |
 | `ai/conversation/` | 對話管理（`ConversationManager`）、自動壓縮長上下文 |
 | `ai/embedding/` | 向量嵌入（OpenAI / Ollama 等），pgvector |
-| `ai/failover/` | 供應商容錯移轉 |
-| `ai/memory/` | 對話記憶（舊棧，見第 5 節架構債） |
-| `ai/module/` | AI 助手功能模組（`NaturalLanguageModule` 流程生成、`FlowOptimizationModule`、`SimpleAIProviderRegistry`） |
+| `ai/module/` | AI 助手功能模組（`NaturalLanguageModule` 流程生成、`FlowOptimizationModule`；provider 呼叫一律走 `ai/provider/AssistantAiClient`） |
 | `ai/prompt/` | 提示詞管理 |
-| `ai/provider/` | 多供應商抽象（OpenAI / Claude / Gemini / 本地），`AiProviderFactory` 為節點側統一入口 |
+| `ai/provider/` | 多供應商抽象（OpenAI / Claude / Gemini / 本地）：`AiProviderFactory` 為節點側統一入口，`AssistantAiClient` 為助手側統一入口（共用同一套平台設定，內建一次 failover） |
 | `ai/rag/` | RAG：`RagService`、`InMemoryVectorStore`、retriever |
 | `ai/security/` | AI 相關安全（提示注入防護等） |
 | `ai/usermemory/` | 個人 AI 記憶（自動抽取：`MemoryExtractionService`） |
-| `ai/chain/` | 舊版 chain 執行棧（見第 5 節架構債） |
 
 ### 前端結構（`src/main/frontend/src/`）
 
@@ -113,18 +110,18 @@ N3N 是一個「模組化單體」（modular monolith）：
 
 | 項目 | 現況 | 建議方向 |
 |------|------|----------|
-| 兩套 AI provider 設定系統 | System A：`AiModuleConfig` + `SimpleAIProviderRegistry`，供 AI 助手側消費者（`ConversationManager`、`NaturalLanguageModule`、`FlowOptimizationModule`、supervisor/subagent 等約六處）；System B：`AiProviderConfig` + `AiProviderFactory`，供節點執行與設定 UI | 合併：把 System A 的消費者逐一改走 `AiProviderFactory`，最終移除 `AiModuleConfig` 棧 |
-| 兩個 chain 節點 | `handlers/ai/ChainNodeHandler`（type=`aiChain`，舊）與 `handlers/ai/chain/AiChainNodeHandler`(type=`aiPipeline`，新)並存；舊節點還撐起 `ai/chain/` 與 `ai/memory/` 舊棧 | 新流程一律用 `aiPipeline`；待存量流程遷移後淘汰 `aiChain` 與其依賴 |
-| 同名介面棧 ×2 | `MemoryStore` 與 `RedisVectorStore` 各有兩套：`ai/memory/`（助手側）與 `execution/handler/handlers/ai/memory|vector/`（節點側），名稱相同、介面不同 | 擇一命名空間收斂，或至少改名以消除歧義 |
-| V17 / V18 pgvector 表 | `V17__memory_system.sql`、`V18__enable_pgvector.sql` 建立的部分表目前無人讀寫 | 保留（不破壞 DDL 歷史），合併記憶系統時再決定去留 |
-| gateway 舊版未加密 agent 端點 | `GatewayWebSocketConfig` 仍保留 legacy `/gateway/agent` handler（未走 X25519 加密通道） | 已屬 deprecated，待舊 agent 全數升級後移除 |
+| 兩套 AI provider 設定系統 | 已解決：所有助手側消費者改走 `ai/provider/AssistantAiClient`（facade，底層為 `AiProviderConfig` + `AiProviderFactory` 平台共用設定）；`AiModuleConfig`/`SimpleAIProviderRegistry`/`ai/failover/` 已移除，`ai_module_configs` 資料表保留不再讀寫（2026-08） | 已解決 |
+| 兩個 chain 節點 | 已解決：刪除舊 `ChainNodeHandler` 及其 `ai/chain/`、`ai/memory/` 舊棧；`aiChain` 型別由 `LegacyChainAliasHandler` 以平台共用 provider 相容承接（節點目錄標示 deprecated，AI 不再推薦），新流程一律用 `aiPipeline`（2026-08） | 已解決 |
+| 同名介面棧 ×2 | 已解決：助手側 `ai/memory/` 刪除後 `MemoryStore`/`RedisMemoryStore` 已唯一；`ai/rag/` 的 `VectorStore` 改名 `RagVectorStore`，與節點側 `handlers/ai/vector/VectorStore` 不再同名（2026-08） | 已解決 |
+| V17 / V18 pgvector 表 | 已解決：舊記憶棧移除後 `conversation_messages`/`memory_config`/`conversation_summaries`/`vector_documents`/`template_embeddings`/`flow_embeddings` 確認無程式讀寫；保留以維持 DDL 歷史，operator 可手動 DROP（見 TECHNICAL.md Retired Tables，2026-08） | 已解決 |
+| gateway 舊版未加密 agent 端點 | 已解決：移除 legacy `/gateway/agent` 端點與 `GatewayWebSocketHandler`，僅保留 `/gateway/agent/secure` 加密通道（2026-08） | 已解決 |
 
 ## 6. 安全邊界摘要
 
 | 邊界 | 機制 |
 |------|------|
 | 公開站台（site） | 每個回應強制 `Content-Security-Policy: sandbox`（`SiteSecurityHeaders.SITE_CSP`），使用者上傳的 HTML 一律在瀏覽器沙箱內執行，無同源權限 |
-| 託管 App（hostedapp） | 容器硬化：memory/cpu 上限、`cap-drop ALL`（僅留 NET_BIND_SERVICE）、`no-new-privileges`、pids-limit 256、禁止 bind mount，僅暴露宣告的 web 埠 |
+| 託管 App（hostedapp） | 容器硬化：memory/cpu 上限、`cap-drop ALL`（僅加回 CHOWN/DAC_OVERRIDE/FOWNER/SETGID/SETUID/KILL/NET_BIND_SERVICE 常規集）、`no-new-privileges`、pids-limit 256、禁止 bind mount，僅暴露宣告的 web 埠 |
 | ADMIN 端點 | `@PreAuthorize("hasRole('ADMIN')")`：admin、activity、monitoring、logging、housekeeping、backup/cloudSync、ai/billing、component、gateway、agent/GatewaySettings 等控制器 |
 | 憑證 | AES-256-GCM 加密落庫；master key 首次啟動自動產生；支援 envelope encryption 與 Recovery Key；節點僅能經 `CredentialResolver` 取用 |
 | Agent 通道 | 裝置 agent 與平台間 X25519 金鑰交換 + AES-256-GCM（`SecureMessageService`） |

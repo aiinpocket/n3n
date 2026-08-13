@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.ai.conversation;
 
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConversationSummarizer {
 
-    private final SimpleAIProviderRegistry aiProviderRegistry;
+    private final AssistantAiClient aiClient;
 
     private static final String SUMMARY_SYSTEM_PROMPT = """
         You are a conversation summarization expert. Condense the conversation into a concise summary, preserving:
@@ -54,7 +54,7 @@ public class ConversationSummarizer {
 
             String prompt = "Please summarize the following conversation:\n\n" + conversationText;
 
-            return aiProviderRegistry.chatWithFailover(
+            return aiClient.chat(
                     prompt,
                     SUMMARY_SYSTEM_PROMPT,
                     500,

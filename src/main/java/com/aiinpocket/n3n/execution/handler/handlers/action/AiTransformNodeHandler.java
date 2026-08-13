@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.action;
 
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.execution.handler.*;
 import com.aiinpocket.n3n.execution.handler.handlers.scripting.JavaScriptEngine;
 import com.aiinpocket.n3n.execution.handler.handlers.scripting.ScriptResult;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class AiTransformNodeHandler extends AbstractNodeHandler {
 
-    private final SimpleAIProviderRegistry aiProviderRegistry;
+    private final AssistantAiClient aiClient;
     private final JavaScriptEngine javaScriptEngine;
     private final ObjectMapper objectMapper;
 
@@ -215,7 +215,7 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
             prompt.append("Please generate JavaScript code:");
 
             // Call AI
-            String response = aiProviderRegistry.chatWithFailover(
+            String response = aiClient.chat(
                 prompt.toString(),
                 SYSTEM_PROMPT,
                 1500, // maxTokens

@@ -1090,6 +1090,18 @@ CREATE TABLE devices (
 );
 ```
 
+### Retired Tables
+
+| Table | 說明 |
+|-------|------|
+| `ai_module_configs` | 已退役（2026-08）：舊的 AI 助手 per-feature provider 設定，已整併到 `ai_provider_configs`（平台共用設定，助手側經由 `AssistantAiClient` 使用）。資料表保留不再讀寫，不做破壞性 DDL。 |
+| `conversation_messages` | 已退役（2026-08）：V17 建立，供舊版助手側記憶堆疊（`ai/memory/`）使用；該堆疊已刪除，改由節點側 `MemoryStore`（Redis）承接。保留以維持 DDL 遷移歷史完整，程式已不再讀寫；operator 可自行手動 DROP。 |
+| `memory_config` | 已退役（2026-08）：V17 建立，舊版記憶堆疊的 per-conversation 設定。同上，保留不再讀寫，可手動 DROP。 |
+| `conversation_summaries` | 已退役（2026-08）：V17 建立，舊版記憶堆疊的對話摘要。同上，保留不再讀寫，可手動 DROP。 |
+| `vector_documents` | 已退役（2026-08）：V18 建立的 pgvector 文件表，舊版記憶／向量檢索堆疊使用。同上，保留不再讀寫，可手動 DROP。 |
+| `template_embeddings` | 已退役（2026-08）：V18 建立的 pgvector 表，舊版模板相似度檢索使用。同上，保留不再讀寫，可手動 DROP。 |
+| `flow_embeddings` | 已退役（2026-08）：V18 建立的 pgvector 表，舊版流程相似度檢索使用。同上，保留不再讀寫，可手動 DROP。 |
+
 ### Redis Keys
 
 | Pattern | Purpose |
@@ -1356,9 +1368,8 @@ src/test/java/com/aiinpocket/n3n/
 │   └── orchestrator/
 │       ├── TrustedRegistryValidatorTest # Registry validation
 │       └── RuntimeEnvironmentDetectorTest # Environment detection
-└── ai/failover/
-    ├── CircuitBreakerTest
-    └── FailoverConfigTest
+└── ai/provider/
+    └── AssistantAiClientTest        # 助手側 AI facade（解析順序 + failover）
 ```
 
 **Total backend tests: 3,543+** (as of 2026-02-16)

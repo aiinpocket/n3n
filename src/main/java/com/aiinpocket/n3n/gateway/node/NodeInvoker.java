@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.gateway.node;
 
-import com.aiinpocket.n3n.gateway.handler.GatewayWebSocketHandler;
+import com.aiinpocket.n3n.gateway.handler.SecureGatewayWebSocketHandler;
 import com.aiinpocket.n3n.gateway.protocol.GatewayResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class NodeInvoker {
 
     private final NodeRegistry nodeRegistry;
-    private final GatewayWebSocketHandler gatewayHandler;
+    private final SecureGatewayWebSocketHandler gatewayHandler;
 
     /**
      * Invoke a capability on a specific connection

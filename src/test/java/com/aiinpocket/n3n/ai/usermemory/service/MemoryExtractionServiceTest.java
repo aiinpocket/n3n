@@ -1,7 +1,6 @@
 package com.aiinpocket.n3n.ai.usermemory.service;
 
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.ai.usermemory.entity.UserMemory;
 import com.aiinpocket.n3n.ai.usermemory.repository.UserMemoryRepository;
 import com.aiinpocket.n3n.base.BaseServiceTest;
@@ -26,7 +25,7 @@ import static org.mockito.Mockito.*;
 class MemoryExtractionServiceTest extends BaseServiceTest {
 
     @Mock
-    private SimpleAIProviderRegistry aiProviderRegistry;
+    private AssistantAiClient aiClient;
 
     @Mock
     private UserMemoryService userMemoryService;
@@ -36,9 +35,6 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    @Mock
-    private SimpleAIProvider provider;
 
     @InjectMocks
     private MemoryExtractionService service;
@@ -153,27 +149,25 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
 
         service.onAssistantReply(conversationId, userId, messages());
 
-        verifyNoInteractions(aiProviderRegistry, userMemoryService, userMemoryRepository);
+        verifyNoInteractions(aiClient, userMemoryService, userMemoryRepository);
     }
 
     @Test
     @DisplayName("onAssistantReply skips when no AI provider is available")
     void onAssistantReply_noProvider_skips() {
-        when(aiProviderRegistry.getProviderForFeature("default", userId)).thenReturn(provider);
-        when(provider.isAvailable()).thenReturn(false);
+        when(aiClient.isAvailable(userId)).thenReturn(false);
 
         service.onAssistantReply(conversationId, userId, messages());
 
-        verify(aiProviderRegistry, never()).chatWithFailover(any(), any(), anyInt(), anyDouble(), any());
+        verify(aiClient, never()).chat(any(), any(), anyInt(), anyDouble(), any());
         verifyNoInteractions(userMemoryService);
     }
 
     @Test
     @DisplayName("onAssistantReply extracts and stores when provider available and throttle fires")
     void onAssistantReply_happyPath_stores() {
-        when(aiProviderRegistry.getProviderForFeature("default", userId)).thenReturn(provider);
-        when(provider.isAvailable()).thenReturn(true);
-        when(aiProviderRegistry.chatWithFailover(any(), any(), anyInt(), anyDouble(), eq(userId)))
+        when(aiClient.isAvailable(userId)).thenReturn(true);
+        when(aiClient.chat(any(), any(), anyInt(), anyDouble(), eq(userId)))
             .thenReturn("[{\"content\": \"偏好用 Slack 通知\", \"category\": \"preference\"}]");
         when(userMemoryRepository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
 
@@ -185,8 +179,8 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
     @Test
     @DisplayName("onAssistantReply never propagates exceptions")
     void onAssistantReply_swallowsExceptions() {
-        when(aiProviderRegistry.getProviderForFeature("default", userId))
-            .thenThrow(new RuntimeException("provider registry boom"));
+        when(aiClient.isAvailable(userId))
+            .thenThrow(new RuntimeException("AI client boom"));
 
         service.onAssistantReply(conversationId, userId, messages());
         // no exception -> pass
@@ -197,7 +191,7 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
     @Test
     @DisplayName("dedup skips a fact already contained in an existing memory")
     void dedup_containedInExisting_skips() {
-        when(aiProviderRegistry.chatWithFailover(any(), any(), anyInt(), anyDouble(), eq(userId)))
+        when(aiClient.chat(any(), any(), anyInt(), anyDouble(), eq(userId)))
             .thenReturn("[{\"content\": \"用 Slack 通知\", \"category\": \"preference\"}]");
         when(userMemoryRepository.findByUserIdOrderByCreatedAtDesc(userId))
             .thenReturn(List.of(memory("使用者偏好用 Slack 通知，不用 email")));
@@ -212,7 +206,7 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
     @DisplayName("dedup updates the existing memory when the new fact is a fuller superset")
     void dedup_supersetOfExisting_updates() {
         UserMemory existing = memory("用 Slack 通知");
-        when(aiProviderRegistry.chatWithFailover(any(), any(), anyInt(), anyDouble(), eq(userId)))
+        when(aiClient.chat(any(), any(), anyInt(), anyDouble(), eq(userId)))
             .thenReturn("[{\"content\": \"使用者偏好用 Slack 通知，不用 email\", \"category\": \"preference\"}]");
         when(userMemoryRepository.findByUserIdOrderByCreatedAtDesc(userId))
             .thenReturn(List.of(existing));
@@ -226,7 +220,7 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
     @Test
     @DisplayName("dedup skips near-duplicates with high bigram overlap")
     void dedup_highOverlap_skips() {
-        when(aiProviderRegistry.chatWithFailover(any(), any(), anyInt(), anyDouble(), eq(userId)))
+        when(aiClient.chat(any(), any(), anyInt(), anyDouble(), eq(userId)))
             .thenReturn("[{\"content\": \"prefers slack notifications for alerts always\", \"category\": \"preference\"}]");
         when(userMemoryRepository.findByUserIdOrderByCreatedAtDesc(userId))
             .thenReturn(List.of(memory("prefers slack notifications for alerts mostly")));
@@ -239,7 +233,7 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
     @Test
     @DisplayName("genuinely new facts are inserted with source assistant")
     void dedup_newFact_inserted() {
-        when(aiProviderRegistry.chatWithFailover(any(), any(), anyInt(), anyDouble(), eq(userId)))
+        when(aiClient.chat(any(), any(), anyInt(), anyDouble(), eq(userId)))
             .thenReturn("[{\"content\": \"正在開發 n3n 工作流程平台\", \"category\": \"project\"}]");
         when(userMemoryRepository.findByUserIdOrderByCreatedAtDesc(userId))
             .thenReturn(List.of(memory("偏好深色主題")));

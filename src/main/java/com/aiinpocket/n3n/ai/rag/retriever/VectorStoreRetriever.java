@@ -1,7 +1,7 @@
 package com.aiinpocket.n3n.ai.rag.retriever;
 
 import com.aiinpocket.n3n.ai.rag.document.Document;
-import com.aiinpocket.n3n.ai.rag.vectorstore.VectorStore;
+import com.aiinpocket.n3n.ai.rag.vectorstore.RagVectorStore;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,13 +16,13 @@ import java.util.Map;
 @Slf4j
 public class VectorStoreRetriever implements Retriever {
 
-    private final VectorStore vectorStore;
+    private final RagVectorStore vectorStore;
     private final int defaultK;
     private final float scoreThreshold;
     private final Map<String, Object> filter;
 
     @Builder
-    public VectorStoreRetriever(VectorStore vectorStore, int defaultK,
+    public VectorStoreRetriever(RagVectorStore vectorStore, int defaultK,
                                  float scoreThreshold, Map<String, Object> filter) {
         this.vectorStore = vectorStore;
         this.defaultK = defaultK > 0 ? defaultK : 4;
@@ -30,7 +30,7 @@ public class VectorStoreRetriever implements Retriever {
         this.filter = filter;
     }
 
-    public VectorStoreRetriever(VectorStore vectorStore) {
+    public VectorStoreRetriever(RagVectorStore vectorStore) {
         this(vectorStore, 4, 0.0f, null);
     }
 
@@ -63,7 +63,7 @@ public class VectorStoreRetriever implements Retriever {
     /**
      * 建立帶閾值的檢索器
      */
-    public static VectorStoreRetriever withThreshold(VectorStore vectorStore, float threshold) {
+    public static VectorStoreRetriever withThreshold(RagVectorStore vectorStore, float threshold) {
         return VectorStoreRetriever.builder()
                 .vectorStore(vectorStore)
                 .scoreThreshold(threshold)
@@ -73,7 +73,7 @@ public class VectorStoreRetriever implements Retriever {
     /**
      * 建立帶過濾器的檢索器
      */
-    public static VectorStoreRetriever withFilter(VectorStore vectorStore, Map<String, Object> filter) {
+    public static VectorStoreRetriever withFilter(RagVectorStore vectorStore, Map<String, Object> filter) {
         return VectorStoreRetriever.builder()
                 .vectorStore(vectorStore)
                 .filter(filter)

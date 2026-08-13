@@ -312,6 +312,22 @@ public class AiProviderService {
     }
 
     /**
+     * 依任意已解析的設定（含相容舊資料的使用者設定）建構執行用 Settings。
+     * API Key 以設定的 ownerId 解密，讓平台共用金鑰可供所有成員使用。
+     */
+    @Transactional(readOnly = true)
+    public AiProviderSettings buildSettingsFor(AiProviderConfig config) {
+        AiProvider provider = providerFactory.getProvider(config.getProvider());
+        String apiKey = getDecryptedApiKey(config);
+
+        return AiProviderSettings.builder()
+                .apiKey(apiKey)
+                .baseUrl(config.getBaseUrl() != null ? config.getBaseUrl() : provider.getDefaultBaseUrl())
+                .timeoutMs(provider.getDefaultTimeoutMs())
+                .build();
+    }
+
+    /**
      * 解析執行 AI 節點/助手時要用的設定：
      * 1. 平台共用預設 → 2. 任一平台共用啟用設定
      * → 3.（相容舊資料）使用者自己的預設 → 4. 使用者自己任一啟用設定

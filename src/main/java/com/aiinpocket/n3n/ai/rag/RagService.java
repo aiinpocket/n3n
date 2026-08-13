@@ -8,7 +8,7 @@ import com.aiinpocket.n3n.ai.rag.retriever.VectorStoreRetriever;
 import com.aiinpocket.n3n.ai.rag.splitter.RecursiveCharacterSplitter;
 import com.aiinpocket.n3n.ai.rag.splitter.TextSplitter;
 import com.aiinpocket.n3n.ai.rag.vectorstore.InMemoryVectorStore;
-import com.aiinpocket.n3n.ai.rag.vectorstore.VectorStore;
+import com.aiinpocket.n3n.ai.rag.vectorstore.RagVectorStore;
 import com.aiinpocket.n3n.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class RagService {
     private final InMemoryVectorStore defaultVectorStore;
 
     // 命名的向量存儲（用於多個知識庫）
-    private final Map<String, VectorStore> namedStores = new ConcurrentHashMap<>();
+    private final Map<String, RagVectorStore> namedStores = new ConcurrentHashMap<>();
 
     /**
      * 索引文檔
@@ -62,7 +62,7 @@ public class RagService {
         Document doc = Document.of(content, metadata != null ? metadata : new HashMap<>());
         List<Document> chunks = textSplitter.split(doc);
 
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         List<String> ids = store.addDocuments(chunks);
 
         log.info("Indexed document into {} chunks in store '{}'", ids.size(),
@@ -91,7 +91,7 @@ public class RagService {
         List<Document> documents = textLoader.load(filePath);
         List<Document> chunks = textSplitter.splitDocuments(documents);
 
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         List<String> ids = store.addDocuments(chunks);
 
         log.info("Indexed file {} into {} chunks in store '{}'",
@@ -111,7 +111,7 @@ public class RagService {
         List<Document> documents = textLoader.load(inputStream, sourceName);
         List<Document> chunks = textSplitter.splitDocuments(documents);
 
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         List<String> ids = store.addDocuments(chunks);
 
         log.info("Indexed stream {} into {} chunks in store '{}'",
@@ -139,7 +139,7 @@ public class RagService {
      * @return 相關文檔列表
      */
     public List<Document> search(String query, int topK, String storeName) {
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         return store.similaritySearchWithScore(query, topK);
     }
 
@@ -161,7 +161,7 @@ public class RagService {
      * @return 答案
      */
     public String ask(String question, String storeName) {
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         VectorStoreRetriever retriever = new VectorStoreRetriever(store);
         RetrievalQAChain chain = RetrievalQAChain.simple(retriever, aiService);
 
@@ -176,7 +176,7 @@ public class RagService {
      * @return 問答結果
      */
     public RetrievalQAChain.QAResult askWithSources(String question, String storeName) {
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         VectorStoreRetriever retriever = new VectorStoreRetriever(store);
         RetrievalQAChain chain = RetrievalQAChain.builder()
                 .retriever(retriever)
@@ -193,7 +193,7 @@ public class RagService {
      * @param name 存儲名稱
      * @return 向量存儲
      */
-    public VectorStore createStore(String name) {
+    public RagVectorStore createStore(String name) {
         InMemoryVectorStore store = new InMemoryVectorStore(aiService);
         namedStores.put(name, store);
         log.info("Created vector store: {}", name);
@@ -206,7 +206,7 @@ public class RagService {
      * @param name 存儲名稱
      */
     public void deleteStore(String name) {
-        VectorStore store = namedStores.remove(name);
+        RagVectorStore store = namedStores.remove(name);
         if (store != null) {
             store.deleteAll();
             log.info("Deleted vector store: {}", name);
@@ -219,7 +219,7 @@ public class RagService {
      * @param storeName 存儲名稱（null 清除預設存儲）
      */
     public void clearStore(String storeName) {
-        VectorStore store = getStore(storeName);
+        RagVectorStore store = getStore(storeName);
         store.deleteAll();
         log.info("Cleared vector store: {}", storeName != null ? storeName : "default");
     }
@@ -227,7 +227,7 @@ public class RagService {
     /**
      * 取得向量存儲
      */
-    private VectorStore getStore(String name) {
+    private RagVectorStore getStore(String name) {
         if (name == null) {
             return defaultVectorStore;
         }

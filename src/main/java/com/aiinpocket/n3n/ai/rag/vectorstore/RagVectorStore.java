@@ -9,9 +9,9 @@ import java.util.Map;
  * 向量存儲介面
  *
  * 提供文檔的向量化存儲和相似度搜尋功能。
- * 類似 LangChain 的 VectorStore。
+ * 類似 LangChain 的 RagVectorStore。
  */
-public interface VectorStore {
+public interface RagVectorStore {
 
     /**
      * 新增文檔到向量存儲

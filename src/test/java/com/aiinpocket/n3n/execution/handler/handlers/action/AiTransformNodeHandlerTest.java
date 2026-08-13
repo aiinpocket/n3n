@@ -1,6 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.action;
 
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.handler.handlers.scripting.JavaScriptEngine;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 class AiTransformNodeHandlerTest {
 
     @Mock
-    private SimpleAIProviderRegistry aiProviderRegistry;
+    private AssistantAiClient aiClient;
 
     @Mock
     private JavaScriptEngine javaScriptEngine;
@@ -33,7 +33,7 @@ class AiTransformNodeHandlerTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        handler = new AiTransformNodeHandler(aiProviderRegistry, javaScriptEngine, objectMapper);
+        handler = new AiTransformNodeHandler(aiClient, javaScriptEngine, objectMapper);
     }
 
     // ==================== Basic Properties ====================

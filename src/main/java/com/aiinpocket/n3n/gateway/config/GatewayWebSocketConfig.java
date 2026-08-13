@@ -1,6 +1,5 @@
 package com.aiinpocket.n3n.gateway.config;
 
-import com.aiinpocket.n3n.gateway.handler.GatewayWebSocketHandler;
 import com.aiinpocket.n3n.gateway.handler.SecureGatewayWebSocketHandler;
 import com.aiinpocket.n3n.gateway.security.DeviceTokenHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -14,15 +13,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 /**
  * WebSocket configuration for the Gateway protocol.
- * Provides two endpoints:
- * - /gateway/agent - Legacy unencrypted mode (deprecated)
- * - /gateway/agent/secure - End-to-end encrypted mode (recommended)
+ * Provides a single endpoint:
+ * - /gateway/agent/secure - End-to-end encrypted mode (X25519 + AES-256-GCM)
  *
  * Security features:
  * - Device token authentication via DeviceTokenHandshakeInterceptor
  * - Configurable allowed origins (default: localhost only for development)
  *
- * Note: These endpoints use a different base path (/gateway/) to avoid conflicts
+ * Note: This endpoint uses a different base path (/gateway/) to avoid conflicts
  * with the STOMP WebSocket configuration which uses /ws/.
  */
 @Configuration
@@ -32,7 +30,6 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @Slf4j
 public class GatewayWebSocketConfig implements WebSocketConfigurer {
 
-    private final GatewayWebSocketHandler gatewayWebSocketHandler;
     private final SecureGatewayWebSocketHandler secureGatewayWebSocketHandler;
     private final DeviceTokenHandshakeInterceptor deviceTokenHandshakeInterceptor;
 
@@ -50,16 +47,7 @@ public class GatewayWebSocketConfig implements WebSocketConfigurer {
         log.info("Gateway WebSocket allowed origins: {}", String.join(", ", allowedOrigins));
         log.info("Gateway WebSocket authentication required: {}", requireAuthentication);
 
-        // Legacy unencrypted endpoint (deprecated, for backwards compatibility)
-        var legacyHandler = registry.addHandler(gatewayWebSocketHandler, "/gateway/agent")
-            .setAllowedOrigins(allowedOrigins);
-
-        if (requireAuthentication) {
-            legacyHandler.addInterceptors(deviceTokenHandshakeInterceptor);
-        }
-        log.info("Registered /gateway/agent endpoint (authenticated: {})", requireAuthentication);
-
-        // Secure encrypted endpoint (recommended)
+        // Secure encrypted endpoint
         var secureHandler = registry.addHandler(secureGatewayWebSocketHandler, "/gateway/agent/secure")
             .setAllowedOrigins(allowedOrigins);
 

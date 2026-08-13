@@ -4,6 +4,7 @@ import com.aiinpocket.n3n.ai.codex.NodeCodex;
 import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
 import com.aiinpocket.n3n.ai.dto.FlowGenerationChunk;
 import com.aiinpocket.n3n.ai.prompt.PromptBuilder;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.plugin.entity.Plugin;
@@ -55,7 +56,7 @@ public class NaturalLanguageModule {
             "\\n\\nHuman:", "\\n\\nAssistant:"
     );
 
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final NodeHandlerRegistry nodeHandlerRegistry;
     private final NodeKnowledgeBase nodeKnowledgeBase;
     private final PromptBuilder promptBuilder;
@@ -64,14 +65,14 @@ public class NaturalLanguageModule {
     private final com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService;
 
     public NaturalLanguageModule(
-            SimpleAIProviderRegistry providerRegistry,
+            AssistantAiClient aiClient,
             NodeHandlerRegistry nodeHandlerRegistry,
             NodeKnowledgeBase nodeKnowledgeBase,
             PromptBuilder promptBuilder,
             ObjectMapper objectMapper,
             @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
             com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService) {
-        this.providerRegistry = providerRegistry;
+        this.aiClient = aiClient;
         this.nodeHandlerRegistry = nodeHandlerRegistry;
         this.nodeKnowledgeBase = nodeKnowledgeBase;
         this.promptBuilder = promptBuilder;
@@ -105,10 +106,8 @@ public class NaturalLanguageModule {
             return FlowGenerationResult.error("Input contains disallowed characters or patterns, please rephrase your request");
         }
 
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
-
-        if (!provider.isAvailable()) {
-            log.warn("AI provider {} not available for flow generation", provider.getName());
+        if (!aiClient.isAvailable(userId)) {
+            log.warn("AI provider not available for flow generation");
             return FlowGenerationResult.unavailable();
         }
 
@@ -124,7 +123,7 @@ public class NaturalLanguageModule {
             log.debug("Generated system prompt length: {}, user prompt length: {}",
                     systemPrompt.length(), userPrompt.length());
 
-            String response = provider.chat(userPrompt, systemPrompt, 4096, 0.7);
+            String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId);
             return parseFlowGenerationResponse(response, availableNodes, installedNodeTypes);
         } catch (Exception e) {
             log.error("Flow generation failed", e);
@@ -176,8 +175,7 @@ public class NaturalLanguageModule {
                 emitProgress(sink, 0, "Analyzing your request...", "analyzing");
                 Thread.sleep(300); // Small delay for UX
 
-                SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
-                if (!provider.isAvailable()) {
+                if (!aiClient.isAvailable(userId)) {
                     sink.tryEmitNext(FlowGenerationChunk.error("AI service unavailable"));
                     sink.tryEmitComplete();
                     return;
@@ -201,7 +199,7 @@ public class NaturalLanguageModule {
                 sink.tryEmitNext(FlowGenerationChunk.thinking("Generating flow architecture with AI..."));
                 emitProgress(sink, 35, "Calling AI model...", "ai_generating");
 
-                String response = provider.chat(userPrompt, systemPrompt, 4096, 0.7);
+                String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId);
                 emitProgress(sink, 70, "AI response received", "parsing");
 
                 // Phase 5: Parsing response (70-85%)
@@ -374,9 +372,7 @@ public class NaturalLanguageModule {
             UUID userId,
             Set<String> installedNodeTypes) {
 
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(FEATURE_NAME, userId);
-
-        if (!provider.isAvailable()) {
+        if (!aiClient.isAvailable(userId)) {
             return NodeRecommendationResult.unavailable();
         }
 
@@ -386,7 +382,7 @@ public class NaturalLanguageModule {
                     currentFlow, searchQuery, installedNodeTypes);
             String systemPrompt = getNodeRecommendationSystemPrompt();
 
-            String response = provider.chat(prompt, systemPrompt, 2048, 0.5);
+            String response = aiClient.chat(prompt, systemPrompt, 2048, 0.5, userId);
             return parseNodeRecommendationResponse(response, installedNodeTypes);
         } catch (Exception e) {
             log.error("Node recommendation failed", e);

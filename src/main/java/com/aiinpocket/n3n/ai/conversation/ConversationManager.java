@@ -1,8 +1,7 @@
 package com.aiinpocket.n3n.ai.conversation;
 
-import com.aiinpocket.n3n.ai.entity.AiModuleConfig;
 import com.aiinpocket.n3n.ai.entity.Conversation;
-import com.aiinpocket.n3n.ai.repository.AiModuleConfigRepository;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.ai.repository.ConversationRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +29,7 @@ public class ConversationManager {
     private final ConversationRepository conversationRepository;
     private final ConversationSummarizer conversationSummarizer;
     private final ContextWindowRegistry contextWindowRegistry;
-    private final AiModuleConfigRepository aiModuleConfigRepository;
+    private final AssistantAiClient assistantAiClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -139,27 +138,11 @@ public class ConversationManager {
     }
 
     /**
-     * 追出使用者目前生效的模型名稱：
-     * 個人的 default 功能配置優先，否則沿用平台（管理員）配置；查無時回傳 null（用預設 window）。
+     * 追出目前生效的模型名稱（平台共用設定的預設模型）；
+     * 查無時回傳 null（用預設 window）。
      */
     private String resolveActiveModel(UUID userId) {
-        try {
-            if (userId != null) {
-                Optional<AiModuleConfig> userConfig = aiModuleConfigRepository
-                        .findByUserIdAndFeatureAndIsActiveTrue(userId, "default");
-                if (userConfig.isPresent()) {
-                    return userConfig.get().getModel();
-                }
-            }
-            return aiModuleConfigRepository
-                    .findByFeatureAndIsActiveTrueOrderByCreatedAtAsc("default")
-                    .stream().findFirst()
-                    .map(AiModuleConfig::getModel)
-                    .orElse(null);
-        } catch (Exception e) {
-            log.debug("Failed to resolve active model for user {}: {}", userId, e.getMessage());
-            return null;
-        }
+        return assistantAiClient.resolveActiveModel(userId).orElse(null);
     }
 
     /** 累積 token = rolling summary + 全部訊息 */

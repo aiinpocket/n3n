@@ -1,8 +1,7 @@
 package com.aiinpocket.n3n.ai.service;
 
 import com.aiinpocket.n3n.ai.embedding.EmbeddingService;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,7 @@ import java.util.Map;
  * AI 服務
  *
  * 提供基礎的 AI 操作，包括文字生成和向量嵌入。
- * 整合 SimpleAIProviderRegistry 來支援多種 AI 提供者。
+ * 透過 AssistantAiClient 使用平台共用的 AI Provider 設定。
  * 向量嵌入透過 EmbeddingService 提供（支援 OpenAI、Ollama 等）。
  */
 @Service
@@ -22,7 +21,7 @@ import java.util.Map;
 @Slf4j
 public class AiService {
 
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final EmbeddingService embeddingService;
 
     /**
@@ -33,18 +32,14 @@ public class AiService {
      * @return 產生的文字
      */
     public String generateText(String prompt, String model) {
-        SimpleAIProvider provider = providerRegistry.getDefaultProvider();
-        if (provider == null || !provider.isAvailable()) {
+        if (!aiClient.isAvailable(null)) {
             throw new IllegalStateException("No AI provider configured. Please configure an AI provider in AI Settings");
         }
 
         try {
-            var messages = List.of(
-                    Map.of("role", "user", "content", prompt)
-            );
-
-            String response = provider.chat(messages, model);
-            log.debug("Generated text using model {}: {} chars", model, response.length());
+            // 模型由平台共用設定決定；model 參數僅保留為呼叫端相容性
+            String response = aiClient.chat(prompt, null, null);
+            log.debug("Generated text ({} chars); requested model hint: {}", response.length(), model);
             return response;
 
         } catch (Exception e) {
@@ -155,7 +150,6 @@ public class AiService {
      * @return true 如果有可用的 AI 提供者
      */
     public boolean isAvailable() {
-        SimpleAIProvider provider = providerRegistry.getDefaultProvider();
-        return provider != null && provider.isAvailable();
+        return aiClient.isAvailable(null);
     }
 }

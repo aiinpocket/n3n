@@ -1,8 +1,7 @@
 package com.aiinpocket.n3n.ai.agent.subagent;
 
 import com.aiinpocket.n3n.ai.agent.*;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ import java.util.regex.Pattern;
 public class OptimizerAgent implements Agent {
 
     private final AgentRegistry agentRegistry;
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final ObjectMapper objectMapper;
 
     @PostConstruct
@@ -152,7 +151,7 @@ public class OptimizerAgent implements Agent {
         checkSecurity(draft, report);
 
         // 5. 使用 AI 進行深度分析
-        if (providerRegistry != null) {
+        if (aiClient != null) {
             performAIAnalysis(draft, report, context);
         }
 
@@ -356,8 +355,7 @@ public class OptimizerAgent implements Agent {
      */
     private void performAIAnalysis(WorkingFlowDraft draft, OptimizationReport report, AgentContext context) {
         try {
-            SimpleAIProvider provider = providerRegistry.getProviderForFeature("optimizer", context.getUserId());
-            if (!provider.isAvailable()) {
+            if (!aiClient.isAvailable(context.getUserId())) {
                 return;
             }
 
@@ -376,7 +374,7 @@ public class OptimizerAgent implements Agent {
                 }
                 """, flowJson);
 
-            String response = provider.chat(prompt, OPTIMIZER_SYSTEM_PROMPT, 1000, 0.3);
+            String response = aiClient.chat(prompt, OPTIMIZER_SYSTEM_PROMPT, 1000, 0.3, context.getUserId());
             parseAISuggestions(response, report);
 
         } catch (Exception e) {

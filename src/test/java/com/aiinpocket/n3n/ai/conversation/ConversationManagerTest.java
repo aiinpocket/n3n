@@ -1,7 +1,7 @@
 package com.aiinpocket.n3n.ai.conversation;
 
 import com.aiinpocket.n3n.ai.entity.Conversation;
-import com.aiinpocket.n3n.ai.repository.AiModuleConfigRepository;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.ai.repository.ConversationRepository;
 import com.aiinpocket.n3n.base.BaseServiceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +37,7 @@ class ConversationManagerTest extends BaseServiceTest {
     private ContextWindowRegistry contextWindowRegistry;
 
     @Mock
-    private AiModuleConfigRepository aiModuleConfigRepository;
+    private AssistantAiClient assistantAiClient;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -80,10 +80,7 @@ class ConversationManagerTest extends BaseServiceTest {
     }
 
     private void stubModelLookup() {
-        when(aiModuleConfigRepository.findByUserIdAndFeatureAndIsActiveTrue(userId, "default"))
-            .thenReturn(Optional.empty());
-        when(aiModuleConfigRepository.findByFeatureAndIsActiveTrueOrderByCreatedAtAsc("default"))
-            .thenReturn(List.of());
+        when(assistantAiClient.resolveActiveModel(userId)).thenReturn(Optional.empty());
     }
 
     @Test

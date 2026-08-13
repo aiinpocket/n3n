@@ -1,8 +1,7 @@
 package com.aiinpocket.n3n.ai.agent.supervisor;
 
 import com.aiinpocket.n3n.ai.agent.*;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class IntentAnalyzer {
 
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final ObjectMapper objectMapper;
 
     private static final String SYSTEM_PROMPT = """
@@ -67,17 +66,14 @@ public class IntentAnalyzer {
      * 分析使用者意圖
      */
     public Intent analyze(AgentContext context) {
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(
-            "supervisor", context.getUserId());
-
-        if (!provider.isAvailable()) {
+        if (!aiClient.isAvailable(context.getUserId())) {
             log.warn("AI provider not available, using rule-based analysis");
             return ruleBasedAnalysis(context.getUserInput());
         }
 
         try {
             String prompt = buildPrompt(context);
-            String response = provider.chat(prompt, SYSTEM_PROMPT, 1024, 0.3);
+            String response = aiClient.chat(prompt, SYSTEM_PROMPT, 1024, 0.3, context.getUserId());
             return parseResponse(response);
         } catch (Exception e) {
             log.error("Failed to analyze intent with AI, falling back to rules", e);

@@ -2,8 +2,7 @@ package com.aiinpocket.n3n.ai.agent.subagent;
 
 import com.aiinpocket.n3n.ai.agent.*;
 import com.aiinpocket.n3n.ai.agent.tools.SearchNodeTool;
-import com.aiinpocket.n3n.ai.module.SimpleAIProvider;
-import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.skill.service.SkillService;
@@ -33,7 +32,7 @@ public class DiscoveryAgent implements Agent {
 
     private final AgentRegistry agentRegistry;
     private final NodeHandlerRegistry nodeHandlerRegistry;
-    private final SimpleAIProviderRegistry providerRegistry;
+    private final AssistantAiClient aiClient;
     private final SkillService skillService;
     private final SearchNodeTool searchNodeTool;
     private final ObjectMapper objectMapper;
@@ -289,10 +288,7 @@ public class DiscoveryAgent implements Agent {
         log.debug("Recommending nodes for: {}", userInput);
 
         // 使用 AI 分析需求並推薦節點
-        SimpleAIProvider provider = providerRegistry.getProviderForFeature(
-            "discovery", context.getUserId());
-
-        if (!provider.isAvailable()) {
+        if (!aiClient.isAvailable(context.getUserId())) {
             return ruleBasedRecommendation(context);
         }
 
@@ -320,7 +316,7 @@ public class DiscoveryAgent implements Agent {
                 }
                 """, userInput, nodeList);
 
-            String response = provider.chat(prompt, RECOMMENDATION_SYSTEM_PROMPT, 2000, 0.3);
+            String response = aiClient.chat(prompt, RECOMMENDATION_SYSTEM_PROMPT, 2000, 0.3, context.getUserId());
             return parseRecommendationResponse(response, context);
 
         } catch (Exception e) {
