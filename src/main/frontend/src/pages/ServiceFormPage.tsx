@@ -170,7 +170,7 @@ export default function ServiceFormPage() {
           authType: 'none',
         }}
       >
-        <Divider orientation="left">{t('service.basicInfo')}</Divider>
+        <Divider titlePlacement="left">{t('service.basicInfo')}</Divider>
 
         <Form.Item
           name="name"
@@ -200,7 +200,7 @@ export default function ServiceFormPage() {
           <TextArea rows={3} placeholder={t('service.descriptionPlaceholder')} maxLength={1000} showCount />
         </Form.Item>
 
-        <Divider orientation="left">{t('service.connectionSettings')}</Divider>
+        <Divider titlePlacement="left">{t('service.connectionSettings')}</Divider>
 
         <Form.Item
           name="baseUrl"
@@ -247,7 +247,7 @@ export default function ServiceFormPage() {
           />
         )}
 
-        <Divider orientation="left">{t('service.authSettings')}</Divider>
+        <Divider titlePlacement="left">{t('service.authSettings')}</Divider>
 
         <Alert
           message={t('service.securityTip')}
@@ -270,7 +270,7 @@ export default function ServiceFormPage() {
           <Select
             allowClear
             placeholder={t('service.selectCredentialPlaceholder')}
-            dropdownRender={(menu) => (
+            popupRender={(menu) => (
               <>
                 {menu}
                 <Divider style={{ margin: '8px 0' }} />

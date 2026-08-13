@@ -21,13 +21,15 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'antd-vendor': ['antd', '@ant-design/icons'],
-          'flow-vendor': ['@xyflow/react'],
-          'state-vendor': ['zustand', 'axios'],
-          'monaco-vendor': ['@monaco-editor/react'],
-          'dagre-vendor': ['@dagrejs/dagre'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id))
+            return 'react-vendor'
+          if (/[\\/]node_modules[\\/](antd|@ant-design)[\\/]/.test(id)) return 'antd-vendor'
+          if (/[\\/]node_modules[\\/]@xyflow[\\/]/.test(id)) return 'flow-vendor'
+          if (/[\\/]node_modules[\\/](zustand|axios)[\\/]/.test(id)) return 'state-vendor'
+          if (/[\\/]node_modules[\\/]@monaco-editor[\\/]/.test(id)) return 'monaco-vendor'
+          if (/[\\/]node_modules[\\/]@dagrejs[\\/]/.test(id)) return 'dagre-vendor'
         },
       },
     },

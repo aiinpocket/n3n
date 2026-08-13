@@ -142,7 +142,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
   const mountedRef = useRef(true)
-  const conversationIdRef = useRef<string | undefined>()
+  const conversationIdRef = useRef<string | undefined>(undefined)
 
   // Keep conversationIdRef in sync
   useEffect(() => {

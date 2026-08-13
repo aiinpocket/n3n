@@ -41,7 +41,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<GenerateCodeResponse | null>(null)
   const [copied, setCopied] = useState(false)
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const handleGenerate = async () => {
     if (!description.trim()) return

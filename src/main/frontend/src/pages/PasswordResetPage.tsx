@@ -15,7 +15,7 @@ export default function PasswordResetPage() {
   const { t } = useTranslation()
   const tokenFromUrl = searchParams.get('token')
   const [currentStep, setCurrentStep] = useState(tokenFromUrl ? 1 : 0)
-  const redirectTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     return () => {

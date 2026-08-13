@@ -160,14 +160,13 @@ final class ElasticsearchSearchOperations {
         String scriptJson = getRequiredParam(params, "script");
         boolean refresh = getBoolParam(params, "refresh", false);
 
-        Map<String, Object> scriptMap = objectMapper.readValue(scriptJson, new TypeReference<>() {});
-        String source = (String) scriptMap.get("source");
-        String lang = (String) scriptMap.getOrDefault("lang", "painless");
-
+        // Build the script straight from its JSON. The elasticsearch-java Script builder API
+        // changed shape across 8.x minors (the inline/stored union was flattened), so parsing
+        // the raw JSON keeps this robust across client versions.
         UpdateByQueryRequest.Builder request = new UpdateByQueryRequest.Builder()
             .index(index)
             .query(q -> q.withJson(new StringReader(queryJson)))
-            .script(s -> s.inline(i -> i.source(source).lang(lang)));
+            .script(s -> s.withJson(new StringReader(scriptJson)));
 
         if (refresh) {
             request.refresh(true);

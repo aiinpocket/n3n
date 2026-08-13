@@ -18,7 +18,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
   const [verifyInput, setVerifyInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     return () => {

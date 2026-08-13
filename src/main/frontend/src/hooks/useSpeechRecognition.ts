@@ -161,7 +161,7 @@ export function useSpeechRecognition(
     }
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      let errorMessage = t('speech.error')
+      let errorMessage: string
 
       switch (event.error) {
         case 'no-speech':

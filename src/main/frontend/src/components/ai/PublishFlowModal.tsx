@@ -58,7 +58,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
   const [analysis, setAnalysis] = useState<PublishAnalysisResponse | null>(null)
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set())
   const [applying, setApplying] = useState(false)
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
 
   const startAnalysis = useCallback(async () => {

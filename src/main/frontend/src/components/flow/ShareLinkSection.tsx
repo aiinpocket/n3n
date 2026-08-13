@@ -82,7 +82,7 @@ function ShareLinkSection({ flowId, visible }: ShareLinkSectionProps) {
 
   return (
     <div>
-      <Divider orientation="left" plain>
+      <Divider titlePlacement="left" plain>
         <Space>
           <LinkOutlined />
           <span>{t('share.linkSection')}</span>
