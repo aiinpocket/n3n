@@ -169,13 +169,19 @@ public class WebhookService {
         Webhook webhook = webhookRepository.findByPathAndMethodAndIsActiveTrue(path, method.toUpperCase())
             .orElseThrow(() -> new ResourceNotFoundException("Webhook not found or inactive: " + path));
 
-        // Validate auth if configured (skip for internal test triggers)
-        if (!skipAuth && webhook.getAuthType() != null) {
-            switch (webhook.getAuthType()) {
+        // Validate auth (skip only for internal test triggers authenticated via JWT).
+        // A webhook with no configured auth type is treated as requiring explicit configuration:
+        // it is rejected rather than allowed through. Only an explicit "none" opts out of auth.
+        if (!skipAuth) {
+            String authType = webhook.getAuthType();
+            if (authType == null || authType.isBlank()) {
+                throw new SecurityException("Webhook authentication is not configured");
+            }
+            switch (authType) {
                 case "hmac", "signature" -> validateHmacSignature(payload, signature, webhook.getAuthConfig());
                 case "apiKey" -> validateApiKey(request, webhook.getAuthConfig());
                 case "none" -> { /* Explicitly no auth */ }
-                default -> throw new SecurityException("Unsupported webhook auth type: " + webhook.getAuthType());
+                default -> throw new SecurityException("Unsupported webhook auth type: " + authType);
             }
         }
 

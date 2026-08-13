@@ -56,6 +56,21 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
     @Value("${n3n.browser.session-ttl-seconds:1800}")
     private long sessionTtlSeconds = 1800;
 
+    /**
+     * Whether a remote (non-loopback) CDP host may be targeted. The Chrome DevTools Protocol
+     * endpoint is an internal debugging interface; by default only loopback hosts are permitted
+     * so a workflow cannot point it at an arbitrary internal service. Operators can opt in.
+     */
+    @Value("${n3n.browser.cdp.allow-remote:false}")
+    private boolean cdpAllowRemote;
+
+    /**
+     * Server-side SSRF override (shared with the HTTP Request node). When false (default),
+     * navigation to private/reserved IPs and cloud metadata endpoints is blocked.
+     */
+    @Value("${n3n.security.ssrf.allow-internal-addresses:false}")
+    private boolean ssrfAllowInternalAddresses;
+
     private long sessionTtlMs() {
         long ttl = sessionTtlSeconds > 0 ? sessionTtlSeconds : 1800;
         return ttl * 1000L;
@@ -111,6 +126,22 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
         int cdpPort = getIntConfig(context, "cdpPort", DEFAULT_CDP_PORT);
         String sessionId = getStringConfig(context, "sessionId", "default");
         String sessionKey = sessionKey(context, sessionId);
+
+        // CDP endpoint is an internal debugging interface: restrict to loopback unless the
+        // operator explicitly allows remote CDP hosts.
+        String cdpHostError = validateCdpHost(cdpHost);
+        if (cdpHostError != null) {
+            return NodeExecutionResult.failure(cdpHostError);
+        }
+
+        // Block SSRF via the navigation URL (page/goto) before a session is created.
+        if ("page".equals(resource) && "goto".equals(operation)) {
+            String urlError = validateNavigationUrl(getStringConfig(context, "url", ""));
+            if (urlError != null) {
+                return NodeExecutionResult.failure(urlError);
+            }
+        }
+
         sessionLastAccess.put(sessionKey, System.currentTimeMillis());
 
         try {
@@ -140,6 +171,91 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
             log.error("Browser automation error: {}", e.getMessage());
             return NodeExecutionResult.failure("Browser automation error: " + sanitizeErrorMessage(e.getMessage()));
         }
+    }
+
+    // ===== SSRF / CDP host validation =====
+
+    /**
+     * Restrict the CDP host to loopback unless remote CDP is explicitly enabled.
+     *
+     * @return an error message if the host is not permitted, or {@code null} if it is allowed
+     */
+    private String validateCdpHost(String cdpHost) {
+        if (cdpHost == null || cdpHost.isBlank()) {
+            return "CDP host is required";
+        }
+        if (cdpAllowRemote) {
+            return null;
+        }
+        try {
+            java.net.InetAddress[] addresses = java.net.InetAddress.getAllByName(cdpHost);
+            for (java.net.InetAddress addr : addresses) {
+                if (!addr.isLoopbackAddress()) {
+                    return "Remote CDP host is not allowed; only loopback is permitted";
+                }
+            }
+            return null;
+        } catch (java.net.UnknownHostException e) {
+            return "Cannot resolve CDP host: " + cdpHost;
+        }
+    }
+
+    /**
+     * Validate a navigation URL: only http(s) is permitted, and private/reserved/metadata
+     * addresses are blocked unless the server-side SSRF override is enabled.
+     *
+     * @return an error message if the URL is not permitted, or {@code null} if it is allowed
+     */
+    private String validateNavigationUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            // Navigation with an empty URL is handled downstream (returns "URL is required").
+            return null;
+        }
+        java.net.URL parsedUrl;
+        try {
+            parsedUrl = new java.net.URL(url);
+        } catch (java.net.MalformedURLException e) {
+            return "Invalid URL format: " + url;
+        }
+        String protocol = parsedUrl.getProtocol();
+        if (protocol == null || !(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https"))) {
+            return "Only http and https URLs are allowed";
+        }
+        if (ssrfAllowInternalAddresses) {
+            return null;
+        }
+        try {
+            java.net.InetAddress[] addresses = java.net.InetAddress.getAllByName(parsedUrl.getHost());
+            for (java.net.InetAddress addr : addresses) {
+                if (isPrivateOrReservedIP(addr)) {
+                    return "Access to internal network addresses is not allowed";
+                }
+            }
+        } catch (java.net.UnknownHostException e) {
+            return "Cannot resolve hostname: " + parsedUrl.getHost();
+        }
+        return null;
+    }
+
+    /**
+     * Check if an IP address belongs to a private, reserved, or internal range.
+     * Covers RFC 1918/5737/6598 ranges plus cloud metadata endpoints (169.254.169.254).
+     */
+    private boolean isPrivateOrReservedIP(java.net.InetAddress addr) {
+        byte[] ip = addr.getAddress();
+        if (ip.length == 4) {
+            int b0 = ip[0] & 0xFF;
+            int b1 = ip[1] & 0xFF;
+            if (b0 == 127) return true;                            // 127.0.0.0/8 loopback
+            if (b0 == 10) return true;                             // 10.0.0.0/8 private
+            if (b0 == 172 && b1 >= 16 && b1 <= 31) return true;   // 172.16.0.0/12 private
+            if (b0 == 192 && b1 == 168) return true;               // 192.168.0.0/16 private
+            if (b0 == 169 && b1 == 254) return true;               // 169.254.0.0/16 link-local/metadata
+            if (b0 == 0) return true;                              // 0.0.0.0/8 current network
+            if (b0 == 100 && b1 >= 64 && b1 <= 127) return true;  // 100.64.0.0/10 CGNAT
+        }
+        return addr.isLoopbackAddress() || addr.isSiteLocalAddress() ||
+               addr.isLinkLocalAddress() || addr.isAnyLocalAddress();
     }
 
     // ===== Session management (kept in main handler) =====

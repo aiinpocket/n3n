@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.integrations;
 
+import com.aiinpocket.n3n.common.util.JdbcParamValidator;
 import com.aiinpocket.n3n.execution.handler.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -60,6 +61,13 @@ public class MySQLNodeHandler extends AbstractNodeHandler {
 
         if (query.isEmpty()) {
             return NodeExecutionResult.failure("SQL query is required");
+        }
+
+        try {
+            JdbcParamValidator.validateHost(host);
+            JdbcParamValidator.validateDatabaseName(database);
+        } catch (IllegalArgumentException e) {
+            return NodeExecutionResult.failure(e.getMessage());
         }
 
         String jdbcUrl = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true",

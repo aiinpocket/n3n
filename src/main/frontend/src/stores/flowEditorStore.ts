@@ -162,14 +162,17 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
 
   setSelectedNodeIds: (selectedNodeIds) => set({
     selectedNodeIds,
-    selectedNodeId: selectedNodeIds.length > 0 ? selectedNodeIds[0] : null
+    // Only open the config panel (selectedNodeId) for a single selection
+    selectedNodeId: selectedNodeIds.length === 1 ? selectedNodeIds[0] : null
   }),
 
   selectAllNodes: () => {
     const { nodes } = get()
     set({
+      // Mark nodes as selected so React Flow shows visual feedback
+      nodes: nodes.map((n) => ({ ...n, selected: true })),
       selectedNodeIds: nodes.map(n => n.id),
-      selectedNodeId: nodes.length > 0 ? nodes[0].id : null
+      selectedNodeId: nodes.length === 1 ? nodes[0].id : null
     })
   },
 
@@ -270,6 +273,8 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
         type: n.type,
         position: { x: n.position.x + offsetX, y: n.position.y + offsetY },
         data: { ...n.data },
+        // Select pasted nodes so the user gets visual feedback
+        selected: true,
       }
     })
 
@@ -287,10 +292,11 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       }))
 
     set({
-      nodes: [...nodes, ...newNodes],
+      // Deselect existing nodes so only the pasted nodes are highlighted
+      nodes: [...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)), ...newNodes],
       edges: [...edges, ...newEdges],
       selectedNodeIds: newNodes.map((n) => n.id),
-      selectedNodeId: newNodes.length > 0 ? newNodes[0].id : null,
+      selectedNodeId: newNodes.length === 1 ? newNodes[0].id : null,
       isDirty: true,
     })
   },
@@ -500,7 +506,9 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       return flowVersion
     } catch (error) {
       logger.error('Auto-save failed:', error)
-      return null
+      // Re-throw so callers (e.g. FlowEditorPage) can surface the failure;
+      // isDirty stays true so the changes are retried on the next auto-save
+      throw error
     } finally {
       set({ saving: false })
     }

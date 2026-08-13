@@ -244,7 +244,7 @@ const BaseNode = memo(({ id, data, selected }: NodeProps) => {
               justifyContent: 'center',
               boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
-            title={t('nodeTypes.pinnedData')}
+            title={t('nodeTypes.pinnedData.label')}
           >
             <PushpinFilled style={{ fontSize: 11, color: '#fff' }} />
           </div>

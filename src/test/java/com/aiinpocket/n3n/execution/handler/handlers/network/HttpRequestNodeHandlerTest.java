@@ -31,6 +31,10 @@ class HttpRequestNodeHandlerTest {
     void setUp() throws IOException {
         objectMapper = new ObjectMapper();
         handler = new HttpRequestNodeHandler(objectMapper);
+        // Enable the server-side SSRF override so node config allowInternalAddresses=true can
+        // reach the loopback MockWebServer (mirrors n3n.security.ssrf.allow-internal-addresses=true).
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                handler, "serverAllowsInternalAddresses", true);
         mockWebServer = new MockWebServer();
         mockWebServer.start();
     }

@@ -231,13 +231,24 @@ public class ExecutionApprovalService {
 
     /**
      * Expire old pending approvals.
-     * This should be called periodically by a scheduled task.
+     * This should be called periodically by a scheduled task (see ApprovalExpiryScheduler).
+     *
+     * @return the number of approvals expired
      */
     @Transactional
     public int expireOldApprovals() {
+        return expireOldApprovalsAndCollect().size();
+    }
+
+    /**
+     * Expire old pending approvals and return the approvals that were expired,
+     * so the caller can unstick the associated (still-waiting) executions.
+     */
+    @Transactional
+    public List<ExecutionApproval> expireOldApprovalsAndCollect() {
         List<ExecutionApproval> expired = approvalRepository.findExpiredApprovals(Instant.now());
         if (expired.isEmpty()) {
-            return 0;
+            return List.of();
         }
         Instant now = Instant.now();
         for (ExecutionApproval approval : expired) {
@@ -249,7 +260,7 @@ public class ExecutionApprovalService {
             notificationService.notifyApprovalResolved(approval.getExecutionId(), approval.getId(), "expired");
         }
         log.info("Expired {} approvals", expired.size());
-        return expired.size();
+        return expired;
     }
 
     /**

@@ -19,15 +19,16 @@ function shouldRetry(error: AxiosError, config: RetryConfig): boolean {
   const retryCount = config._retryCount || 0
   if (retryCount >= MAX_RETRIES) return false
 
-  // Network error (no response) - always retry
+  // Never auto-retry non-idempotent methods (e.g. POST) — a network error or
+  // timeout may have reached the server, and retrying could duplicate the action
+  const method = (config.method || 'get').toLowerCase()
+  if (!IDEMPOTENT_METHODS.has(method)) return false
+
+  // Network error (no response) - retry
   if (!error.response) return true
 
   const status = error.response.status
-  if (!RETRYABLE_STATUS_CODES.has(status)) return false
-
-  // Only auto-retry idempotent methods for server errors
-  const method = (config.method || 'get').toLowerCase()
-  return IDEMPOTENT_METHODS.has(method)
+  return RETRYABLE_STATUS_CODES.has(status)
 }
 
 function getRetryDelay(retryCount: number): number {

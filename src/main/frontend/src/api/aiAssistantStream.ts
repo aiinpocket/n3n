@@ -57,6 +57,8 @@ export async function chatStream(
     },
     body: JSON.stringify(request),
     signal: abortController?.signal,
+    // Keep the SSE stream alive when the tab is hidden (avoids abort + re-POST)
+    openWhenHidden: true,
 
     onopen: async (response) => {
       if (!response.ok) {
@@ -104,6 +106,8 @@ export async function chatStream(
     onerror: (error) => {
       logger.error('SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
+      // Re-throw to stop fetch-event-source from retrying forever
+      throw error
     },
   })
 }
@@ -218,6 +222,8 @@ export async function generateFlowStream(
     },
     body: JSON.stringify(request),
     signal: abortController?.signal,
+    // Keep the SSE stream alive when the tab is hidden (avoids abort + re-POST)
+    openWhenHidden: true,
 
     onopen: async (response) => {
       if (!response.ok) {
@@ -274,6 +280,8 @@ export async function generateFlowStream(
     onerror: (error) => {
       logger.error('Flow generation SSE error:', error)
       callbacks.onError?.(error.message || 'Connection error')
+      // Re-throw to stop fetch-event-source from retrying forever
+      throw error
     },
   })
 }

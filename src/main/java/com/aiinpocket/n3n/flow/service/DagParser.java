@@ -234,6 +234,13 @@ public class DagParser {
     }
 
     /**
+     * Get all edges of a flow definition (used by the engine for branch-aware routing).
+     */
+    public List<FlowEdge> getAllEdges(Map<String, Object> definition) {
+        return extractEdges(definition);
+    }
+
+    /**
      * Get edges by type for a specific source node
      */
     public List<FlowEdge> getEdgesByType(Map<String, Object> definition, String sourceNodeId, String edgeType) {

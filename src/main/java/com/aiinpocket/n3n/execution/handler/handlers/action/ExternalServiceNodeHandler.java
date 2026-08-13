@@ -112,6 +112,16 @@ public class ExternalServiceNodeHandler extends AbstractNodeHandler {
         ExternalService service = serviceOpt.get();
         ServiceEndpoint endpoint = endpointOpt.get();
 
+        // Ownership check (confused-deputy prevention): the executing user must own the service,
+        // otherwise a workflow could invoke another tenant's service and have its credentials
+        // attached. Mirrors ExternalServiceService.findServiceWithOwnerCheck.
+        UUID executingUserId = context.getUserId();
+        if (executingUserId == null || !executingUserId.equals(service.getCreatedBy())) {
+            log.warn("Access denied: user {} attempted to use external service {} owned by {}",
+                    executingUserId, serviceId, service.getCreatedBy());
+            return NodeExecutionResult.failure("Access denied to external service");
+        }
+
         if (!endpoint.getServiceId().equals(serviceId)) {
             return NodeExecutionResult.failure("Endpoint does not belong to the specified service");
         }

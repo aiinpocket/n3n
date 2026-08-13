@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.credential.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.common.util.JdbcParamValidator;
 import com.aiinpocket.n3n.credential.dto.ConnectionTestResult;
 import com.aiinpocket.n3n.credential.entity.Credential;
 import com.aiinpocket.n3n.credential.repository.CredentialRepository;
@@ -250,6 +251,8 @@ public class ConnectionTestService {
             );
         }
 
+        JdbcParamValidator.validateHost(host);
+        JdbcParamValidator.validateDatabaseName(database);
         String jdbcUrl = String.format("jdbc:oracle:thin:@%s:%d:%s", host, port, database);
 
         return testJdbcConnection(jdbcUrl, username, password, startTime, "oracle.jdbc.OracleDriver");
@@ -276,6 +279,9 @@ public class ConnectionTestService {
     }
 
     private String buildJdbcUrl(String dbType, String host, int port, String database, boolean ssl) {
+        // Reject injection of extra JDBC parameters / hosts via user-supplied host/database.
+        JdbcParamValidator.validateHost(host);
+        JdbcParamValidator.validateDatabaseName(database);
         return switch (dbType) {
             case "postgresql" -> String.format("jdbc:postgresql://%s:%d/%s%s",
                     host, port, database, ssl ? "?ssl=true" : "");

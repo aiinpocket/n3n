@@ -48,6 +48,9 @@ public class StateManager {
     public void updateExecutionStatus(UUID executionId, String status) {
         String key = EXECUTION_PREFIX + executionId;
         redisTemplate.opsForHash().put(key, "status", status);
+        // Re-arm the TTL: hash writes do not refresh expiry, and if the key had already
+        // expired the put() above recreates it with no TTL, leaking a permanent key.
+        redisTemplate.expire(key, STATE_TTL);
         log.debug("Updated execution status: {} -> {}", executionId, status);
     }
 

@@ -400,6 +400,14 @@
     "testNode": "測試節點",
     "unpinData": "取消固定資料",
     "pinTestData": "固定測試資料",
+    "pinNoExecutionData": "此節點尚無執行資料，請先執行流程。",
+    "pinFailed": "固定資料失敗",
+    "edgeLabel": {
+      "true": "真",
+      "false": "假",
+      "error": "錯誤",
+      "always": "總是"
+    },
     "deleteNodeConfirm": "確定要刪除此節點？",
     "deleteNodeContent": "將刪除節點「{{name}}」，此操作無法復原。",
     "deleteNode": "刪除節點",
@@ -579,6 +587,7 @@
     "searchPlaceholder": "搜尋流程名稱",
     "allStatuses": "所有狀態",
     "executeFailed": "執行失敗",
+    "connectionFailed": "連線失敗，請檢查網路後重試。",
     "showErrorStack": "顯示錯誤堆疊",
     "hideErrorStack": "隱藏錯誤堆疊",
     "copyError": "複製錯誤",

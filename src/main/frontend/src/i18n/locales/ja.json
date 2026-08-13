@@ -400,6 +400,14 @@
     "testNode": "ノードをテスト",
     "unpinData": "固定を解除",
     "pinTestData": "テストデータを固定",
+    "pinNoExecutionData": "このノードの実行データがありません。先にフローを実行してください。",
+    "pinFailed": "データの固定に失敗しました",
+    "edgeLabel": {
+      "true": "真",
+      "false": "偽",
+      "error": "エラー",
+      "always": "常に"
+    },
     "deleteNodeConfirm": "このノードを削除してもよろしいですか？",
     "deleteNodeContent": "ノード「{{name}}」を削除します。この操作は元に戻せません。",
     "deleteNode": "ノードを削除",
@@ -579,6 +587,7 @@
     "searchPlaceholder": "フロー名で検索",
     "allStatuses": "すべてのステータス",
     "executeFailed": "実行に失敗しました",
+    "connectionFailed": "接続に失敗しました。ネットワークを確認して再試行してください。",
     "showErrorStack": "スタックトレースを表示",
     "hideErrorStack": "スタックトレースを非表示",
     "copyError": "エラーをコピー",

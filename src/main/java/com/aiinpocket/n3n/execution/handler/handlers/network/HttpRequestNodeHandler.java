@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -27,6 +28,15 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
     private static final int MAX_RESPONSE_SIZE = 10 * 1024 * 1024; // 10MB
 
     private final ObjectMapper objectMapper;
+
+    /**
+     * Server-side (operator-controlled) switch that permits a node to opt out of SSRF protection.
+     * Defaults to false. Only when this is true may a node's {@code allowInternalAddresses:true}
+     * config actually disable the private-address check — otherwise the node-level flag is ignored
+     * and protection is always enforced.
+     */
+    @Value("${n3n.security.ssrf.allow-internal-addresses:false}")
+    private boolean serverAllowsInternalAddresses;
 
     // OkHttpClient with sensible defaults — redirects disabled to prevent SSRF bypass
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -69,10 +79,14 @@ public class HttpRequestNodeHandler extends AbstractNodeHandler {
 
     /**
      * Check if SSRF protection should be enabled.
-     * Default is true; set allowInternalAddresses=true in config to disable (for testing/internal use).
+     * Protection is on by default and cannot be disabled by node config alone — a node's
+     * {@code allowInternalAddresses:true} only takes effect when the server-side property
+     * {@code n3n.security.ssrf.allow-internal-addresses} is also true. This prevents an
+     * attacker-controlled workflow from switching off the private-address check.
      */
     protected boolean isSsrfProtectionEnabled(NodeExecutionContext context) {
-        return !getBooleanConfig(context, "allowInternalAddresses", false);
+        boolean nodeConfigAllowsInternal = getBooleanConfig(context, "allowInternalAddresses", false);
+        return !(serverAllowsInternalAddresses && nodeConfigAllowsInternal);
     }
 
     /**

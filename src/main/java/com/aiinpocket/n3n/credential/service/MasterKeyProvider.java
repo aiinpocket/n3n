@@ -447,6 +447,12 @@ public class MasterKeyProvider {
         Credential credential = credentialRepository.findById(credentialId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credential not found"));
 
+        // 擁有權檢查：只有憑證擁有者才能遷移該憑證，避免跨租戶存取
+        // （比照 CredentialService.getDecryptedData 的擁有權驗證）
+        if (credential.getOwnerId() == null || !credential.getOwnerId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+
         // 建立遷移記錄
         KeyMigrationLog migrationLog = KeyMigrationLog.builder()
                 .fromVersion(credential.getKeyVersion())

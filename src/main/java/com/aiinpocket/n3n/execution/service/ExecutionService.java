@@ -491,12 +491,33 @@ public class ExecutionService {
             log.info("Restored {} node outputs from previous execution", partialOutputs.size());
         }
 
+        // Precompute incoming edges per node for branch-aware routing (skip nodes whose
+        // branch was not selected by an upstream condition/switch/approval node).
+        List<DagParser.FlowEdge> parsedEdges = dagParser.getAllEdges(version.getDefinition());
+        final List<DagParser.FlowEdge> allEdges = parsedEdges != null ? parsedEdges : List.of();
+        Map<String, List<DagParser.FlowEdge>> incomingByTarget = new HashMap<>();
+        for (DagParser.FlowEdge edge : allEdges) {
+            incomingByTarget.computeIfAbsent(edge.getTarget(), k -> new ArrayList<>()).add(edge);
+        }
+
+        // Node-outcome bookkeeping. Nodes already completed before a resume count as succeeded.
+        Set<String> succeededNodes = new HashSet<>(completedNodes);
+        Set<String> failedNodes = new HashSet<>();
+        Map<String, List<String>> branchSelections = new HashMap<>();
+
         for (String nodeId : nodesToExecute) {
             // Check if execution was cancelled or should stop
             String currentStatus = stateManager.getExecutionStatus(executionId);
             if ("cancelled".equals(currentStatus) || "waiting".equals(currentStatus)) {
                 log.info("Execution stopped (status={}): {}", currentStatus, executionId);
                 return;
+            }
+
+            // Branch pruning: skip nodes that no active edge reaches. This is what makes
+            // condition/switch/approval branches actually exclusive — without it every branch runs.
+            if (!isNodeActive(nodeId, incomingByTarget, succeededNodes, failedNodes, branchSelections)) {
+                log.debug("Skipping inactive node (branch not taken): {}", nodeId);
+                continue;
             }
 
             try {
@@ -524,6 +545,10 @@ public class ExecutionService {
                 log.info("Node {} completed with output keys: {}", nodeId, nodeOutput != null ? nodeOutput.keySet() : "null");
                 nodeOutputs.put(nodeId, nodeOutput);
                 context.put(nodeId, nodeOutput);
+                succeededNodes.add(nodeId);
+                if (result.getBranchesToFollow() != null) {
+                    branchSelections.put(nodeId, result.getBranchesToFollow());
+                }
 
                 // Clear resume data after successful execution
                 if (isResume && nodeId.equals(waitingNodeId)) {
@@ -532,74 +557,28 @@ public class ExecutionService {
                 }
             } catch (Exception e) {
                 log.error("Node execution failed: executionId={}, nodeId={}", executionId, nodeId, e);
+                failedNodes.add(nodeId);
 
-                // Check for error handling edges
-                Map<String, List<DagParser.FlowEdge>> outgoingEdges =
-                    dagParser.getOutgoingEdgesByType(version.getDefinition(), nodeId);
-                List<DagParser.FlowEdge> errorEdges = outgoingEdges.get("error");
-                List<DagParser.FlowEdge> alwaysEdges = outgoingEdges.get("always");
+                // Expose error info so downstream error handlers (error/always edges) can read it.
+                Map<String, Object> errorInfo = new HashMap<>();
+                errorInfo.put("error", true);
+                errorInfo.put("errorMessage", "Node execution failed");
+                errorInfo.put("errorType", e.getClass().getName());
+                errorInfo.put("failedNodeId", nodeId);
+                nodeOutputs.put(nodeId, errorInfo);
+                context.put(nodeId, errorInfo);
+                context.put("_lastError", errorInfo);
 
-                boolean hasErrorPath = (errorEdges != null && !errorEdges.isEmpty()) ||
-                                       (alwaysEdges != null && !alwaysEdges.isEmpty());
+                // If this node has an error/always path, let the loop continue: the error/always
+                // targets become active (see isNodeActive) and run in topological order. The failed
+                // node's success successors stay inactive and are skipped. This replaces the old
+                // inline error execution, which double-ran error handlers and still ran the success path.
+                boolean hasErrorPath = allEdges.stream()
+                    .anyMatch(edge -> nodeId.equals(edge.getSource())
+                        && (edge.isErrorEdge() || edge.isAlwaysEdge()));
 
                 if (hasErrorPath) {
-                    // Store error info in context for error handling nodes
-                    Map<String, Object> errorInfo = new HashMap<>();
-                    errorInfo.put("error", true);
-                    errorInfo.put("errorMessage", "Node execution failed");
-                    errorInfo.put("errorType", e.getClass().getName());
-                    errorInfo.put("failedNodeId", nodeId);
-                    nodeOutputs.put(nodeId, errorInfo);
-                    context.put(nodeId, errorInfo);
-                    context.put("_lastError", errorInfo);
-
-                    log.info("Node {} failed but has error handling path, continuing with error route", nodeId);
-
-                    // Execute error path nodes
-                    Set<String> errorPathNodes = new HashSet<>();
-                    if (errorEdges != null) {
-                        for (DagParser.FlowEdge edge : errorEdges) {
-                            errorPathNodes.add(edge.getTarget());
-                        }
-                    }
-                    if (alwaysEdges != null) {
-                        for (DagParser.FlowEdge edge : alwaysEdges) {
-                            errorPathNodes.add(edge.getTarget());
-                        }
-                    }
-
-                    // Continue execution with error path nodes
-                    // Note: This is a simplified implementation that adds error path nodes to continue
-                    for (String errorNodeId : errorPathNodes) {
-                        if (!completedNodes.contains(errorNodeId)) {
-                            try {
-                                log.info("Executing error handler node: {}", errorNodeId);
-                                ExecuteNodeResult errorResult = executeNodeWithPauseSupport(
-                                    executionId, errorNodeId, version.getDefinition(), context, nodeOutputs);
-
-                                if (errorResult.isPauseRequested()) {
-                                    handleExecutionPause(execution, errorNodeId,
-                                        errorResult.getPauseReason(), errorResult.getResumeCondition(), nodeOutputs);
-                                    return;
-                                }
-
-                                Map<String, Object> errorNodeOutput = errorResult.getOutput();
-                                nodeOutputs.put(errorNodeId, errorNodeOutput);
-                                context.put(errorNodeId, errorNodeOutput);
-                                completedNodes.add(errorNodeId);
-                            } catch (Exception errorEx) {
-                                log.error("Error handler node {} also failed: {}", errorNodeId, errorEx.getMessage());
-                                // Track error handler failure for observability
-                                nodeOutputs.put(errorNodeId, Map.of(
-                                    "error", true,
-                                    "errorMessage", "Error handler also failed",
-                                    "errorType", errorEx.getClass().getName(),
-                                    "failedNodeId", nodeId
-                                ));
-                            }
-                        }
-                    }
-                    // Continue to next node in the main flow (skip failed node's success path)
+                    log.info("Node {} failed but has error/always path, routing to error handlers", nodeId);
                     continue;
                 } else {
                     // No error handling path, fail the execution
@@ -629,6 +608,69 @@ public class ExecutionService {
         activityService.logExecutionComplete(execution.getTriggeredBy(), executionId, flowId, execution.getDurationMs());
 
         log.info("Execution completed: id={}, duration={}ms", executionId, execution.getDurationMs());
+    }
+
+    /**
+     * Decide whether a node should execute, given how its upstream nodes resolved.
+     *
+     * <p>A node runs if it is an entry point (no incoming edges) or at least one of its
+     * incoming edges is "active":</p>
+     * <ul>
+     *   <li><b>always</b> edge — active once its source has executed (succeeded or failed);</li>
+     *   <li><b>error</b> edge — active only when its source failed;</li>
+     *   <li><b>success</b> edge (default) — active only when its source succeeded, and, if the
+     *       source is a branching node (condition/switch/approval), only when the edge's branch
+     *       (matched by {@code sourceHandle} or {@code label}) is among the selected branches.</li>
+     * </ul>
+     *
+     * <p>Sources with no recorded branch selection (plain nodes, or nodes already completed
+     * before a resume) let all their success edges through, preserving linear-flow behavior.</p>
+     */
+    private boolean isNodeActive(String nodeId,
+                                 Map<String, List<DagParser.FlowEdge>> incomingByTarget,
+                                 Set<String> succeededNodes,
+                                 Set<String> failedNodes,
+                                 Map<String, List<String>> branchSelections) {
+        List<DagParser.FlowEdge> incoming = incomingByTarget.get(nodeId);
+        if (incoming == null || incoming.isEmpty()) {
+            return true; // entry point / trigger
+        }
+        for (DagParser.FlowEdge edge : incoming) {
+            String source = edge.getSource();
+            boolean srcSucceeded = succeededNodes.contains(source);
+            boolean srcFailed = failedNodes.contains(source);
+            if (!srcSucceeded && !srcFailed) {
+                continue; // upstream node did not execute (e.g. itself skipped)
+            }
+            if (edge.isAlwaysEdge()) {
+                return true;
+            } else if (edge.isErrorEdge()) {
+                if (srcFailed) {
+                    return true;
+                }
+            } else { // success edge
+                if (srcSucceeded) {
+                    List<String> selected = branchSelections.get(source);
+                    if (selected == null || matchesBranch(edge, selected)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Match an outgoing edge to a branching node's selected branch names,
+     * comparing against the edge's {@code sourceHandle} first, then its {@code label}.
+     */
+    private boolean matchesBranch(DagParser.FlowEdge edge, List<String> selectedBranches) {
+        String handle = edge.getSourceHandle();
+        if (handle != null && selectedBranches.contains(handle)) {
+            return true;
+        }
+        String label = edge.getLabel();
+        return label != null && selectedBranches.contains(label);
     }
 
     /**
@@ -719,27 +761,32 @@ public class ExecutionService {
         private final boolean pauseRequested;
         private final String pauseReason;
         private final Map<String, Object> resumeCondition;
+        /** For branching nodes (condition/switch/approval): the output branch names to follow. */
+        private final List<String> branchesToFollow;
 
         private ExecuteNodeResult(Map<String, Object> output, boolean pauseRequested,
-                                  String pauseReason, Map<String, Object> resumeCondition) {
+                                  String pauseReason, Map<String, Object> resumeCondition,
+                                  List<String> branchesToFollow) {
             this.output = output;
             this.pauseRequested = pauseRequested;
             this.pauseReason = pauseReason;
             this.resumeCondition = resumeCondition;
+            this.branchesToFollow = branchesToFollow;
         }
 
-        static ExecuteNodeResult success(Map<String, Object> output) {
-            return new ExecuteNodeResult(output, false, null, null);
+        static ExecuteNodeResult success(Map<String, Object> output, List<String> branchesToFollow) {
+            return new ExecuteNodeResult(output, false, null, null, branchesToFollow);
         }
 
         static ExecuteNodeResult pause(String reason, Map<String, Object> condition, Map<String, Object> partialOutput) {
-            return new ExecuteNodeResult(partialOutput, true, reason, condition);
+            return new ExecuteNodeResult(partialOutput, true, reason, condition, null);
         }
 
         Map<String, Object> getOutput() { return output; }
         boolean isPauseRequested() { return pauseRequested; }
         String getPauseReason() { return pauseReason; }
         Map<String, Object> getResumeCondition() { return resumeCondition; }
+        List<String> getBranchesToFollow() { return branchesToFollow; }
     }
 
     /**
@@ -787,7 +834,7 @@ public class ExecutionService {
                         : Map.of("data", pinnedOutput);
                     stateManager.markNodeCompleted(executionId, nodeId, pinnedDataOutput);
                     notificationService.notifyNodeCompleted(executionId, nodeId, pinnedDataOutput);
-                    return ExecuteNodeResult.success(pinnedDataOutput);
+                    return ExecuteNodeResult.success(pinnedDataOutput, null);
                 }
             }
         }
@@ -830,7 +877,7 @@ public class ExecutionService {
             stateManager.markNodeCompleted(executionId, nodeId, output);
             notificationService.notifyNodeCompleted(executionId, nodeId, output);
 
-            return ExecuteNodeResult.success(output);
+            return ExecuteNodeResult.success(output, result.getBranchesToFollow());
         } catch (Exception e) {
             nodeExecution.setStatus("failed");
             nodeExecution.setCompletedAt(Instant.now());

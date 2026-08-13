@@ -400,6 +400,14 @@
     "testNode": "Test Node",
     "unpinData": "Unpin Data",
     "pinTestData": "Pin Test Data",
+    "pinNoExecutionData": "No execution data available for this node. Run the flow first.",
+    "pinFailed": "Failed to pin data",
+    "edgeLabel": {
+      "true": "True",
+      "false": "False",
+      "error": "Error",
+      "always": "Always"
+    },
     "deleteNodeConfirm": "Are you sure you want to delete this node?",
     "deleteNodeContent": "Node \"{{name}}\" will be deleted. This action cannot be undone.",
     "deleteNode": "Delete Node",
@@ -579,6 +587,7 @@
     "searchPlaceholder": "Search by flow name",
     "allStatuses": "All Statuses",
     "executeFailed": "Execution failed",
+    "connectionFailed": "Connection failed. Please check your network and try again.",
     "showErrorStack": "Show Stack Trace",
     "hideErrorStack": "Hide Stack Trace",
     "copyError": "Copy Error",

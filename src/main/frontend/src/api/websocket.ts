@@ -48,6 +48,10 @@ class WebSocketService {
       return this.connectPromise;
     }
 
+    // Fresh connection attempt: reset the retry counter so a previously
+    // exhausted retry cap doesn't permanently poison reconnection
+    this.reconnectAttempts = 0;
+
     this.connectPromise = new Promise<void>((resolve, reject) => {
 
       this.client = new Client({
@@ -111,6 +115,9 @@ class WebSocketService {
             this.client.deactivate();
           }
           this.connectPromise = null;
+          // Settle a still-pending connect() promise so callers don't await forever
+          // (no-op if the promise already resolved/rejected)
+          reject(new Error('WebSocket connection failed after max attempts'));
           this.onReconnectFailed?.();
         }
       };

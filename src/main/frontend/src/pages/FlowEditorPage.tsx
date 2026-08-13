@@ -102,6 +102,7 @@ export default function FlowEditorPage() {
     setNodes,
     setEdges,
     setSelectedNodeId,
+    setSelectedNodeIds,
     selectAllNodes,
     updateNodeData,
     saveVersion,
@@ -549,6 +550,20 @@ export default function FlowEditorPage() {
     [setSelectedNodeId]
   )
 
+  // Sync React Flow selection (click, shift-click, rubber-band) into the store
+  // so copy/cut/duplicate/delete operate on the real selection
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: Node[]; edges: Edge[] }) => {
+      const ids = selectedNodes.map((n) => n.id)
+      const current = useFlowEditorStore.getState().selectedNodeIds
+      if (ids.length === current.length && ids.every((nodeId) => current.includes(nodeId))) {
+        return
+      }
+      setSelectedNodeIds(ids)
+    },
+    [setSelectedNodeIds]
+  )
+
   const handlePaneClick = useCallback(() => {
     setSelectedNodeId(null)
     setSelectedEdgeId(null)
@@ -948,7 +963,7 @@ export default function FlowEditorPage() {
             {/* Execution Controls */}
             {executionMode ? (
               <Space>
-                <Badge status={isConnected ? 'success' : 'error'} text={isConnected ? 'Live' : ''} />
+                <Badge status={isConnected ? 'success' : 'error'} text={isConnected ? t('execution.live') : t('execution.disconnected')} />
                 {isExecuting ? (
                   <Button
                     danger
@@ -1016,6 +1031,7 @@ export default function FlowEditorPage() {
           onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
           isValidConnection={isValidConnection}
           onNodeClick={executionMode ? handleExecutionNodeClick : handleNodeClick}
+          onSelectionChange={executionMode ? undefined : handleSelectionChange}
           onEdgeClick={(executionMode || isReadOnly) ? undefined : handleEdgeClick}
           onPaneClick={executionMode ? undefined : handlePaneClick}
           nodesDraggable={!executionMode && canEdit}

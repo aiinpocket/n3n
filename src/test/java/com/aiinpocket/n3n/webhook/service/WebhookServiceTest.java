@@ -401,6 +401,7 @@ class WebhookServiceTest extends BaseServiceTest {
         // Given
         Webhook webhook = createTestWebhook();
         webhook.setIsActive(true);
+        webhook.setAuthType("none"); // explicit opt-out of auth (null authType is now rejected)
         UUID flowId = webhook.getFlowId();
         Map<String, Object> payload = Map.of("data", "test");
 
@@ -446,6 +447,7 @@ class WebhookServiceTest extends BaseServiceTest {
         // Given
         Webhook webhook = createTestWebhook();
         webhook.setIsActive(true);
+        webhook.setAuthType("none"); // explicit opt-out of auth (null authType is now rejected)
 
         when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
@@ -456,6 +458,22 @@ class WebhookServiceTest extends BaseServiceTest {
         assertThatThrownBy(() -> webhookService.triggerWebhook("test-path", "POST", Map.of(), null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("No published version");
+    }
+
+    @Test
+    void triggerWebhook_nullAuthType_throwsSecurityException() {
+        // Given: a webhook with no configured auth type must not be silently unauthenticated
+        Webhook webhook = createTestWebhook();
+        webhook.setIsActive(true);
+        webhook.setAuthType(null);
+
+        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+                .thenReturn(Optional.of(webhook));
+
+        // When/Then
+        assertThatThrownBy(() -> webhookService.triggerWebhook("test-path", "POST", Map.of(), null))
+                .isInstanceOf(SecurityException.class)
+                .hasMessageContaining("not configured");
     }
 
     @Test

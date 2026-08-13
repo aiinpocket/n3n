@@ -35,6 +35,8 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
+    // warn/error are always logged, even in production, so failures are never silent
+    if (LOG_LEVELS[level] >= LOG_LEVELS.warn) return true
     if (!this.config.enabled) return false
     return LOG_LEVELS[level] >= LOG_LEVELS[this.config.level]
   }

@@ -1,7 +1,9 @@
 import { useEffect, useCallback, useRef } from 'react';
+import { message } from 'antd';
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi, CreateExecutionRequest, ExecutionResponse } from '../api/execution';
 import { logger } from '../utils/logger';
+import i18n from '../i18n';
 
 export function useExecutionMonitor(executionId?: string) {
   const {
@@ -53,7 +55,13 @@ export function useExecutionActions() {
     async (request: CreateExecutionRequest): Promise<ExecutionResponse> => {
       // Ensure WebSocket is connected
       if (!isConnected) {
-        await connect();
+        try {
+          await connect();
+        } catch (error) {
+          logger.error('WebSocket connect failed before execution start:', error);
+          message.error(i18n.t('execution.connectionFailed'));
+          throw error;
+        }
       }
 
       // Create execution via REST API

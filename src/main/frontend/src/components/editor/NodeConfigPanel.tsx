@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import logger from '../../utils/logger'
 import {
   Drawer,
@@ -17,6 +17,7 @@ import {
   Spin,
   Alert,
   Modal,
+  message,
 } from 'antd'
 import {
   CloseOutlined,
@@ -37,6 +38,7 @@ import Editor from '@monaco-editor/react'
 import { fetchNodeType, NodeTypeInfo } from '../../api/nodeTypes'
 import { serviceApi } from '../../api/service'
 import { flowApi, UpstreamNodeOutput } from '../../api/flow'
+import { executionApi } from '../../api/execution'
 import { useTranslation } from 'react-i18next'
 import MultiOperationConfig from './MultiOperationConfig'
 import DataMappingEditor from './DataMappingEditor'
@@ -165,12 +167,38 @@ export default function NodeConfigPanel({
     }
   }, [flowId, flowVersion, node?.id])
 
-  // Sync form with node data
+  // Debounced store writes: keep pending values in refs so each keystroke
+  // doesn't restart auto-save or re-render the canvas
+  const pendingUpdateRef = useRef<{ nodeId: string; values: Record<string, unknown> } | null>(null)
+  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onUpdateRef = useRef(onUpdate)
+  onUpdateRef.current = onUpdate
+
+  const flushPendingUpdate = useCallback(() => {
+    if (updateTimerRef.current) {
+      clearTimeout(updateTimerRef.current)
+      updateTimerRef.current = null
+    }
+    if (pendingUpdateRef.current && onUpdateRef.current) {
+      onUpdateRef.current(pendingUpdateRef.current.nodeId, pendingUpdateRef.current.values)
+      pendingUpdateRef.current = null
+    }
+  }, [])
+
+  // Flush pending changes on unmount so nothing is lost
+  useEffect(() => flushPendingUpdate, [flushPendingUpdate])
+
+  // Sync form with node data — only when switching to a different node,
+  // so re-seeding doesn't break IME composition on every keystroke
   useEffect(() => {
+    // Flush changes belonging to the previously selected node first
+    flushPendingUpdate()
     if (node?.data) {
+      form.resetFields()
       form.setFieldsValue(node.data)
     }
-  }, [node, form])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node?.id, form])
 
   // Reset active tab when node changes
   useEffect(() => {
@@ -179,11 +207,17 @@ export default function NodeConfigPanel({
 
   const handleValuesChange = useCallback(
     (_: unknown, allValues: Record<string, unknown>) => {
-      if (node && onUpdate) {
-        onUpdate(node.id, allValues)
+      if (!node || !onUpdate) return
+      pendingUpdateRef.current = { nodeId: node.id, values: allValues }
+      if (updateTimerRef.current) {
+        clearTimeout(updateTimerRef.current)
       }
+      updateTimerRef.current = setTimeout(() => {
+        updateTimerRef.current = null
+        flushPendingUpdate()
+      }, 300)
     },
-    [node, onUpdate]
+    [node, onUpdate, flushPendingUpdate]
   )
 
   const handleMappingsChange = useCallback(
@@ -195,6 +229,24 @@ export default function NodeConfigPanel({
     [node, onUpdate]
   )
 
+  // Fetch the node's latest real execution output for pinning
+  const fetchLatestNodeOutput = useCallback(async (nodeId: string): Promise<Record<string, unknown> | null> => {
+    if (!flowId) return null
+    const page = await executionApi.listByFlow(flowId, 0, 10)
+    const candidates = page.content.filter((e) => e.status === 'completed' || e.status === 'failed')
+    for (const execution of candidates) {
+      try {
+        const { output } = await executionApi.getNodeData(execution.id, nodeId)
+        if (output && Object.keys(output).length > 0) {
+          return output
+        }
+      } catch {
+        // Node may not have run in this execution - try the next one
+      }
+    }
+    return null
+  }, [flowId])
+
   const handleTogglePin = useCallback(async () => {
     if (!node?.id) return
 
@@ -203,16 +255,21 @@ export default function NodeConfigPanel({
       if (isPinned) {
         await unpinNodeData(node.id)
       } else {
-        // Pin with sample data - in a real scenario, this would use execution output
-        const sampleData = { pinned: true, pinnedAt: new Date().toISOString() }
-        await pinNodeData(node.id, sampleData)
+        // Pin the node's latest real execution output; never pin placeholder data
+        const output = await fetchLatestNodeOutput(node.id)
+        if (!output) {
+          message.info(t('editor.pinNoExecutionData'))
+          return
+        }
+        await pinNodeData(node.id, output)
       }
     } catch (error) {
       logger.error('Failed to toggle pin:', error)
+      message.error(t('editor.pinFailed'))
     } finally {
       setPinning(false)
     }
-  }, [node?.id, isPinned, pinNodeData, unpinNodeData])
+  }, [node?.id, isPinned, pinNodeData, unpinNodeData, fetchLatestNodeOutput, t])
 
   const handleAiGenerateCode = (fieldKey: string) => {
     setAiCodeFieldKey(fieldKey)
@@ -668,6 +725,7 @@ export default function NodeConfigPanel({
             form={form}
             layout="vertical"
             onValuesChange={handleValuesChange}
+            onBlur={flushPendingUpdate}
             initialValues={node.data}
             disabled={readOnly}
           >

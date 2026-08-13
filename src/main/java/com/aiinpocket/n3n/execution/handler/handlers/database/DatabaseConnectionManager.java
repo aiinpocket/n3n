@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.database;
 
+import com.aiinpocket.n3n.common.util.JdbcParamValidator;
 import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -215,6 +216,8 @@ public class DatabaseConnectionManager {
     }
 
     private String buildJdbcUrl(String dbType, String host, int port, String database, Map<String, String> options) {
+        validateJdbcParams(dbType, host, database);
+
         StringBuilder url = new StringBuilder();
 
         switch (dbType.toLowerCase()) {
@@ -315,6 +318,38 @@ public class DatabaseConnectionManager {
         }
 
         return url.toString();
+    }
+
+    /**
+     * Reject user-supplied host/database values that would inject additional JDBC parameters,
+     * redirect the connection to another host (SSRF), or read arbitrary files (SQLite/path
+     * traversal) before they are interpolated into a JDBC URL.
+     *
+     * <p>Validation is per database type: Cloud SQL uses an instance connection name
+     * ({@code project:region:instance}) as the host and Oracle accepts service-name/TNS
+     * descriptors as the database, so those descriptor components are not subject to the plain
+     * host/database character rules.
+     */
+    private void validateJdbcParams(String dbType, String host, String database) {
+        switch (dbType.toLowerCase()) {
+            case "postgresql", "postgres", "mysql", "mariadb", "sqlserver", "mssql" -> {
+                JdbcParamValidator.validateHost(host);
+                JdbcParamValidator.validateDatabaseName(database);
+            }
+            case "sqlite" -> JdbcParamValidator.validateSqliteDatabase(database);
+            case "oracle" -> {
+                // Oracle database may be a service name or a TNS "(DESCRIPTION=...)" descriptor;
+                // only the plain host is subject to strict validation here.
+                JdbcParamValidator.validateHost(host);
+            }
+            case "cloudsql-postgres", "cloudsql-postgresql", "cloudsql-mysql", "cloudsql-sqlserver" -> {
+                // host is the Cloud SQL instance connection name (contains ':'), not a network host.
+                JdbcParamValidator.validateDatabaseName(database);
+            }
+            default -> {
+                // Unknown types fall through to the switch below which throws.
+            }
+        }
     }
 
     private String detectDbType(String jdbcUrl) {

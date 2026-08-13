@@ -58,15 +58,19 @@ public interface ExecutionApprovalRepository extends JpaRepository<ExecutionAppr
 
     /**
      * Atomically increment approved count. Prevents lost updates under concurrent voting.
+     *
+     * <p>{@code clearAutomatically}/{@code flushAutomatically} are required so the caller's
+     * subsequent {@code findById} re-reads the incremented count from the DB instead of
+     * returning the stale first-level-cached entity (which would leave approvals unresolvable).</p>
      */
-    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ExecutionApproval a SET a.approvedCount = a.approvedCount + 1 WHERE a.id = :id")
     void incrementApprovedCount(@Param("id") UUID id);
 
     /**
      * Atomically increment rejected count. Prevents lost updates under concurrent voting.
      */
-    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ExecutionApproval a SET a.rejectedCount = a.rejectedCount + 1 WHERE a.id = :id")
     void incrementRejectedCount(@Param("id") UUID id);
 }

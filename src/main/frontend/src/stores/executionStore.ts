@@ -57,6 +57,8 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
     } catch (error) {
       logger.error('Failed to connect WebSocket:', error);
       set({ isConnected: false });
+      // Re-throw so callers can surface the connection failure to the user
+      throw error;
     }
   },
 

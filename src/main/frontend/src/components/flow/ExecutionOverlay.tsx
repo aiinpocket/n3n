@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Badge, Button, Space, Tag, Progress, Card } from 'antd'
+import { useMemo, useState } from 'react'
+import { Badge, Button, Space, Tag, Progress, Card, message } from 'antd'
 import {
   PlayCircleOutlined,
   LoadingOutlined,
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 import { useExecutionStore, NodeExecutionState } from '../../stores/executionStore'
 import { useExecutionMonitor, useExecutionActions } from '../../hooks/useExecutionMonitor'
 import logger from '../../utils/logger'
+import { extractApiError } from '../../utils/errorMessages'
 
 interface ExecutionOverlayProps {
   executionId: string | null
@@ -30,18 +31,29 @@ export default function ExecutionOverlay({
   const { execution, isConnected } = useExecutionMonitor(executionId || undefined)
   const { startExecution, cancelExecution } = useExecutionActions()
 
+  const [starting, setStarting] = useState(false)
+
   const handleStart = async () => {
+    if (starting) return
+    setStarting(true)
     try {
       const response = await startExecution({ flowId })
       onExecutionStart?.(response.id)
     } catch (error) {
       logger.error('Failed to start execution:', error)
+      message.error(extractApiError(error, t('execution.startFailed')))
+    } finally {
+      setStarting(false)
     }
   }
 
   const handleCancel = async () => {
-    if (executionId) {
+    if (!executionId) return
+    try {
       await cancelExecution(executionId)
+    } catch (error) {
+      logger.error('Failed to cancel execution:', error)
+      message.error(extractApiError(error, t('execution.cancelFailed')))
     }
   }
 
@@ -116,6 +128,8 @@ export default function ExecutionOverlay({
           icon={<PlayCircleOutlined />}
           onClick={handleStart}
           size="large"
+          loading={starting}
+          disabled={starting}
         >
           {t('execution.startExecution')}
         </Button>
@@ -206,7 +220,14 @@ export default function ExecutionOverlay({
           {(execution?.status === 'completed' ||
             execution?.status === 'failed' ||
             execution?.status === 'cancelled') && (
-            <Button size="small" type="primary" icon={<PlayCircleOutlined />} onClick={handleStart}>
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlayCircleOutlined />}
+              onClick={handleStart}
+              loading={starting}
+              disabled={starting}
+            >
               {t('execution.reExecute')}
             </Button>
           )}

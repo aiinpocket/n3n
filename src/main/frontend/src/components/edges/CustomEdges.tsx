@@ -10,6 +10,7 @@ import {
   getSmoothStepPath,
   Position,
 } from '@xyflow/react'
+import { useTranslation } from 'react-i18next'
 import type { EdgeType } from '../../types'
 
 // Edge type colors and styles
@@ -58,10 +59,20 @@ interface CustomEdgeProps {
   selected?: boolean
 }
 
-// Get auto-label for condition node handles
-function getConditionLabel(sourceHandleId?: string | null): string {
-  if (sourceHandleId === 'true') return 'True'
-  if (sourceHandleId === 'false') return 'False'
+// Get auto-label for condition node handles (localized)
+function getConditionLabel(
+  t: (key: string) => string,
+  sourceHandleId?: string | null
+): string {
+  if (sourceHandleId === 'true') return t('editor.edgeLabel.true')
+  if (sourceHandleId === 'false') return t('editor.edgeLabel.false')
+  return ''
+}
+
+// Get auto-label for edge type (localized)
+function getEdgeTypeLabel(t: (key: string) => string, edgeType: EdgeType): string {
+  if (edgeType === 'error') return t('editor.edgeLabel.error')
+  if (edgeType === 'always') return t('editor.edgeLabel.always')
   return ''
 }
 
@@ -82,9 +93,10 @@ export const CustomBezierEdge = memo(function CustomBezierEdge({
   data,
   selected,
 }: CustomEdgeProps) {
+  const { t } = useTranslation()
   const edgeType = data?.edgeType || 'success'
   const edgeStyle = EDGE_STYLES[edgeType] || DEFAULT_EDGE_STYLE
-  const label = data?.label || getConditionLabel(sourceHandleId) || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
+  const label = data?.label || getConditionLabel(t, sourceHandleId) || getEdgeTypeLabel(t, edgeType)
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -152,9 +164,10 @@ export const CustomStepEdge = memo(function CustomStepEdge({
   data,
   selected,
 }: CustomEdgeProps) {
+  const { t } = useTranslation()
   const edgeType = data?.edgeType || 'success'
   const edgeStyle = EDGE_STYLES[edgeType] || DEFAULT_EDGE_STYLE
-  const label = data?.label || getConditionLabel(sourceHandleId) || (edgeType === 'error' ? 'Error' : edgeType === 'always' ? 'Always' : '')
+  const label = data?.label || getConditionLabel(t, sourceHandleId) || getEdgeTypeLabel(t, edgeType)
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,

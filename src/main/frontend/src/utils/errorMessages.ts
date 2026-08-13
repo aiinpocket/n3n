@@ -300,7 +300,11 @@ export function formatErrorForDisplay(error: FriendlyError): string {
  */
 export function extractApiError(error: unknown, fallback?: string): string {
   // Check for Axios-style error response
-  const axiosError = error as { response?: { data?: { message?: string; error?: string } } }
+  const axiosError = error as {
+    isAxiosError?: boolean
+    response?: { data?: { message?: string; error?: string } }
+    request?: unknown
+  }
   if (axiosError?.response?.data?.message) {
     return axiosError.response.data.message
   }
@@ -308,7 +312,13 @@ export function extractApiError(error: unknown, fallback?: string): string {
   if (axiosError?.response?.data?.error) {
     return axiosError.response.data.error
   }
-  // Check for standard Error
+  // Axios error without a server-provided message (network error, timeout,
+  // plain 500...): prefer the localized fallback over raw axios text like
+  // "Request failed with status code 500"
+  if (axiosError?.isAxiosError || axiosError?.response || axiosError?.request) {
+    return fallback || i18n.t('errorMessage.defaultMessage')
+  }
+  // Genuine non-axios Error
   if (error instanceof Error) {
     return error.message
   }

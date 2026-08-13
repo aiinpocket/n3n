@@ -11,7 +11,10 @@ import com.aiinpocket.n3n.execution.dto.NodeExecutionResponse;
 import com.aiinpocket.n3n.execution.entity.Execution;
 import com.aiinpocket.n3n.execution.entity.NodeExecution;
 import com.aiinpocket.n3n.execution.expression.N3nExpressionEvaluator;
+import com.aiinpocket.n3n.execution.handler.NodeHandler;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
+import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
+import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.repository.ExecutionRepository;
 import com.aiinpocket.n3n.execution.repository.NodeExecutionRepository;
 import com.aiinpocket.n3n.flow.entity.Flow;
@@ -984,6 +987,82 @@ class ExecutionServiceTest extends BaseServiceTest {
 
             ExecutionResponse resp = ExecutionResponse.from(e);
             assertThat(resp.isCanRetry()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("Branch-aware execution routing")
+    class BranchRouting {
+
+        private Map<String, Object> node(String id, String type) {
+            Map<String, Object> n = new HashMap<>();
+            n.put("id", id);
+            n.put("type", type);
+            n.put("data", new HashMap<>());
+            return n;
+        }
+
+        private DagParser.FlowEdge edge(String source, String target, String handle) {
+            DagParser.FlowEdge e = new DagParser.FlowEdge();
+            e.setSource(source);
+            e.setTarget(target);
+            e.setSourceHandle(handle);
+            return e;
+        }
+
+        @Test
+        @DisplayName("condition selecting 'true' runs the true branch and skips the false branch")
+        void conditionNode_prunesUnselectedBranch() {
+            // Flow: A(trigger) -> B(condition) -> C via 'true', B -> D via 'false'
+            Map<String, Object> definition = new HashMap<>();
+            definition.put("nodes", List.of(
+                node("A", "trigger"), node("B", "condition"),
+                node("C", "action"), node("D", "action")));
+            testVersion.setDefinition(definition);
+
+            List<DagParser.FlowEdge> edges = List.of(
+                edge("A", "B", null),
+                edge("B", "C", "true"),
+                edge("B", "D", "false"));
+
+            DagParser.ParseResult parseResult = new DagParser.ParseResult();
+            parseResult.setValid(true);
+            parseResult.setExecutionOrder(List.of("A", "B", "C", "D"));
+
+            Execution exec = Execution.builder()
+                .id(executionId).flowVersionId(versionId).status("pending")
+                .triggeredBy(userId).build();
+
+            when(executionRepository.findById(executionId)).thenReturn(Optional.of(exec));
+            when(flowVersionRepository.findById(versionId)).thenReturn(Optional.of(testVersion));
+            when(flowRepository.findById(any())).thenReturn(Optional.of(testFlow));
+            when(dagParser.parse(definition)).thenReturn(parseResult);
+            when(dagParser.getAllEdges(definition)).thenReturn(edges);
+            when(stateManager.getCompletedNodes(executionId)).thenReturn(new HashSet<>());
+            when(stateManager.getExecutionStatus(executionId)).thenReturn("running");
+            when(nodeExecutionRepository.save(any(NodeExecution.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+            when(expressionEvaluator.evaluateConfig(any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+            Set<String> executedNodes = new HashSet<>();
+            NodeHandler handler = mock(NodeHandler.class);
+            lenient().when(handler.getType()).thenReturn("mock");
+            when(handler.execute(any(NodeExecutionContext.class))).thenAnswer(inv -> {
+                NodeExecutionContext ctx = inv.getArgument(0);
+                executedNodes.add(ctx.getNodeId());
+                if ("B".equals(ctx.getNodeId())) {
+                    return NodeExecutionResult.withBranches(new HashMap<>(), List.of("true"));
+                }
+                return NodeExecutionResult.success(new HashMap<>());
+            });
+            when(handlerRegistry.hasHandler(any())).thenReturn(true);
+            when(handlerRegistry.getHandler(any())).thenReturn(handler);
+
+            executionService.runExecution(executionId);
+
+            assertThat(executedNodes).contains("A", "B", "C");
+            assertThat(executedNodes).doesNotContain("D");
         }
     }
 }
