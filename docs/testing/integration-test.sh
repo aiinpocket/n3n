@@ -197,20 +197,19 @@ python3 -c "import json; json.load(open('src/main/frontend/src/i18n/locales/ja.j
 python3 -c "
 import json
 d=json.load(open('src/main/frontend/src/i18n/locales/en.json'))
-assert d['device']['editDevice']; assert d['device']['directConnection']
 assert d['recovery']['migrateTitle']; assert d['recovery']['reEncryptInfo']
 " 2>/dev/null && check "i18n-en" "true" "true" || check "i18n-en" "true" "false"
 
 python3 -c "
 import json
 d=json.load(open('src/main/frontend/src/i18n/locales/zh-TW.json'))
-assert d['device']['editDevice']; assert d['recovery']['migrateTitle']
+assert d['recovery']['migrateTitle']
 " 2>/dev/null && check "i18n-zh" "true" "true" || check "i18n-zh" "true" "false"
 
 python3 -c "
 import json
 d=json.load(open('src/main/frontend/src/i18n/locales/ja.json'))
-assert d['device']['editDevice']; assert d['recovery']['migrateTitle']
+assert d['recovery']['migrateTitle']
 " 2>/dev/null && check "i18n-ja" "true" "true" || check "i18n-ja" "true" "false"
 
 # ========== Profile Update ==========

@@ -164,7 +164,6 @@ The backend is organized into the following modules:
 com.aiinpocket.n3n/
 ├── activity/        # User activity logging and audit trail
 ├── admin/           # Admin user management
-├── agent/           # Device/Agent management for local automation
 ├── ai/              # AI provider integration (OpenAI, Claude, Gemini, Ollama)
 ├── api/             # Common API controllers (health check)
 ├── auth/            # Authentication & authorization
@@ -174,7 +173,6 @@ com.aiinpocket.n3n/
 ├── dashboard/       # User dashboard statistics and metrics
 ├── execution/       # Flow execution engine and 94 node handlers
 ├── flow/            # Flow CRUD & versioning
-├── gateway/         # Agent Gateway (WebSocket, ECDH encryption)
 ├── housekeeping/    # Execution history archival and cleanup
 ├── logging/         # Real-time log streaming (SSE) and log query
 ├── monitoring/      # System metrics, flow stats, health monitoring
@@ -254,12 +252,6 @@ Custom Docker tools with dynamic node registration and container orchestration.
 - `KubernetesContainerOrchestrator` - Kubernetes Deployment/Service management (via fabric8)
 - `RuntimeEnvironmentDetector` - Auto-detects Docker or Kubernetes at startup
 - `TrustedRegistryValidator` - Shared image registry validation for security
-
-#### gateway/
-WebSocket gateway for local agent communication.
-- `AgentGatewayHandler` - WebSocket connection management
-- `AgentConnectionManager` - Track connected agents
-- Security: X25519 ECDH key exchange + AES-256-GCM encryption
 
 #### dashboard/
 User dashboard with aggregate statistics.
@@ -626,51 +618,6 @@ Form triggers allow public form access that triggers flow execution. Forms are a
 }
 ```
 
-### Devices & Agent Pairing
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/agent/pair/initiate` | Initiate pairing session (generates pairing code) |
-| POST | `/api/agent/pair/complete` | Complete pairing with device keys |
-| GET | `/api/agent/devices` | List user's paired devices |
-| PUT | `/api/agent/devices/{deviceId}` | Update device settings (external address, direct connection) |
-| DELETE | `/api/agent/devices/{deviceId}` | Unpair a device |
-| POST | `/api/agent/devices/revoke-all` | Revoke all paired devices (emergency) |
-
-### Agent Registration
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/agents/install-command` | Generate install command with token |
-| GET | `/api/agents/registrations` | List agent registrations |
-| PUT | `/api/agents/{id}/block` | Block an agent |
-| PUT | `/api/agents/{id}/unblock` | Unblock an agent |
-| DELETE | `/api/agents/{id}` | Delete agent registration |
-
-### Gateway
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/gateway/nodes` | List connected gateway nodes |
-| GET | `/api/gateway/nodes/{connectionId}` | Get specific node |
-| POST | `/api/gateway/nodes/{connectionId}/invoke` | Invoke node capability |
-| GET | `/api/gateway/capabilities` | List available capabilities |
-| GET | `/api/gateway/stats` | Get gateway statistics |
-| POST | `/api/gateway/pairing-code` | Generate gateway pairing code |
-| GET | `/api/settings/gateway` | Get gateway settings |
-| PUT | `/api/settings/gateway` | Update gateway settings |
-
-**Pairing Flow:**
-1. User requests pairing code: `POST /api/agent/pair/initiate`
-2. Agent submits code with public key: `POST /api/agent/pair/complete`
-3. Server responds with platform public key and device token
-4. All further communication is E2E encrypted
-
-**Security:**
-- X25519 ECDH for key exchange
-- AES-256-GCM for command encryption
-- 6-digit code expires in 5 minutes
-
 ### Recovery Keys
 
 | Method | Endpoint | Description |
@@ -890,13 +837,6 @@ Netlify deploy-out is future work (v1 ships Vercel only, marked experimental).
 | GET | `/api/oauth2/status/{credentialId}` | Check OAuth2 token status |
 | DELETE | `/api/oauth2/disconnect/{credentialId}` | Disconnect OAuth2 token |
 
-### Gateway Settings
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/settings/gateway` | Get gateway configuration |
-| PUT | `/api/settings/gateway` | Update gateway configuration |
-
 ### WebSocket
 
 Connect to `/ws/executions/{executionId}` for real-time execution updates.
@@ -1071,25 +1011,6 @@ CREATE TABLE plugin_ratings (
 );
 ```
 
-### Device Tables
-
-#### devices
-```sql
-CREATE TABLE devices (
-    id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id),
-    name VARCHAR(255) NOT NULL,
-    device_type VARCHAR(50) NOT NULL,
-    os_type VARCHAR(50),
-    os_version VARCHAR(50),
-    agent_version VARCHAR(50),
-    public_key TEXT NOT NULL,
-    status VARCHAR(50) DEFAULT 'active',
-    last_seen_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
 ### Retired Tables
 
 | Table | 說明 |
@@ -1101,6 +1022,9 @@ CREATE TABLE devices (
 | `vector_documents` | 已退役（2026-08）：V18 建立的 pgvector 文件表，舊版記憶／向量檢索堆疊使用。同上，保留不再讀寫，可手動 DROP。 |
 | `template_embeddings` | 已退役（2026-08）：V18 建立的 pgvector 表，舊版模板相似度檢索使用。同上，保留不再讀寫，可手動 DROP。 |
 | `flow_embeddings` | 已退役（2026-08）：V18 建立的 pgvector 表，舊版流程相似度檢索使用。同上，保留不再讀寫，可手動 DROP。 |
+| `devices` | 已退役（2026-08）：裝置 agent（macOS/Windows 桌面代理）功能移除（平台轉為純 Web）。資料表保留不再讀寫，不做破壞性 DDL；operator 可自行手動 DROP。 |
+| `agent_registrations` | 已退役（2026-08）：裝置 agent 註冊/一次性 Token 記錄，隨裝置 agent 功能移除。保留不再讀寫，可手動 DROP。 |
+| `gateway_settings` | 已退役（2026-08）：裝置 agent WebSocket 閘道設定，隨 gateway 模組移除。保留不再讀寫，可手動 DROP。 |
 
 ### Redis Keys
 
@@ -1110,8 +1034,6 @@ CREATE TABLE devices (
 | `execution:{id}:nodes` | Node execution states |
 | `flow:{id}:lock` | Concurrency control lock |
 | `data:{uuid}` | Large data blob storage |
-| `pairing:{code}` | Device pairing code (5min TTL) |
-| `agent:{deviceId}:session` | Agent session key |
 
 ---
 
@@ -1168,50 +1090,6 @@ npm run dev
 - Zustand for state management
 - TypeScript strict mode
 - Ant Design components
-
-### Agent Gateway Architecture
-
-The Agent Gateway enables secure communication with local agents:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  Local Agent (macOS/Windows)                             │
-│  - FileSystem, Clipboard, Notification capabilities     │
-└────────────────────────┬────────────────────────────────┘
-                         │ WebSocket (WSS)
-                         │ X25519 ECDH + AES-256-GCM
-┌────────────────────────▼────────────────────────────────┐
-│  Agent Gateway (/gateway WebSocket)                      │
-│  - AgentConnectionManager: Track online agents          │
-│  - Command routing: Flow node → Agent                   │
-│  - Response handling: Agent → Flow execution            │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│  Device Management                                       │
-│  - Pairing: 6-digit code + public key exchange          │
-│  - Device registry: Store device info in PostgreSQL     │
-│  - Session keys: Store in Redis                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Pairing Protocol:**
-1. User requests pairing code → Server generates 6-digit code, stores in Redis (5min TTL)
-2. Agent submits code + X25519 public key → Server validates code
-3. Server generates session key, encrypts with agent's public key
-4. All subsequent commands encrypted with AES-256-GCM
-
-**Command Message Format:**
-```json
-{
-  "type": "command",
-  "id": "uuid",
-  "capability": "fileSystem",
-  "action": "readFile",
-  "params": { "path": "/path/to/file" },
-  "encrypted": "base64-encoded-aes-gcm-ciphertext"
-}
-```
 
 ### Plugin System Architecture
 
@@ -1519,6 +1397,19 @@ All environment variables are **optional** with sensible defaults.
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:8080` | CORS allowed origins |
 | `MAX_LOGIN_ATTEMPTS` | `5` | Max failed login attempts before lockout |
 | `LOCK_DURATION_MINUTES` | `30` | Account lockout duration |
+
+#### Node Execution Isolation (Concurrency / Tenant Safety)
+
+Node handlers are Spring singletons executed concurrently on virtual threads. These settings bound
+the per-user client/session caches that back database, NoSQL, and browser nodes. Connection-pool and
+client cache keys always incorporate a SHA-256 hash of the credential secret (password / api-key /
+connection string), so a caller with a wrong or stale password can never reuse another tenant's
+authenticated pool. Browser sessions and rate-limiter budgets are scoped by `userId`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NODE_CLIENT_TTL` | `1800` | Idle TTL (seconds) before a cached Redis/Elasticsearch/MongoDB/Cloud SQL client is evicted and closed (`n3n.node.client-idle-ttl-seconds`) |
+| `BROWSER_SESSION_TTL` | `1800` | Idle TTL (seconds) before a per-user browser (CDP) session is evicted and closed (`n3n.browser.session-ttl-seconds`) |
 
 #### Container Orchestration (Plugin System)
 

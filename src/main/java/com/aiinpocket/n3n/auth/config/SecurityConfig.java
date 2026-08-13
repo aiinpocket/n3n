@@ -83,10 +83,6 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/google", "/api/auth/google/config").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                // Agent pairing completion (uses pairing code for auth)
-                .requestMatchers("/api/agent/pair/complete").permitAll()
-                // Agent installation (uses token in URL for auth)
-                .requestMatchers("/api/agents/install.sh", "/api/agents/binary/**", "/api/agents/config", "/api/agents/register").permitAll()
                 // OAuth2 callback (redirect from provider, uses HMAC-signed state for auth)
                 .requestMatchers("/api/oauth2/callback").permitAll()
                 // Public form endpoints (no auth - uses secure token)
@@ -111,7 +107,6 @@ public class SecurityConfig {
                 // Defense-in-depth: admin endpoints not under /api/admin/ (also protected by @PreAuthorize)
                 .requestMatchers("/api/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/api/logs/**").hasRole("ADMIN")
-                .requestMatchers("/api/settings/gateway/**").hasRole("ADMIN")
                 .requestMatchers("/api/cloud-sync/**").hasRole("ADMIN")
                 // AI Provider 金鑰為平台共用，僅管理員可管理；帳務同樣僅管理員可見
                 // （一般成員的可用性查詢走 /api/ai/availability，不在此規則內）

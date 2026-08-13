@@ -50,12 +50,22 @@ public class RagNodeHandler extends AbstractNodeHandler {
         String operation = getStringConfig(context, "operation", "qa");
         log.debug("Executing RAG node: operation={}, nodeId={}", operation, context.getNodeId());
 
+        // 租戶隔離：所有 RAG 存取都必須以已解析的 userId 為範圍（fail-closed）
+        java.util.UUID uid = context.getUserId();
+        if (uid == null) {
+            return NodeExecutionResult.builder()
+                    .success(false)
+                    .errorMessage("User context is required for RAG operations")
+                    .build();
+        }
+        String userId = uid.toString();
+
         try {
             return switch (operation.toLowerCase()) {
-                case "qa" -> executeRagQA(context);
-                case "search" -> executeVectorSearch(context);
-                case "index" -> executeIndex(context);
-                case "clear" -> executeClear(context);
+                case "qa" -> executeRagQA(context, userId);
+                case "search" -> executeVectorSearch(context, userId);
+                case "index" -> executeIndex(context, userId);
+                case "clear" -> executeClear(context, userId);
                 default -> NodeExecutionResult.builder()
                         .success(false)
                         .errorMessage("Unknown RAG operation: " + operation)
@@ -73,7 +83,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
     /**
      * Execute RAG Q&A
      */
-    private NodeExecutionResult executeRagQA(NodeExecutionContext context) {
+    private NodeExecutionResult executeRagQA(NodeExecutionContext context, String userId) {
         Map<String, Object> input = context.getInputData();
 
         Object questionObj = input.get("question");
@@ -91,7 +101,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
 
         String storeName = getStringConfig(context, "storeName", null);
 
-        String answer = ragService.ask(question, storeName);
+        String answer = ragService.ask(question, storeName, userId);
 
         Map<String, Object> outputs = new HashMap<>();
         outputs.put("answer", answer);
@@ -106,7 +116,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
     /**
      * Execute vector search
      */
-    private NodeExecutionResult executeVectorSearch(NodeExecutionContext context) {
+    private NodeExecutionResult executeVectorSearch(NodeExecutionContext context, String userId) {
         Map<String, Object> input = context.getInputData();
 
         Object queryObj = input.get("query");
@@ -126,7 +136,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
         int topK = getIntConfig(context, "topK", 5);
         double minScore = getDoubleConfig(context, "minScore", 0.0);
 
-        List<Document> results = ragService.search(query, topK, storeName);
+        List<Document> results = ragService.search(query, topK, storeName, userId);
 
         if (minScore > 0) {
             results = results.stream()
@@ -160,7 +170,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
      * Execute document indexing
      */
     @SuppressWarnings("unchecked")
-    private NodeExecutionResult executeIndex(NodeExecutionContext context) {
+    private NodeExecutionResult executeIndex(NodeExecutionContext context, String userId) {
         Map<String, Object> input = context.getInputData();
         String storeName = getStringConfig(context, "storeName", null);
 
@@ -181,7 +191,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
                     metadata.put("source", source);
                 }
 
-                List<String> ids = ragService.indexDocument(content, metadata, storeName);
+                List<String> ids = ragService.indexDocument(content, metadata, storeName, userId);
 
                 Map<String, Object> outputs = new HashMap<>();
                 outputs.put("indexed", ids.size());
@@ -210,7 +220,7 @@ public class RagNodeHandler extends AbstractNodeHandler {
                 if (source != null) {
                     metadata.put("source", source);
                 }
-                List<String> ids = ragService.indexDocument(content, metadata, storeName);
+                List<String> ids = ragService.indexDocument(content, metadata, storeName, userId);
                 allIds.addAll(ids);
             }
         }
@@ -229,10 +239,10 @@ public class RagNodeHandler extends AbstractNodeHandler {
     /**
      * Clear vector store
      */
-    private NodeExecutionResult executeClear(NodeExecutionContext context) {
+    private NodeExecutionResult executeClear(NodeExecutionContext context, String userId) {
         String storeName = getStringConfig(context, "storeName", null);
 
-        ragService.clearStore(storeName);
+        ragService.clearStore(storeName, userId);
 
         Map<String, Object> outputs = new HashMap<>();
         outputs.put("cleared", true);

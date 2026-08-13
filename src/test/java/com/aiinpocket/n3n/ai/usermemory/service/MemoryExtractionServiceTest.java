@@ -140,6 +140,21 @@ class MemoryExtractionServiceTest extends BaseServiceTest {
         assertThat(service.shouldExtract(other)).isFalse();
     }
 
+    @Test
+    @DisplayName("messageCounters map stays bounded under many distinct conversations")
+    @SuppressWarnings("unchecked")
+    void shouldExtract_boundsCounterMap() {
+        // High threshold so counters accumulate (never fire/reset) and the hard cap must kick in.
+        ReflectionTestUtils.setField(service, "everyNMessages", 1_000);
+
+        for (int i = 0; i < MemoryExtractionService.MAX_TRACKED_CONVERSATIONS + 2_000; i++) {
+            service.shouldExtract(UUID.randomUUID());
+        }
+
+        Map<UUID, ?> counters = (Map<UUID, ?>) ReflectionTestUtils.getField(service, "messageCounters");
+        assertThat(counters.size()).isLessThanOrEqualTo(MemoryExtractionService.MAX_TRACKED_CONVERSATIONS);
+    }
+
     // ==================== disabled flag ====================
 
     @Test

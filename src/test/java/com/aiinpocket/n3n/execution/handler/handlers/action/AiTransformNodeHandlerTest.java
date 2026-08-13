@@ -73,6 +73,50 @@ class AiTransformNodeHandlerTest {
         }
     }
 
+    // ==================== Cache Key (per-user isolation) ====================
+
+    @Nested
+    @DisplayName("Cache Key")
+    class CacheKeyTests {
+
+        @Test
+        void differentUsers_produceDifferentKeys() {
+            Map<String, Object> input = Map.of("a", 1, "b", 2);
+            String keyA = handler.getCacheKey(UUID.randomUUID(), "double all prices", input);
+            String keyB = handler.getCacheKey(UUID.randomUUID(), "double all prices", input);
+            assertThat(keyA).isNotEqualTo(keyB);
+        }
+
+        @Test
+        void sameUserSameRequest_produceSameKey() {
+            UUID user = UUID.randomUUID();
+            Map<String, Object> input = Map.of("a", 1, "b", 2);
+            assertThat(handler.getCacheKey(user, "double all prices", input))
+                .isEqualTo(handler.getCacheKey(user, "double all prices", input));
+        }
+
+        @Test
+        void inputKeyOrderIrrelevant_sameKey() {
+            UUID user = UUID.randomUUID();
+            Map<String, Object> ordered = new LinkedHashMap<>();
+            ordered.put("a", 1);
+            ordered.put("b", 2);
+            Map<String, Object> reversed = new LinkedHashMap<>();
+            reversed.put("b", 2);
+            reversed.put("a", 1);
+            assertThat(handler.getCacheKey(user, "desc", ordered))
+                .isEqualTo(handler.getCacheKey(user, "desc", reversed));
+        }
+
+        @Test
+        void differentDescription_producesDifferentKey() {
+            UUID user = UUID.randomUUID();
+            Map<String, Object> input = Map.of("a", 1);
+            assertThat(handler.getCacheKey(user, "desc one", input))
+                .isNotEqualTo(handler.getCacheKey(user, "desc two", input));
+        }
+    }
+
     // ==================== Config Schema ====================
 
     @Nested

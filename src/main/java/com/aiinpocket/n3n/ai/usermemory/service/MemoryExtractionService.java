@@ -71,6 +71,9 @@ public class MemoryExtractionService {
     /** 每個對話自上次萃取以來的使用者訊息計數（記憶體內節流器） */
     private final Map<UUID, AtomicInteger> messageCounters = new ConcurrentHashMap<>();
 
+    /** 節流器 map 的硬上限，避免長期運行下無限增長 */
+    static final int MAX_TRACKED_CONVERSATIONS = 10_000;
+
     /**
      * 助手成功回覆後的非同步觸發點。
      * 由 AIAssistantService 在 chat / chatStream 成功儲存助手回應後呼叫。
@@ -105,10 +108,15 @@ public class MemoryExtractionService {
      */
     boolean shouldExtract(UUID conversationId) {
         int n = Math.max(1, everyNMessages);
+        // 硬上限保護：節流器只是計數器，超過上限直接清空避免記憶體無限增長。
+        if (messageCounters.size() > MAX_TRACKED_CONVERSATIONS) {
+            messageCounters.clear();
+        }
         AtomicInteger counter = messageCounters.computeIfAbsent(conversationId, k -> new AtomicInteger());
         int count = counter.incrementAndGet();
         if (count >= n) {
-            counter.addAndGet(-count);
+            // 觸發後直接移除該筆，讓閒置對話不會殘留在 map 中（重置為 0 的等效行為）。
+            messageCounters.remove(conversationId);
             return true;
         }
         return false;

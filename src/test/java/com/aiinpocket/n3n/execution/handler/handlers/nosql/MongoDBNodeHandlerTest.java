@@ -258,6 +258,40 @@ class MongoDBNodeHandlerTest {
         }
     }
 
+    // ==================== Cache Key (credential isolation) ====================
+
+    @Nested
+    @DisplayName("Cache Key")
+    class CacheKey {
+
+        @Test
+        void differentPassword_producesDifferentKey() {
+            Map<String, Object> a = Map.of("host", "h", "port", "27017", "database", "db", "username", "u", "password", "pw1");
+            Map<String, Object> b = Map.of("host", "h", "port", "27017", "database", "db", "username", "u", "password", "pw2");
+            assertThat(handler.generateCacheKey(a)).isNotEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void sameCredentials_produceSameKey() {
+            Map<String, Object> a = Map.of("host", "h", "port", "27017", "database", "db", "username", "u", "password", "pw");
+            Map<String, Object> b = Map.of("host", "h", "port", "27017", "database", "db", "username", "u", "password", "pw");
+            assertThat(handler.generateCacheKey(a)).isEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void differentConnectionString_producesDifferentKey() {
+            Map<String, Object> a = Map.of("connectionString", "mongodb://u:pw1@h:27017/db");
+            Map<String, Object> b = Map.of("connectionString", "mongodb://u:pw2@h:27017/db");
+            assertThat(handler.generateCacheKey(a)).isNotEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void key_neverContainsPlaintextPassword() {
+            Map<String, Object> a = Map.of("host", "h", "port", "27017", "database", "db", "username", "u", "password", "SuperSecret");
+            assertThat(handler.generateCacheKey(a)).doesNotContain("SuperSecret");
+        }
+    }
+
     // ==================== Helper ====================
 
     private NodeExecutionContext buildContext(Map<String, Object> config) {

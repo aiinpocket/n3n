@@ -51,8 +51,12 @@ public class RateLimiterNodeHandler extends AbstractNodeHandler {
         int maxRequests = Math.max(1, getIntConfig(context, "maxRequests", 10));
         int windowMs = Math.max(100, getIntConfig(context, "windowMs", 1000));
         String mode = getStringConfig(context, "mode", "delay");
-        String key = getStringConfig(context, "key",
+        // Scope the rate-limit budget by the executing user so two tenants using the same literal
+        // key (e.g. "api") never share one JVM-wide budget. A user can still deliberately share a
+        // budget across their own flows by naming the same key. Falls back to executionId:nodeId.
+        String rawKey = getStringConfig(context, "key",
             context.getExecutionId() + ":" + context.getNodeId());
+        String key = String.valueOf(context.getUserId()) + ":" + rawKey;
 
         log.debug("Rate limiter: maxRequests={}, windowMs={}, mode={}", maxRequests, windowMs, mode);
 

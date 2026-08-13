@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,6 +42,9 @@ class LegacyChainAliasHandlerTest {
         handler = new LegacyChainAliasHandler(aiService, memoryStore);
     }
 
+    private static final UUID TEST_USER =
+            UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
     private NodeExecutionContext context(Map<String, Object> config, Map<String, Object> input) {
         return NodeExecutionContext.builder()
                 .executionId(UUID.randomUUID())
@@ -48,6 +52,7 @@ class LegacyChainAliasHandlerTest {
                 .nodeType("aiChain")
                 .nodeConfig(config)
                 .inputData(input)
+                .userId(TEST_USER)
                 .build();
     }
 
@@ -174,8 +179,31 @@ class LegacyChainAliasHandlerTest {
             assertThat(result.isSuccess()).isTrue();
             assertThat(result.getOutput()).containsEntry("output", "the answer");
             assertThat(result.getOutput()).containsEntry("conversation_id", "conv-42");
-            verify(memoryStore).getHistory(eq("legacy-chain:conv-42"), anyInt());
-            verify(memoryStore, times(2)).store(eq("legacy-chain:conv-42"), any());
+            // Session key is tenant-scoped with the resolved userId, never the raw
+            // config-supplied conversationId (which could otherwise collide across users)
+            verify(memoryStore).getHistory(eq(TEST_USER + ":legacy-chain:conv-42"), anyInt());
+            verify(memoryStore, times(2)).store(eq(TEST_USER + ":legacy-chain:conv-42"), any());
+        }
+
+        @Test
+        void conversationChain_fallbackSessionId_isUserScoped() {
+            // No conversationId in config -> fallback executionId_nodeId, still userId-prefixed
+            when(memoryStore.getHistory(anyString(), anyInt()))
+                    .thenReturn(CompletableFuture.completedFuture(List.of()));
+            when(memoryStore.store(anyString(), any()))
+                    .thenReturn(CompletableFuture.completedFuture(null));
+            when(aiService.generateText(anyString())).thenReturn("ok");
+
+            Map<String, Object> config = new HashMap<>();
+            config.put("chainType", "conversation");
+
+            NodeExecutionResult result = handler.execute(
+                    context(config, Map.of("input", "hi")));
+
+            assertThat(result.isSuccess()).isTrue();
+            ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+            verify(memoryStore).getHistory(keyCaptor.capture(), anyInt());
+            assertThat(keyCaptor.getValue()).startsWith(TEST_USER + ":legacy-chain:");
         }
 
         @Test

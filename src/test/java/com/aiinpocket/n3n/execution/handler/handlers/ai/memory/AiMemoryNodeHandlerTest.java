@@ -12,8 +12,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AiMemoryNodeHandlerTest {
@@ -197,6 +200,79 @@ class AiMemoryNodeHandlerTest {
 
             NodeExecutionResult result = handler.execute(context);
             assertThat(result.isSuccess()).isFalse();
+        }
+    }
+
+    // ==================== Tenant Isolation (sessionId scoping) ====================
+
+    @Nested
+    @DisplayName("Tenant Isolation")
+    class TenantIsolation {
+
+        @Test
+        void store_prefixesSessionIdWithUserId() throws Exception {
+            when(memoryStore.store(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
+
+            UUID userId = UUID.randomUUID();
+            Map<String, Object> params = new HashMap<>();
+            params.put("sessionId", "chat-1");
+            params.put("role", "user");
+            params.put("content", "hello");
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiMemory")
+                    .userId(userId)
+                    .build();
+
+            NodeExecutionResult result =
+                    handler.executeOperation(context, "memory", "store", Map.of(), params);
+
+            assertThat(result.isSuccess()).isTrue();
+            // Redis key must be tenant-scoped, never the raw caller sessionId
+            verify(memoryStore).store(eq(userId + ":chat-1"), any());
+        }
+
+        @Test
+        void getHistory_prefixesSessionIdWithUserId() throws Exception {
+            when(memoryStore.getHistory(anyString(), anyInt()))
+                    .thenReturn(CompletableFuture.completedFuture(List.of()));
+
+            UUID userId = UUID.randomUUID();
+            Map<String, Object> params = new HashMap<>();
+            params.put("sessionId", "chat-1");
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiMemory")
+                    .userId(userId)
+                    .build();
+
+            handler.executeOperation(context, "memory", "getHistory", Map.of(), params);
+
+            verify(memoryStore).getHistory(eq(userId + ":chat-1"), anyInt());
+        }
+
+        @Test
+        void store_missingUserId_failsClosed() {
+            Map<String, Object> params = new HashMap<>();
+            params.put("sessionId", "chat-1");
+            params.put("content", "hello");
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiMemory")
+                    .userId(null)
+                    .build();
+
+            NodeExecutionResult result =
+                    handler.executeOperation(context, "memory", "store", Map.of(), params);
+
+            assertThat(result.isSuccess()).isFalse();
+            verifyNoInteractions(memoryStore);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.aiinpocket.n3n.execution.handler.handlers.action;
 
 import com.aiinpocket.n3n.ai.provider.AssistantAiClient;
 import com.aiinpocket.n3n.execution.handler.*;
+import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.aiinpocket.n3n.execution.handler.handlers.scripting.JavaScriptEngine;
 import com.aiinpocket.n3n.execution.handler.handlers.scripting.ScriptResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -151,7 +152,7 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
                 .metadata(Map.of(
                     "generatedCode", generatedCode,
                     "executionTimeMs", result.getExecutionTimeMs(),
-                    "cached", codeCache.containsKey(getCacheKey(transformDescription, inputData))
+                    "cached", codeCache.containsKey(getCacheKey(context.getUserId(), transformDescription, inputData))
                 ))
                 .build();
 
@@ -167,7 +168,7 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
             boolean useCache,
             java.util.UUID userId) {
 
-        String cacheKey = getCacheKey(description, inputData);
+        String cacheKey = getCacheKey(userId, description, inputData);
 
         // Check cache
         if (useCache && codeCache.containsKey(cacheKey)) {
@@ -232,10 +233,18 @@ public class AiTransformNodeHandler extends AbstractNodeHandler {
         }
     }
 
-    private String getCacheKey(String description, Map<String, Object> inputData) {
-        // Use description + input structure hash
-        int inputHash = inputData.keySet().hashCode();
-        return description.hashCode() + "_" + inputHash;
+    /**
+     * Build the code-cache key. The key incorporates the userId so generated code (produced under
+     * one user's request and credentials) can never be served to another user. A SHA-256 digest of
+     * {@code userId + description + sortedInputKeys} replaces the previous concatenation of two
+     * 32-bit hashCodes, which was cheap to collide.
+     */
+    String getCacheKey(java.util.UUID userId, String description, Map<String, Object> inputData) {
+        String sortedInputKeys = inputData.keySet().stream()
+            .sorted()
+            .reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b);
+        return CacheKeyUtil.sha256Hex(
+            String.valueOf(userId) + " " + description + " " + sortedInputKeys);
     }
 
     private Map<String, Object> truncateForSample(Map<String, Object> data) {

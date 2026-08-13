@@ -40,14 +40,7 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             setUserPrincipal(accessor);
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            String destination = accessor.getDestination();
-            if (destination != null) {
-                if (destination.startsWith(EXECUTION_TOPIC_PREFIX)) {
-                    validateExecutionSubscription(accessor, destination);
-                } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
-                    validateUserTopicSubscription(accessor, destination);
-                }
-            }
+            validateSubscribeDestination(accessor);
         } else if (StompCommand.SEND.equals(accessor.getCommand())) {
             validateSendDestination(accessor);
         }
@@ -66,6 +59,34 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
             if (userId != null) {
                 accessor.setUser(new StompPrincipal(userId.toString()));
             }
+        }
+    }
+
+    /**
+     * Default-deny SUBSCRIBE validation. A destination is allowed only if it matches
+     * one of the two known, per-user-scoped prefixes AND passes that prefix's ownership
+     * check. Anything else — including wildcard destinations such as {@code /topic/**} or
+     * {@code /topic/executions/*} that the STOMP broker would otherwise expand to every
+     * matching topic — is rejected outright. This closes the wildcard-subscription bypass
+     * where a client could receive other users' execution events.
+     */
+    private void validateSubscribeDestination(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        if (destination == null) {
+            throw new MessagingException("Forbidden: missing subscription destination");
+        }
+        // Reject any STOMP wildcard/pattern characters outright — subscriptions must be exact.
+        if (destination.indexOf('*') >= 0 || destination.indexOf('#') >= 0) {
+            log.warn("Rejected wildcard SUBSCRIBE destination: {}", destination);
+            throw new MessagingException("Forbidden: wildcard subscriptions are not allowed");
+        }
+        if (destination.startsWith(EXECUTION_TOPIC_PREFIX)) {
+            validateExecutionSubscription(accessor, destination);
+        } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
+            validateUserTopicSubscription(accessor, destination);
+        } else {
+            log.warn("Rejected SUBSCRIBE to non-allowlisted destination: {}", destination);
+            throw new MessagingException("Forbidden: subscription destination not allowed");
         }
     }
 

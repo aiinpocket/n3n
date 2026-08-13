@@ -274,6 +274,40 @@ class RedisNodeHandlerTest {
         }
     }
 
+    // ==================== Cache Key (credential isolation) ====================
+
+    @Nested
+    @DisplayName("Cache Key")
+    class CacheKey {
+
+        @Test
+        void differentPassword_producesDifferentKey() {
+            Map<String, Object> a = Map.of("host", "h", "port", "6379", "database", "1", "password", "pw1");
+            Map<String, Object> b = Map.of("host", "h", "port", "6379", "database", "1", "password", "pw2");
+            assertThat(handler.generateCacheKey(a)).isNotEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void sameCredentials_produceSameKey() {
+            Map<String, Object> a = Map.of("host", "h", "port", "6379", "database", "1", "password", "pw");
+            Map<String, Object> b = Map.of("host", "h", "port", "6379", "database", "1", "password", "pw");
+            assertThat(handler.generateCacheKey(a)).isEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void differentUrl_producesDifferentKey() {
+            Map<String, Object> a = Map.of("url", "redis://:pw1@h:6379/1");
+            Map<String, Object> b = Map.of("url", "redis://:pw2@h:6379/1");
+            assertThat(handler.generateCacheKey(a)).isNotEqualTo(handler.generateCacheKey(b));
+        }
+
+        @Test
+        void key_neverContainsPlaintextPassword() {
+            Map<String, Object> a = Map.of("host", "h", "port", "6379", "database", "1", "password", "SuperSecret");
+            assertThat(handler.generateCacheKey(a)).doesNotContain("SuperSecret");
+        }
+    }
+
     // ==================== Helper ====================
 
     private NodeExecutionContext buildContext(Map<String, Object> config) {

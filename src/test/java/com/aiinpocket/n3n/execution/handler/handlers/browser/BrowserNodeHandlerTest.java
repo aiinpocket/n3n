@@ -21,6 +21,45 @@ class BrowserNodeHandlerTest {
         handler = new BrowserNodeHandler(new ObjectMapper());
     }
 
+    // ==================== Session Key (tenant isolation) ====================
+
+    @Nested
+    @DisplayName("Session Key")
+    class SessionKey {
+
+        @Test
+        void sameSessionId_differentUsers_produceDifferentKeys() {
+            NodeExecutionContext a = ctx(UUID.randomUUID());
+            NodeExecutionContext b = ctx(UUID.randomUUID());
+            assertThat(BrowserNodeHandler.sessionKey(a, "default"))
+                .isNotEqualTo(BrowserNodeHandler.sessionKey(b, "default"));
+        }
+
+        @Test
+        void sameUser_sameSessionId_produceSameKey() {
+            UUID user = UUID.randomUUID();
+            assertThat(BrowserNodeHandler.sessionKey(ctx(user), "default"))
+                .isEqualTo(BrowserNodeHandler.sessionKey(ctx(user), "default"));
+        }
+
+        @Test
+        void key_isNamespacedByUserId() {
+            UUID user = UUID.randomUUID();
+            assertThat(BrowserNodeHandler.sessionKey(ctx(user), "my-session"))
+                .isEqualTo(user + ":my-session");
+        }
+
+        private NodeExecutionContext ctx(UUID userId) {
+            return NodeExecutionContext.builder()
+                .executionId(UUID.randomUUID())
+                .nodeId("browser-1")
+                .nodeType("browser")
+                .nodeConfig(new HashMap<>())
+                .userId(userId)
+                .build();
+        }
+    }
+
     // ==================== Basic Properties ====================
 
     @Nested

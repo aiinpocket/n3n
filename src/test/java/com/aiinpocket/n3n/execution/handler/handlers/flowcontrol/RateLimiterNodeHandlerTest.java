@@ -133,6 +133,31 @@ class RateLimiterNodeHandlerTest {
     }
 
     @Test
+    void execute_sameKeyDifferentUsers_haveIndependentBudgets() {
+        // Two tenants share the literal key "api" but must NOT share one JVM-wide budget.
+        String sharedKey = "api-" + UUID.randomUUID();
+        UUID userA = UUID.randomUUID();
+        UUID userB = UUID.randomUUID();
+
+        // User A exhausts the limit (maxRequests=3) in error mode.
+        for (int i = 0; i < 3; i++) {
+            handler.execute(buildContextWithUser(Map.of(
+                "maxRequests", 3, "windowMs", 60000, "mode", "error", "key", sharedKey
+            ), userA));
+        }
+        NodeExecutionResult overflowA = handler.execute(buildContextWithUser(Map.of(
+            "maxRequests", 3, "windowMs", 60000, "mode", "error", "key", sharedKey
+        ), userA));
+        assertThat(overflowA.isSuccess()).isFalse();
+
+        // User B, same key, must still pass — its budget is independent.
+        NodeExecutionResult firstB = handler.execute(buildContextWithUser(Map.of(
+            "maxRequests", 3, "windowMs", 60000, "mode", "error", "key", sharedKey
+        ), userB));
+        assertThat(firstB.isSuccess()).isTrue();
+    }
+
+    @Test
     void getConfigSchema_hasProperties() {
         Map<String, Object> schema = handler.getConfigSchema();
         assertThat(schema).containsKey("properties");
@@ -150,6 +175,17 @@ class RateLimiterNodeHandlerTest {
             .nodeType("rateLimiter")
             .nodeConfig(new HashMap<>(config))
             .inputData(new HashMap<>(inputData))
+            .build();
+    }
+
+    private NodeExecutionContext buildContextWithUser(Map<String, Object> config, UUID userId) {
+        return NodeExecutionContext.builder()
+            .executionId(UUID.randomUUID())
+            .nodeId("node-" + UUID.randomUUID())
+            .nodeType("rateLimiter")
+            .nodeConfig(new HashMap<>(config))
+            .inputData(new HashMap<>())
+            .userId(userId)
             .build();
     }
 

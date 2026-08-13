@@ -155,6 +155,67 @@ class WebSocketSubscriptionInterceptorTest extends BaseServiceTest {
     }
 
     @Test
+    void shouldBlockSubscribeToTopicDoubleWildcard() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/**");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("wildcard subscriptions are not allowed");
+    }
+
+    @Test
+    void shouldBlockSubscribeToExecutionsWildcard() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/executions/*");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("wildcard subscriptions are not allowed");
+        // The execution ownership check must never even run for a wildcard destination.
+        verifyNoInteractions(executionRepository);
+    }
+
+    @Test
+    void shouldBlockSubscribeToSingleWildcard() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/executions/" + executionId + "/*");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("wildcard subscriptions are not allowed");
+    }
+
+    @Test
+    void shouldBlockSubscribeToNonAllowlistedDestination() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/random");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("subscription destination not allowed");
+    }
+
+    @Test
+    void shouldBlockSubscribeToMissingDestination() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("missing subscription destination");
+    }
+
+    @Test
     void shouldBlockSubscribeWithInvalidExecutionId() {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/executions/not-a-uuid");

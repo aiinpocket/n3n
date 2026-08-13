@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -68,6 +69,13 @@ public class VectorSearchTool implements AgentNodeTool {
     public CompletableFuture<ToolResult> execute(Map<String, Object> parameters, ToolExecutionContext context) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // 租戶隔離：無有效 userId 則 fail-closed，避免跨租戶檢索他人文件
+                UUID userId = ToolSecurity.parseUserId(context);
+                if (userId == null) {
+                    log.warn("Vector search rejected: missing or invalid user context");
+                    return ToolResult.failure("User context is required for vector search");
+                }
+
                 String query = (String) parameters.get("query");
                 if (query == null || query.isBlank()) {
                     return ToolResult.failure("Query text cannot be empty");
@@ -91,7 +99,7 @@ public class VectorSearchTool implements AgentNodeTool {
                 log.debug("Vector search: query='{}', topK={}, store={}",
                         query, topK, storeName);
 
-                List<Document> results = ragService.search(query, topK, storeName);
+                List<Document> results = ragService.search(query, topK, storeName, userId.toString());
 
                 if (results.isEmpty()) {
                     return ToolResult.success("No documents found matching the query.");

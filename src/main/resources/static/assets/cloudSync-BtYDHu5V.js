@@ -1,0 +1,1 @@
+import{b as s}from"./index-C0jJeJss.js";const o={scan:t=>s.post("/cloud-sync/scan",{recoveryKeyPhrase:t}),importEntities:t=>s.post("/cloud-sync/import",{recoveryKeyPhrase:t}),getStatus:()=>s.get("/cloud-sync/status")};export{o as c};

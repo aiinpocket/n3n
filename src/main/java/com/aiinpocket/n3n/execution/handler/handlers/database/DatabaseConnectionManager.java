@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.execution.handler.handlers.database;
 
+import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PreDestroy;
@@ -85,7 +86,7 @@ public class DatabaseConnectionManager {
         String password,
         Map<String, String> options
     ) throws SQLException {
-        String poolKey = generatePoolKey(dbType, host, port, database, username);
+        String poolKey = generatePoolKey(dbType, host, port, database, username, password);
         String jdbcUrl = buildJdbcUrl(dbType, host, port, database, options);
 
         PoolEntry entry = pools.compute(poolKey, (key, existing) -> {
@@ -105,7 +106,7 @@ public class DatabaseConnectionManager {
      */
     public Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
         String dbType = detectDbType(jdbcUrl);
-        String poolKey = generatePoolKey(jdbcUrl, username);
+        String poolKey = generatePoolKey(jdbcUrl, username, password);
 
         PoolEntry entry = pools.compute(poolKey, (key, existing) -> {
             if (existing != null && !existing.dataSource.isClosed()) {
@@ -342,12 +343,27 @@ public class DatabaseConnectionManager {
         return "unknown";
     }
 
-    private String generatePoolKey(String dbType, String host, int port, String database, String username) {
-        return String.format("%s:%s:%d:%s:%s", dbType, host, port, database, username);
+    /**
+     * Build a pool key that includes a SHA-256 hash of the password. Two connections with an
+     * identical host/db/username but a different password produce different keys, preventing a
+     * caller with a wrong/stale password from landing on another user's authenticated pool.
+     * The plaintext password is never stored in the key.
+     */
+    String generatePoolKey(String dbType, String host, int port, String database, String username, String password) {
+        return String.format("%s:%s:%d:%s:%s:%s",
+            dbType, host, port, database, username,
+            CacheKeyUtil.sha256Hex(CacheKeyUtil.nullToEmpty(password)));
     }
 
-    private String generatePoolKey(String jdbcUrl, String username) {
-        return String.format("%s:%s", jdbcUrl.hashCode(), username);
+    /**
+     * Build a pool key from a raw JDBC URL. Uses a SHA-256 digest over the full connection
+     * descriptor (url + username + password) instead of a collidable {@link String#hashCode()}.
+     */
+    String generatePoolKey(String jdbcUrl, String username, String password) {
+        return CacheKeyUtil.sha256Hex(
+            CacheKeyUtil.nullToEmpty(jdbcUrl) + "|"
+                + CacheKeyUtil.nullToEmpty(username) + "|"
+                + CacheKeyUtil.nullToEmpty(password));
     }
 
     private String maskJdbcUrl(String jdbcUrl) {

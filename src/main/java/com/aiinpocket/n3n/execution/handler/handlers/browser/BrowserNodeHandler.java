@@ -3,9 +3,12 @@ package com.aiinpocket.n3n.execution.handler.handlers.browser;
 import com.aiinpocket.n3n.execution.handler.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -42,9 +45,30 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
         .writeTimeout(60, TimeUnit.SECONDS)
         .build();
 
-    // Session management
+    // Session management. Keys are scoped by the executing user (userId + ":" + sessionId) so
+    // that two users who both leave sessionId at its "default" value never share one browser
+    // session (and therefore never share cookies/authentication state).
     private final Map<String, BrowserSession> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Long> sessionLastAccess = new ConcurrentHashMap<>();
     private final AtomicInteger messageIdCounter = new AtomicInteger(0);
+
+    /** Idle time-to-live for a browser session before it is evicted and closed. */
+    @Value("${n3n.browser.session-ttl-seconds:1800}")
+    private long sessionTtlSeconds = 1800;
+
+    private long sessionTtlMs() {
+        long ttl = sessionTtlSeconds > 0 ? sessionTtlSeconds : 1800;
+        return ttl * 1000L;
+    }
+
+    /**
+     * Build the internal, user-scoped session map key. The user-supplied sessionId is namespaced
+     * by the executing userId so sessions can never collide across accounts.
+     */
+    static String sessionKey(NodeExecutionContext context, String sessionId) {
+        UUID userId = context != null ? context.getUserId() : null;
+        return String.valueOf(userId) + ":" + sessionId;
+    }
 
     // CDP command sender exposed to operations classes
     private final CdpCommandSender cdpSender = this::sendCdpCommand;
@@ -86,26 +110,28 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
         String cdpHost = getStringConfig(context, "cdpHost", DEFAULT_CDP_HOST);
         int cdpPort = getIntConfig(context, "cdpPort", DEFAULT_CDP_PORT);
         String sessionId = getStringConfig(context, "sessionId", "default");
+        String sessionKey = sessionKey(context, sessionId);
+        sessionLastAccess.put(sessionKey, System.currentTimeMillis());
 
         try {
             return switch (resource) {
                 case "session" -> BrowserSessionOperations.execute(
-                        cdpHost, cdpPort, sessionId, operation, context,
+                        cdpHost, cdpPort, sessionKey, sessionId, operation, context,
                         httpClient, objectMapper, (ConcurrentHashMap<String, BrowserSession>) sessions);
                 case "page" -> {
-                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionId);
+                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionKey);
                     yield BrowserPageOperations.execute(session, operation, context, cdpSender);
                 }
                 case "element" -> {
-                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionId);
+                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionKey);
                     yield BrowserElementOperations.execute(session, operation, context, cdpSender);
                 }
                 case "cookie" -> {
-                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionId);
+                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionKey);
                     yield BrowserCookieOperations.execute(session, operation, context, cdpSender);
                 }
                 case "network" -> {
-                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionId);
+                    BrowserSession session = getOrCreateSession(cdpHost, cdpPort, sessionKey);
                     yield BrowserNetworkOperations.execute(session, operation, context, cdpSender);
                 }
                 default -> NodeExecutionResult.failure("Unknown resource: " + resource);
@@ -118,25 +144,26 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
 
     // ===== Session management (kept in main handler) =====
 
-    BrowserSession getOrCreateSession(String host, int port, String sessionId) throws IOException {
-        BrowserSession session = sessions.get(sessionId);
+    BrowserSession getOrCreateSession(String host, int port, String sessionKey) throws IOException {
+        BrowserSession session = sessions.get(sessionKey);
         if (session == null) {
             synchronized (sessions) {
                 // Double-check after acquiring lock to prevent duplicate session creation
-                session = sessions.get(sessionId);
+                session = sessions.get(sessionKey);
                 if (session == null) {
-                    NodeExecutionResult result = createSessionDirect(host, port, sessionId, "about:blank");
+                    NodeExecutionResult result = createSessionDirect(host, port, sessionKey, "about:blank");
                     if (!result.isSuccess()) {
                         throw new IOException("Failed to create session: " + result.getErrorMessage());
                     }
-                    session = sessions.get(sessionId);
+                    session = sessions.get(sessionKey);
                 }
             }
         }
+        sessionLastAccess.put(sessionKey, System.currentTimeMillis());
         return session;
     }
 
-    private NodeExecutionResult createSessionDirect(String host, int port, String sessionId, String url) throws IOException {
+    private NodeExecutionResult createSessionDirect(String host, int port, String sessionKey, String url) throws IOException {
         String baseUrl = "http://" + host + ":" + port;
 
         Request createRequest = new Request.Builder()
@@ -156,16 +183,66 @@ public class BrowserNodeHandler extends AbstractNodeHandler {
             String wsUrl = json.path("webSocketDebuggerUrl").asText();
 
             BrowserSession session = new BrowserSession(targetId, wsUrl);
-            sessions.put(sessionId, session);
+            sessions.put(sessionKey, session);
+            sessionLastAccess.put(sessionKey, System.currentTimeMillis());
 
             Map<String, Object> output = new HashMap<>();
             output.put("success", true);
-            output.put("sessionId", sessionId);
             output.put("targetId", targetId);
             output.put("webSocketUrl", wsUrl);
 
-            log.info("Browser session created: {}", sessionId);
+            log.info("Browser session created (auto)");
             return NodeExecutionResult.success(output);
+        }
+    }
+
+    // ===== Session lifecycle housekeeping =====
+
+    /**
+     * Evict browser sessions that have been idle beyond the configured TTL, closing the
+     * underlying CDP target so orphaned sessions do not accumulate.
+     */
+    @Scheduled(fixedDelay = 60_000)
+    void evictIdleSessions() {
+        long now = System.currentTimeMillis();
+        long ttl = sessionTtlMs();
+        for (Map.Entry<String, Long> e : sessionLastAccess.entrySet()) {
+            if (now - e.getValue() > ttl) {
+                String key = e.getKey();
+                sessionLastAccess.remove(key);
+                BrowserSession session = sessions.remove(key);
+                if (session != null) {
+                    closeSessionQuietly(session);
+                }
+            }
+        }
+    }
+
+    @PreDestroy
+    void shutdownSessions() {
+        sessions.forEach((key, session) -> closeSessionQuietly(session));
+        sessions.clear();
+        sessionLastAccess.clear();
+    }
+
+    /**
+     * Close a session's CDP target best-effort, deriving the HTTP base URL from the session's
+     * WebSocket URL (ws://host:port/devtools/... → http://host:port).
+     */
+    private void closeSessionQuietly(BrowserSession session) {
+        try {
+            String httpBaseUrl = session.wsUrl()
+                .replace("ws://", "http://")
+                .replaceAll("/devtools/.*", "");
+            Request closeRequest = new Request.Builder()
+                .url(httpBaseUrl + "/json/close/" + session.targetId())
+                .get()
+                .build();
+            try (Response ignored = httpClient.newCall(closeRequest).execute()) {
+                // best-effort close
+            }
+        } catch (Exception e) {
+            log.warn("Error closing idle browser session: {}", e.getMessage());
         }
     }
 

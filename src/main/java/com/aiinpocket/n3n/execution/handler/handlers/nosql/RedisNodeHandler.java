@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.execution.handler.multiop.FieldDef;
 import com.aiinpocket.n3n.execution.handler.multiop.MultiOperationNodeHandler;
 import com.aiinpocket.n3n.execution.handler.multiop.OperationDef;
 import com.aiinpocket.n3n.execution.handler.multiop.ResourceDef;
+import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
@@ -14,6 +15,8 @@ import io.lettuce.core.api.sync.RedisCommands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -47,9 +50,17 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
 
     private final ObjectMapper objectMapper;
 
-    // Client cache with TTL
+    // Client cache with idle TTL
     private final ConcurrentHashMap<String, ClientEntry> clients = new ConcurrentHashMap<>();
-    private static final long CLIENT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+    /** Idle time-to-live for a cached client before it is evicted and closed. */
+    @Value("${n3n.node.client-idle-ttl-seconds:1800}")
+    private long clientIdleTtlSeconds = 1800;
+
+    private long idleTtlMs() {
+        long ttl = clientIdleTtlSeconds > 0 ? clientIdleTtlSeconds : 1800;
+        return ttl * 1000L;
+    }
 
     @Override
     public String getType() {
@@ -627,7 +638,9 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
         String cacheKey = generateCacheKey(credential);
 
         ClientEntry entry = clients.compute(cacheKey, (key, existing) -> {
-            if (existing != null && System.currentTimeMillis() - existing.createdAt < CLIENT_TTL_MS) {
+            long now = System.currentTimeMillis();
+            if (existing != null && now - existing.lastAccess < idleTtlMs()) {
+                existing.lastAccess = now;
                 return existing;
             }
             // Create new client first, only close old one after success
@@ -704,15 +717,26 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
         return new ClientEntry(client, connection, System.currentTimeMillis());
     }
 
-    private String generateCacheKey(Map<String, Object> credential) {
+    /**
+     * Build the client cache key. When a full URL is supplied (which embeds the password) the
+     * key is a SHA-256 digest of that URL — this both incorporates the secret and replaces the
+     * collidable {@link String#hashCode()}. Otherwise the readable host/port/database prefix is
+     * combined with a SHA-256 digest of the password and ssl flag so a different password yields
+     * a different key.
+     */
+    String generateCacheKey(Map<String, Object> credential) {
         String url = getCredentialValue(credential, "url");
         if (url != null && !url.isEmpty()) {
-            return String.valueOf(url.hashCode());
+            return "url:" + CacheKeyUtil.sha256Hex(url);
         }
         String host = getCredentialValue(credential, "host");
         String port = getCredentialValue(credential, "port");
         String database = getCredentialValue(credential, "database");
-        return String.format("%s:%s:%s", host, port, database);
+        String password = getCredentialValue(credential, "password");
+        String ssl = getCredentialValue(credential, "ssl");
+        String secretHash = CacheKeyUtil.sha256Hex(
+            CacheKeyUtil.nullToEmpty(password) + "|" + CacheKeyUtil.nullToEmpty(ssl));
+        return String.format("%s:%s:%s:%s", host, port, database, secretHash);
     }
 
     @Override
@@ -725,6 +749,28 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    /**
+     * Periodically evict clients that have been idle beyond the configured TTL so that distinct
+     * connection keys do not accumulate forever while the application runs.
+     */
+    @Scheduled(fixedDelay = 60_000)
+    void evictIdleClients() {
+        long now = System.currentTimeMillis();
+        long ttl = idleTtlMs();
+        clients.entrySet().removeIf(e -> {
+            if (now - e.getValue().lastAccess > ttl) {
+                try {
+                    e.getValue().connection.close();
+                    e.getValue().client.shutdown();
+                } catch (Exception ex) {
+                    log.warn("Error closing idle Redis client: {}", ex.getMessage());
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     @PreDestroy
@@ -744,12 +790,12 @@ public class RedisNodeHandler extends MultiOperationNodeHandler {
     private static class ClientEntry {
         final RedisClient client;
         final StatefulRedisConnection<String, String> connection;
-        final long createdAt;
+        volatile long lastAccess;
 
-        ClientEntry(RedisClient client, StatefulRedisConnection<String, String> connection, long createdAt) {
+        ClientEntry(RedisClient client, StatefulRedisConnection<String, String> connection, long lastAccess) {
             this.client = client;
             this.connection = connection;
-            this.createdAt = createdAt;
+            this.lastAccess = lastAccess;
         }
     }
 }

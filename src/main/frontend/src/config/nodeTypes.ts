@@ -511,14 +511,6 @@ export const nodeTypes: NodeTypeConfig[] = [
     category: 'communication',
   },
   {
-    value: 'agent',
-    label: 'nodeTypes.agent.label',
-    color: '#1890ff',
-    icon: 'DesktopOutlined',
-    description: 'nodeTypes.agent.description',
-    category: 'communication',
-  },
-  {
     value: 'email',
     label: 'nodeTypes.email.label',
     color: '#1890ff',

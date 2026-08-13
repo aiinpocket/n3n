@@ -22,20 +22,20 @@ final class BrowserSessionOperations {
     private BrowserSessionOperations() {}
 
     static NodeExecutionResult execute(
-            String host, int port, String sessionId, String operation,
+            String host, int port, String sessionKey, String sessionId, String operation,
             NodeExecutionContext context,
             OkHttpClient httpClient, ObjectMapper objectMapper,
             ConcurrentMap<String, BrowserNodeHandler.BrowserSession> sessions) throws IOException {
         return switch (operation) {
-            case "create" -> createSession(host, port, sessionId, context, httpClient, objectMapper, sessions);
-            case "close" -> closeSession(host, port, sessionId, httpClient, sessions);
+            case "create" -> createSession(host, port, sessionKey, sessionId, context, httpClient, objectMapper, sessions);
+            case "close" -> closeSession(host, port, sessionKey, sessionId, httpClient, sessions);
             case "list" -> listSessions(host, port, httpClient, objectMapper);
             default -> NodeExecutionResult.failure("Unknown session operation: " + operation);
         };
     }
 
     private static NodeExecutionResult createSession(
-            String host, int port, String sessionId, NodeExecutionContext context,
+            String host, int port, String sessionKey, String sessionId, NodeExecutionContext context,
             OkHttpClient httpClient, ObjectMapper objectMapper,
             ConcurrentMap<String, BrowserNodeHandler.BrowserSession> sessions) throws IOException {
 
@@ -59,7 +59,7 @@ final class BrowserSessionOperations {
             String wsUrl = json.path("webSocketDebuggerUrl").asText();
 
             BrowserNodeHandler.BrowserSession session = new BrowserNodeHandler.BrowserSession(targetId, wsUrl);
-            sessions.put(sessionId, session);
+            sessions.put(sessionKey, session);
 
             Map<String, Object> output = new HashMap<>();
             output.put("success", true);
@@ -73,10 +73,10 @@ final class BrowserSessionOperations {
     }
 
     private static NodeExecutionResult closeSession(
-            String host, int port, String sessionId, OkHttpClient httpClient,
+            String host, int port, String sessionKey, String sessionId, OkHttpClient httpClient,
             ConcurrentMap<String, BrowserNodeHandler.BrowserSession> sessions) throws IOException {
 
-        BrowserNodeHandler.BrowserSession session = sessions.remove(sessionId);
+        BrowserNodeHandler.BrowserSession session = sessions.remove(sessionKey);
         if (session == null) {
             return NodeExecutionResult.failure("Session not found: " + sessionId);
         }

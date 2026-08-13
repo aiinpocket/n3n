@@ -458,12 +458,6 @@ const WebhookTriggerNode = memo((props: NodeProps) => {
 })
 WebhookTriggerNode.displayName = 'WebhookTriggerNode'
 
-// Agent Node
-const AgentNode = memo((props: NodeProps) => {
-  return <BaseNode {...props} data={{ ...props.data, nodeType: 'agent' }} />
-})
-AgentNode.displayName = 'AgentNode'
-
 // Form Trigger Node
 const FormTriggerNode = memo((props: NodeProps) => {
   return <BaseNode {...props} data={{ ...props.data, nodeType: 'formTrigger' }} />
@@ -844,5 +838,4 @@ export {
   ApprovalNode,
   SshNode,
   ExternalServiceNode,
-  AgentNode,
 }

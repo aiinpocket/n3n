@@ -2,11 +2,14 @@ package com.aiinpocket.n3n.execution.handler.handlers.database;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.google.cloud.sql.ConnectorConfig;
 import com.google.cloud.sql.ConnectorRegistry;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
@@ -64,7 +67,7 @@ public class CloudSqlConnectionFactory {
         String serviceAccountJson,
         boolean enableIamAuth
     ) throws SQLException {
-        String cacheKey = generateCacheKey(dbType, instanceConnection, database, username, serviceAccountJson);
+        String cacheKey = generateCacheKey(dbType, instanceConnection, database, username, serviceAccountJson, password);
 
         DataSourceEntry entry = dataSources.compute(cacheKey, (key, existing) -> {
             if (existing != null && !existing.dataSource.isClosed()
@@ -219,15 +222,19 @@ public class CloudSqlConnectionFactory {
         };
     }
 
-    private String generateCacheKey(String dbType, String instance, String database, String username, String saJson) {
-        // Use hash of service account JSON to avoid storing the full key in memory
-        int saHash = saJson != null ? saJson.hashCode() : 0;
-        return String.format("%s:%s:%s:%s:%d", dbType, instance, database, username, saHash);
+    String generateCacheKey(String dbType, String instance, String database, String username, String saJson, String password) {
+        // Use a SHA-256 digest of the service-account JSON and the DB password so the plaintext
+        // secrets are never held as a map key, and a different password/SA yields a different
+        // data source (prevents landing on another tenant's authenticated pool).
+        String secretHash = CacheKeyUtil.sha256Hex(
+            CacheKeyUtil.nullToEmpty(saJson) + "|" + CacheKeyUtil.nullToEmpty(password));
+        return String.format("%s:%s:%s:%s:%s", dbType, instance, database, username, secretHash);
     }
 
     /**
      * Close all cached data sources (for shutdown).
      */
+    @PreDestroy
     public void shutdown() {
         dataSources.forEach((key, entry) -> {
             try {
@@ -249,8 +256,10 @@ public class CloudSqlConnectionFactory {
     }
 
     /**
-     * Clean up expired data sources.
+     * Clean up expired data sources. Runs periodically so that distinct credential keys do not
+     * leak forever even when a given key is never requested again.
      */
+    @Scheduled(fixedDelay = 60_000)
     public void cleanupExpired() {
         long now = System.currentTimeMillis();
         dataSources.entrySet().removeIf(entry -> {

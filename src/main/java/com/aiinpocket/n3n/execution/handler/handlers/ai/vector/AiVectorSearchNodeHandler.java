@@ -182,13 +182,20 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
             return NodeExecutionResult.failure("Unknown resource: " + resource);
         }
 
+        // 租戶隔離：以已解析的 userId 為每個 namespace 加前綴（fail-closed）
+        UUID uid = context.getUserId();
+        if (uid == null) {
+            return NodeExecutionResult.failure("User context is required for vector operations");
+        }
+        String userId = uid.toString();
+
         try {
             return switch (operation) {
-                case "upsert" -> executeUpsert(params);
-                case "search" -> executeSearch(params, credential);
-                case "searchByVector" -> executeSearchByVector(params);
-                case "delete" -> executeDelete(params);
-                case "count" -> executeCount(params);
+                case "upsert" -> executeUpsert(userId, params);
+                case "search" -> executeSearch(userId, params, credential);
+                case "searchByVector" -> executeSearchByVector(userId, params);
+                case "delete" -> executeDelete(userId, params);
+                case "count" -> executeCount(userId, params);
                 default -> NodeExecutionResult.failure("Unknown operation: " + operation);
             };
         } catch (Exception e) {
@@ -197,9 +204,21 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private NodeExecutionResult executeUpsert(Map<String, Object> params) throws Exception {
+    /**
+     * 伺服器端推導租戶隔離的有效 namespace。呼叫者提供的 namespace 永遠不會單獨作為鍵。
+     */
+    private String scopedNamespace(String userId, Map<String, Object> params) {
         String namespace = getParam(params, "namespace", "default");
+        if (namespace == null || namespace.isBlank()) {
+            namespace = "default";
+        }
+        return userId + ":" + namespace;
+    }
+
+    @SuppressWarnings("unchecked")
+    private NodeExecutionResult executeUpsert(String userId, Map<String, Object> params) throws Exception {
+        String namespace = getParam(params, "namespace", "default");
+        String scopedNamespace = scopedNamespace(userId, params);
         String id = getRequiredParam(params, "id");
         Object vectorObj = params.get("vector");
         String content = getParam(params, "content", "");
@@ -215,7 +234,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         }
 
         VectorStore.VectorDocument doc = new VectorStore.VectorDocument(id, vector, content, metadata);
-        vectorStore.upsert(namespace, doc).get();
+        vectorStore.upsert(scopedNamespace, doc).get();
 
         return NodeExecutionResult.success(Map.of(
             "upserted", true,
@@ -226,10 +245,12 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
     }
 
     private NodeExecutionResult executeSearch(
+        String userId,
         Map<String, Object> params,
         Map<String, Object> credential
     ) throws Exception {
         String namespace = getParam(params, "namespace", "default");
+        String scopedNamespace = scopedNamespace(userId, params);
         String query = getRequiredParam(params, "query");
         String embeddingProvider = getParam(params, "embeddingProvider", "openai");
         String embeddingModel = getParam(params, "embeddingModel", "text-embedding-3-small");
@@ -255,7 +276,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         List<Float> queryVector = embeddingResponse.getEmbeddings().get(0);
 
         // Execute search
-        List<VectorStore.SearchResult> results = vectorStore.search(namespace, queryVector, topK, filter).get();
+        List<VectorStore.SearchResult> results = vectorStore.search(scopedNamespace, queryVector, topK, filter).get();
 
         List<Map<String, Object>> resultMaps = results.stream()
             .map(r -> Map.<String, Object>of(
@@ -275,8 +296,9 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private NodeExecutionResult executeSearchByVector(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeSearchByVector(String userId, Map<String, Object> params) throws Exception {
         String namespace = getParam(params, "namespace", "default");
+        String scopedNamespace = scopedNamespace(userId, params);
         Object vectorObj = params.get("vector");
         int topK = getIntParam(params, "topK", 5);
         Map<String, Object> filter = (Map<String, Object>) params.getOrDefault("filter", Map.of());
@@ -290,7 +312,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
             return NodeExecutionResult.failure("Invalid vector format");
         }
 
-        List<VectorStore.SearchResult> results = vectorStore.search(namespace, queryVector, topK, filter).get();
+        List<VectorStore.SearchResult> results = vectorStore.search(scopedNamespace, queryVector, topK, filter).get();
 
         List<Map<String, Object>> resultMaps = results.stream()
             .map(r -> Map.<String, Object>of(
@@ -308,11 +330,12 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeDelete(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeDelete(String userId, Map<String, Object> params) throws Exception {
         String namespace = getParam(params, "namespace", "default");
+        String scopedNamespace = scopedNamespace(userId, params);
         String id = getRequiredParam(params, "id");
 
-        vectorStore.delete(namespace, id).get();
+        vectorStore.delete(scopedNamespace, id).get();
 
         return NodeExecutionResult.success(Map.of(
             "deleted", true,
@@ -321,10 +344,11 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeCount(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeCount(String userId, Map<String, Object> params) throws Exception {
         String namespace = getParam(params, "namespace", "default");
+        String scopedNamespace = scopedNamespace(userId, params);
 
-        long count = vectorStore.count(namespace).get();
+        long count = vectorStore.count(scopedNamespace).get();
 
         return NodeExecutionResult.success(Map.of(
             "count", count,

@@ -1,0 +1,1 @@
+import{b as i}from"./index-C0jJeJss.js";const n={listAll:async(a=0,e=20,t)=>{const s={page:a,size:e,sort:"createdAt,desc"};return t&&(s.type=t),(await i.get("/activities",{params:s})).data},listMy:async(a=0,e=20,t)=>{const s={page:a,size:e,sort:"createdAt,desc"};return t&&(s.type=t),(await i.get("/activities/my",{params:s})).data}};export{n as a};

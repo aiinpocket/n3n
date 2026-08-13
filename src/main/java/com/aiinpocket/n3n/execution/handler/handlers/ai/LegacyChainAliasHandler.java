@@ -126,7 +126,12 @@ public class LegacyChainAliasHandler extends AbstractNodeHandler {
         String model = getStringConfig(context, "model", null);
         int memoryWindow = getIntConfig(context, "memoryWindow", DEFAULT_MEMORY_WINDOW);
 
-        String sessionId = "legacy-chain:" + conversationId;
+        // 租戶隔離：以 userId（缺失時退回唯一的 executionId）為記憶鍵加前綴，
+        // 避免 config 提供的 conversationId 在不同使用者間碰撞而洩漏對話記憶。
+        String userScope = context.getUserId() != null
+                ? context.getUserId().toString()
+                : context.getExecutionId().toString();
+        String sessionId = userScope + ":legacy-chain:" + conversationId;
         List<MemoryStore.MemoryEntry> history = memoryStore.getHistory(sessionId, memoryWindow).get();
 
         StringBuilder prompt = new StringBuilder();

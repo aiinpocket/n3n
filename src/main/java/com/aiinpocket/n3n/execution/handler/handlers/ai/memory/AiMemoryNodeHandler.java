@@ -173,14 +173,21 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
             return NodeExecutionResult.failure("Unknown resource: " + resource);
         }
 
+        // 租戶隔離：以已解析的 userId 為每個 sessionId 加前綴（fail-closed）
+        UUID uid = context.getUserId();
+        if (uid == null) {
+            return NodeExecutionResult.failure("User context is required for memory operations");
+        }
+        String userId = uid.toString();
+
         try {
             return switch (operation) {
-                case "store" -> executeStore(params);
-                case "getHistory" -> executeGetHistory(params);
-                case "clear" -> executeClear(params);
-                case "search" -> executeSearch(params);
-                case "getSummary" -> executeGetSummary(params);
-                case "saveSummary" -> executeSaveSummary(params);
+                case "store" -> executeStore(userId, params);
+                case "getHistory" -> executeGetHistory(userId, params);
+                case "clear" -> executeClear(userId, params);
+                case "search" -> executeSearch(userId, params);
+                case "getSummary" -> executeGetSummary(userId, params);
+                case "saveSummary" -> executeSaveSummary(userId, params);
                 default -> NodeExecutionResult.failure("Unknown operation: " + operation);
             };
         } catch (Exception e) {
@@ -189,8 +196,17 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         }
     }
 
-    private NodeExecutionResult executeStore(Map<String, Object> params) throws Exception {
+    /**
+     * 伺服器端推導租戶隔離的有效 sessionId。呼叫者提供的 sessionId 永遠不會單獨作為鍵，
+     * 因此不同使用者即使使用相同 sessionId 也不會互相看到對方的對話記憶。
+     */
+    private String scopedSessionId(String userId, String sessionId) {
+        return userId + ":" + sessionId;
+    }
+
+    private NodeExecutionResult executeStore(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
         String role = getParam(params, "role", "user");
         String content = getRequiredParam(params, "content");
 
@@ -202,7 +218,7 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
             System.currentTimeMillis()
         );
 
-        memoryStore.store(sessionId, entry).get();
+        memoryStore.store(scopedSessionId, entry).get();
 
         return NodeExecutionResult.success(Map.of(
             "stored", true,
@@ -211,11 +227,12 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeGetHistory(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeGetHistory(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
         int limit = getIntParam(params, "limit", 20);
 
-        List<MemoryStore.MemoryEntry> history = memoryStore.getHistory(sessionId, limit).get();
+        List<MemoryStore.MemoryEntry> history = memoryStore.getHistory(scopedSessionId, limit).get();
 
         List<Map<String, Object>> messages = history.stream()
             .map(e -> Map.<String, Object>of(
@@ -233,10 +250,11 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeClear(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeClear(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
 
-        memoryStore.clear(sessionId).get();
+        memoryStore.clear(scopedSessionId).get();
 
         return NodeExecutionResult.success(Map.of(
             "cleared", true,
@@ -244,12 +262,13 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeSearch(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeSearch(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
         String query = getRequiredParam(params, "query");
         int limit = getIntParam(params, "limit", 5);
 
-        List<MemoryStore.MemoryEntry> results = memoryStore.search(sessionId, query, limit).get();
+        List<MemoryStore.MemoryEntry> results = memoryStore.search(scopedSessionId, query, limit).get();
 
         List<Map<String, Object>> messages = results.stream()
             .map(e -> Map.<String, Object>of(
@@ -267,10 +286,11 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeGetSummary(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeGetSummary(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
 
-        Optional<String> summary = memoryStore.getSummary(sessionId).get();
+        Optional<String> summary = memoryStore.getSummary(scopedSessionId).get();
 
         return NodeExecutionResult.success(Map.of(
             "sessionId", sessionId,
@@ -279,11 +299,12 @@ public class AiMemoryNodeHandler extends AbstractAiNodeHandler {
         ));
     }
 
-    private NodeExecutionResult executeSaveSummary(Map<String, Object> params) throws Exception {
+    private NodeExecutionResult executeSaveSummary(String userId, Map<String, Object> params) throws Exception {
         String sessionId = getRequiredParam(params, "sessionId");
+        String scopedSessionId = scopedSessionId(userId, sessionId);
         String summary = getRequiredParam(params, "summary");
 
-        memoryStore.saveSummary(sessionId, summary).get();
+        memoryStore.saveSummary(scopedSessionId, summary).get();
 
         return NodeExecutionResult.success(Map.of(
             "saved", true,

@@ -6,6 +6,7 @@ import com.aiinpocket.n3n.execution.handler.multiop.FieldDef;
 import com.aiinpocket.n3n.execution.handler.multiop.MultiOperationNodeHandler;
 import com.aiinpocket.n3n.execution.handler.multiop.OperationDef;
 import com.aiinpocket.n3n.execution.handler.multiop.ResourceDef;
+import com.aiinpocket.n3n.execution.handler.handlers.CacheKeyUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -16,6 +17,8 @@ import com.mongodb.client.MongoDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -50,9 +53,17 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
 
     private final ObjectMapper objectMapper;
 
-    // Client cache with TTL
+    // Client cache with idle TTL
     private final ConcurrentHashMap<String, ClientEntry> clients = new ConcurrentHashMap<>();
-    private static final long CLIENT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+    /** Idle time-to-live for a cached client before it is evicted and closed. */
+    @Value("${n3n.node.client-idle-ttl-seconds:1800}")
+    private long clientIdleTtlSeconds = 1800;
+
+    private long idleTtlMs() {
+        long ttl = clientIdleTtlSeconds > 0 ? clientIdleTtlSeconds : 1800;
+        return ttl * 1000L;
+    }
 
     @Override
     public String getType() {
@@ -397,7 +408,9 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
         String cacheKey = generateCacheKey(credential);
 
         ClientEntry entry = clients.compute(cacheKey, (key, existing) -> {
-            if (existing != null && System.currentTimeMillis() - existing.createdAt < CLIENT_TTL_MS) {
+            long now = System.currentTimeMillis();
+            if (existing != null && now - existing.lastAccess < idleTtlMs()) {
+                existing.lastAccess = now;
                 return existing;
             }
             // Create new client first, only close old one after success
@@ -494,16 +507,33 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
         return new ClientEntry(client, System.currentTimeMillis());
     }
 
-    private String generateCacheKey(Map<String, Object> credential) {
+    /**
+     * Build the client cache key. When a connection string is supplied (which embeds the
+     * password) the key is a SHA-256 digest of that string — incorporating the secret and
+     * replacing the collidable {@link String#hashCode()}. Otherwise the readable
+     * host/port/database/username prefix is combined with a SHA-256 digest of the remaining
+     * auth material (password, authSource, tls, replicaSet) so a different password yields a
+     * different key.
+     */
+    String generateCacheKey(Map<String, Object> credential) {
         String connStr = getCredentialValue(credential, "connectionString");
         if (connStr != null && !connStr.isEmpty()) {
-            return String.valueOf(connStr.hashCode());
+            return "conn:" + CacheKeyUtil.sha256Hex(connStr);
         }
         String host = getCredentialValue(credential, "host");
         String port = getCredentialValue(credential, "port");
         String database = getCredentialValue(credential, "database");
         String username = getCredentialValue(credential, "username");
-        return String.format("%s:%s:%s:%s", host, port, database, username);
+        String password = getCredentialValue(credential, "password");
+        String authSource = getCredentialValue(credential, "authSource");
+        String tls = getCredentialValue(credential, "tls");
+        String replicaSet = getCredentialValue(credential, "replicaSet");
+        String secretHash = CacheKeyUtil.sha256Hex(
+            CacheKeyUtil.nullToEmpty(password) + "|"
+                + CacheKeyUtil.nullToEmpty(authSource) + "|"
+                + CacheKeyUtil.nullToEmpty(tls) + "|"
+                + CacheKeyUtil.nullToEmpty(replicaSet));
+        return String.format("%s:%s:%s:%s:%s", host, port, database, username, secretHash);
     }
 
     @Override
@@ -516,6 +546,27 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
                 Map.of("name", "output", "type", "object")
             )
         );
+    }
+
+    /**
+     * Periodically evict clients that have been idle beyond the configured TTL so that distinct
+     * connection keys do not accumulate forever while the application runs.
+     */
+    @Scheduled(fixedDelay = 60_000)
+    void evictIdleClients() {
+        long now = System.currentTimeMillis();
+        long ttl = idleTtlMs();
+        clients.entrySet().removeIf(e -> {
+            if (now - e.getValue().lastAccess > ttl) {
+                try {
+                    e.getValue().client.close();
+                } catch (Exception ex) {
+                    log.warn("Error closing idle MongoDB client: {}", ex.getMessage());
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     @PreDestroy
@@ -533,11 +584,11 @@ public class MongoDBNodeHandler extends MultiOperationNodeHandler {
     // Client cache entry
     private static class ClientEntry {
         final MongoClient client;
-        final long createdAt;
+        volatile long lastAccess;
 
-        ClientEntry(MongoClient client, long createdAt) {
+        ClientEntry(MongoClient client, long lastAccess) {
             this.client = client;
-            this.createdAt = createdAt;
+            this.lastAccess = lastAccess;
         }
     }
 }

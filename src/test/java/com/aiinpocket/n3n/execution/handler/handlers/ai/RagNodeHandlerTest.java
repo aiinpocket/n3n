@@ -139,7 +139,7 @@ class RagNodeHandlerTest {
 
         @Test
         void execute_qaOperation_withQuestion_returnsAnswer() {
-            when(ragService.ask(anyString(), any())).thenReturn("This is the answer");
+            when(ragService.ask(anyString(), any(), anyString())).thenReturn("This is the answer");
 
             Map<String, Object> config = new HashMap<>();
             config.put("operation", "qa");
@@ -179,6 +179,56 @@ class RagNodeHandlerTest {
             NodeExecutionResult result = handler.execute(context);
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.getErrorMessage()).contains("required");
+        }
+
+        @Test
+        void execute_qaOperation_passesUserIdToRagService() {
+            when(ragService.ask(anyString(), any(), anyString())).thenReturn("answer");
+
+            UUID userId = UUID.randomUUID();
+            Map<String, Object> config = new HashMap<>();
+            config.put("operation", "qa");
+            config.put("storeName", "kb");
+
+            Map<String, Object> inputData = new HashMap<>();
+            inputData.put("question", "Q?");
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiRag")
+                    .nodeConfig(config)
+                    .inputData(inputData)
+                    .userId(userId)
+                    .build();
+
+            handler.execute(context);
+
+            // The resolved userId must be threaded into RagService (server derives the tenant key)
+            verify(ragService).ask("Q?", "kb", userId.toString());
+        }
+
+        @Test
+        void execute_missingUserId_failsClosed() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("operation", "qa");
+
+            Map<String, Object> inputData = new HashMap<>();
+            inputData.put("question", "Q?");
+
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiRag")
+                    .nodeConfig(config)
+                    .inputData(inputData)
+                    .userId(null)
+                    .build();
+
+            NodeExecutionResult result = handler.execute(context);
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.getErrorMessage()).contains("User context");
+            verifyNoInteractions(ragService);
         }
 
         @Test

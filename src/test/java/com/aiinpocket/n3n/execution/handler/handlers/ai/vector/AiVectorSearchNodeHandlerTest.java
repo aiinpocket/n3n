@@ -12,8 +12,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AiVectorSearchNodeHandlerTest {
@@ -196,6 +199,70 @@ class AiVectorSearchNodeHandlerTest {
 
             NodeExecutionResult result = handler.execute(context);
             assertThat(result.isSuccess()).isFalse();
+        }
+    }
+
+    // ==================== Tenant Isolation (namespace scoping) ====================
+
+    @Nested
+    @DisplayName("Tenant Isolation")
+    class TenantIsolation {
+
+        @Test
+        void count_prefixesNamespaceWithUserId() {
+            when(vectorStore.count(anyString())).thenReturn(CompletableFuture.completedFuture(0L));
+
+            UUID userId = UUID.randomUUID();
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiVectorSearch")
+                    .userId(userId)
+                    .build();
+
+            NodeExecutionResult result = handler.executeOperation(
+                    context, "vector", "count", Map.of(),
+                    new HashMap<>(Map.of("namespace", "docs")));
+
+            assertThat(result.isSuccess()).isTrue();
+            // Redis namespace must be tenant-scoped, never the raw caller namespace
+            verify(vectorStore).count(eq(userId + ":docs"));
+            // Output still surfaces the user-facing (unprefixed) namespace
+            assertThat(result.getOutput().get("namespace")).isEqualTo("docs");
+        }
+
+        @Test
+        void count_defaultNamespaceStillScoped() {
+            when(vectorStore.count(anyString())).thenReturn(CompletableFuture.completedFuture(0L));
+
+            UUID userId = UUID.randomUUID();
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiVectorSearch")
+                    .userId(userId)
+                    .build();
+
+            handler.executeOperation(context, "vector", "count", Map.of(), new HashMap<>());
+
+            verify(vectorStore).count(eq(userId + ":default"));
+        }
+
+        @Test
+        void count_missingUserId_failsClosed() {
+            NodeExecutionContext context = NodeExecutionContext.builder()
+                    .executionId(UUID.randomUUID())
+                    .nodeId("node-1")
+                    .nodeType("aiVectorSearch")
+                    .userId(null)
+                    .build();
+
+            NodeExecutionResult result = handler.executeOperation(
+                    context, "vector", "count", Map.of(),
+                    new HashMap<>(Map.of("namespace", "docs")));
+
+            assertThat(result.isSuccess()).isFalse();
+            verifyNoInteractions(vectorStore);
         }
     }
 }

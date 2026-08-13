@@ -330,7 +330,6 @@ server {
 - **Custom Docker Tools** - 90+ built-in tool nodes, plus pull additional tool containers from Docker Hub and auto-register as flow nodes
 - **Approval Dashboard** - Dedicated page to manage all pending approval items, approve or reject with one click
 - **System Housekeeping** - Admins can view statistics and manually trigger cleanup of expired execution records
-- **Device Management** - Connect a local agent to let workflows control your computer
 - **Flow Sharing & Collaboration** - Share flows with team members, supporting view/edit permission control
 - **OAuth2 Integration** - Third-party OAuth2 service connections for simplified authentication
 - **Real-time Log Viewer** - Admins can stream system logs in real-time via SSE
@@ -351,7 +350,6 @@ server {
 - **External Service Management** - Import OpenAPI specs, auto-generate API call nodes, and manage connections
 - **Component Registry** - Custom component version control with activate/deprecate/rollback management
 - **Activity History Tracking** - Log user actions, webhook triggers, logins, and other events for security auditing
-- **Gateway Pairing Management** - Generate pairing codes to connect local agents, with real-time WebSocket communication
 
 ### Error Handling Routes
 
@@ -378,41 +376,6 @@ N3N lets you pull tool containers from Docker Hub and auto-register them as avai
 3. Click "Pull" — the system downloads and registers it automatically
 4. Set up the corresponding credentials (API keys, etc.)
 5. The new node is now available in the flow editor
-
----
-
-## Local Agent
-
-Want workflows to control your computer? Install the local agent:
-
-### Download Agent
-
-| OS | Download | Description |
-|---------|---------|-------------|
-| Windows | [GitHub Release](https://github.com/aiinpocket/n3n/releases) | .NET 8 self-contained executable |
-| macOS | [GitHub Release](https://github.com/aiinpocket/n3n/releases) | Swift application (Apple Silicon) |
-
-### Agent Features
-
-- **File Operations** - Read, write, copy, move files
-- **Clipboard** - Read and set clipboard content
-- **Desktop Notifications** - Show system notifications
-- **Application Launch** - Open local applications
-- **Screenshots** - Capture screen images
-
-### Pairing Process
-
-1. In the N3N web interface, go to "Device Management"
-2. Click "Add Device" to get a 6-digit pairing code
-3. Enter the pairing code in the agent
-4. Once paired, you can use local nodes in your workflows
-
-### Security
-
-- **X25519 ECDH** - End-to-end encrypted key exchange
-- **AES-256-GCM** - All commands are encrypted in transit
-- **Pairing Code Verification** - Ensures only you can pair devices
-- **Secure Credential Storage** - Windows uses Credential Manager, macOS uses Keychain
 
 ---
 
