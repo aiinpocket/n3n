@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { message } from '../utils/feedback'
 import { useExecutionStore } from '../stores/executionStore';
 import { executionApi, CreateExecutionRequest, ExecutionResponse } from '../api/execution';
@@ -97,8 +97,12 @@ export function useAllExecutions() {
     };
   }, [connect, subscribeToAllExecutions, unsubscribeFromExecution]);
 
+  // Memoize on the store's Map reference — a fresh array every render would
+  // retrigger consumers' effects that depend on it (infinite re-render loop).
+  const executionList = useMemo(() => Array.from(executions.values()), [executions]);
+
   return {
-    executions: Array.from(executions.values()),
+    executions: executionList,
     isConnected,
   };
 }

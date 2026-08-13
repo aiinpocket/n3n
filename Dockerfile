@@ -36,7 +36,9 @@ COPY --from=frontend-build /app/frontend/dist src/main/resources/static
 RUN ./mvnw package -DskipTests -B -Dfrontend.skip=true
 
 # Extract Spring Boot layered JAR (splits into dependencies / app)
-RUN java -Djarmode=layertools -jar target/*.jar extract --destination /app/extracted
+# Spring Boot 3.3+/4 使用 -Djarmode=tools（layertools 已移除）；
+# --layers --launcher 產生與舊 layertools 相同的四層目錄結構供 JarLauncher 啟動
+RUN java -Djarmode=tools -jar target/*.jar extract --layers --launcher --destination /app/extracted
 
 # ===========================================
 # Stage 3: Runtime
