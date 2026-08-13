@@ -1,21 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import {
-  Card,
-  Button,
-  Space,
-  Spin,
-  message,
-  Descriptions,
-  Tag,
-  Timeline,
-  Result,
-  Modal,
-  Input,
-  Typography,
-  Drawer,
-  Tabs,
-} from 'antd'
+import { Card, Button, Space, Spin, Descriptions, Tag, Timeline, Result, Modal, Input, Typography, Drawer, Tabs } from 'antd'
+import { message } from '../utils/feedback'
 import {
   PlayCircleOutlined,
   StopOutlined,
@@ -163,7 +149,7 @@ export default function ExecutionPage() {
       }
     }
     loadFlowName()
-  }, [flowId, id, navigate])
+  }, [flowId, id, navigate, t])
 
   // Load existing execution
   useEffect(() => {

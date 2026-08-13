@@ -102,7 +102,7 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     } finally {
       setLoading(false)
     }
-  }, [minQueryLength, maxResults])
+  }, [minQueryLength, maxResults, t])
 
   useEffect(() => {
     fetchSimilarFlows(debouncedQuery, searchMode)

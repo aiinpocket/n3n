@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions, Empty } from 'antd'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions, Empty } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -111,7 +112,7 @@ export default function AdminUsersPage() {
   }
 
   const handleResetPassword = async (userId: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('admin.confirmResetPassword'),
       content: t('admin.resetPasswordDesc'),
       okText: t('common.confirm'),
@@ -128,7 +129,7 @@ export default function AdminUsersPage() {
   }
 
   const handleRevokeAllSessions = async (userId: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('admin.confirmRevokeSessions'),
       content: t('admin.revokeSessionsDesc'),
       okText: t('common.confirm'),

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Button, Card, Table, Select, Tag, Space, Tabs, Tooltip, Typography, message } from 'antd'
+import { Button, Card, Table, Select, Tag, Space, Tabs, Tooltip, Typography } from 'antd'
+import { message } from '../utils/feedback'
 import {
   HistoryOutlined,
   LoginOutlined,

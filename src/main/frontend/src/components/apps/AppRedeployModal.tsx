@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Form, Modal, message } from 'antd'
+import { Alert, Form, Modal } from 'antd'
+import { message } from '../../utils/feedback'
 import { useTranslation } from 'react-i18next'
 import { appsApi, type HostedAppItem } from '../../api/apps'
 import { extractApiError } from '../../utils/errorMessages'

@@ -1,24 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import {
-  Button,
-  Card,
-  Table,
-  Tag,
-  Space,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Popconfirm,
-  Typography,
-  Drawer,
-  List,
-  Descriptions,
-  Tooltip,
-  Alert,
-  Empty,
-} from 'antd'
+import { Button, Card, Table, Tag, Space, Modal, Form, Input, Select, Popconfirm, Typography, Drawer, List, Descriptions, Tooltip, Alert, Empty } from 'antd'
+import { message } from '../utils/feedback'
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -48,6 +30,13 @@ const statusColors: Record<string, string> = {
   active: 'success',
   deprecated: 'warning',
   disabled: 'default',
+}
+
+// Known version status → i18n label key (unknown values fall back to raw string)
+const statusLabelKeys: Record<string, string> = {
+  active: 'component.statusActive',
+  deprecated: 'component.statusDeprecated',
+  disabled: 'component.statusDisabled',
 }
 
 // Category colors for visual distinction
@@ -532,7 +521,7 @@ export default function ComponentListPage() {
                 title={
                   <Space>
                     <Text strong>{version.version}</Text>
-                    <Tag color={statusColors[version.status]}>{version.status === 'active' ? t('component.statusActive') : version.status === 'deprecated' ? t('component.statusDeprecated') : version.status}</Tag>
+                    <Tag color={statusColors[version.status]}>{statusLabelKeys[version.status] ? t(statusLabelKeys[version.status]) : version.status}</Tag>
                   </Space>
                 }
                 description={

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Button, Card, Table, Space, Modal, Form, Input, message, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
+import { Button, Card, Table, Space, Modal, Form, Input, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
+import { message, modal } from '../utils/feedback'
 import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined, ReloadOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -62,7 +63,7 @@ export default function FlowListPage() {
     } finally {
       setSharedLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (activeTab === 'shared') {
@@ -91,7 +92,7 @@ export default function FlowListPage() {
   }
 
   const handleDelete = (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('flow.deleteConfirm'),
       okText: t('common.delete'),
       cancelText: t('common.cancel'),
@@ -139,7 +140,7 @@ export default function FlowListPage() {
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) return
-    Modal.confirm({
+    modal.confirm({
       title: t('flow.batchDeleteConfirm', { count: selectedRowKeys.length }),
       okText: t('common.confirm'),
       cancelText: t('common.cancel'),

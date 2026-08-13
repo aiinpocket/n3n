@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Select,
-  Space,
-  Divider,
-  Alert,
-  message,
-  Collapse,
-  Typography,
-} from 'antd'
+import { Card, Form, Input, Button, Select, Space, Divider, Alert, Collapse, Typography } from 'antd'
+import { message } from '../utils/feedback'
 import { ArrowLeftOutlined, SaveOutlined, ThunderboltOutlined, KeyOutlined, PlusOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useServiceStore } from '../stores/serviceStore'

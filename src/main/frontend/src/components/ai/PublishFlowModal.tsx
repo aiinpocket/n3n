@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import {
-  Modal,
-  Steps,
-  Button,
-  Space,
-  Typography,
-  Card,
-  Spin,
-  Alert,
-  Divider,
-  message,
-} from 'antd'
+import { Modal, Steps, Button, Space, Typography, Card, Spin, Alert, Divider } from 'antd'
+import { message } from '../../utils/feedback'
 import {
   RocketOutlined,
   CheckCircleOutlined,

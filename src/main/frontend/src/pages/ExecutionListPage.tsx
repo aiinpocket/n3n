@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip, Popconfirm, Result } from 'antd'
+import { Card, Table, Tag, Button, Space, Typography, Input, Select, Alert, Empty, Tooltip, Popconfirm, Result } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   ReloadOutlined,
   EyeOutlined,
@@ -132,7 +133,7 @@ export default function ExecutionListPage() {
 
   const handleBatchDelete = () => {
     if (selectedRowKeys.length === 0) return
-    Modal.confirm({
+    modal.confirm({
       title: t('execution.batchDeleteConfirm', { count: selectedRowKeys.length }),
       okText: t('common.confirm'),
       cancelText: t('common.cancel'),
@@ -315,7 +316,7 @@ export default function ExecutionListPage() {
               icon={<DeleteOutlined />}
               size="small"
               onClick={() => {
-                Modal.confirm({
+                modal.confirm({
                   title: t('execution.deleteConfirm'),
                   okText: t('common.delete'),
                   cancelText: t('common.cancel'),

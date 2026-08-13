@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Card, Input, Button, Typography, Space, Tag, message } from 'antd'
+import { Card, Input, Button, Typography, Space, Tag } from 'antd'
+import { message } from '../../utils/feedback'
 import { ThunderboltOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

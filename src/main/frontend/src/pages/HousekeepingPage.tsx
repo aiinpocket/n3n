@@ -1,19 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import {
-  Card,
-  Button,
-  Space,
-  Statistic,
-  Table,
-  Tag,
-  message,
-  Modal,
-  Row,
-  Col,
-  Typography,
-  Spin,
-  Result,
-} from 'antd'
+import { Card, Button, Space, Statistic, Table, Tag, Row, Col, Typography, Spin, Result } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   ClearOutlined,
   ReloadOutlined,
@@ -66,7 +53,7 @@ export default function HousekeepingPage() {
   }, [loadData])
 
   const handleRunCleanup = async () => {
-    Modal.confirm({
+    modal.confirm({
       title: t('housekeeping.confirmRun'),
       content: t('housekeeping.confirmRunDesc'),
       okText: t('common.confirm'),
@@ -91,7 +78,7 @@ export default function HousekeepingPage() {
   }
 
   const handleCleanupHistory = async () => {
-    Modal.confirm({
+    modal.confirm({
       title: t('housekeeping.confirmCleanHistory'),
       content: t('housekeeping.confirmCleanHistoryDesc'),
       okText: t('common.confirm'),

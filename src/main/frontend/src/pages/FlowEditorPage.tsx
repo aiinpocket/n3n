@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { getLocale } from '../utils/locale'
-import { Card, Button, Space, Spin, message, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select, Drawer } from 'antd'
+import { Card, Button, Space, Spin, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select, Drawer } from 'antd'
+import { message, modal } from '../utils/feedback'
 import { useTranslation } from 'react-i18next'
 import {
   SaveOutlined,
@@ -755,6 +756,16 @@ export default function FlowEditorPage() {
   }, [currentVersion, canEdit, autoSaveDraft, startExecution, t])
 
   const handleValidate = async () => {
+    // Validation runs server-side against the saved version; persist edits first
+    if (canEdit && useFlowEditorStore.getState().isDirty) {
+      try {
+        await autoSaveDraft()
+        setAutoSaveFailed(false)
+      } catch (error) {
+        message.error(extractApiError(error, t('editor.saveFailed')))
+        return
+      }
+    }
     const result = await validateVersion()
     if (result) {
       setValidationModalOpen(true)
@@ -854,7 +865,7 @@ export default function FlowEditorPage() {
           <Space>
             <Button icon={<ArrowLeftOutlined />} type="text" onClick={() => {
               if (isDirty) {
-                Modal.confirm({
+                modal.confirm({
                   title: t('editor.unsavedChanges'),
                   content: t('editor.unsavedChangesWarning'),
                   okText: t('common.confirm'),

@@ -50,7 +50,7 @@ export default function CredentialSelect({
     } finally {
       setLoading(false)
     }
-  }, [credentialType])
+  }, [credentialType, t])
 
   useEffect(() => {
     fetchCredentials()

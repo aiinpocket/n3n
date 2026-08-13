@@ -1,18 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Alert,
-  Button,
-  Card,
-  Empty,
-  Progress,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Tooltip,
-  Typography,
-  message,
-} from 'antd'
+import { Alert, Button, Card, Empty, Progress, Select, Space, Table, Tag, Tooltip, Typography } from 'antd'
+import { message } from '../utils/feedback'
 import { DollarOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { aiBillingApi, type ProviderBalance, type UsageSummaryRow, type UserUsageRow } from '../api/aiBilling'

@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Card, Switch, Radio, Form, Input, InputNumber, Button, Table, Space, Tag, Modal,
-  Spin, Alert, Typography, Divider, message, Badge,
-} from 'antd'
+import { Card, Switch, Radio, Form, Input, InputNumber, Button, Table, Space, Tag, Spin, Alert, Typography, Divider, Badge } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   CloudUploadOutlined, CloudDownloadOutlined, ApiOutlined,
   ReloadOutlined, SafetyCertificateOutlined, HistoryOutlined,
@@ -172,7 +170,7 @@ export default function CloudBackupPage() {
       message.warning(t('backup.enterRecoveryKey'))
       return
     }
-    Modal.confirm({
+    modal.confirm({
       title: t('backup.confirmRestore'),
       content: t('backup.confirmRestoreDesc'),
       okText: t('common.confirm'),

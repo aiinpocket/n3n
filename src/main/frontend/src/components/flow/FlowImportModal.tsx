@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Modal, Button, Upload, message, Typography, Space, Alert, Spin, Input, Select, Tag } from 'antd'
+import { Modal, Button, Upload, Typography, Space, Alert, Spin, Input, Select, Tag } from 'antd'
+import { message } from '../../utils/feedback'
 import { InboxOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

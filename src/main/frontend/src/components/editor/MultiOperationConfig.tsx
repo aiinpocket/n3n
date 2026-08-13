@@ -91,6 +91,29 @@ export default function MultiOperationConfig({
   // Credential type from schema
   const credentialType = schema['x-credential-type']
 
+  // All field names defined across every operation (used to prune stale params)
+  const allOperationFieldNames = useMemo(() => {
+    const names = new Set<string>()
+    operationDefinitions.forEach(op => {
+      op.fields?.forEach(field => names.add(field.name))
+    })
+    return names
+  }, [operationDefinitions])
+
+  // Remove values that belong to other operations' fields, keeping generic
+  // keys (resource, operation, credentialId, ...) and the kept fields
+  const pruneStaleFieldValues = useCallback(
+    (currentValues: Record<string, unknown>, keptFields: FieldDefinition[]) => {
+      const keptNames = new Set(keptFields.map(field => field.name))
+      return Object.fromEntries(
+        Object.entries(currentValues).filter(
+          ([key]) => !allOperationFieldNames.has(key) || keptNames.has(key)
+        )
+      )
+    },
+    [allOperationFieldNames]
+  )
+
   // Initialize resource and operation from values
   useEffect(() => {
     if (values.resource && values.resource !== resource) {
@@ -107,20 +130,24 @@ export default function MultiOperationConfig({
     // Reset operation when resource changes
     setOperation('')
     onChange({
-      ...values,
+      ...pruneStaleFieldValues(values, []),
       resource: newResource,
       operation: '',
     })
-  }, [values, onChange])
+  }, [values, onChange, pruneStaleFieldValues])
 
   // Handle operation change
   const handleOperationChange = useCallback((newOperation: string) => {
     setOperation(newOperation)
+    const newOperationDef = operationDefinitions.find(
+      op => op.name === newOperation && op.resource === resource
+    )
     onChange({
-      ...values,
+      ...pruneStaleFieldValues(values, newOperationDef?.fields || []),
+      resource,
       operation: newOperation,
     })
-  }, [values, onChange])
+  }, [values, onChange, pruneStaleFieldValues, operationDefinitions, resource])
 
   // Handle field value change
   const handleFieldChange = useCallback((key: string, value: unknown) => {

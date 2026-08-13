@@ -1,21 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import {
-  Card,
-  Button,
-  Space,
-  Table,
-  Tag,
-  message,
-  Modal,
-  Popconfirm,
-  Input,
-  Typography,
-  Spin,
-  Result,
-  Badge,
-  Empty,
-  Descriptions,
-} from 'antd'
+import { Card, Button, Space, Table, Tag, Modal, Popconfirm, Input, Typography, Spin, Result, Badge, Empty, Descriptions } from 'antd'
+import { message } from '../utils/feedback'
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,

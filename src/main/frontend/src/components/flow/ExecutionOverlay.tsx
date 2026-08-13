@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Badge, Button, Space, Tag, Progress, Card, message, Popconfirm } from 'antd'
+import { Badge, Button, Space, Tag, Progress, Card, Popconfirm } from 'antd'
+import { message } from '../../utils/feedback'
 import {
   PlayCircleOutlined,
   LoadingOutlined,

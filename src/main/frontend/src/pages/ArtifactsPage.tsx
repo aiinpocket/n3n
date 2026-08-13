@@ -1,18 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Card,
-  Table,
-  Typography,
-  Button,
-  Space,
-  Tag,
-  Popconfirm,
-  message,
-  Select,
-  Modal,
-  Tooltip,
-  Empty,
-} from 'antd'
+import { Card, Table, Typography, Button, Space, Tag, Popconfirm, Select, Modal, Tooltip, Empty } from 'antd'
+import { message } from '../utils/feedback'
 import {
   DownloadOutlined,
   DeleteOutlined,

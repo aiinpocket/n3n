@@ -255,6 +255,7 @@ export default function AIPanelDrawer({
     setError,
     finalizeStreaming,
     updateSessionId,
+    onOpenFlowGenerator,
   ])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

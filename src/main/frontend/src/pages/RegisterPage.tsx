@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom'
-import { Form, Input, Button, Card, Typography, Alert, Space, message } from 'antd'
+import { Form, Input, Button, Card, Typography, Alert, Space } from 'antd'
+import { message } from '../utils/feedback'
 import { UserOutlined, LockOutlined, MailOutlined, ThunderboltOutlined, SafetyOutlined, TeamOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'

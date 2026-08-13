@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Drawer, Empty, Spin, message } from 'antd'
+import { Button, Drawer, Empty, Spin } from 'antd'
+import { message } from '../../utils/feedback'
 import { ReloadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { appsApi, type HostedAppItem } from '../../api/apps'

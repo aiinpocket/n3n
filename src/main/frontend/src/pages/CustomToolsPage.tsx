@@ -1,25 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import {
-  Alert,
-  Card,
-  Row,
-  Col,
-  Input,
-  Select,
-  Tag,
-  Button,
-  Avatar,
-  Space,
-  Tabs,
-  Empty,
-  Spin,
-  Badge,
-  Modal,
-  message,
-  Typography,
-  Segmented,
-  Rate,
-} from 'antd'
+import { Alert, Card, Row, Col, Input, Select, Tag, Button, Avatar, Space, Tabs, Empty, Spin, Badge, Modal, Typography, Segmented, Rate } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   SearchOutlined,
   CloudDownloadOutlined,
@@ -462,7 +443,7 @@ export default function CustomToolsPage() {
   }
 
   const handleUninstall = async (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('customTools.confirmRemove'),
       content: t('customTools.removeWarning'),
       okText: t('common.confirm'),

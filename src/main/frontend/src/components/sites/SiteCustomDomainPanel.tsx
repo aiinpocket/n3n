@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Input, Popconfirm, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
+import { Button, Input, Popconfirm, Space, Table, Tag, Tooltip, Typography } from 'antd'
+import { message } from '../../utils/feedback'
 import {
   CheckCircleOutlined,
   CopyOutlined,

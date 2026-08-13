@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Button, Card, Table, Space, Tag, Popconfirm, message, Tooltip, Alert, Input, Empty } from 'antd'
+import { Button, Card, Table, Space, Tag, Popconfirm, Tooltip, Alert, Input, Empty } from 'antd'
+import { message } from '../utils/feedback'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ApiOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

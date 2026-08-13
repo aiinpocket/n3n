@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Card, Form, Input, Button, message, Typography, Divider, Descriptions, Tag, Alert, Space, Modal, Table } from 'antd'
+import { Card, Form, Input, Button, Typography, Divider, Descriptions, Tag, Alert, Space, Modal, Table } from 'antd'
+import { message } from '../utils/feedback'
 import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined, MedicineBoxOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'

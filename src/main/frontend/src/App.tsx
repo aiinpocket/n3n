@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Spin, ConfigProvider, theme } from 'antd'
+import { Spin, ConfigProvider, theme, App as AntdApp } from 'antd'
+import { bindFeedback } from './utils/feedback'
 import { useTranslation } from 'react-i18next'
 import zhTW from 'antd/locale/zh_TW'
 import enUS from 'antd/locale/en_US'
@@ -53,6 +54,16 @@ const antdLocales = {
   'zh-TW': zhTW,
   en: enUS,
   ja: jaJP,
+}
+
+// Captures the themed message/modal/notification instances from <AntdApp>
+// and exposes them via utils/feedback so non-component code stays themed
+function FeedbackBridge() {
+  const appApi = AntdApp.useApp()
+  useEffect(() => {
+    bindFeedback(appApi)
+  }, [appApi])
+  return null
 }
 
 function SetupCheck({ children }: { children: React.ReactNode }) {
@@ -175,8 +186,10 @@ function App() {
         },
       }}
     >
-      <ErrorBoundary>
-        <BrowserRouter>
+      <AntdApp component={false}>
+        <FeedbackBridge />
+        <ErrorBoundary>
+          <BrowserRouter>
           <SetupCheck>
             <Suspense fallback={
               <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -241,8 +254,9 @@ function App() {
             </Routes>
             </Suspense>
           </SetupCheck>
-        </BrowserRouter>
-      </ErrorBoundary>
+          </BrowserRouter>
+        </ErrorBoundary>
+      </AntdApp>
     </ConfigProvider>
   )
 }

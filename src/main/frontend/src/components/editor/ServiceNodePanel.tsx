@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import logger from '../../utils/logger'
 import { useTranslation } from 'react-i18next'
-import { Drawer, Input, Tree, Tag, Empty, Spin, Space, Typography, Tooltip, message } from 'antd'
+import { Drawer, Input, Tree, Tag, Empty, Spin, Space, Typography, Tooltip } from 'antd'
+import { message } from '../../utils/feedback'
 import { ApiOutlined, SearchOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
 import { serviceApi } from '../../api/service'
@@ -23,13 +24,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
   const [searchValue, setSearchValue] = useState('')
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
 
-  useEffect(() => {
-    if (open) {
-      loadServices()
-    }
-  }, [open])
-
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     setLoading(true)
     try {
       const response = await serviceApi.listServices(0, 100)
@@ -54,7 +49,13 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
     } finally {
       setLoading(false)
     }
-  }
+  }, [t])
+
+  useEffect(() => {
+    if (open) {
+      loadServices()
+    }
+  }, [open, loadServices])
 
   const getMethodColor = (method: string) => {
     const colors: Record<string, string> = {

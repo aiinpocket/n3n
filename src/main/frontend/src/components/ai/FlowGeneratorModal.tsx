@@ -1,20 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import {
-  Modal,
-  Input,
-  Button,
-  Space,
-  Typography,
-  Card,
-  Tag,
-  Alert,
-  Steps,
-  Result,
-  Progress,
-  List,
-  message,
-  Spin,
-} from 'antd'
+import { Modal, Input, Button, Space, Typography, Card, Tag, Alert, Steps, Result, Progress, List, Spin } from 'antd'
+import { message } from '../../utils/feedback'
 import {
   RobotOutlined,
   ThunderboltOutlined,

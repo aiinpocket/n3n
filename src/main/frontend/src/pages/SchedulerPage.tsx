@@ -1,22 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Table,
-  Button,
-  Space,
-  Tag,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Tooltip,
-  Typography,
-  Card,
-  Empty,
-  Result,
-} from 'antd'
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, Tooltip, Typography, Card, Empty, Result } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -189,7 +175,7 @@ const SchedulerPage: React.FC = () => {
   }
 
   const handleDelete = async (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('schedule.deleteConfirm'),
       content: t('schedule.deleteWarning'),
       okText: t('common.delete'),

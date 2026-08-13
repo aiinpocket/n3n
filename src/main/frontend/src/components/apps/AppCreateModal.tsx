@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Descriptions, Form, Input, Modal, Tag, Typography, Upload, message } from 'antd'
+import { Alert, Descriptions, Form, Input, Modal, Tag, Typography, Upload } from 'antd'
+import { message } from '../../utils/feedback'
 import { InboxOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { appsApi, type AppManifest, type HostedAppItem } from '../../api/apps'

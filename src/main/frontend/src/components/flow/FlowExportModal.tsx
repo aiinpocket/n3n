@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Modal, Button, Space, Radio, message, Typography } from 'antd'
+import { Modal, Button, Space, Radio, Typography } from 'antd'
+import { message } from '../../utils/feedback'
 import { DownloadOutlined, CopyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { flowApi } from '../../api/flow'

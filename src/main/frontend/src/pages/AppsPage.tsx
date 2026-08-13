@@ -1,19 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import {
-  Button,
-  Card,
-  Col,
-  Empty,
-  Modal,
-  Popconfirm,
-  Row,
-  Space,
-  Spin,
-  Tag,
-  Tooltip,
-  Typography,
-  message,
-} from 'antd'
+import { Button, Card, Col, Empty, Popconfirm, Row, Space, Spin, Tag, Tooltip, Typography } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   CaretRightOutlined,
   CloudUploadOutlined,
@@ -123,7 +110,7 @@ export default function AppsPage() {
 
   // 刪除採兩段確認：Popconfirm 之後再彈出 Modal 提醒容器將一併移除
   const confirmDelete = (app: HostedAppItem) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('apps.deleteTitle', { name: app.name }),
       content: t('apps.deleteWarning'),
       okText: t('apps.deleteOk'),

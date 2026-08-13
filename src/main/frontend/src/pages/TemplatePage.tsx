@@ -1,25 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Card,
-  Row,
-  Col,
-  Input,
-  Select,
-  Tag,
-  Button,
-  Space,
-  Tabs,
-  Empty,
-  Spin,
-  Modal,
-  Form,
-  message,
-  Typography,
-  Segmented,
-  Pagination,
-  Alert,
-  Tooltip,
-} from 'antd'
+import { Card, Row, Col, Input, Select, Tag, Button, Space, Tabs, Empty, Spin, Modal, Form, Typography, Segmented, Pagination, Alert, Tooltip } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   SearchOutlined,
   BookOutlined,
@@ -320,7 +301,7 @@ export default function TemplatePage() {
 
   // Delete template
   const handleDelete = (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('template.deleteConfirm'),
       okType: 'danger',
       okText: t('common.delete'),

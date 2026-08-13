@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { Table, Button, Space, Card, Typography, Tag, message, Popconfirm, Tooltip, Empty, Alert, Badge, Modal, Form, Input, Select } from 'antd'
+import { Table, Button, Space, Card, Typography, Tag, Popconfirm, Tooltip, Empty, Alert, Badge, Modal, Form, Input, Select } from 'antd'
+import { message } from '../utils/feedback'
 import { PlusOutlined, DeleteOutlined, KeyOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined, LinkOutlined, DisconnectOutlined, LoadingOutlined, EyeOutlined, EditOutlined, SearchOutlined, SwapOutlined, WarningOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useCredentialStore } from '../stores/credentialStore'

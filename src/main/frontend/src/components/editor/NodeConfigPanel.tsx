@@ -1,24 +1,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import logger from '../../utils/logger'
-import {
-  Drawer,
-  Form,
-  Input,
-  Select,
-  Switch,
-  InputNumber,
-  Button,
-  Space,
-  Typography,
-  Divider,
-  Tag,
-  Tooltip,
-  Tabs,
-  Spin,
-  Alert,
-  Modal,
-  message,
-} from 'antd'
+import { Drawer, Form, Input, Select, Switch, InputNumber, Button, Space, Typography, Divider, Tag, Tooltip, Tabs, Spin, Alert } from 'antd'
+import { message, modal } from '../../utils/feedback'
 import {
   CloseOutlined,
   CodeOutlined,
@@ -97,7 +80,9 @@ export default function NodeConfigPanel({
   const [form] = Form.useForm()
   const [nodeTypeInfo, setNodeTypeInfo] = useState<NodeTypeInfo | null>(null)
   const [endpointSchema, setEndpointSchema] = useState<EndpointSchemaResponse | null>(null)
+  const [endpointSchemaFailed, setEndpointSchemaFailed] = useState(false)
   const [upstreamOutputs, setUpstreamOutputs] = useState<UpstreamNodeOutput[]>([])
+  const [upstreamFailed, setUpstreamFailed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('config')
@@ -150,19 +135,26 @@ export default function NodeConfigPanel({
     } else {
       setNodeTypeInfo(null)
     }
-  }, [nodeType])
+  }, [nodeType, t])
 
   // Load endpoint schema for external service nodes
   useEffect(() => {
     if (isExternalService && nodeData?.serviceId && nodeData?.endpointId) {
       let active = true
+      setEndpointSchemaFailed(false)
       serviceApi
         .getEndpointSchema(nodeData.serviceId as string, nodeData.endpointId as string)
         .then((schema) => { if (active) setEndpointSchema(schema) })
-        .catch(() => { if (active) setEndpointSchema(null) })
+        .catch(() => {
+          if (!active) return
+          // Distinguish "load failed" from "endpoint has no schema"
+          setEndpointSchema(null)
+          setEndpointSchemaFailed(true)
+        })
       return () => { active = false }
     } else {
       setEndpointSchema(null)
+      setEndpointSchemaFailed(false)
     }
   }, [isExternalService, nodeData?.serviceId, nodeData?.endpointId])
 
@@ -170,13 +162,19 @@ export default function NodeConfigPanel({
   useEffect(() => {
     if (flowId && flowVersion && node?.id) {
       let active = true
+      setUpstreamFailed(false)
       flowApi
         .getUpstreamOutputs(flowId, flowVersion, node.id)
         .then((outputs) => { if (active) setUpstreamOutputs(outputs) })
-        .catch(() => { if (active) setUpstreamOutputs([]) })
+        .catch(() => {
+          if (!active) return
+          setUpstreamOutputs([])
+          setUpstreamFailed(true)
+        })
       return () => { active = false }
     } else {
       setUpstreamOutputs([])
+      setUpstreamFailed(false)
     }
   }, [flowId, flowVersion, node?.id])
 
@@ -576,6 +574,16 @@ export default function NodeConfigPanel({
         ),
         children: (
           <div>
+            {/* Surface endpoint schema load failures instead of silently showing no fields */}
+            {isExternalService && endpointSchemaFailed && (
+              <Alert
+                type="warning"
+                showIcon
+                message={t('common.loadFailed')}
+                description={t('editor.nodeTypeUnavailableDesc', { type: nodeType })}
+                style={{ marginBottom: 16 }}
+              />
+            )}
             {/* External service specific info */}
             {isExternalService && endpointSchema && (
               <>
@@ -664,12 +672,22 @@ export default function NodeConfigPanel({
           </Space>
         ),
         children: configSchema ? (
-          <DataMappingEditor
-            schema={configSchema}
-            upstreamOutputs={upstreamOutputs}
-            inputMappings={(nodeData?.inputMappings as Record<string, string>) || {}}
-            onChange={handleMappingsChange}
-          />
+          <>
+            {upstreamFailed && (
+              <Alert
+                type="warning"
+                showIcon
+                message={t('common.loadFailed')}
+                style={{ marginBottom: 12 }}
+              />
+            )}
+            <DataMappingEditor
+              schema={configSchema}
+              upstreamOutputs={upstreamOutputs}
+              inputMappings={(nodeData?.inputMappings as Record<string, string>) || {}}
+              onChange={handleMappingsChange}
+            />
+          </>
         ) : (
           <Alert
             type="info"
@@ -803,7 +821,7 @@ export default function NodeConfigPanel({
                   danger
                   icon={<DeleteOutlined />}
                   onClick={() => {
-                    Modal.confirm({
+                    modal.confirm({
                       title: t('editor.deleteNodeConfirm'),
                       content: t('editor.deleteNodeContent', { name: (node.data?.label as string) || node.id }),
                       okText: t('common.delete'),

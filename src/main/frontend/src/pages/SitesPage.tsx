@@ -1,25 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Button,
-  Card,
-  Col,
-  Drawer,
-  Empty,
-  Form,
-  Input,
-  List,
-  Modal,
-  Popconfirm,
-  Row,
-  Space,
-  Spin,
-  Switch,
-  Tag,
-  Tooltip,
-  Typography,
-  Upload,
-  message,
-} from 'antd'
+import { Button, Card, Col, Drawer, Empty, Form, Input, List, Modal, Popconfirm, Row, Space, Spin, Switch, Tag, Tooltip, Typography, Upload } from 'antd'
+import { message } from '../utils/feedback'
 import {
   CopyOutlined,
   DeleteOutlined,

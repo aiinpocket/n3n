@@ -1,19 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Checkbox,
-  DatePicker,
-  Button,
-  Card,
-  Typography,
-  Spin,
-  Result,
-  message,
-} from 'antd'
+import { Form, Input, InputNumber, Select, Checkbox, DatePicker, Button, Card, Typography, Spin, Result } from 'antd'
+import { message } from '../utils/feedback'
 import {
   CheckCircleOutlined,
   FileTextOutlined,

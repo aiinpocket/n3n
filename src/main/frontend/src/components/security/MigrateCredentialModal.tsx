@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, Alert, Button, Input, message, Space } from 'antd';
+import { Modal, Alert, Button, Input, Space } from 'antd'
+import { message } from '../../utils/feedback'
 import { LockOutlined, KeyOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { securityApi } from '../../api/security';

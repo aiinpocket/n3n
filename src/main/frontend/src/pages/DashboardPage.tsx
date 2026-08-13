@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, message, Result } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
+import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, Result } from 'antd'
+import { message } from '../utils/feedback'
 import { extractApiError } from '../utils/errorMessages'
 import {
   ApartmentOutlined,
@@ -44,7 +45,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     setLoading(true)
     setLoadError(false)
     try {
@@ -73,10 +74,14 @@ export default function DashboardPage() {
         setWaitingExecutions(waitingRes.value.content || [])
       }
 
+      const results = [statsRes, execRes, activitiesRes, waitingRes]
       const allFailed = statsRes.status === 'rejected' && execRes.status === 'rejected' && activitiesRes.status === 'rejected'
+      const anyFailed = results.some((res) => res.status === 'rejected')
       if (allFailed) {
         message.error(t('dashboard.loadFailed'))
         setLoadError(true)
+      } else if (anyFailed) {
+        message.warning(t('dashboard.partialLoadFailed'))
       }
     } catch (error) {
       message.error(extractApiError(error, t('dashboard.loadFailed')))
@@ -84,11 +89,11 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [t])
 
   useEffect(() => {
     loadDashboard()
-  }, [])
+  }, [loadDashboard])
 
   const statusColors: Record<string, string> = {
     completed: 'success',

@@ -1,24 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
-import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Tag,
-  Tooltip,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Popconfirm,
-  Tabs,
-  Empty,
-  Badge,
-  Alert,
-  Switch,
-  Result,
-} from 'antd'
+import { Card, Table, Button, Space, Tag, Tooltip, Modal, Form, Input, Select, Popconfirm, Tabs, Empty, Badge, Alert, Switch, Result } from 'antd'
+import { message } from '../utils/feedback'
 import {
   PlusOutlined,
   EditOutlined,

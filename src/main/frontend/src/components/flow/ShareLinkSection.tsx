@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Select, InputNumber, List, Space, Tag, Typography, message, Popconfirm, Tooltip, Divider } from 'antd'
+import { Button, Select, InputNumber, List, Space, Tag, Typography, Popconfirm, Tooltip, Divider } from 'antd'
+import { message } from '../../utils/feedback'
 import { LinkOutlined, CopyOutlined, DeleteOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { flowShareApi, ShareLink } from '../../api/flowShare'

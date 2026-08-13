@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import {
-  Card,
-  Typography,
-  Table,
-  Button,
-  Space,
-  Tag,
-  Popconfirm,
-  message,
-  Tooltip,
-  Alert,
-  Spin,
-} from 'antd'
+import { Card, Typography, Table, Button, Space, Tag, Popconfirm, Tooltip, Alert, Spin } from 'antd'
+import { message } from '../utils/feedback'
 import {
   PlusOutlined,
   DeleteOutlined,

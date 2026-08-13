@@ -1,20 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
-import {
-  Card,
-  Typography,
-  Input,
-  Button,
-  Space,
-  List,
-  Avatar,
-  Spin,
-  Empty,
-  message,
-  Alert,
-  Tag,
-  Divider,
-  Modal,
-} from 'antd'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Card, Typography, Input, Button, Space, List, Avatar, Spin, Empty, Alert, Tag, Divider, Modal } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   SendOutlined,
   RobotOutlined,
@@ -55,25 +41,25 @@ const AIAssistantPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fetch conversations and check AI config on mount
-  useEffect(() => {
-    fetchConversations()
-    // AI 金鑰為平台共用（管理員設定），一般成員以可用性端點確認
-    getAiAvailability().then((availability) => setHasAiConfig(availability.configured)).catch(() => setHasAiConfig(false))
-  }, [])
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [currentConversation?.messages])
-
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
       const convs = await agentApi.getConversations(true)
       setConversations(convs)
     } catch (err) {
       message.error(extractApiError(err, t('chat.loadFailed')))
     }
-  }
+  }, [t])
+
+  useEffect(() => {
+    fetchConversations()
+    // AI 金鑰為平台共用（管理員設定），一般成員以可用性端點確認
+    getAiAvailability().then((availability) => setHasAiConfig(availability.configured)).catch(() => setHasAiConfig(false))
+  }, [fetchConversations])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [currentConversation?.messages])
 
   const handleNewConversation = async () => {
     setLoading(true)
@@ -198,7 +184,7 @@ const AIAssistantPage: React.FC = () => {
 
   const handleDeleteConversation = async (convId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    Modal.confirm({
+    modal.confirm({
       title: t('chat.deleteConfirm'),
       okType: 'danger',
       okText: t('common.delete'),

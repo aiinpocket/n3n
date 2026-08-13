@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert, message } from 'antd'
+import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert } from 'antd'
+import { message } from '../utils/feedback'
 import {
   ReloadOutlined,
   ClearOutlined,
@@ -58,7 +59,7 @@ export default function LogViewerPage() {
     } finally {
       setLoading(false)
     }
-  }, [level, debouncedSearch])
+  }, [level, debouncedSearch, t])
 
   useEffect(() => {
     loadLogs()
@@ -94,7 +95,7 @@ export default function LogViewerPage() {
       eventSourceRef.current?.close()
       eventSourceRef.current = null
     }
-  }, [streaming])
+  }, [streaming, t])
 
   // Auto-scroll to bottom when streaming
   useEffect(() => {

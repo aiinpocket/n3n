@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, message, Alert, Button, Space } from 'antd'
+import { Modal, Form, Input, Select, Alert, Button, Space } from 'antd'
+import { message } from '../../utils/feedback'
 import { CheckCircleOutlined, CloseCircleOutlined, ApiOutlined, LinkOutlined } from '@ant-design/icons'
 import { useCredentialStore } from '../../stores/credentialStore'
 import { CredentialType, CreateCredentialRequest, ConnectionTestResult } from '../../api/credential'

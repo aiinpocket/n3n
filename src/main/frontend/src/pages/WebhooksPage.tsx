@@ -2,21 +2,8 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import logger from '../utils/logger'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Table,
-  Button,
-  Space,
-  Tag,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Tooltip,
-  Typography,
-  Card,
-  Empty,
-} from 'antd'
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, Tooltip, Typography, Card, Empty } from 'antd'
+import { message, modal } from '../utils/feedback'
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -124,7 +111,7 @@ const WebhooksPage: React.FC = () => {
   }
 
   const handleDelete = async (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: t('webhook.deleteConfirm'),
       content: t('webhook.deleteWarning'),
       okText: t('common.delete'),

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { Card, Result, Spin, Button, message } from 'antd'
+import { Card, Result, Spin, Button } from 'antd'
+import { message } from '../utils/feedback'
 import { useTranslation } from 'react-i18next'
 import { flowShareApi } from '../api/flowShare'
 import { extractApiError } from '../utils/errorMessages'

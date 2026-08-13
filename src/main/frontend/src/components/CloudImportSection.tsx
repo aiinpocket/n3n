@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Card, Input, Button, Space, Typography, Tag, message, Alert, Descriptions } from 'antd'
+import { Card, Input, Button, Space, Typography, Tag, Alert, Descriptions } from 'antd'
+import { message } from '../utils/feedback'
 import { CloudDownloadOutlined, SearchOutlined, ImportOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { cloudSyncApi, type CloudSyncManifest, type CloudSyncImportResult } from '../api/cloudSync'

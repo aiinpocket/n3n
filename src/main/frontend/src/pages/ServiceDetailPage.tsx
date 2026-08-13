@@ -1,23 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Card,
-  Descriptions,
-  Table,
-  Button,
-  Space,
-  Tag,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Popconfirm,
-  Spin,
-  Typography,
-  Tooltip,
-  Collapse,
-} from 'antd'
+import { Card, Descriptions, Table, Button, Space, Tag, Modal, Form, Input, Select, Popconfirm, Spin, Typography, Tooltip, Collapse } from 'antd'
+import { message } from '../utils/feedback'
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -35,6 +19,13 @@ import type { ServiceEndpoint, CreateEndpointRequest } from '../types'
 const { TextArea } = Input
 const { Option } = Select
 const { Text } = Typography
+
+// Known service status → tag color / i18n label key
+const serviceStatusMeta: Record<string, { color: string; labelKey: string }> = {
+  active: { color: 'green', labelKey: 'service.statusActive' },
+  inactive: { color: 'default', labelKey: 'service.statusInactive' },
+  error: { color: 'red', labelKey: 'service.statusError' },
+}
 
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -311,8 +302,10 @@ export default function ServiceDetailPage() {
             {currentService.authType || t('service.noAuth')}
           </Descriptions.Item>
           <Descriptions.Item label={t('common.status')}>
-            <Tag color={currentService.status === 'active' ? 'green' : 'red'}>
-              {currentService.status === 'active' ? t('service.statusActive') : currentService.status}
+            <Tag color={serviceStatusMeta[currentService.status]?.color || 'red'}>
+              {serviceStatusMeta[currentService.status]
+                ? t(serviceStatusMeta[currentService.status].labelKey)
+                : currentService.status}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label={t('service.endpointCount')}>
