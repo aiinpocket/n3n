@@ -25,7 +25,7 @@ const providerColors: Record<string, string> = {
   openai: 'green',
   gemini: 'blue',
   openrouter: 'purple',
-  ollama: 'default',
+  fal: 'magenta',
 }
 
 const AISettingsPage: React.FC = () => {
@@ -54,7 +54,7 @@ const AISettingsPage: React.FC = () => {
     openai: 'ChatGPT (OpenAI)',
     gemini: 'Gemini (Google)',
     openrouter: 'OpenRouter',
-    ollama: 'Ollama (Local)',
+    fal: 'fal.ai (Image / Video)',
   }
 
   useEffect(() => {
@@ -192,7 +192,7 @@ const AISettingsPage: React.FC = () => {
               icon={<ThunderboltOutlined />}
               loading={testingId === record.id && testLoading}
               onClick={() => handleTest(record.id)}
-              disabled={!record.hasCredential && record.provider !== 'ollama'}
+              disabled={!record.hasCredential}
             />
           </Tooltip>
           {!record.isDefault && (

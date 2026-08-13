@@ -164,7 +164,7 @@ The backend is organized into the following modules:
 com.aiinpocket.n3n/
 ├── activity/        # User activity logging and audit trail
 ├── admin/           # Admin user management
-├── ai/              # AI provider integration (OpenAI, Claude, Gemini, Ollama)
+├── ai/              # AI provider integration (OpenAI, Claude, Gemini, OpenRouter, fal.ai)
 ├── api/             # Common API controllers (health check)
 ├── auth/            # Authentication & authorization
 ├── common/          # Shared utilities, configs, exceptions

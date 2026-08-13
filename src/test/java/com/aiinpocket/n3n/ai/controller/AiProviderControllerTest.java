@@ -97,7 +97,7 @@ class AiProviderControllerTest {
                 sampleProviderType("claude", "Claude"),
                 sampleProviderType("openai", "OpenAI"),
                 sampleProviderType("gemini", "Gemini"),
-                sampleProviderType("ollama", "Ollama")
+                sampleProviderType("fal", "fal.ai")
         );
         when(providerService.listProviderTypes()).thenReturn(types);
 
@@ -109,7 +109,7 @@ class AiProviderControllerTest {
         assertThat(result.getBody().get(0).getId()).isEqualTo("claude");
         assertThat(result.getBody().get(1).getId()).isEqualTo("openai");
         assertThat(result.getBody().get(2).getId()).isEqualTo("gemini");
-        assertThat(result.getBody().get(3).getId()).isEqualTo("ollama");
+        assertThat(result.getBody().get(3).getId()).isEqualTo("fal");
         verify(providerService).listProviderTypes();
     }
 
@@ -126,14 +126,14 @@ class AiProviderControllerTest {
 
     @Test
     void listProviderTypes_singleType_returnsSingleItem() {
-        var types = List.of(sampleProviderType("ollama", "Ollama"));
+        var types = List.of(sampleProviderType("fal", "fal.ai"));
         when(providerService.listProviderTypes()).thenReturn(types);
 
         var result = controller.listProviderTypes();
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).hasSize(1);
-        assertThat(result.getBody().get(0).getDisplayName()).isEqualTo("Ollama");
+        assertThat(result.getBody().get(0).getDisplayName()).isEqualTo("fal.ai");
         assertThat(result.getBody().get(0).isRequiresApiKey()).isTrue();
     }
 
@@ -355,17 +355,17 @@ class AiProviderControllerTest {
     }
 
     @Test
-    void createConfig_ollamaWithoutApiKey_succeeds() {
+    void createConfig_withoutApiKey_succeeds() {
         var user = testUser();
         var request = new CreateAiProviderRequest();
-        request.setProvider("ollama");
-        request.setName("Local Ollama");
+        request.setProvider("gemini");
+        request.setName("Gemini Config");
         request.setBaseUrl("http://localhost:11434");
 
         var response = AiProviderConfigResponse.builder()
                 .id(UUID.randomUUID())
-                .provider("ollama")
-                .name("Local Ollama")
+                .provider("gemini")
+                .name("Gemini Config")
                 .baseUrl("http://localhost:11434")
                 .isActive(true)
                 .isDefault(false)
@@ -379,7 +379,7 @@ class AiProviderControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(result.getBody()).isNotNull();
         assertThat(result.getBody().getHasCredential()).isFalse();
-        assertThat(result.getBody().getProvider()).isEqualTo("ollama");
+        assertThat(result.getBody().getProvider()).isEqualTo("gemini");
     }
 
     @Test
@@ -825,8 +825,8 @@ class AiProviderControllerTest {
 
     @Test
     void fetchModelsWithKey_emptyResult_returnsEmptyList() {
-        var request = new AiProviderController.FetchModelsRequest("ollama", "no-key", "http://localhost:11434");
-        when(providerService.fetchModelsWithKey("ollama", "no-key", "http://localhost:11434"))
+        var request = new AiProviderController.FetchModelsRequest("gemini", "no-key", null);
+        when(providerService.fetchModelsWithKey("gemini", "no-key", null))
                 .thenReturn(List.of());
 
         var result = controller.fetchModelsWithKey(request, testUser());

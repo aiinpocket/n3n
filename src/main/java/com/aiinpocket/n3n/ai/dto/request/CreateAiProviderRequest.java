@@ -15,7 +15,7 @@ import java.util.UUID;
 public class CreateAiProviderRequest {
 
     @NotBlank(message = "Provider type cannot be blank")
-    @Pattern(regexp = "^(claude|openai|gemini|ollama)$", message = "Unsupported provider type")
+    @Pattern(regexp = "^(claude|openai|gemini|openrouter|fal)$", message = "Unsupported provider type")
     private String provider;
 
     @NotBlank(message = "Name cannot be blank")

@@ -106,7 +106,7 @@ public class AiVectorSearchNodeHandler extends AbstractAiNodeHandler {
                         .withDescription("Text query to search")
                         .required(),
                     FieldDef.select("embeddingProvider", "Embedding Provider",
-                            List.of("openai", "gemini", "ollama"))
+                            List.of("openai", "gemini"))
                         .withDefault("openai"),
                     FieldDef.select("embeddingModel", "Embedding Model", List.of(
                             "text-embedding-3-small", "text-embedding-3-large",

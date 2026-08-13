@@ -334,15 +334,41 @@ public class AiProviderService {
      */
     @Transactional(readOnly = true)
     public Optional<AiProviderConfig> resolveConfigForExecution(UUID userId) {
+        // 只挑支援聊天的供應商——媒體生成型設定（如 fal.ai）不能拿來當助手的 LLM
         Optional<AiProviderConfig> shared = configRepository.findByIsSharedTrueAndIsDefaultTrue()
                 .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
-                .or(() -> configRepository.findByIsSharedTrueAndIsActiveTrue().stream().findFirst());
+                .filter(this::supportsChat)
+                .or(() -> configRepository.findByIsSharedTrueAndIsActiveTrue().stream()
+                        .filter(this::supportsChat)
+                        .findFirst());
         if (shared.isPresent() || userId == null) {
             return shared;
         }
         // 相容 fallback：平台尚未設定共用金鑰時，沿用使用者自己的舊設定
         return configRepository.findByOwnerIdAndIsDefaultTrue(userId)
-                .or(() -> configRepository.findByOwnerIdAndIsActiveTrue(userId).stream().findFirst());
+                .filter(this::supportsChat)
+                .or(() -> configRepository.findByOwnerIdAndIsActiveTrue(userId).stream()
+                        .filter(this::supportsChat)
+                        .findFirst());
+    }
+
+    private boolean supportsChat(AiProviderConfig config) {
+        // 未註冊的供應商（如已移除的 ollama）一律視為不可聊天
+        return providerFactory.hasProvider(config.getProvider())
+                && providerFactory.getProvider(config.getProvider()).supportsChat();
+    }
+
+    /**
+     * 取得指定供應商的平台共用 API Key（解密後）。
+     * 供流程節點（如 falAi）在沒有個別憑證時使用平台金鑰。
+     */
+    @Transactional(readOnly = true)
+    public Optional<String> resolveSharedApiKey(String providerId) {
+        return configRepository.findByIsSharedTrueAndIsActiveTrue().stream()
+                .filter(c -> providerId.equals(c.getProvider()))
+                .findFirst()
+                .map(this::getDecryptedApiKey)
+                .filter(key -> !key.isBlank());
     }
 
     /**
@@ -366,7 +392,7 @@ public class AiProviderService {
     }
 
     private UUID createAiCredential(String provider, String configName, String apiKey, UUID userId) {
-        String credentialType = "ai_" + provider;
+        String credentialType = credentialTypeFor(provider);
         CreateCredentialRequest credReq = new CreateCredentialRequest();
         credReq.setName(configName + " - API Key");
         credReq.setType(credentialType);
@@ -380,6 +406,19 @@ public class AiProviderService {
             log.error("Failed to create credential for AI provider", e);
             throw new RuntimeException("Failed to save API key", e);
         }
+    }
+
+    /**
+     * 對應到 CredentialTypeSeeder 保證存在的憑證類型名稱。
+     * （舊的 "ai_" + provider 命名只存在於 V6 migration，
+     * Flyway 未執行的環境會因型別不存在而無法儲存金鑰。）
+     */
+    private String credentialTypeFor(String provider) {
+        return switch (provider) {
+            case "claude" -> "anthropic";
+            case "gemini" -> "google";
+            default -> provider; // openai / openrouter / fal 與 seeder 名稱一致
+        };
     }
 
     /**

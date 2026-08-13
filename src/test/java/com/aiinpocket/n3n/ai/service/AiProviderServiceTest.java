@@ -205,8 +205,8 @@ class AiProviderServiceTest extends BaseServiceTest {
             AiProviderConfig noCredConfig = AiProviderConfig.builder()
                     .id(configId)
                     .ownerId(adminId)
-                    .provider("ollama")
-                    .name("Local Ollama")
+                    .provider("gemini")
+                    .name("Gemini No Cred")
                     .credentialId(null)
                     .isActive(true)
                     .isDefault(false)
@@ -300,6 +300,16 @@ class AiProviderServiceTest extends BaseServiceTest {
 
         private final UUID memberId = UUID.randomUUID();
 
+        @BeforeEach
+        void stubChatCapableProviders() {
+            // resolveConfigForExecution 只挑支援聊天的供應商；預設讓所有已知供應商可聊天
+            com.aiinpocket.n3n.ai.provider.AiProvider chatProvider =
+                    mock(com.aiinpocket.n3n.ai.provider.AiProvider.class);
+            lenient().when(chatProvider.supportsChat()).thenReturn(true);
+            lenient().when(providerFactory.hasProvider(any())).thenReturn(true);
+            lenient().when(providerFactory.getProvider(any())).thenReturn(chatProvider);
+        }
+
         @Test
         @DisplayName("shared default wins")
         void resolve_sharedDefaultFirst() {
@@ -375,6 +385,96 @@ class AiProviderServiceTest extends BaseServiceTest {
             assertThat(availability.configured()).isTrue();
             assertThat(availability.provider()).isEqualTo("openai");
             assertThat(availability.defaultModel()).isEqualTo("gpt-4");
+        }
+
+        @Test
+        @DisplayName("media-only providers (fal) are skipped for chat resolution")
+        void resolve_skipsMediaOnlyProvider() {
+            AiProviderConfig falConfig = AiProviderConfig.builder()
+                    .id(UUID.randomUUID())
+                    .ownerId(adminId)
+                    .provider("fal")
+                    .name("Platform fal.ai")
+                    .isActive(true)
+                    .isDefault(true)
+                    .isShared(true)
+                    .settings(Map.of())
+                    .build();
+
+            com.aiinpocket.n3n.ai.provider.AiProvider falProvider =
+                    mock(com.aiinpocket.n3n.ai.provider.AiProvider.class);
+            when(falProvider.supportsChat()).thenReturn(false);
+            when(providerFactory.getProvider("fal")).thenReturn(falProvider);
+
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
+                    .thenReturn(Optional.of(falConfig));
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(falConfig, anthropicConfig));
+
+            Optional<AiProviderConfig> result = aiProviderService.resolveConfigForExecution(memberId);
+
+            assertThat(result).contains(anthropicConfig);
+        }
+
+        @Test
+        @DisplayName("configs of unregistered providers are skipped for chat resolution")
+        void resolve_skipsUnknownProvider() {
+            AiProviderConfig removedConfig = AiProviderConfig.builder()
+                    .id(UUID.randomUUID())
+                    .ownerId(adminId)
+                    .provider("ollama")
+                    .name("Legacy local provider")
+                    .isActive(true)
+                    .isDefault(true)
+                    .isShared(true)
+                    .settings(Map.of())
+                    .build();
+
+            when(providerFactory.hasProvider("ollama")).thenReturn(false);
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
+                    .thenReturn(Optional.of(removedConfig));
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(removedConfig, anthropicConfig));
+
+            Optional<AiProviderConfig> result = aiProviderService.resolveConfigForExecution(memberId);
+
+            assertThat(result).contains(anthropicConfig);
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveSharedApiKey")
+    class ResolveSharedApiKey {
+
+        @Test
+        @DisplayName("returns the decrypted platform key for the requested provider")
+        void resolveSharedApiKey_returnsDecryptedKey() {
+            AiProviderConfig falConfig = AiProviderConfig.builder()
+                    .id(UUID.randomUUID())
+                    .ownerId(adminId)
+                    .provider("fal")
+                    .name("Platform fal.ai")
+                    .credentialId(credentialId)
+                    .isActive(true)
+                    .isShared(true)
+                    .settings(Map.of())
+                    .build();
+
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(openaiConfig, falConfig));
+            when(credentialService.getDecryptedData(credentialId, adminId))
+                    .thenReturn(Map.of("apiKey", "fal-secret"));
+
+            assertThat(aiProviderService.resolveSharedApiKey("fal")).contains("fal-secret");
+        }
+
+        @Test
+        @DisplayName("returns empty when the provider has no shared config")
+        void resolveSharedApiKey_emptyWhenMissing() {
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(openaiConfig));
+
+            assertThat(aiProviderService.resolveSharedApiKey("fal")).isEmpty();
         }
     }
 }

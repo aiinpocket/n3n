@@ -157,9 +157,11 @@
         </dependency>
 
         <!-- Flyway Database Migration -->
+        <!-- Spring Boot 4 將自動配置模組化：只放 flyway-core 不會觸發 Flyway 自動配置，
+             必須使用 starter（內含 spring-boot-flyway 自動配置模組） -->
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

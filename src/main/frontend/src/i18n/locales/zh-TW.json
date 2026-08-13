@@ -887,25 +887,24 @@
       "claude": "Anthropic Claude - 強大的推理和分析能力",
       "openai": "OpenAI ChatGPT - 廣泛的知識和程式碼能力",
       "gemini": "Google Gemini - 多模態和長上下文支援",
-      "ollama": "Ollama - 本地運行的開源模型，無需 API Key"
+      "openrouter": "OpenRouter - 單一金鑰使用上百種模型",
+      "fal": "fal.ai - AI 圖片與影片生成（媒體生成，非聊天）"
     },
     "providerLink": {
       "claude": "前往 Anthropic Console 申請",
       "openai": "前往 OpenAI Platform 申請",
       "gemini": "前往 Google AI Studio 申請",
-      "ollama": "下載 Ollama"
+      "openrouter": "前往 OpenRouter 申請",
+      "fal": "前往 fal.ai Dashboard 申請"
     },
-    "ollamaFree": "Ollama 是免費的本地 AI，不需要 API Key！",
-    "ollamaInstruction": "安裝後執行 ollama run llama3.2 即可開始使用",
-    "ollamaServerUrl": "Ollama 伺服器位址",
-    "ollamaDefaultUrl": "http://localhost:11434",
+    "falMediaOnly": "fal.ai 是媒體生成供應商",
+    "falMediaOnlyDesc": "設定後，流程中的「AI Image / Video」節點即可直接產生圖片與影片，不需另外建立憑證；此供應商不提供聊天功能，AI 助手仍需另一個聊天供應商。",
     "contextWindowSize": "{{size}}K 上下文",
     "settingsInfo": "AI 設定說明",
     "settingsInfoList": {
-      "providers": "支援多家 AI 供應商：Claude、ChatGPT、Gemini、Ollama",
+      "providers": "支援多家 AI 供應商：Claude、ChatGPT、Gemini、OpenRouter，以及 fal.ai 媒體生成",
       "encryption": "API Key 使用 AES-256 加密儲存，安全無虞",
-      "multiple": "可設定多組設定，並選擇一組作為預設",
-      "ollamaLocal": "Ollama 為本地運行，不需要 API Key"
+      "multiple": "可設定多組設定，並選擇一組作為預設"
     },
     "configRequired": "請先在設定 → AI 設定中配置 AI 服務提供者",
     "recommendation": "AI 推薦",
@@ -2060,7 +2059,7 @@
     },
     "aiChat": {
       "label": "AI 對話",
-      "description": "與 AI 模型對話，支援 OpenAI、Claude、Gemini、Ollama"
+      "description": "與 AI 模型對話，支援 OpenAI、Claude、Gemini、OpenRouter"
     },
     "aiAgent": {
       "label": "AI 代理",

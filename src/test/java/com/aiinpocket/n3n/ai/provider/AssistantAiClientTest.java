@@ -48,6 +48,12 @@ class AssistantAiClientTest extends BaseServiceTest {
 
     @BeforeEach
     void setUp() {
+        // findFallback 只挑「已註冊且支援聊天」的供應商作為 failover 候選
+        org.mockito.Mockito.lenient().when(providerFactory.hasProvider(org.mockito.ArgumentMatchers.anyString()))
+            .thenReturn(true);
+        org.mockito.Mockito.lenient().when(openAiProvider.supportsChat()).thenReturn(true);
+        org.mockito.Mockito.lenient().when(claudeProvider.supportsChat()).thenReturn(true);
+
         userId = UUID.randomUUID();
         primaryConfig = AiProviderConfig.builder()
             .id(UUID.randomUUID())

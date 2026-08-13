@@ -32,7 +32,8 @@ const providerApiLinks: Record<string, string> = {
   claude: 'https://console.anthropic.com/',
   openai: 'https://platform.openai.com/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
-  ollama: 'https://ollama.com/download',
+  openrouter: 'https://openrouter.ai/settings/keys',
+  fal: 'https://fal.ai/dashboard/keys',
 }
 
 const AIConfigFormModal: React.FC<Props> = ({
@@ -85,12 +86,7 @@ const AIConfigFormModal: React.FC<Props> = ({
     setSelectedProvider(provider)
     form.setFieldsValue({ defaultModel: undefined })
 
-    // Set default base URL for Ollama
-    if (provider === 'ollama') {
-      form.setFieldsValue({ baseUrl: 'http://localhost:11434' })
-    } else {
-      form.setFieldsValue({ baseUrl: undefined })
-    }
+    form.setFieldsValue({ baseUrl: undefined })
   }
 
   const handleFetchModels = async () => {
@@ -102,8 +98,7 @@ const AIConfigFormModal: React.FC<Props> = ({
       return
     }
 
-    // Ollama doesn't require API key
-    if (provider !== 'ollama' && !apiKey) {
+    if (!apiKey) {
       return
     }
 
@@ -148,7 +143,7 @@ const AIConfigFormModal: React.FC<Props> = ({
     }
   }
 
-  const requiresApiKey = Boolean(selectedProvider && selectedProvider !== 'ollama')
+  const requiresApiKey = Boolean(selectedProvider)
 
   return (
     <Modal
@@ -256,36 +251,14 @@ const AIConfigFormModal: React.FC<Props> = ({
           </>
         )}
 
-        {selectedProvider === 'ollama' && (
-          <>
-            <Alert
-              type="success"
-              showIcon
-              icon={<LinkOutlined />}
-              style={{ marginBottom: 16 }}
-              title={
-                <span>
-                  {t('ai.ollamaFree')}
-                  <a
-                    href="https://ollama.com/download"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginLeft: 8 }}
-                  >
-                    {t('ai.providerLink.ollama')}
-                  </a>
-                </span>
-              }
-              description={t('ai.ollamaInstruction')}
-            />
-            <Form.Item
-              name="baseUrl"
-              label={t('ai.ollamaServerUrl')}
-              rules={[{ required: true, message: t('common.enterField', { field: t('ai.ollamaServerUrl') }) }]}
-            >
-              <Input placeholder={t('ai.ollamaDefaultUrl')} maxLength={2000} />
-            </Form.Item>
-          </>
+        {selectedProvider === 'fal' && (
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+            title={t('ai.falMediaOnly')}
+            description={t('ai.falMediaOnlyDesc')}
+          />
         )}
 
         <Divider />

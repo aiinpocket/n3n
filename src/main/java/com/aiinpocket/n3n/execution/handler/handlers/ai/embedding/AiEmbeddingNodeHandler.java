@@ -72,7 +72,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
                 .description("Convert text to a vector embedding")
                 .fields(List.of(
                     FieldDef.select("provider", "Provider",
-                            List.of("openai", "gemini", "ollama"))
+                            List.of("openai", "gemini"))
                         .withDefault("openai")
                         .withDescription("Embedding provider")
                         .required(),
@@ -80,9 +80,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
                             // OpenAI
                             "text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002",
                             // Gemini
-                            "text-embedding-004",
-                            // Ollama
-                            "nomic-embed-text", "mxbai-embed-large"
+                            "text-embedding-004"
                         ))
                         .withDefault("text-embedding-3-small")
                         .withDescription("Embedding model")
@@ -99,7 +97,7 @@ public class AiEmbeddingNodeHandler extends AbstractAiNodeHandler {
                 .description("Convert multiple texts to embeddings")
                 .fields(List.of(
                     FieldDef.select("provider", "Provider",
-                            List.of("openai", "gemini", "ollama"))
+                            List.of("openai", "gemini"))
                         .withDefault("openai")
                         .required(),
                     FieldDef.select("model", "Model", List.of(

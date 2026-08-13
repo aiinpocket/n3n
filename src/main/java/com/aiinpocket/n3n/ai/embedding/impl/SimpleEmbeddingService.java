@@ -16,7 +16,7 @@ import java.util.List;
  * 使用字元頻率 + 雜湊來產生固定維度的向量。
  *
  * 注意：此實作不具備語義理解能力，僅作為後備方案。
- * 建議在生產環境使用 OpenAI 或 Ollama 的真正嵌入模型。
+ * 建議在生產環境使用 OpenAI 的真正嵌入模型。
  *
  * 配置方式：
  * - n3n.embedding.provider=simple
@@ -30,7 +30,7 @@ public class SimpleEmbeddingService implements EmbeddingService {
 
     public SimpleEmbeddingService() {
         log.warn("Using SimpleEmbeddingService - this is a fallback implementation without semantic understanding. " +
-                "Consider configuring OpenAI or Ollama for production use.");
+                "Consider configuring OpenAI for production use.");
     }
 
     @Override

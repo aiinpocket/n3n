@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * 提供基礎的 AI 操作，包括文字生成和向量嵌入。
  * 透過 AssistantAiClient 使用平台共用的 AI Provider 設定。
- * 向量嵌入透過 EmbeddingService 提供（支援 OpenAI、Ollama 等）。
+ * 向量嵌入透過 EmbeddingService 提供（支援 OpenAI 等）。
  */
 @Service
 @RequiredArgsConstructor
@@ -61,7 +61,7 @@ public class AiService {
     /**
      * 取得文字的向量嵌入
      *
-     * 使用配置的 EmbeddingService（OpenAI、Ollama 或 Simple）來產生向量嵌入。
+     * 使用配置的 EmbeddingService（OpenAI 或 Simple）來產生向量嵌入。
      *
      * @param text 文字內容
      * @return 向量嵌入（維度取決於使用的模型，OpenAI 通常為 1536）

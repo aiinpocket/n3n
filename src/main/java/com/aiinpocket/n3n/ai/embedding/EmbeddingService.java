@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * 向量嵌入服務介面
  *
- * 提供文字轉向量嵌入的功能，支援多種 AI 提供者（OpenAI、Ollama 等）。
+ * 提供文字轉向量嵌入的功能，支援多種 AI 提供者（OpenAI 等）。
  * 用於語義搜尋、相似度比較、RAG 等應用場景。
  */
 public interface EmbeddingService {
@@ -38,7 +38,7 @@ public interface EmbeddingService {
     /**
      * 取得提供者名稱
      *
-     * @return 提供者名稱（例如 "openai", "ollama"）
+     * @return 提供者名稱（例如 "openai", "simple"）
      */
     String getProviderName();
 

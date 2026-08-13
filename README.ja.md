@@ -130,9 +130,10 @@ N3Nは複数のAIサービスをサポートしています。お好みのもの
 | **Claude** | AnthropicのAI、分析と推論に優れる | [APIキーを取得](https://console.anthropic.com/) |
 | **ChatGPT** | OpenAIのAI、幅広い知識とコーディング能力 | [APIキーを取得](https://platform.openai.com/api-keys) |
 | **Gemini** | GoogleのAI、マルチモーダル対応 | [APIキーを取得](https://aistudio.google.com/apikey) |
-| **Ollama** | ローカル実行、無料でプライベート | [Ollamaをダウンロード](https://ollama.com/download) |
+| **OpenRouter** | 1つのキーで100以上のモデル | [APIキーを取得](https://openrouter.ai/settings/keys) |
+| **fal.ai** | AI画像・動画生成（メディア生成） | [APIキーを取得](https://fal.ai/dashboard/keys) |
 
-> **ヒント**：有料サービスを使いたくない場合は、Ollamaを選んで自分のPCでAIを実行できます。完全無料！
+> **ヒント**：fal.aiキーを設定すると、フローの「AI Image / Video」ノードで画像や動画を直接生成できます。
 
 ---
 

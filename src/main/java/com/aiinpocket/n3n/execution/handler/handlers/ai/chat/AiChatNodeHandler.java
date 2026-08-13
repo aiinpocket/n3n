@@ -18,7 +18,7 @@ import java.util.*;
  * AI Chat Node Handler
  *
  * Features:
- * - Multi-provider support (OpenAI, Claude, Gemini, Ollama)
+ * - Multi-provider support (OpenAI, Claude, Gemini, OpenRouter)
  * - Conversation history management
  * - Streaming/non-streaming output
  * - System prompt configuration
@@ -43,7 +43,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
 
     @Override
     public String getDescription() {
-        return "Send messages to AI models and receive responses. Supports multiple providers including OpenAI, Claude, Gemini, and Ollama.";
+        return "Send messages to AI models and receive responses. Supports multiple providers including OpenAI, Claude, Gemini, and OpenRouter.";
     }
 
     @Override
@@ -72,7 +72,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .description("Send a message to an AI model and receive a response")
                 .fields(List.of(
                     FieldDef.select("provider", "Provider",
-                            List.of("openai", "claude", "gemini", "openrouter", "ollama"))
+                            List.of("openai", "claude", "gemini", "openrouter"))
                         .withDefault("openai")
                         .withDescription("AI provider to use")
                         .required(),
@@ -82,9 +82,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                             // Claude
                             "claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307",
                             // Gemini
-                            "gemini-1.5-pro", "gemini-1.5-flash",
-                            // Ollama
-                            "llama3.1", "llama3.2", "mistral", "codellama"
+                            "gemini-1.5-pro", "gemini-1.5-flash"
                         ))
                         .withDefault("gpt-4o")
                         .withDescription("Model to use")

@@ -14,7 +14,6 @@ const providerColors: Record<string, string> = {
   openrouter: 'purple',
   fal: 'magenta',
   elevenlabs: 'cyan',
-  ollama: 'default',
 }
 
 export default function AIBillingPage() {

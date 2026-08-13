@@ -133,9 +133,10 @@ N3N 支援多種 AI 服務，你可以選擇任何一種：
 | **Claude** | Anthropic 的 AI，擅長分析與推理 | [申請 API Key](https://console.anthropic.com/) |
 | **ChatGPT** | OpenAI 的 AI，廣泛的知識與程式能力 | [申請 API Key](https://platform.openai.com/api-keys) |
 | **Gemini** | Google 的 AI，支援多模態 | [申請 API Key](https://aistudio.google.com/apikey) |
-| **Ollama** | 本地運行，免費且隱私 | [下載 Ollama](https://ollama.com/download) |
+| **OpenRouter** | 一把金鑰使用上百種模型 | [申請 API Key](https://openrouter.ai/settings/keys) |
+| **fal.ai** | AI 圖片與影片生成（媒體生成） | [申請 API Key](https://fal.ai/dashboard/keys) |
 
-> **提示**：如果你不想付費，可以選擇 Ollama 在自己電腦上運行 AI，完全免費！
+> **提示**：設定 fal.ai 金鑰後，流程中的「AI Image / Video」節點就能直接生成圖片和影片。
 
 ---
 

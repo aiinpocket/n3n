@@ -144,6 +144,9 @@ public class AssistantAiClient {
         try {
             return configRepository.findByIsSharedTrueAndIsActiveTrue().stream()
                 .filter(c -> !c.getId().equals(primary.getId()))
+                // 媒體生成型（如 fal.ai）或未註冊的供應商不能作為聊天 failover
+                .filter(c -> providerFactory.hasProvider(c.getProvider())
+                        && providerFactory.getProvider(c.getProvider()).supportsChat())
                 .findFirst();
         } catch (Exception e) {
             log.debug("Failed to look up fallback AI provider: {}", e.getMessage());

@@ -887,25 +887,24 @@
       "claude": "Anthropic Claude - 強力な推論と分析能力",
       "openai": "OpenAI ChatGPT - 幅広い知識とコーディング能力",
       "gemini": "Google Gemini - マルチモーダルと長いコンテキストサポート",
-      "ollama": "Ollama - ローカルで実行するオープンソースモデル、APIキー不要"
+      "openrouter": "OpenRouter - 1つのキーで100以上のモデル",
+      "fal": "fal.ai - AI画像・動画生成（メディア生成専用、チャット非対応）"
     },
     "providerLink": {
       "claude": "Anthropic ConsoleでAPIキーを取得",
       "openai": "OpenAI PlatformでAPIキーを取得",
       "gemini": "Google AI StudioでAPIキーを取得",
-      "ollama": "Ollamaをダウンロード"
+      "openrouter": "OpenRouterでAPIキーを取得",
+      "fal": "fal.ai DashboardでAPIキーを取得"
     },
-    "ollamaFree": "Ollamaは無料でローカル実行できます。APIキーは不要です！",
-    "ollamaInstruction": "インストール後、ollama run llama3.2 を実行して開始できます",
-    "ollamaServerUrl": "Ollamaサーバーアドレス",
-    "ollamaDefaultUrl": "http://localhost:11434",
+    "falMediaOnly": "fal.aiはメディア生成プロバイダーです",
+    "falMediaOnlyDesc": "設定すると、フローの「AI Image / Video」ノードが個別の認証情報なしで画像・動画を生成できます。チャットには対応していないため、AIアシスタントには別のチャットプロバイダーが必要です。",
     "contextWindowSize": "{{size}}K コンテキスト",
     "settingsInfo": "AI設定について",
     "settingsInfoList": {
-      "providers": "複数のAIプロバイダーに対応：Claude、ChatGPT、Gemini、Ollama",
+      "providers": "複数のAIプロバイダーに対応：Claude、ChatGPT、Gemini、OpenRouter、fal.ai",
       "encryption": "APIキーはAES-256で暗号化して保存されます",
-      "multiple": "複数の設定を作成し、デフォルトを選択できます",
-      "ollamaLocal": "Ollamaはローカルで実行され、APIキーは不要です"
+      "multiple": "複数の設定を作成し、デフォルトを選択できます"
     },
     "configRequired": "設定 → AI設定でAIプロバイダーを先に設定してください",
     "recommendation": "AIの推薦",
@@ -2060,7 +2059,7 @@
     },
     "aiChat": {
       "label": "AIチャット",
-      "description": "AIモデルとチャット、OpenAI、Claude、Gemini、Ollamaに対応"
+      "description": "AIモデルとチャット、OpenAI、Claude、Gemini、OpenRouterに対応"
     },
     "aiAgent": {
       "label": "AIエージェント",

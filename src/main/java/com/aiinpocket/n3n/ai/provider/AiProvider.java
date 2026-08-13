@@ -88,4 +88,12 @@ public interface AiProvider {
     default boolean requiresApiKey() {
         return true;
     }
+
+    /**
+     * 是否支援聊天（LLM 對話）。媒體生成型供應商（如 fal.ai）回傳 false，
+     * AI 助手在解析執行設定時會跳過不支援聊天的供應商。
+     */
+    default boolean supportsChat() {
+        return true;
+    }
 }

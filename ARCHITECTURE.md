@@ -61,7 +61,7 @@ N3N 是一個「模組化單體」（modular monolith）：
 | `ai/codex/` | 程式碼生成輔助 |
 | `ai/conversation/` | 對話管理（`ConversationManager`）、自動壓縮長上下文 |
 | `ai/context/`, `ai/layout/` | AI 助手對話用的元件/技能上下文建構（`ComponentContextBuilder`, `SkillContextBuilder`）與流程佈局（`FlowLayoutEngine`）；連同 `AgentController`/`AgentService`/`ConversationService`（`/api/agent/conversations`）自原 `agent/` 模組移入（2026-08，裝置 agent 子系統移除） |
-| `ai/embedding/` | 向量嵌入（OpenAI / Ollama 等），pgvector |
+| `ai/embedding/` | 向量嵌入（OpenAI 等），pgvector |
 | `ai/module/` | AI 助手功能模組（`NaturalLanguageModule` 流程生成、`FlowOptimizationModule`；provider 呼叫一律走 `ai/provider/AssistantAiClient`） |
 | `ai/prompt/` | 提示詞管理 |
 | `ai/provider/` | 多供應商抽象（OpenAI / Claude / Gemini / 本地）：`AiProviderFactory` 為節點側統一入口，`AssistantAiClient` 為助手側統一入口（共用同一套平台設定，內建一次 failover） |

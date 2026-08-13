@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.execution.handler.handlers.ai.media;
 import com.aiinpocket.n3n.artifact.dto.ArtifactMeta;
 import com.aiinpocket.n3n.artifact.entity.Artifact;
 import com.aiinpocket.n3n.artifact.service.ArtifactService;
+import com.aiinpocket.n3n.ai.service.AiProviderService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.handler.multiop.FieldDef;
@@ -38,6 +39,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
 
     private final ObjectMapper objectMapper;
     private final ArtifactService artifactService;
+    private final AiProviderService aiProviderService;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -191,12 +193,17 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
             Map<String, Object> credential,
             Map<String, Object> params) {
 
+        // 金鑰解析順序：節點憑證 → 平台共用 AI 設定（管理員在 AI 設定輸入的 fal.ai 金鑰）→ 環境變數
         String apiKey = getCredentialValue(credential, "apiKey");
+        if (apiKey == null || apiKey.isBlank()) {
+            apiKey = aiProviderService.resolveSharedApiKey("fal").orElse(null);
+        }
         if (apiKey == null || apiKey.isBlank()) {
             apiKey = System.getenv("FAL_API_KEY");
         }
         if (apiKey == null || apiKey.isBlank()) {
-            return NodeExecutionResult.failure("fal.ai API key is missing. Please configure a fal credential.");
+            return NodeExecutionResult.failure(
+                "fal.ai API key is missing. Configure it in AI Settings (platform-wide) or attach a fal credential.");
         }
 
         try {

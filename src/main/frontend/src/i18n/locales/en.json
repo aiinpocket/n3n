@@ -887,25 +887,24 @@
       "claude": "Anthropic Claude - Powerful reasoning and analysis",
       "openai": "OpenAI ChatGPT - Broad knowledge and coding ability",
       "gemini": "Google Gemini - Multimodal and long context support",
-      "ollama": "Ollama - Local open-source models, no API Key needed"
+      "openrouter": "OpenRouter - One key for 100+ models",
+      "fal": "fal.ai - AI image and video generation (media only, no chat)"
     },
     "providerLink": {
       "claude": "Get API Key from Anthropic Console",
       "openai": "Get API Key from OpenAI Platform",
       "gemini": "Get API Key from Google AI Studio",
-      "ollama": "Download Ollama"
+      "openrouter": "Get API Key from OpenRouter",
+      "fal": "Get API Key from fal.ai Dashboard"
     },
-    "ollamaFree": "Ollama is free and runs locally, no API Key needed!",
-    "ollamaInstruction": "After installation, run ollama run llama3.2 to get started",
-    "ollamaServerUrl": "Ollama Server URL",
-    "ollamaDefaultUrl": "http://localhost:11434",
+    "falMediaOnly": "fal.ai is a media generation provider",
+    "falMediaOnlyDesc": "Once configured, the AI Image / Video node in flows can generate images and videos without a separate credential. This provider does not support chat; the AI assistant still needs a chat provider.",
     "contextWindowSize": "{{size}}K context",
     "settingsInfo": "AI Settings Info",
     "settingsInfoList": {
-      "providers": "Supports multiple AI providers: Claude, ChatGPT, Gemini, Ollama",
+      "providers": "Supports multiple AI providers: Claude, ChatGPT, Gemini, OpenRouter, plus fal.ai media generation",
       "encryption": "API Keys are stored with AES-256 encryption",
-      "multiple": "Configure multiple settings and choose one as default",
-      "ollamaLocal": "Ollama runs locally and doesn't require an API Key"
+      "multiple": "Configure multiple settings and choose one as default"
     },
     "configRequired": "Please configure an AI provider in Settings → AI Settings first",
     "recommendation": "AI Recommendations",
@@ -2060,7 +2059,7 @@
     },
     "aiChat": {
       "label": "AI Chat",
-      "description": "Chat with AI models, supports OpenAI, Claude, Gemini, Ollama"
+      "description": "Chat with AI models, supports OpenAI, Claude, Gemini, OpenRouter"
     },
     "aiAgent": {
       "label": "AI Agent",

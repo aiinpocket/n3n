@@ -132,9 +132,10 @@ N3N supports multiple AI services, you can choose any of them:
 | **Claude** | Anthropic's AI, excellent at analysis and reasoning | [Get API Key](https://console.anthropic.com/) |
 | **ChatGPT** | OpenAI's AI, broad knowledge and coding ability | [Get API Key](https://platform.openai.com/api-keys) |
 | **Gemini** | Google's AI, multimodal support | [Get API Key](https://aistudio.google.com/apikey) |
-| **Ollama** | Run locally, free and private | [Download Ollama](https://ollama.com/download) |
+| **OpenRouter** | One key for 100+ models | [Get API Key](https://openrouter.ai/settings/keys) |
+| **fal.ai** | AI image & video generation (media) | [Get API Key](https://fal.ai/dashboard/keys) |
 
-> **Tip**: If you don't want to pay, you can choose Ollama to run AI on your own computer, completely free!
+> **Tip**: Once a fal.ai key is configured, the "AI Image / Video" node in flows can generate images and videos directly.
 
 ---
 
