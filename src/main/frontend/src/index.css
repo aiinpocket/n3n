@@ -339,24 +339,26 @@ h4.ant-typography, h5.ant-typography {
   transform: translateY(-1px);
 }
 
-.ant-btn-default {
+.ant-btn-default:not(.ant-btn-dangerous) {
   background: var(--color-bg-elevated) !important;
   border-color: var(--color-border) !important;
   color: var(--color-text-primary) !important;
 }
 
-.ant-btn-default:hover {
+.ant-btn-default:not(.ant-btn-dangerous):hover {
   background: var(--color-bg-hover) !important;
   border-color: var(--color-border-hover) !important;
   color: var(--color-text-primary) !important;
 }
 
-.ant-btn-dangerous {
+/* Solid danger buttons only — link/text/outlined danger variants keep their
+   transparent background (a red fill would swallow the red icon/text). */
+.ant-btn-dangerous.ant-btn-variant-solid {
   background: var(--color-danger) !important;
   border-color: var(--color-danger) !important;
 }
 
-.ant-btn-dangerous:hover {
+.ant-btn-dangerous.ant-btn-variant-solid:hover {
   background: var(--color-danger-hover) !important;
   border-color: var(--color-danger-hover) !important;
 }

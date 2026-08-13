@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -29,6 +30,15 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
 
     private static final String EXECUTION_TOPIC_PREFIX = "/topic/executions/";
     private static final String USER_TOPIC_PREFIX = "/topic/users/";
+    /**
+     * Personal queues delivered via convertAndSendToUser. The broker resolves these to the
+     * subscriber's own session, so they can never leak another user's events — the only
+     * requirement is an authenticated session.
+     */
+    private static final Set<String> USER_QUEUE_DESTINATIONS = Set.of(
+        "/user/queue/executions",
+        "/user/queue/approvals"
+    );
 
     private final ExecutionRepository executionRepository;
 
@@ -84,15 +94,18 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
             validateExecutionSubscription(accessor, destination);
         } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
             validateUserTopicSubscription(accessor, destination);
+        } else if (USER_QUEUE_DESTINATIONS.contains(destination)) {
+            requireAuthenticated(accessor);
         } else {
             log.warn("Rejected SUBSCRIBE to non-allowlisted destination: {}", destination);
             throw new MessagingException("Forbidden: subscription destination not allowed");
         }
     }
 
-    private void validateExecutionSubscription(StompHeaderAccessor accessor, String destination) {
-        String executionIdStr = destination.substring(EXECUTION_TOPIC_PREFIX.length());
-
+    /**
+     * Require an authenticated session and return the session's user id.
+     */
+    private UUID requireAuthenticated(StompHeaderAccessor accessor) {
         Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
         if (sessionAttributes == null || !Boolean.TRUE.equals(sessionAttributes.get("authenticated"))) {
             throw new MessagingException("Unauthorized: not authenticated");
@@ -102,6 +115,12 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
         if (userId == null) {
             throw new MessagingException("Unauthorized: no user identity");
         }
+        return userId;
+    }
+
+    private void validateExecutionSubscription(StompHeaderAccessor accessor, String destination) {
+        String executionIdStr = destination.substring(EXECUTION_TOPIC_PREFIX.length());
+        UUID userId = requireAuthenticated(accessor);
 
         try {
             UUID executionId = UUID.fromString(executionIdStr);
@@ -119,15 +138,7 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
      * Prevents User A from subscribing to /topic/users/{userB}/... topics.
      */
     private void validateUserTopicSubscription(StompHeaderAccessor accessor, String destination) {
-        Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
-        if (sessionAttributes == null || !Boolean.TRUE.equals(sessionAttributes.get("authenticated"))) {
-            throw new MessagingException("Unauthorized: not authenticated");
-        }
-
-        UUID userId = (UUID) sessionAttributes.get("userId");
-        if (userId == null) {
-            throw new MessagingException("Unauthorized: no user identity");
-        }
+        UUID userId = requireAuthenticated(accessor);
 
         // Extract userId from topic path: /topic/users/{userId}/...
         String remainder = destination.substring(USER_TOPIC_PREFIX.length());

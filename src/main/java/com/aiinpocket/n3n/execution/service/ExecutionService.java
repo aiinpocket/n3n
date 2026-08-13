@@ -319,7 +319,11 @@ public class ExecutionService {
         LogContext.clearExecutionContext();
 
         // Log activity
-        activityService.logExecutionCancel(userId, id, reason);
+        String cancelledFlowName = flowVersionRepository.findById(execution.getFlowVersionId())
+            .flatMap(v -> flowRepository.findById(v.getFlowId()))
+            .map(Flow::getName)
+            .orElse(null);
+        activityService.logExecutionCancel(userId, id, cancelledFlowName, reason);
 
         return enrichExecution(execution);
     }
@@ -605,7 +609,8 @@ public class ExecutionService {
         // Log activity
         Flow flow = flowRepository.findById(version.getFlowId()).orElse(null);
         UUID flowId = flow != null ? flow.getId() : version.getFlowId();
-        activityService.logExecutionComplete(execution.getTriggeredBy(), executionId, flowId, execution.getDurationMs());
+        activityService.logExecutionComplete(execution.getTriggeredBy(), executionId, flowId,
+            flow != null ? flow.getName() : null, execution.getDurationMs());
 
         log.info("Execution completed: id={}, duration={}ms", executionId, execution.getDurationMs());
     }
@@ -1086,7 +1091,10 @@ public class ExecutionService {
             // Log activity
             FlowVersion version = flowVersionRepository.findById(execution.getFlowVersionId()).orElse(null);
             UUID flowId = version != null ? version.getFlowId() : null;
-            activityService.logExecutionFail(execution.getTriggeredBy(), executionId, flowId, errorMessage);
+            String flowName = flowId != null
+                ? flowRepository.findById(flowId).map(Flow::getName).orElse(null)
+                : null;
+            activityService.logExecutionFail(execution.getTriggeredBy(), executionId, flowId, flowName, errorMessage);
         });
         stateManager.updateExecutionStatus(executionId, "failed");
         notificationService.notifyExecutionFailed(executionId, errorMessage);

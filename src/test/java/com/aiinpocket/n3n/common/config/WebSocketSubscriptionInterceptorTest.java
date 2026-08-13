@@ -193,6 +193,52 @@ class WebSocketSubscriptionInterceptorTest extends BaseServiceTest {
     }
 
     @Test
+    void shouldAllowSubscribeToOwnExecutionQueue() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/user/queue/executions");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, channel);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void shouldAllowSubscribeToOwnApprovalQueue() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/user/queue/approvals");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, channel);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void shouldBlockSubscribeToUserQueueWithoutAuth() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/user/queue/executions");
+        accessor.setSessionAttributes(new HashMap<>());
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("Unauthorized");
+    }
+
+    @Test
+    void shouldBlockSubscribeToUnknownUserQueue() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/user/queue/other");
+        setAuthenticatedSession(accessor);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("subscription destination not allowed");
+    }
+
+    @Test
     void shouldBlockSubscribeToNonAllowlistedDestination() {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/random");

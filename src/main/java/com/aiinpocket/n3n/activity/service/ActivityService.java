@@ -252,24 +252,28 @@ public class ActivityService {
         details.put("flowId", flowId.toString());
         details.put("flowName", flowName);
         details.put("triggerType", triggerType);
-        logActivity(userId, EXECUTION_START, "execution", executionId, null, details);
+        logActivity(userId, EXECUTION_START, "execution", executionId, flowName, details);
         logStructured("EXECUTION_START", userId, Map.of("executionId", executionId, "flowId", flowId, "triggerType", triggerType));
     }
 
-    public void logExecutionComplete(UUID userId, UUID executionId, UUID flowId, int durationMs) {
+    public void logExecutionComplete(UUID userId, UUID executionId, UUID flowId, String flowName, int durationMs) {
         Map<String, Object> details = Map.of("flowId", flowId.toString(), "durationMs", durationMs);
-        logActivity(userId, EXECUTION_COMPLETE, "execution", executionId, null, details);
+        logActivity(userId, EXECUTION_COMPLETE, "execution", executionId, flowName, details);
         logStructured("EXECUTION_COMPLETE", userId, Map.of("executionId", executionId, "durationMs", durationMs));
     }
 
-    public void logExecutionFail(UUID userId, UUID executionId, UUID flowId, String error) {
-        Map<String, Object> details = Map.of("flowId", flowId.toString(), "error", truncate(error, 500));
-        logActivity(userId, EXECUTION_FAIL, "execution", executionId, null, details);
+    public void logExecutionFail(UUID userId, UUID executionId, UUID flowId, String flowName, String error) {
+        Map<String, Object> details = new HashMap<>();
+        if (flowId != null) {
+            details.put("flowId", flowId.toString());
+        }
+        details.put("error", truncate(error, 500));
+        logActivity(userId, EXECUTION_FAIL, "execution", executionId, flowName, details);
         logStructured("EXECUTION_FAIL", userId, Map.of("executionId", executionId, "error", truncate(error, 200)));
     }
 
-    public void logExecutionCancel(UUID userId, UUID executionId, String reason) {
-        logActivity(userId, EXECUTION_CANCEL, "execution", executionId, null, Map.of("reason", reason));
+    public void logExecutionCancel(UUID userId, UUID executionId, String flowName, String reason) {
+        logActivity(userId, EXECUTION_CANCEL, "execution", executionId, flowName, Map.of("reason", reason));
         logStructured("EXECUTION_CANCEL", userId, Map.of("executionId", executionId, "reason", reason));
     }
 

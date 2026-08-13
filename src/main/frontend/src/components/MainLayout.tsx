@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ErrorBoundary from './error/ErrorBoundary'
-import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography, Badge } from 'antd'
+import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography, Badge, Button } from 'antd'
 import {
   ApartmentOutlined,
   PlayCircleOutlined,
@@ -30,6 +30,8 @@ import {
   ClockCircleOutlined,
   GlobalOutlined,
   RocketOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -41,6 +43,8 @@ const { Header, Sider, Content } = Layout
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  // True below the `lg` breakpoint — the sider collapses to zero width there
+  const [isMobile, setIsMobile] = useState(false)
   const [shortcutsVisible, setShortcutsVisible] = useState(false)
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0)
   const navigate = useNavigate()
@@ -336,7 +340,11 @@ export default function MainLayout() {
         onCollapse={setCollapsed}
         theme="light"
         breakpoint="lg"
+        onBreakpoint={setIsMobile}
         collapsedWidth={typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : 80}
+        // On mobile the default zero-width trigger floats over page content; we
+        // render a hamburger in the header instead.
+        trigger={isMobile ? null : undefined}
         style={{ background: 'var(--color-bg-secondary)' }}
       >
         <div style={{
@@ -391,9 +399,19 @@ export default function MainLayout() {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <h2 style={{ margin: 0, fontSize: 16, color: 'var(--color-text-primary)' }}>
-            {pageTitle || 'N3N Flow'}
-          </h2>
+          <Space size="small" align="center">
+            {isMobile && (
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                aria-label={t('common.toggleMenu')}
+              />
+            )}
+            <h2 style={{ margin: 0, fontSize: 16, color: 'var(--color-text-primary)' }}>
+              {pageTitle || 'N3N Flow'}
+            </h2>
+          </Space>
           <Space size="large">
             <Dropdown
               menu={{

@@ -310,19 +310,22 @@ export default function ActivityHistoryPage() {
       key: 'resource',
       width: 240,
       render: (_: unknown, record: UserActivity) => {
-        if (!record.resourceType && !record.resourceName) return <Text type="secondary">-</Text>
+        // Older execution activities stored the flow name only inside details
+        const resourceName = record.resourceName
+          || (typeof record.details?.flowName === 'string' ? record.details.flowName : null)
+        if (!record.resourceType && !resourceName) return <Text type="secondary">-</Text>
         const route = record.resourceType && record.resourceId
           ? getResourceRoute(record.resourceType, record.resourceId)
           : null
         return (
           <Space direction="vertical" size={0}>
-            {record.resourceName && (
+            {resourceName && (
               route ? (
                 <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(route)}>
-                  {record.resourceName}
+                  {resourceName}
                 </Button>
               ) : (
-                <Text>{record.resourceName}</Text>
+                <Text>{resourceName}</Text>
               )
             )}
             {record.resourceType && (

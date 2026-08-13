@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { getLocale } from '../utils/locale'
+import { isDraftVersion } from '../utils/versionLabel'
 import { Card, Button, Space, Spin, Modal, Form, Input, Dropdown, Tag, Tooltip, Typography, Badge, Select, Drawer } from 'antd'
 import { message, modal } from '../utils/feedback'
 import { useTranslation } from 'react-i18next'
@@ -849,7 +850,10 @@ export default function FlowEditorPage() {
       key: v.version,
       label: (
         <Space>
-          {v.version}
+          {/* Timestamp draft names are noise — show the save time instead */}
+          {isDraftVersion(v.version)
+            ? (v.createdAt ? new Date(v.createdAt).toLocaleString(getLocale()) : t('flow.draft'))
+            : v.version}
           {v.status === 'published' && <Tag color="green">{t('flow.published')}</Tag>}
           {v.status === 'draft' && <Tag>{t('flow.draft')}</Tag>}
         </Space>
@@ -893,7 +897,7 @@ export default function FlowEditorPage() {
             {currentVersion && (
               <Tag color={currentVersion.status === 'published' ? 'green' : 'default'} title={currentVersion.version}>
                 {/* Auto-save drafts have timestamp names; show a friendly label instead */}
-                {currentVersion.version.startsWith('draft-') ? t('flow.draft') : currentVersion.version}
+                {isDraftVersion(currentVersion.version) ? t('flow.draft') : currentVersion.version}
               </Tag>
             )}
             {executionMode && (

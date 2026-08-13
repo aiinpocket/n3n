@@ -17,6 +17,7 @@ import { templateApi } from '../api/template'
 import { Typography, Result } from 'antd'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
+import { isDraftVersion } from '../utils/versionLabel'
 
 const { Text } = Typography
 
@@ -245,7 +246,8 @@ export default function FlowListPage() {
       dataIndex: 'latestVersion',
       key: 'latestVersion',
       sorter: (a: Flow, b: Flow) => (a.latestVersion || '').localeCompare(b.latestVersion || ''),
-      render: (version: string | null) => version || '-',
+      render: (version: string | null) =>
+        version ? (isDraftVersion(version) ? <Tag title={version}>{t('flow.draft')}</Tag> : version) : '-',
     },
     {
       title: t('flow.publishedVersion'),

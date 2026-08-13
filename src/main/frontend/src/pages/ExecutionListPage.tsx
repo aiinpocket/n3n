@@ -22,6 +22,7 @@ import { useAllExecutions } from '../hooks/useExecutionMonitor'
 import logger from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale, formatDuration } from '../utils/locale'
+import { isDraftVersion } from '../utils/versionLabel'
 
 const { Text } = Typography
 
@@ -218,7 +219,8 @@ export default function ExecutionListPage() {
       dataIndex: 'flowVersion',
       key: 'flowVersion',
       width: 80,
-      render: (version: string) => version || '-',
+      render: (version: string) =>
+        version ? (isDraftVersion(version) ? <Tag title={version}>{t('flow.draft')}</Tag> : version) : '-',
     },
     {
       title: t('common.status'),

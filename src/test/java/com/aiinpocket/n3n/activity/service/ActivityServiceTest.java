@@ -212,6 +212,7 @@ class ActivityServiceTest extends BaseServiceTest {
 
             verify(activityRepository).save(argThat(activity ->
                 activity.getActivityType().equals("EXECUTION_START") &&
+                "My Flow".equals(activity.getResourceName()) &&
                 activity.getDetails().containsKey("triggerType")
             ));
         }
@@ -220,10 +221,11 @@ class ActivityServiceTest extends BaseServiceTest {
         void logExecutionComplete_savesCompleteActivity() {
             UUID execId = UUID.randomUUID();
             UUID flowId = UUID.randomUUID();
-            activityService.logExecutionComplete(userId, execId, flowId, 1500);
+            activityService.logExecutionComplete(userId, execId, flowId, "My Flow", 1500);
 
             verify(activityRepository).save(argThat(activity ->
                 activity.getActivityType().equals("EXECUTION_COMPLETE") &&
+                "My Flow".equals(activity.getResourceName()) &&
                 activity.getDetails().containsKey("durationMs")
             ));
         }
@@ -232,10 +234,11 @@ class ActivityServiceTest extends BaseServiceTest {
         void logExecutionFail_savesFailActivity() {
             UUID execId = UUID.randomUUID();
             UUID flowId = UUID.randomUUID();
-            activityService.logExecutionFail(userId, execId, flowId, "Connection timeout");
+            activityService.logExecutionFail(userId, execId, flowId, "My Flow", "Connection timeout");
 
             verify(activityRepository).save(argThat(activity ->
                 activity.getActivityType().equals("EXECUTION_FAIL") &&
+                "My Flow".equals(activity.getResourceName()) &&
                 activity.getDetails().containsKey("error")
             ));
         }

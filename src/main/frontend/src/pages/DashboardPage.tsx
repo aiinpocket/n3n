@@ -439,7 +439,8 @@ export default function DashboardPage() {
                     title={<Tag>{t(`activityType.${item.activityType}`, { defaultValue: item.activityType })}</Tag>}
                     description={
                       <Space>
-                        <Text>{item.resourceName || '-'}</Text>
+                        {/* Older execution activities stored the flow name only inside details */}
+                        <Text>{item.resourceName || (typeof item.details?.flowName === 'string' ? item.details.flowName : '-')}</Text>
                         <Text type="secondary">{item.createdAt ? new Date(item.createdAt).toLocaleString(getLocale()) : '-'}</Text>
                       </Space>
                     }

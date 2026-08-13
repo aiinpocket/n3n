@@ -372,7 +372,7 @@ class ExecutionServiceTest extends BaseServiceTest {
             assertThat(result.getCancelReason()).isEqualTo("User cancelled");
             verify(stateManager).updateExecutionStatus(executionId, "cancelled");
             verify(notificationService).notifyExecutionCancelled(executionId, "User cancelled");
-            verify(activityService).logExecutionCancel(userId, executionId, "User cancelled");
+            verify(activityService).logExecutionCancel(userId, executionId, "Test Flow", "User cancelled");
         }
 
         @Test
