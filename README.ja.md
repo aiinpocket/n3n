@@ -499,6 +499,18 @@ AI アシスタントはユーザーごとの好みや習慣を記憶します�
 
 ---
 
+## サイトを独自ドメインで公開する
+
+AI が建てた小さなサイトに専用アドレスを与えるには、次の 3 ステップ：
+
+1. ワイルドカード DNS レコードを作成：`*.sites.example.com → サーバーの IP`
+2. `.env` に `SITE_MAIN_DOMAIN=n3n.example.com` と `SITE_BASE_DOMAIN=sites.example.com` を設定
+3. `docker compose --profile domain up -d` で起動（Caddy が HTTPS 証明書を自動発行）
+
+各サイトは `https://{slug}.sites.example.com/` で公開されます。独自ドメインを使いたい場合は、サイトのドロワーにドメインを入力し、案内どおり TXT と CNAME レコードを作成して「検証」を押してください。
+
+---
+
 ## 詳細情報
 
 開発者で技術的な詳細を知りたい場合は、[TECHNICAL.md](TECHNICAL.md)をご覧ください。

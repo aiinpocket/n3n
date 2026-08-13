@@ -643,6 +643,41 @@
     "useCases": ["以可設定的退避策略重試失敗的操作"],
     "relatedNodes": ["rateLimiter", "condition"]
   },
+  "pptxGenerate": {
+    "displayName": "簡報製作",
+    "keywords": ["簡報", "PPT", "pptx", "slides", "presentation", "投影片", "報告", "deck", "powerpoint"],
+    "useCases": ["將 AI 產出或流程資料轉成 PPTX 簡報並存入作品庫", "每週報告自動生成簡報", "從 Markdown 大綱一鍵產生投影片"],
+    "relatedNodes": ["docxGenerate", "saveArtifact", "aiAgent"],
+    "examples": [
+      {
+        "scenario": "從 Markdown 大綱產生簡報",
+        "config": {
+          "title": "每週營運報告",
+          "markdown": "# 本週亮點\n- 新用戶成長 12%\n- 上線兩個新功能\n\n# 下週計畫\n- 完成簡報節點\n- 優化 AI 產生流程",
+          "theme": "warm",
+          "filename": "weekly-report.pptx"
+        },
+        "description": "標題成為投影片、清單成為要點；適合搭配 AI 節點先產生 Markdown"
+      }
+    ]
+  },
+  "docxGenerate": {
+    "displayName": "文件產出",
+    "keywords": ["文件", "word", "docx", "document", "報告", "report", "合約", "會議記錄"],
+    "useCases": ["將 Markdown 內容轉成 Word 文件並存入作品庫", "自動生成報告、會議記錄或說明文件", "把 AI 摘要輸出成可下載的 .docx"],
+    "relatedNodes": ["pptxGenerate", "saveArtifact", "markdown"],
+    "examples": [
+      {
+        "scenario": "產生 Markdown 報告文件",
+        "config": {
+          "title": "月度分析報告",
+          "content": "# 摘要\n本月整體表現穩定。\n\n## 數據\n| 指標 | 數值 |\n| --- | --- |\n| 營收 | 120 萬 |\n\n## 結論\n- 維持現行策略\n- **重點**：加強行銷",
+          "filename": "monthly-report.docx"
+        },
+        "description": "支援標題、清單、表格、粗體/斜體與程式碼區塊"
+      }
+    ]
+  },
   "saveArtifact": {
     "displayName": "儲存 Artifact",
     "keywords": ["artifact", "儲存", "檔案", "下載", "save", "文件庫"],

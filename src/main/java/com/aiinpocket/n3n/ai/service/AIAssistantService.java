@@ -11,6 +11,7 @@ import com.aiinpocket.n3n.ai.entity.Conversation;
 import com.aiinpocket.n3n.ai.module.FlowOptimizationModule;
 import com.aiinpocket.n3n.ai.module.NaturalLanguageModule;
 import com.aiinpocket.n3n.ai.module.SimpleAIProviderRegistry;
+import com.aiinpocket.n3n.ai.usermemory.service.MemoryExtractionService;
 import com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerInfo;
 import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
@@ -38,6 +39,7 @@ public class AIAssistantService {
     private final SimpleAIProviderRegistry simpleAIProviderRegistry;
     private final ConversationManager conversationManager;
     private final UserMemoryService userMemoryService;
+    private final MemoryExtractionService memoryExtractionService;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -101,6 +103,7 @@ public class AIAssistantService {
                         if (!fullResponse.isBlank()) {
                             try {
                                 conversationManager.addMessage(conversationId, userId, "assistant", fullResponse, null);
+                                triggerMemoryExtraction(conversationId, userId);
                             } catch (Exception e) {
                                 log.warn("Failed to save assistant response to conversation {}", conversationId, e);
                             }
@@ -147,6 +150,7 @@ public class AIAssistantService {
             if (result.getContent() != null && !result.getContent().isBlank()) {
                 try {
                     conversationManager.addMessage(conversationId, userId, "assistant", result.getContent(), null);
+                    triggerMemoryExtraction(conversationId, userId);
                 } catch (Exception e) {
                     log.warn("Failed to save assistant response to conversation {}", conversationId, e);
                 }
@@ -176,6 +180,18 @@ public class AIAssistantService {
         } catch (Exception e) {
             log.error("Chat error", e);
             return ChatResponse.error("AI service error");
+        }
+    }
+
+    /**
+     * 觸發背景記憶萃取（非同步、節流；任何失敗只記 log，不影響聊天）。
+     */
+    private void triggerMemoryExtraction(UUID conversationId, UUID userId) {
+        try {
+            List<Map<String, Object>> recent = conversationManager.getContextForAI(conversationId, userId);
+            memoryExtractionService.onAssistantReply(conversationId, userId, recent);
+        } catch (Exception e) {
+            log.debug("Failed to trigger memory extraction for conversation {}: {}", conversationId, e.getMessage());
         }
     }
 

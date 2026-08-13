@@ -22,6 +22,8 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${N3N_PORT:-8080},http://localhost:8080,http://localhost:3000}
       # Artifacts（節點產出檔案儲存）
       ARTIFACT_STORAGE_PATH: /app/data/artifacts
+      # 站台子網域託管（空值 = 休眠，僅路徑式 /sites/{slug}/；搭配 caddy profile 使用）
+      SITE_BASE_DOMAIN: ${SITE_BASE_DOMAIN:-}
     volumes:
       - app_data:/data
       - n3n_artifacts:/app/data/artifacts
@@ -49,6 +51,35 @@ services:
           memory: 2G
         reservations:
           memory: 512M
+    restart: unless-stopped
+
+  # Caddy 反向代理（網域模式專用；預設本機部署不受影響）
+  # 啟用：docker compose --profile domain up -d
+  # 需在 .env 設定 SITE_MAIN_DOMAIN 與 SITE_BASE_DOMAIN，DNS 建立
+  # *.{SITE_BASE_DOMAIN} wildcard A 記錄指向主機 IP。
+  caddy:
+    image: caddy:2-alpine
+    container_name: n3n-caddy
+    profiles: ["domain"]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # domain profile 啟用時兩者皆必填（compose 對未啟用的 profile 也會插值，
+      # 故此處用預設空值而非 :? 硬性檢查，避免影響預設本機部署）
+      SITE_MAIN_DOMAIN: ${SITE_MAIN_DOMAIN:-}
+      SITE_BASE_DOMAIN: ${SITE_BASE_DOMAIN:-}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
   # PostgreSQL Database
@@ -146,6 +177,8 @@ services:
     restart: unless-stopped
 
 volumes:
+  caddy_data:
+  caddy_config:
   app_data:
   n3n_artifacts:
   postgres_data:

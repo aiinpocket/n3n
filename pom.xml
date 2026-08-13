@@ -242,6 +242,25 @@
             <version>1.17.2</version>
         </dependency>
 
+        <!-- commons-io pinned at top level: POI 5.4.x needs >= 2.16 (swagger-parser pulls 2.15.1) -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.19.0</version>
+        </dependency>
+
+        <!-- Apache POI (XSLF/XWPF) for PPTX/DOCX document generation -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+
         <!-- SSHJ for SSH Node + SFTP Backup -->
         <dependency>
             <groupId>com.hierynomus</groupId>

@@ -508,6 +508,18 @@ If a flow contains a **Schedule Trigger** node, publishing the flow automaticall
 
 ---
 
+## Put Your Sites on a Real Domain
+
+Want the little sites the AI builds to have their own addresses? Three steps:
+
+1. Create a wildcard DNS record: `*.sites.example.com → your server IP`
+2. In `.env`, set `SITE_MAIN_DOMAIN=n3n.example.com` and `SITE_BASE_DOMAIN=sites.example.com`
+3. Start with `docker compose --profile domain up -d` (Caddy issues HTTPS certificates automatically)
+
+Every site then lives at `https://{slug}.sites.example.com/`. Want your own domain? Enter it in the site drawer, create the TXT and CNAME records as instructed, then click Verify.
+
+---
+
 ## Advanced Information
 
 If you're a developer and want to learn technical details, please refer to [TECHNICAL.md](TECHNICAL.md).

@@ -509,6 +509,18 @@ AI 助手會記住每位使用者的偏好與習慣（各自獨立、互不可�
 
 ---
 
+## 把作品掛上網域
+
+想讓 AI 蓋的小站台有自己的網址？三步驟：
+
+1. DNS 建立 wildcard 記錄：`*.sites.example.com → 主機 IP`
+2. `.env` 設定 `SITE_MAIN_DOMAIN=n3n.example.com`、`SITE_BASE_DOMAIN=sites.example.com`
+3. 啟動：`docker compose --profile domain up -d`（Caddy 會自動簽發 HTTPS 憑證）
+
+之後每座站台都住在 `https://{slug}.sites.example.com/`。想用自己的網域？在站台抽屜輸入網域，照指示建立 TXT 與 CNAME 記錄後按「驗證」即可。
+
+---
+
 ## 進階資訊
 
 如果你是開發者，想了解技術細節，請參考 [TECHNICAL.md](TECHNICAL.md)。

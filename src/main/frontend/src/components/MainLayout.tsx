@@ -30,6 +30,7 @@ import {
   ExclamationCircleOutlined,
   ClearOutlined,
   ClockCircleOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
@@ -71,6 +72,7 @@ export default function MainLayout() {
       '/flows': t('nav.flows'),
       '/executions': t('nav.executions'),
       '/artifacts': t('nav.artifacts'),
+      '/sites': t('sites.title'),
       '/services': t('nav.services'),
       '/components': t('nav.components'),
       '/webhooks': t('nav.webhooks'),
@@ -125,6 +127,11 @@ export default function MainLayout() {
           key: '/artifacts',
           icon: <FolderOpenOutlined />,
           label: t('nav.artifacts'),
+        },
+        {
+          key: '/sites',
+          icon: <GlobalOutlined />,
+          label: t('sites.title'),
         },
         {
           key: '/templates',

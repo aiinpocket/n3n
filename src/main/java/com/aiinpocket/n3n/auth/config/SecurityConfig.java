@@ -93,6 +93,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/forms/{token}", "/api/forms/{token}/submit").permitAll()
                 // Webhook trigger endpoints (no auth - uses signature validation)
                 .requestMatchers("/webhook/**").permitAll()
+                // AI Site Builder 公開託管頁面（PublicSiteController 對每個回應強制
+                // CSP sandbox 隔離 header，使用者內容無法以平台 origin 身分呼叫 API）
+                .requestMatchers("/sites/**").permitAll()
                 // Actuator endpoints for K8s probes
                 .requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
                 // Swagger UI - only accessible when explicitly enabled

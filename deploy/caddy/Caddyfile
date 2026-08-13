@@ -1,0 +1,43 @@
+# N3N 網域路由（docker compose --profile domain up -d 時啟用）
+#
+# 需要的環境變數（.env）：
+#   SITE_MAIN_DOMAIN  主應用網域，例如 n3n.example.com
+#   SITE_BASE_DOMAIN  站台 wildcard 網域，例如 sites.example.com
+#     （DNS 需有 *.sites.example.com → 主機 IP 的 wildcard A 記錄，
+#       且 app 服務要設定相同的 SITE_BASE_DOMAIN）
+
+{
+    # on-demand TLS 的簽發守門員：只有平台認得的網域（{slug}.{base-domain}
+    # 對應已發佈站台、或已驗證自訂網域）才允許簽發憑證，防止濫用。
+    on_demand_tls {
+        ask http://app:8080/api/public/sites/tls-check
+    }
+}
+
+# 主應用（自動簽發單一網域憑證）
+{$SITE_MAIN_DOMAIN} {
+    reverse_proxy app:8080
+}
+
+# 預設（Option A）：on-demand TLS —— 任何其他 HTTPS 請求（站台子網域與
+# 已驗證自訂網域）在第一次造訪時各自簽發憑證；ask 端點擋掉未知網域。
+# 不需要 DNS provider plugin，開箱即用。
+https:// {
+    tls {
+        on_demand
+    }
+    reverse_proxy app:8080
+}
+
+# Option B（註解保留）：wildcard 憑證 —— 一張 *.{$SITE_BASE_DOMAIN} 憑證
+# 涵蓋所有站台子網域，適合大量站台；需要 DNS provider plugin（DNS-01 驗證），
+# 例如以 caddy:2-alpine 為基底加裝 caddy-dns/cloudflare 後改用：
+#
+# *.{$SITE_BASE_DOMAIN} {
+#     tls {
+#         dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+#     }
+#     reverse_proxy app:8080
+# }
+#
+# 自訂網域仍走上方的 on-demand https:// 區塊（wildcard 憑證涵蓋不了它們）。

@@ -780,9 +780,57 @@ Highlights by category:
   - `list_artifacts` / `read_artifact` / `save_artifact` — the user's artifact library; `read_artifact` only returns text-like content (max 8000 chars), `save_artifact` respects the artifact max-file-size limit
   - `list_schedules` — the user's cron schedules
   - `memory_save` / `memory_recall` — per-user AI memory
+  - `create_site` / `write_site_files` / `list_sites` — AI Site Builder (see below)
 
 Tools are auto-registered: any `@Component` implementing `AgentNodeTool`
 (`execution/handler/handlers/ai/agent/tools/`) is picked up at startup.
+
+### AI Site Builder
+
+Users describe a site in natural language; the AI generates a multi-file static
+site that the platform hosts instantly at `/sites/{slug}/` (module: `site/`).
+Files are stored in PostgreSQL (`sites` + `site_files`, bytea).
+
+Management API (authenticated, owner-scoped):
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/sites` | List own sites (file count, size, url) |
+| POST | `/api/sites` | Create site `{name, description}` (slug auto-generated) |
+| GET | `/api/sites/{id}` | Site detail with file metadata list |
+| PUT | `/api/sites/{id}` | Rename / edit description / publish toggle |
+| DELETE | `/api/sites/{id}` | Delete site and all files |
+| PUT | `/api/sites/{id}/files` | Bulk upsert files `{files:[{path, content \| contentBase64, contentType?}]}` |
+| DELETE | `/api/sites/{id}/files?path=` | Delete one file |
+| GET | `/api/sites/{id}/files/content?path=` | Read one file as UTF-8 text (quick edit) |
+| POST | `/api/sites/{id}/deploy` | Experimental: deploy to Vercel `{provider:"vercel", credentialId}` using the user's own token from the encrypted credential store |
+
+Public serving: `GET /sites/{slug}/**` (permitAll, not under `/api`) serves
+stored files with `index.html` as the default document and an SPA fallback to
+`index.html` for extensionless paths.
+
+**Security model** — user-authored HTML/JS is served from the platform origin,
+so every `/sites/**` response (including 404s) carries:
+
+```
+Content-Security-Policy: sandbox allow-scripts allow-forms allow-popups allow-modals; default-src 'self' 'unsafe-inline' data: blob:
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+Cache-Control: public, max-age=60
+```
+
+The CSP `sandbox` directive is the load-bearing control: it forces the browser
+to place the document in a **unique opaque origin** (no `allow-same-origin`),
+so site scripts cannot read the platform's `localStorage`/JWT, cannot send
+credentialed requests, and cannot call `/api/**` as the logged-in user — even
+though the bytes are served from the platform host. Additional hardening:
+strict path sanitization (no `..`, leading `/`, backslashes, null bytes),
+an extension whitelist (html/css/js/json/svg/png/jpg/jpeg/gif/webp/ico/txt/woff2/map),
+reserved-word slug blocklist, and per-site limits
+(`n3n.sites.max-files` = 200, `max-file-bytes` = 5 MB, `max-site-bytes` = 20 MB,
+`max-sites-per-user` = 50; all env-overridable via `SITES_*`).
+
+Netlify deploy-out is future work (v1 ships Vercel only, marked experimental).
 
 ### Node Types
 

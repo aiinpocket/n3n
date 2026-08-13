@@ -840,6 +840,22 @@ export const nodeTypes: NodeTypeConfig[] = [
     description: 'nodeTypes.compression.description',
     category: 'files',
   },
+  {
+    value: 'pptxGenerate',
+    label: 'nodeTypes.pptxGenerate.label',
+    color: '#eb2f96',
+    icon: 'FilePptOutlined',
+    description: 'nodeTypes.pptxGenerate.description',
+    category: 'files',
+  },
+  {
+    value: 'docxGenerate',
+    label: 'nodeTypes.docxGenerate.label',
+    color: '#eb2f96',
+    icon: 'FileWordOutlined',
+    description: 'nodeTypes.docxGenerate.description',
+    category: 'files',
+  },
 
   // ==================== Interactive ====================
   {

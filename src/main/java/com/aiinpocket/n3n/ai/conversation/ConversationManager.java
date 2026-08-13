@@ -1,11 +1,14 @@
 package com.aiinpocket.n3n.ai.conversation;
 
+import com.aiinpocket.n3n.ai.entity.AiModuleConfig;
 import com.aiinpocket.n3n.ai.entity.Conversation;
+import com.aiinpocket.n3n.ai.repository.AiModuleConfigRepository;
 import com.aiinpocket.n3n.ai.repository.ConversationRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,7 +16,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Manages AI conversation history with automatic summarization.
+ * Manages AI conversation history with token-budget-based automatic compaction.
+ *
+ * 上下文預算：可用預算 = 模型 context window × usable-ratio（預留 system prompt 與回應空間）。
+ * 累積 token 超過預算的 compact-threshold（預設 70%）時，
+ * 將最舊的約一半訊息階層式摺疊進 rolling summary，保留最近的訊息原文。
  */
 @Service
 @Slf4j
@@ -22,17 +29,22 @@ public class ConversationManager {
 
     private final ConversationRepository conversationRepository;
     private final ConversationSummarizer conversationSummarizer;
+    private final ContextWindowRegistry contextWindowRegistry;
+    private final AiModuleConfigRepository aiModuleConfigRepository;
     private final ObjectMapper objectMapper;
 
     /**
-     * Maximum messages to keep in full context before summarization.
+     * Hard safety cap on messages kept verbatim, regardless of token budget.
      */
-    private static final int MAX_CONTEXT_MESSAGES = 20;
+    static final int MAX_CONTEXT_MESSAGES = 200;
 
-    /**
-     * Number of recent messages to keep after summarization.
-     */
-    private static final int RECENT_MESSAGES_TO_KEEP = 10;
+    /** 可用預算比例：window × ratio 為對話可用的 token 上限 */
+    @Value("${n3n.ai.context.usable-ratio:0.5}")
+    private double usableRatio;
+
+    /** 超過可用預算的此比例時觸發壓縮 */
+    @Value("${n3n.ai.context.compact-threshold:0.7}")
+    private double compactThreshold;
 
     /**
      * Create a new conversation.
@@ -91,41 +103,98 @@ public class ConversationManager {
         conversation.setMessageCount(messages.size());
         conversation.setUpdatedAt(LocalDateTime.now());
 
-        // Check if summarization is needed
-        if (conversationSummarizer.needsSummarization(messages.size(), MAX_CONTEXT_MESSAGES)) {
-            summarizeConversation(conversation);
+        // Token-budget check: compact when over threshold (or over the hard message cap)
+        if (needsCompaction(conversation)) {
+            compactConversation(conversation);
         }
 
         return conversationRepository.save(conversation);
     }
 
     /**
-     * Summarize older messages and keep recent ones.
+     * 是否需要壓縮：累積 token 超過可用預算的 compact-threshold，
+     * 或訊息數超過硬上限 {@link #MAX_CONTEXT_MESSAGES}。
      */
-    private void summarizeConversation(Conversation conversation) {
+    private boolean needsCompaction(Conversation conversation) {
         List<Map<String, Object>> messages = conversation.getMessages();
-        if (messages.size() <= RECENT_MESSAGES_TO_KEEP) {
+        if (messages == null || messages.size() < 2) {
+            return false;
+        }
+        if (messages.size() > MAX_CONTEXT_MESSAGES) {
+            return true;
+        }
+
+        int usedTokens = estimateConversationTokens(conversation);
+        long usableBudget = usableBudgetTokens(conversation.getUserId());
+        return usedTokens > compactThreshold * usableBudget;
+    }
+
+    /**
+     * 可用 token 預算 = 模型 context window × usable-ratio。
+     */
+    private long usableBudgetTokens(UUID userId) {
+        String model = resolveActiveModel(userId);
+        int window = contextWindowRegistry.windowFor(model);
+        return Math.round(window * usableRatio);
+    }
+
+    /**
+     * 追出使用者目前生效的模型名稱：
+     * 個人的 default 功能配置優先，否則沿用平台（管理員）配置；查無時回傳 null（用預設 window）。
+     */
+    private String resolveActiveModel(UUID userId) {
+        try {
+            if (userId != null) {
+                Optional<AiModuleConfig> userConfig = aiModuleConfigRepository
+                        .findByUserIdAndFeatureAndIsActiveTrue(userId, "default");
+                if (userConfig.isPresent()) {
+                    return userConfig.get().getModel();
+                }
+            }
+            return aiModuleConfigRepository
+                    .findByFeatureAndIsActiveTrueOrderByCreatedAtAsc("default")
+                    .stream().findFirst()
+                    .map(AiModuleConfig::getModel)
+                    .orElse(null);
+        } catch (Exception e) {
+            log.debug("Failed to resolve active model for user {}: {}", userId, e.getMessage());
+            return null;
+        }
+    }
+
+    /** 累積 token = rolling summary + 全部訊息 */
+    private int estimateConversationTokens(Conversation conversation) {
+        return TokenEstimator.estimate(conversation.getSummary())
+                + TokenEstimator.estimateMessages(conversation.getMessages());
+    }
+
+    /**
+     * 壓縮：把最舊的約一半訊息階層式摺疊進 rolling summary
+     * （新 summary = summarize(舊 summary + 被摺疊訊息)），保留最近的訊息原文。
+     */
+    private void compactConversation(Conversation conversation) {
+        List<Map<String, Object>> messages = conversation.getMessages();
+        if (messages.size() < 2) {
             return;
         }
 
+        int tokensBefore = estimateConversationTokens(conversation);
+
         try {
-            // Get messages to summarize (all except recent ones)
-            int splitIndex = messages.size() - RECENT_MESSAGES_TO_KEEP;
+            // Fold the oldest ~half into the summary, keep the recent tail verbatim
+            int splitIndex = messages.size() / 2;
             List<Map<String, Object>> toSummarize = messages.subList(0, splitIndex);
             List<Map<String, Object>> toKeep = new ArrayList<>(messages.subList(splitIndex, messages.size()));
 
-            // Generate summary
+            // Hierarchical summary: include the existing summary as context
             String existingSummary = conversation.getSummary();
             List<Map<String, Object>> contentToSummarize = new ArrayList<>();
-
-            // Include existing summary as context if present
             if (existingSummary != null && !existingSummary.isBlank()) {
                 Map<String, Object> summaryContext = new HashMap<>();
                 summaryContext.put("role", "system");
-                summaryContext.put("content", "Previous conversation summary:" + existingSummary);
+                summaryContext.put("content", "Previous conversation summary:\n" + existingSummary);
                 contentToSummarize.add(summaryContext);
             }
-
             contentToSummarize.addAll(toSummarize);
 
             String newSummary = conversationSummarizer.summarize(contentToSummarize, conversation.getUserId());
@@ -134,11 +203,14 @@ public class ConversationManager {
                 conversation.setSummary(newSummary);
                 conversation.setMessages(toKeep);
                 conversation.setMessageCount(toKeep.size());
-                log.info("Summarized conversation {}: {} messages -> {} messages + summary",
-                        conversation.getId(), messages.size(), toKeep.size());
+
+                int tokensAfter = estimateConversationTokens(conversation);
+                log.info("Compacted conversation {}: {} -> {} messages, ~{} -> ~{} tokens",
+                        conversation.getId(), messages.size(), toKeep.size(),
+                        tokensBefore, tokensAfter);
             }
         } catch (Exception e) {
-            log.error("Failed to summarize conversation {}", conversation.getId(), e);
+            log.error("Failed to compact conversation {}", conversation.getId(), e);
         }
     }
 

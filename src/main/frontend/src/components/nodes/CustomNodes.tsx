@@ -50,6 +50,8 @@ import {
   FileAddOutlined,
   FileExcelOutlined,
   FileZipOutlined,
+  FilePptOutlined,
+  FileWordOutlined,
   CloudUploadOutlined,
   ExportOutlined,
   SendOutlined,
@@ -142,6 +144,8 @@ const iconComponents: Record<string, React.ReactNode> = {
   FileAddOutlined: <FileAddOutlined />,
   FileExcelOutlined: <FileExcelOutlined />,
   FileZipOutlined: <FileZipOutlined />,
+  FilePptOutlined: <FilePptOutlined />,
+  FileWordOutlined: <FileWordOutlined />,
   // Interactive
   CheckCircleOutlined: <CheckCircleOutlined />,
   ThunderboltOutlined: <ThunderboltOutlined />,
