@@ -35,7 +35,7 @@ const OAuth2CallbackPage: React.FC = () => {
     } else if (success === 'true' || code) {
       setState('success')
     } else {
-      setErrorMessage(t('oauth2.callbackError'))
+      setErrorMessage(t('oauth2.missingParamsDesc'))
       setState('error')
     }
   }, [searchParams, t])

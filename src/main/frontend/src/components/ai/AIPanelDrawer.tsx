@@ -396,7 +396,9 @@ export default function AIPanelDrawer({
                         <List.Item.Meta
                           title={
                             <Tag color={getChangeTypeColor(change.type)}>
-                              {t(`aiPanel.changeType.${changeTypeLabelKeys[change.type] || change.type}`)}
+                              {changeTypeLabelKeys[change.type]
+                                ? t(`aiPanel.changeType.${changeTypeLabelKeys[change.type]}`)
+                                : change.type}
                             </Tag>
                           }
                           description={change.description}

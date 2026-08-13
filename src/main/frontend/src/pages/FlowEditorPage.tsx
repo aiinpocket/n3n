@@ -31,6 +31,7 @@ import {
   BookOutlined,
   UnorderedListOutlined,
   ApartmentOutlined,
+  EllipsisOutlined,
 } from '@ant-design/icons'
 import {
   ReactFlow,
@@ -78,6 +79,15 @@ const { Text } = Typography
 
 const AUTO_SAVE_DELAY = 5000 // 5 seconds
 
+interface GeneratedFlowDefinition {
+  nodes: Array<{ id: string; type: string; label?: string; config?: Record<string, unknown> }>
+  edges: Array<{ source: string; target: string }>
+}
+
+// Random suffix avoids duplicate IDs when nodes are added within the same millisecond
+const newNodeId = () =>
+  `node-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+
 export default function FlowEditorPage() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
@@ -100,6 +110,7 @@ export default function FlowEditorPage() {
     loadFlow,
     loadVersions,
     setNodes,
+    syncNodes,
     setEdges,
     setSelectedNodeId,
     setSelectedNodeIds,
@@ -163,6 +174,21 @@ export default function FlowEditorPage() {
     }
   }, [executionId])
 
+  // Toast feedback when an execution finishes
+  const prevExecutionStatusRef = useRef(executionStatus)
+  useEffect(() => {
+    const prev = prevExecutionStatusRef.current
+    prevExecutionStatusRef.current = executionStatus
+    if (prev === executionStatus || prev === 'idle') return
+    if (executionStatus === 'completed') {
+      message.success(t('execution.completed'))
+    } else if (executionStatus === 'failed') {
+      message.error(t('execution.failed'))
+    } else if (executionStatus === 'cancelled') {
+      message.warning(t('execution.cancelled'))
+    }
+  }, [executionStatus, t])
+
   // Memoize node types based on execution mode
   const memoizedNodeTypes = useMemo(
     () => (executionMode ? executionAwareNodeTypes : customNodeTypes),
@@ -194,9 +220,31 @@ export default function FlowEditorPage() {
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const [edgeConfigPosition, setEdgeConfigPosition] = useState<{ x: number; y: number } | null>(null)
 
-  // AI Assistant Store
-  const { openPanel: openAIPanel, isPanelOpen: aiPanelOpen } = useAIAssistantStore()
+  // AI Assistant Store — use selectors so streaming updates don't re-render the whole editor
+  const openAIPanel = useAIAssistantStore((state) => state.openPanel)
+  const aiPanelOpen = useAIAssistantStore((state) => state.isPanelOpen)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Stable flow definition for the AI assistant panel; a fresh object literal on
+  // every render would re-trigger the panel's context-sync effect endlessly
+  const aiFlowDefinition = useMemo(
+    () =>
+      nodes.length > 0
+        ? {
+            nodes: nodes.map((n) => ({
+              id: n.id,
+              type: n.type || 'unknown',
+              label: typeof n.data?.label === 'string' ? n.data.label : undefined,
+              config: n.data as Record<string, unknown>,
+            })),
+            edges: edges.map((e) => ({
+              source: e.source,
+              target: e.target,
+            })),
+          }
+        : undefined,
+    [nodes, edges]
+  )
 
   // Check if the flow has a Form Trigger node
   const hasFormTrigger = useMemo(
@@ -254,31 +302,51 @@ export default function FlowEditorPage() {
       loadFlow(id)
       loadVersions(id)
     }
-    return () => clearEditor()
+    return () => {
+      // Flush any pending auto-save so the last few seconds of edits aren't lost
+      // when navigating away (autoSaveDraft snapshots state synchronously)
+      const { isDirty: dirty, saving: inFlight, autoSaveDraft: flushDraft, currentFlow: flow } =
+        useFlowEditorStore.getState()
+      if (dirty && !inFlight && flow && flow.userPermission !== 'view') {
+        flushDraft().catch(() => { /* best effort - error already logged in store */ })
+      }
+      clearEditor()
+    }
   }, [id, loadFlow, loadVersions, clearEditor])
 
-  // Handle AI-generated flow from navigation state
-  useEffect(() => {
-    const state = location.state as { generatedFlow?: { nodes: Array<{ id: string; type: string; label?: string; config?: Record<string, unknown> }>; edges: Array<{ source: string; target: string }> } } | null
-    if (state?.generatedFlow) {
+  // Apply an AI-generated flow definition, keeping positions of nodes that already exist
+  const applyGeneratedFlow = useCallback(
+    (flowDef: GeneratedFlowDefinition) => {
       pushHistory()
-      const flowDef = state.generatedFlow
-      const newNodes = flowDef.nodes.map((n, i) => ({
-        id: n.id,
-        type: n.type,
-        position: { x: 250, y: i * 120 + 50 },
-        data: {
-          label: n.label || n.type,
-          nodeType: n.type,
-          ...n.config,
-        },
-      }))
+      const currentNodes = useFlowEditorStore.getState().nodes
+      const newNodes = flowDef.nodes.map((n, i) => {
+        const existing = currentNodes.find((cn) => cn.id === n.id)
+        return {
+          id: n.id,
+          type: n.type,
+          position: existing?.position || { x: 250, y: i * 120 + 50 },
+          data: {
+            label: n.label || n.type,
+            nodeType: n.type,
+            ...n.config,
+          },
+        }
+      })
       setNodes(newNodes)
       setEdges(flowDef.edges.map((e, i) => ({
         id: `edge-${i}`,
         source: e.source,
         target: e.target,
       })))
+    },
+    [pushHistory, setNodes, setEdges]
+  )
+
+  // Handle AI-generated flow from navigation state
+  useEffect(() => {
+    const state = location.state as { generatedFlow?: GeneratedFlowDefinition } | null
+    if (state?.generatedFlow) {
+      applyGeneratedFlow(state.generatedFlow)
       message.success(t('editor.aiFlowLoaded'))
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
@@ -316,6 +384,8 @@ export default function FlowEditorPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
+        // Some browsers (Safari, older Firefox) require returnValue to show the prompt
+        e.returnValue = ''
       }
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
@@ -342,11 +412,11 @@ export default function FlowEditorPage() {
         setSaveModalOpen(true)
       }
     }
-    // Ctrl+Shift+P or Cmd+Shift+P to publish
+    // Ctrl+Shift+P or Cmd+Shift+P to publish (same pre-publish modal as the toolbar button)
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
       e.preventDefault()
       if (currentVersion && currentVersion.status !== 'published') {
-        handlePublish()
+        setPublishModalOpen(true)
       }
     }
     // Ctrl+C or Cmd+C to copy (only intercept when nodes are selected to preserve native text copy)
@@ -435,6 +505,14 @@ export default function FlowEditorPage() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
+  // Re-render periodically so the "saved just now" label stays accurate
+  const [, setSavedTick] = useState(0)
+  useEffect(() => {
+    if (!lastSavedAt) return
+    const timer = setInterval(() => setSavedTick((v) => v + 1), 30000)
+    return () => clearInterval(timer)
+  }, [lastSavedAt])
+
   // Format last saved time
   const formatLastSaved = () => {
     if (!lastSavedAt) return null
@@ -448,10 +526,22 @@ export default function FlowEditorPage() {
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) => {
       const newNodes = applyNodeChanges(changes, nodes)
-      setNodes(newNodes)
+      // Selection and dimension (mount-time measurement) changes are not real edits;
+      // marking them dirty would trigger spurious auto-save drafts on load
+      const isRealChange = changes.some((c) => c.type !== 'select' && c.type !== 'dimensions')
+      if (isRealChange) {
+        setNodes(newNodes)
+      } else {
+        syncNodes(newNodes)
+      }
     },
-    [nodes, setNodes]
+    [nodes, setNodes, syncNodes]
   )
+
+  // Snapshot history when a node drag starts so drags are undoable
+  const onNodeDragStart = useCallback(() => {
+    pushHistory()
+  }, [pushHistory])
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
@@ -475,7 +565,7 @@ export default function FlowEditorPage() {
       const targetNode = nodes.find(n => n.id === connection.target)
       if (targetNode) {
         const targetType = (targetNode.data as Record<string, unknown>)?.nodeType as string
-        if (targetType === 'trigger' || targetType === 'webhook_trigger' || targetType === 'schedule_trigger' || targetType === 'form_trigger') {
+        if (targetType && getNodeConfig(targetType)?.category === 'triggers') {
           return false
         }
       }
@@ -497,7 +587,7 @@ export default function FlowEditorPage() {
     pushHistory()
     const nodeConfig = getNodeConfig(type)
     const newNode: Node = {
-      id: `node-${Date.now()}`,
+      id: newNodeId(),
       type: type, // Use the actual type for custom node rendering
       position: { x: 250, y: nodes.length * 100 + 50 },
       data: {
@@ -512,7 +602,7 @@ export default function FlowEditorPage() {
   const handleAddServiceNode = (service: ExternalService, endpoint: ServiceEndpoint) => {
     pushHistory()
     const newNode: Node = {
-      id: `node-${Date.now()}`,
+      id: newNodeId(),
       type: 'externalService',
       position: { x: 250, y: nodes.length * 100 + 50 },
       data: {
@@ -648,6 +738,22 @@ export default function FlowEditorPage() {
     }
   }
 
+  // Execute the flow; persist pending edits first so the run reflects the canvas
+  const handleExecute = useCallback(async () => {
+    if (!currentVersion) return
+    setExecutionMode(true)
+    try {
+      if (canEdit && useFlowEditorStore.getState().isDirty) {
+        await autoSaveDraft()
+        setAutoSaveFailed(false)
+      }
+      await startExecution(useFlowEditorStore.getState().currentVersion?.version)
+    } catch (error) {
+      message.error(extractApiError(error, t('execution.executeFailed')))
+      setExecutionMode(false)
+    }
+  }, [currentVersion, canEdit, autoSaveDraft, startExecution, t])
+
   const handleValidate = async () => {
     const result = await validateVersion()
     if (result) {
@@ -759,10 +865,24 @@ export default function FlowEditorPage() {
                 navigate('/flows')
               }
             }} aria-label={t('common.back')} />
-            <span>{currentFlow?.name || t('common.loading')}</span>
+            <span
+              title={currentFlow?.name}
+              style={{
+                display: 'inline-block',
+                minWidth: 80,
+                maxWidth: 220,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                verticalAlign: 'bottom',
+              }}
+            >
+              {currentFlow?.name || t('common.loading')}
+            </span>
             {currentVersion && (
-              <Tag color={currentVersion.status === 'published' ? 'green' : 'default'}>
-                {currentVersion.version}
+              <Tag color={currentVersion.status === 'published' ? 'green' : 'default'} title={currentVersion.version}>
+                {/* Auto-save drafts have timestamp names; show a friendly label instead */}
+                {currentVersion.version.startsWith('draft-') ? t('flow.draft') : currentVersion.version}
               </Tag>
             )}
             {executionMode && (
@@ -791,7 +911,7 @@ export default function FlowEditorPage() {
           </Space>
         }
         extra={
-          <Space>
+          <Space wrap>
             {canEdit && (
               <>
                 <Tooltip title={`${t('editor.undo')} (Ctrl+Z)`}>
@@ -878,26 +998,6 @@ export default function FlowEditorPage() {
                 {t('editor.aiFeatures')}
               </Button>
             </Dropdown>
-            <Dropdown menu={versionMenu} placement="bottomRight" disabled={versions.length === 0}>
-              <Button icon={<HistoryOutlined />}>
-                {t('editor.versionHistory')} ({versions.length})
-              </Button>
-            </Dropdown>
-            <Button
-              icon={<UnorderedListOutlined />}
-              onClick={() => navigate(`/executions?flowId=${id}`)}
-            >
-              {t('flow.viewExecutions')}
-            </Button>
-            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
-              <Button
-                icon={<ExportOutlined />}
-                onClick={() => setExportModalOpen(true)}
-                disabled={!currentVersion}
-              >
-                {t('flow.export')}
-              </Button>
-            </Tooltip>
             <Tooltip title={t('editor.autoLayout')}>
               <Button
                 icon={<ApartmentOutlined />}
@@ -906,21 +1006,49 @@ export default function FlowEditorPage() {
                 aria-label={t('editor.autoLayout')}
               />
             </Tooltip>
-            <Tooltip title={!currentVersion ? t('editor.saveVersionFirst') : ''}>
-              <Button
-                icon={<BookOutlined />}
-                onClick={() => {
-                  templateForm.setFieldsValue({
-                    name: currentFlow?.name || '',
-                    description: currentFlow?.description || '',
-                  })
-                  setTemplateModalOpen(true)
-                }}
-                disabled={!currentVersion}
-              >
-                {t('flow.saveAsTemplate')}
-              </Button>
-            </Tooltip>
+            {/* Secondary actions grouped so the toolbar fits common laptop widths */}
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: 'versions',
+                    icon: <HistoryOutlined />,
+                    label: `${t('editor.versionHistory')} (${versions.length})`,
+                    disabled: versions.length === 0,
+                    children: versions.length > 0 ? versionMenu.items : undefined,
+                  },
+                  {
+                    key: 'viewExecutions',
+                    icon: <UnorderedListOutlined />,
+                    label: t('flow.viewExecutions'),
+                    onClick: () => navigate(`/executions?flowId=${id}`),
+                  },
+                  {
+                    key: 'export',
+                    icon: <ExportOutlined />,
+                    label: t('flow.export'),
+                    disabled: !currentVersion,
+                    onClick: () => setExportModalOpen(true),
+                  },
+                  {
+                    key: 'saveAsTemplate',
+                    icon: <BookOutlined />,
+                    label: t('flow.saveAsTemplate'),
+                    disabled: !currentVersion,
+                    onClick: () => {
+                      templateForm.setFieldsValue({
+                        name: currentFlow?.name || '',
+                        description: currentFlow?.description || '',
+                      })
+                      setTemplateModalOpen(true)
+                    },
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <Button icon={<EllipsisOutlined />} aria-label={t('common.more')} />
+            </Dropdown>
             {canEdit && (
               <>
                 <Tooltip title={!isDirty ? t('editor.noChanges') : ''}>
@@ -998,15 +1126,7 @@ export default function FlowEditorPage() {
                   type="primary"
                   icon={<PlayCircleOutlined />}
                   disabled={!currentVersion}
-                  onClick={async () => {
-                    setExecutionMode(true)
-                    try {
-                      await startExecution(currentVersion?.version)
-                    } catch (error) {
-                      message.error(extractApiError(error, t('execution.executeFailed')))
-                      setExecutionMode(false)
-                    }
-                  }}
+                  onClick={handleExecute}
                 >
                   {currentVersion?.status === 'draft' ? t('editor.testDraft') : t('editor.executeAndMonitor')}
                 </Button>
@@ -1014,7 +1134,11 @@ export default function FlowEditorPage() {
             )}
           </Space>
         }
-        styles={{ body: { padding: 0, height: 'calc(100vh - 200px)', position: 'relative' } }}
+        styles={{
+          // Keep the flow name readable even when the toolbar is wide (it wraps instead)
+          title: { minWidth: 180 },
+          body: { padding: 0, height: 'calc(100vh - 200px)', position: 'relative' },
+        }}
       >
         <ReactFlow
           nodes={displayNodes}
@@ -1027,6 +1151,7 @@ export default function FlowEditorPage() {
             animated: false,
           }}
           onNodesChange={(executionMode || isReadOnly) ? undefined : onNodesChange}
+          onNodeDragStart={(executionMode || isReadOnly) ? undefined : onNodeDragStart}
           onEdgesChange={(executionMode || isReadOnly) ? undefined : onEdgesChange}
           onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
           isValidConnection={isValidConnection}
@@ -1118,6 +1243,8 @@ export default function FlowEditorPage() {
           <ExecutionOverlay
             executionId={activeExecutionId}
             flowId={id || ''}
+            version={currentVersion?.version}
+            totalNodes={nodes.length}
             onClose={() => {
               setExecutionMode(false)
               clearExecution()
@@ -1223,12 +1350,7 @@ export default function FlowEditorPage() {
         }}
         flowId={id || ''}
         version={currentVersion?.version || ''}
-        onPublish={async () => {
-          if (currentVersion) {
-            await publishVersion(currentVersion.version)
-            if (id) loadVersions(id)
-          }
-        }}
+        onPublish={handlePublish}
         onHighlightNodes={(nodeIds) => {
           if (nodeIds.length > 0) {
             setSelectedNodeId(nodeIds[0])
@@ -1402,24 +1524,7 @@ export default function FlowEditorPage() {
         initialDescription={flowGeneratorInitialDesc}
         onCreateFlow={(flowDef) => {
           if (flowDef) {
-            pushHistory()
-            // Convert generated flow to react-flow nodes
-            const newNodes = flowDef.nodes.map((n, i) => ({
-              id: n.id,
-              type: n.type,
-              position: { x: 250, y: i * 120 + 50 },
-              data: {
-                label: n.label || n.type,
-                nodeType: n.type,
-                ...n.config,
-              },
-            }))
-            setNodes(newNodes)
-            setEdges(flowDef.edges.map((e, i) => ({
-              id: `edge-${i}`,
-              source: e.source,
-              target: e.target,
-            })))
+            applyGeneratedFlow(flowDef)
             message.success(t('flow.createdCanAdjust'))
           }
         }}
@@ -1439,17 +1544,7 @@ export default function FlowEditorPage() {
             setPublishModalOpen(true)
           }
         }}
-        onExecute={async () => {
-          if (currentVersion) {
-            setExecutionMode(true)
-            try {
-              await startExecution(currentVersion?.version)
-            } catch (error) {
-              message.error(extractApiError(error, t('execution.executeFailed')))
-              setExecutionMode(false)
-            }
-          }
-        }}
+        onExecute={handleExecute}
         onAddNode={() => {
           // Open the add node dropdown - we'll just add a trigger node for now
           handleAddNode('trigger')
@@ -1470,37 +1565,9 @@ export default function FlowEditorPage() {
           setFlowGeneratorInitialDesc(desc)
           setFlowGeneratorOpen(true)
         }}
-        flowDefinition={nodes.length > 0 ? {
-          nodes: nodes.map(n => ({
-            id: n.id,
-            type: n.type || 'unknown',
-            label: typeof n.data?.label === 'string' ? n.data.label : undefined,
-            config: n.data as Record<string, unknown>,
-          })),
-          edges: edges.map(e => ({
-            source: e.source,
-            target: e.target,
-          })),
-        } : undefined}
+        flowDefinition={aiFlowDefinition}
         onApplyFlowChanges={(flowDef) => {
-          // Apply the AI-generated flow changes
-          pushHistory()
-          const newNodes = flowDef.nodes.map((n, i) => ({
-            id: n.id,
-            type: n.type,
-            position: { x: 250, y: i * 120 + 50 },
-            data: {
-              label: n.label || n.type,
-              nodeType: n.type,
-              ...n.config,
-            },
-          }))
-          setNodes(newNodes)
-          setEdges(flowDef.edges.map((e, i) => ({
-            id: `edge-${i}`,
-            source: e.source,
-            target: e.target,
-          })))
+          applyGeneratedFlow(flowDef)
           message.success(t('editor.flowChangesApplied'))
         }}
       /></Suspense>}
@@ -1539,7 +1606,20 @@ export default function FlowEditorPage() {
             {executionNodeDetail.error && (
               <div>
                 <Text strong type="danger">{t('common.error')}: </Text>
-                <Text type="danger">{executionNodeDetail.error}</Text>
+                <pre style={{
+                  color: 'var(--color-danger, #BC5148)',
+                  background: 'rgba(188, 81, 72, 0.08)',
+                  padding: 12,
+                  borderRadius: 6,
+                  maxHeight: 240,
+                  overflow: 'auto',
+                  fontSize: 12,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  marginTop: 8,
+                }}>
+                  {executionNodeDetail.error}
+                </pre>
               </div>
             )}
             {executionNodeDetail.output && (

@@ -85,9 +85,10 @@ export default function RegisterPage() {
           >
             <Form.Item
               name="name"
+              label={t('auth.name')}
               rules={[
                 { required: true, message: t('auth.nameRequired') },
-                { min: 2, message: t('auth.nameRequired') },
+                { min: 2, message: t('common.minLength', { min: 2 }) },
                 { max: 100, message: t('common.maxLength', { max: 100 }) },
               ]}
             >
@@ -101,6 +102,7 @@ export default function RegisterPage() {
 
             <Form.Item
               name="email"
+              label={t('auth.email')}
               rules={[
                 { required: true, message: t('auth.emailRequired') },
                 { type: 'email', message: t('auth.emailInvalid') },
@@ -117,6 +119,7 @@ export default function RegisterPage() {
 
             <Form.Item
               name="password"
+              label={t('auth.password')}
               rules={[
                 { required: true, message: t('auth.passwordRequired') },
                 { min: 12, message: t('auth.passwordMinLength') },
@@ -145,6 +148,7 @@ export default function RegisterPage() {
 
             <Form.Item
               name="confirmPassword"
+              label={t('auth.confirmPassword')}
               dependencies={['password']}
               rules={[
                 { required: true, message: t('auth.passwordRequired') },

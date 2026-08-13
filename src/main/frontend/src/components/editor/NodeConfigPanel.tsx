@@ -117,18 +117,22 @@ export default function NodeConfigPanel({
 
   const [handlerMissing, setHandlerMissing] = useState(false)
 
-  // Load node type info
+  // Load node type info (stale guard: rapid node switches must not let an old
+  // response overwrite the newer node's schema)
   useEffect(() => {
     if (nodeType) {
+      let active = true
       setLoading(true)
       setLoadError(null)
       setHandlerMissing(false)
       fetchNodeType(nodeType)
         .then((info) => {
+          if (!active) return
           setNodeTypeInfo(info)
           setLoadError(null)
         })
         .catch((err) => {
+          if (!active) return
           logger.warn(`Failed to load node type info for "${nodeType}":`, err)
           setNodeTypeInfo(null)
           if (err?.response?.status === 404) {
@@ -137,7 +141,12 @@ export default function NodeConfigPanel({
             setLoadError(t('editor.loadNodeTypeFailed') + ': ' + (err.message || t('common.error')))
           }
         })
-        .finally(() => setLoading(false))
+        .finally(() => {
+          if (active) setLoading(false)
+        })
+      return () => {
+        active = false
+      }
     } else {
       setNodeTypeInfo(null)
     }
@@ -146,10 +155,12 @@ export default function NodeConfigPanel({
   // Load endpoint schema for external service nodes
   useEffect(() => {
     if (isExternalService && nodeData?.serviceId && nodeData?.endpointId) {
+      let active = true
       serviceApi
         .getEndpointSchema(nodeData.serviceId as string, nodeData.endpointId as string)
-        .then(setEndpointSchema)
-        .catch(() => setEndpointSchema(null))
+        .then((schema) => { if (active) setEndpointSchema(schema) })
+        .catch(() => { if (active) setEndpointSchema(null) })
+      return () => { active = false }
     } else {
       setEndpointSchema(null)
     }
@@ -158,10 +169,12 @@ export default function NodeConfigPanel({
   // Load upstream outputs for input mapping
   useEffect(() => {
     if (flowId && flowVersion && node?.id) {
+      let active = true
       flowApi
         .getUpstreamOutputs(flowId, flowVersion, node.id)
-        .then(setUpstreamOutputs)
-        .catch(() => setUpstreamOutputs([]))
+        .then((outputs) => { if (active) setUpstreamOutputs(outputs) })
+        .catch(() => { if (active) setUpstreamOutputs([]) })
+      return () => { active = false }
     } else {
       setUpstreamOutputs([])
     }
@@ -285,7 +298,11 @@ export default function NodeConfigPanel({
     setAiCodeFieldKey(null)
   }
 
-  const renderField = (key: string, property: SchemaProperty) => {
+  const renderField = (key: string, property: SchemaProperty, required = false) => {
+    const requiredRules = required
+      ? [{ required: true, message: t('editor.enterField', { field: property.title || key }) }]
+      : undefined
+
     // Code editor for code fields
     if (property.format === 'code' || property.language) {
       return (
@@ -317,10 +334,13 @@ export default function NodeConfigPanel({
               </Button>
             </div>
             <div style={{ border: '1px solid var(--color-border)', borderRadius: 6 }}>
+              {/* Controlled value from node data: antd can't inject form values into
+                  a plain <div> child, so without this saved code renders as empty */}
               <Editor
                 height="200px"
                 language={property.language || 'javascript'}
                 theme="vs-dark"
+                value={(nodeData?.[key] as string) ?? (property.default as string) ?? ''}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,
@@ -349,6 +369,7 @@ export default function NodeConfigPanel({
           label={property.title || key}
           tooltip={property.description}
           initialValue={property.default}
+          rules={requiredRules}
         >
           <Select>
             {property.enum.map((option) => (
@@ -386,6 +407,7 @@ export default function NodeConfigPanel({
           label={property.title || key}
           tooltip={property.description}
           initialValue={property.default}
+          rules={requiredRules}
         >
           <InputNumber
             style={{ width: '100%' }}
@@ -405,6 +427,7 @@ export default function NodeConfigPanel({
           label={property.title || key}
           tooltip={property.description}
           help={property.type === 'array' ? t('editor.jsonArrayHint') : undefined}
+          rules={requiredRules}
         >
           <TextArea rows={property.type === 'array' ? 8 : 4} placeholder={t('editor.enterField', { field: property.title || key })} />
         </Form.Item>
@@ -419,6 +442,7 @@ export default function NodeConfigPanel({
         label={property.title || key}
         tooltip={property.description}
         initialValue={property.default}
+        rules={requiredRules}
       >
         <Input
           placeholder={property.description || t('editor.enterField', { field: property.title || key })}
@@ -497,7 +521,7 @@ export default function NodeConfigPanel({
       }
 
       return Object.entries(schema.properties).map(([key, property]) =>
-        renderField(key, property as SchemaProperty)
+        renderField(key, property as SchemaProperty, schema.required?.includes(key))
       )
     }
 
@@ -721,12 +745,13 @@ export default function NodeConfigPanel({
               style={{ marginBottom: 16 }}
             />
           )}
+          {/* No initialValues here: resetFields() would restore the FIRST node's data
+              when switching nodes, polluting other nodes' config forms */}
           <Form
             form={form}
             layout="vertical"
             onValuesChange={handleValuesChange}
             onBlur={flushPendingUpdate}
-            initialValues={node.data}
             disabled={readOnly}
           >
             {renderNodeTabs()}

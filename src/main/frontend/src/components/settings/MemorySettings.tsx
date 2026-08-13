@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Card, Typography, Divider, Input, Button, Select, Tag, List, Space, Popconfirm, Empty, message } from 'antd'
+import { Card, Typography, Divider, Input, Button, Select, Tag, List, Space, Popconfirm, Empty, Tooltip, message } from 'antd'
 import { BulbOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ClearOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { aiMemoryApi, UserMemory, MemoryCategory } from '../../api/aiMemory'
@@ -159,16 +159,18 @@ export default function MemorySettings() {
                     </Button>,
                   ]
                 : [
-                    <Button
-                      key="edit"
-                      type="text"
-                      size="small"
-                      icon={<EditOutlined />}
-                      onClick={() => {
-                        setEditingId(memory.id)
-                        setEditingContent(memory.content)
-                      }}
-                    />,
+                    <Tooltip key="edit" title={t('common.edit')}>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditingId(memory.id)
+                          setEditingContent(memory.content)
+                        }}
+                        aria-label={t('common.edit')}
+                      />
+                    </Tooltip>,
                     <Popconfirm
                       key="delete"
                       title={t('memory.deleteConfirm')}
@@ -177,7 +179,9 @@ export default function MemorySettings() {
                       cancelText={t('common.cancel')}
                       onConfirm={() => handleDelete(memory.id)}
                     >
-                      <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                      <Tooltip title={t('common.delete')}>
+                        <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label={t('common.delete')} />
+                      </Tooltip>
                     </Popconfirm>,
                   ]
             }

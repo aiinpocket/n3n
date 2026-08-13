@@ -36,6 +36,8 @@ class WebSocketService {
   private baseReconnectDelay = 1000;
   private connectPromise: Promise<void> | null = null;
   onReconnectFailed: (() => void) | null = null;
+  // Notified on every connect/disconnect so UI state can track reconnections
+  onConnectionChange: ((connected: boolean) => void) | null = null;
 
   connect(): Promise<void> {
     // If already connected, resolve immediately
@@ -82,6 +84,7 @@ class WebSocketService {
         this.connectPromise = null;
         // Re-subscribe to all topics that have handlers
         this.resubscribeAll();
+        this.onConnectionChange?.(true);
         resolve();
       };
 
@@ -101,6 +104,7 @@ class WebSocketService {
       this.client.onWebSocketClose = () => {
         this.connected = false;
         this.subscriptions.clear();
+        this.onConnectionChange?.(false);
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           const nextDelay = Math.round(this.getReconnectDelay() / 1000);

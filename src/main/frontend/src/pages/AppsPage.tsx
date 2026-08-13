@@ -287,7 +287,9 @@ export default function AppsPage() {
                       cancelText={t('common.cancel')}
                       onConfirm={() => confirmDelete(app)}
                     >
-                      <Button type="text" danger icon={<DeleteOutlined />} />
+                      <Tooltip title={t('common.delete')}>
+                        <Button type="text" danger icon={<DeleteOutlined />} aria-label={t('common.delete')} />
+                      </Tooltip>
                     </Popconfirm>,
                   ]}
                 >

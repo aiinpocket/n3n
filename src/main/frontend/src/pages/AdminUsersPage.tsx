@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Typography, Card, Tooltip, Popconfirm, Spin, Descriptions, Empty } from 'antd'
 import {
   UserAddOutlined,
@@ -16,6 +16,7 @@ import { useAuthStore } from '../stores/authStore'
 import { adminApi, type AdminUser } from '../api/admin'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
+import { useDebounce } from '../hooks/useDebounce'
 
 const { Title } = Typography
 
@@ -34,16 +35,15 @@ export default function AdminUsersPage() {
   const [createLoading, setCreateLoading] = useState(false)
   const [rolesLoading, setRolesLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debouncedSearchText = useDebounce(searchText, 300)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [detailUser, setDetailUser] = useState<AdminUser | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
 
-  const loadUsers = useCallback(async (p = 0, search?: string) => {
+  const loadUsers = useCallback(async (p = 0) => {
     setLoading(true)
     try {
-      const q = search !== undefined ? search : searchText
-      const res = await adminApi.listUsers(p, 20, q || undefined)
+      const res = await adminApi.listUsers(p, 20, debouncedSearchText || undefined)
       setUsers(res.content || [])
       setTotal(res.totalElements || 0)
       setPage(p)
@@ -52,21 +52,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [t, searchText])
-
-  const handleSearch = useCallback((value: string) => {
-    setSearchText(value)
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
-    searchTimerRef.current = setTimeout(() => {
-      loadUsers(0, value)
-    }, 300)
-  }, [loadUsers])
-
-  useEffect(() => {
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
-    }
-  }, [])
+  }, [t, debouncedSearchText])
 
   useEffect(() => { loadUsers() }, [loadUsers])
 
@@ -326,7 +312,7 @@ export default function AdminUsersPage() {
           prefix={<SearchOutlined />}
           placeholder={t('admin.searchPlaceholder')}
           value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearchText(e.target.value)}
           allowClear
           style={{ marginBottom: 16, maxWidth: 400 }}
         />
@@ -384,9 +370,21 @@ export default function AdminUsersPage() {
             <Input placeholder={t('admin.namePlaceholder')} maxLength={100} />
           </Form.Item>
           <Form.Item name="password" label={t('admin.password')} rules={[
+            { required: true, message: t('auth.passwordRequired') },
             { min: 12, message: t('auth.passwordTooShort') },
             { max: 128, message: t('common.maxLength', { max: 128 }) },
-          ]}>
+            {
+              validator: (_, value) => {
+                if (!value) return Promise.resolve()
+                let criteria = 0
+                if (/[A-Z]/.test(value)) criteria++
+                if (/[a-z]/.test(value)) criteria++
+                if (/\d/.test(value)) criteria++
+                if (/[^a-zA-Z0-9]/.test(value)) criteria++
+                return criteria >= 3 ? Promise.resolve() : Promise.reject(new Error(t('auth.passwordComplexity')))
+              },
+            },
+          ]} extra={t('auth.passwordHint')}>
             <Input.Password placeholder={t('admin.passwordPlaceholder')} maxLength={128} />
           </Form.Item>
           <Form.Item name="roles" label={t('admin.roles')} initialValue={['USER']}>

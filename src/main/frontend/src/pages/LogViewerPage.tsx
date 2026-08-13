@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { logsApi, createLogStream, type LogEntry, type LogStreamHandle } from '../api/logs'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
+import { useDebounce } from '../hooks/useDebounce'
 
 const { Text } = Typography
 
@@ -41,6 +42,7 @@ export default function LogViewerPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [level, setLevel] = useState<string>('ALL')
   const [search, setSearch] = useState(searchParams.get('search') || '')
+  const debouncedSearch = useDebounce(search, 300)
   const [streaming, setStreaming] = useState(false)
   const eventSourceRef = useRef<LogStreamHandle | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -49,14 +51,14 @@ export default function LogViewerPage() {
     setLoading(true)
     setLoadError(null)
     try {
-      const data = await logsApi.getLogs(level, search || undefined, 200)
+      const data = await logsApi.getLogs(level, debouncedSearch || undefined, 200)
       setLogs(data)
     } catch (error) {
       setLoadError(extractApiError(error, t('common.loadFailed')))
     } finally {
       setLoading(false)
     }
-  }, [level, search])
+  }, [level, debouncedSearch])
 
   useEffect(() => {
     loadLogs()

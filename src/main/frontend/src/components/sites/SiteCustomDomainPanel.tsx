@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Input, Popconfirm, Space, Table, Tag, Typography, message } from 'antd'
+import { Button, Input, Popconfirm, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
 import {
   CheckCircleOutlined,
   CopyOutlined,
@@ -112,12 +112,15 @@ export default function SiteCustomDomainPanel({ siteId, onChanged }: SiteCustomD
           <Text code style={{ fontSize: 12 }}>
             {host}
           </Text>
-          <Button
-            type="text"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => void copyValue(host)}
-          />
+          <Tooltip title={t('common.copy')}>
+            <Button
+              type="text"
+              size="small"
+              icon={<CopyOutlined />}
+              onClick={() => void copyValue(host)}
+              aria-label={t('common.copy')}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -130,12 +133,15 @@ export default function SiteCustomDomainPanel({ siteId, onChanged }: SiteCustomD
           <Text code style={{ fontSize: 12 }}>
             {value}
           </Text>
-          <Button
-            type="text"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => void copyValue(value)}
-          />
+          <Tooltip title={t('common.copy')}>
+            <Button
+              type="text"
+              size="small"
+              icon={<CopyOutlined />}
+              onClick={() => void copyValue(value)}
+              aria-label={t('common.copy')}
+            />
+          </Tooltip>
         </Space>
       ),
     },

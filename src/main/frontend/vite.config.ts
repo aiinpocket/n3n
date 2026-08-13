@@ -1,17 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Backend port is overridable so dev works against non-default deployments
+// (e.g. BACKEND_PORT=18080 npm run dev)
+const backendPort = process.env.BACKEND_PORT || '8080'
+
 export default defineConfig({
   plugins: [react()],
+  // sockjs-client references the Node-style `global`; map it for the browser
+  define: {
+    global: 'globalThis',
+  },
   server: {
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: `http://localhost:${backendPort}`,
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:8080',
+        target: `ws://localhost:${backendPort}`,
         ws: true,
       },
     },

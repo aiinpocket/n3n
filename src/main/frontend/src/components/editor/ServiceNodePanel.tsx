@@ -35,18 +35,19 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
       const response = await serviceApi.listServices(0, 100)
       setServices(response.content)
 
-      // Load endpoints for each service
-      const endpointsMap: Record<string, ServiceEndpoint[]> = {}
-      for (const service of response.content) {
-        try {
-          const eps = await serviceApi.getEndpoints(service.id)
-          endpointsMap[service.id] = eps
-        } catch (error) {
-          logger.warn(`Failed to load endpoints for service ${service.id}:`, error)
-          endpointsMap[service.id] = []
-        }
-      }
-      setEndpoints(endpointsMap)
+      // Load endpoints for each service in parallel
+      const entries = await Promise.all(
+        response.content.map(async (service): Promise<[string, ServiceEndpoint[]]> => {
+          try {
+            const eps = await serviceApi.getEndpoints(service.id)
+            return [service.id, eps]
+          } catch (error) {
+            logger.warn(`Failed to load endpoints for service ${service.id}:`, error)
+            return [service.id, []]
+          }
+        })
+      )
+      setEndpoints(Object.fromEntries(entries))
     } catch (error) {
       logger.error('Failed to load services:', error)
       message.error(t('common.loadFailed'))

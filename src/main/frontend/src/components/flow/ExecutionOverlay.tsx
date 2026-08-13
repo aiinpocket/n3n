@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Badge, Button, Space, Tag, Progress, Card, message } from 'antd'
+import { Badge, Button, Space, Tag, Progress, Card, message, Popconfirm } from 'antd'
 import {
   PlayCircleOutlined,
   LoadingOutlined,
@@ -17,6 +17,10 @@ import { extractApiError } from '../../utils/errorMessages'
 interface ExecutionOverlayProps {
   executionId: string | null
   flowId: string
+  /** Version to execute (e.g. current draft); keeps re-runs consistent with the toolbar */
+  version?: string
+  /** Total node count of the flow, for accurate progress */
+  totalNodes?: number
   onClose: () => void
   onExecutionStart?: (executionId: string) => void
 }
@@ -24,6 +28,8 @@ interface ExecutionOverlayProps {
 export default function ExecutionOverlay({
   executionId,
   flowId,
+  version,
+  totalNodes,
   onClose,
   onExecutionStart,
 }: ExecutionOverlayProps) {
@@ -32,12 +38,13 @@ export default function ExecutionOverlay({
   const { startExecution, cancelExecution } = useExecutionActions()
 
   const [starting, setStarting] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   const handleStart = async () => {
     if (starting) return
     setStarting(true)
     try {
-      const response = await startExecution({ flowId })
+      const response = await startExecution({ flowId, version })
       onExecutionStart?.(response.id)
     } catch (error) {
       logger.error('Failed to start execution:', error)
@@ -48,12 +55,16 @@ export default function ExecutionOverlay({
   }
 
   const handleCancel = async () => {
-    if (!executionId) return
+    if (!executionId || cancelling) return
+    setCancelling(true)
     try {
       await cancelExecution(executionId)
+      message.success(t('execution.cancelled'))
     } catch (error) {
       logger.error('Failed to cancel execution:', error)
       message.error(extractApiError(error, t('execution.cancelFailed')))
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -108,10 +119,13 @@ export default function ExecutionOverlay({
     }
   }, [execution])
 
+  // Use the flow's real node count as denominator when available; the number of
+  // reported node states starts at 1 and would show a misleading 100% early on
   const progressPercent = useMemo(() => {
-    if (nodeStats.total === 0) return 0
-    return Math.round((nodeStats.completed / nodeStats.total) * 100)
-  }, [nodeStats])
+    const denominator = totalNodes && totalNodes > 0 ? totalNodes : nodeStats.total
+    if (denominator === 0) return 0
+    return Math.min(100, Math.round((nodeStats.completed / denominator) * 100))
+  }, [nodeStats, totalNodes])
 
   if (!executionId) {
     return (
@@ -181,7 +195,7 @@ export default function ExecutionOverlay({
               }}
             />
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              {t('execution.nodesCompleted', { completed: nodeStats.completed, total: nodeStats.total })}
+              {t('execution.nodesCompleted', { completed: nodeStats.completed, total: totalNodes && totalNodes > 0 ? totalNodes : nodeStats.total })}
               {nodeStats.running > 0 && ` (${nodeStats.running} ${t('execution.running')})`}
             </div>
           </div>
@@ -204,6 +218,9 @@ export default function ExecutionOverlay({
               padding: 8,
               fontSize: 12,
               color: 'var(--color-error)',
+              maxHeight: 120,
+              overflow: 'auto',
+              wordBreak: 'break-word',
             }}
           >
             {execution.error}
@@ -213,9 +230,16 @@ export default function ExecutionOverlay({
         {/* Actions */}
         <Space>
           {execution?.status === 'running' && (
-            <Button size="small" danger onClick={handleCancel}>
-              {t('execution.cancel')}
-            </Button>
+            <Popconfirm
+              title={t('execution.cancelConfirm')}
+              okText={t('common.confirm')}
+              cancelText={t('common.cancel')}
+              onConfirm={handleCancel}
+            >
+              <Button size="small" danger loading={cancelling}>
+                {t('execution.cancel')}
+              </Button>
+            </Popconfirm>
           )}
           {(execution?.status === 'completed' ||
             execution?.status === 'failed' ||

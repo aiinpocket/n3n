@@ -222,7 +222,9 @@ export default function SitesPage() {
           <Text type="secondary">{t('sites.subtitle')}</Text>
         </div>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={() => void load()} />
+          <Tooltip title={t('common.refresh')}>
+            <Button icon={<ReloadOutlined />} onClick={() => void load()} aria-label={t('common.refresh')} />
+          </Tooltip>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {t('sites.create')}
           </Button>
@@ -422,19 +424,23 @@ export default function SitesPage() {
                   renderItem={(file) => (
                     <List.Item
                       actions={[
-                        <Button
-                          key="edit"
-                          type="text"
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => void openFile(detail.site.id, file.path)}
-                        />,
+                        <Tooltip key="edit" title={t('common.edit')}>
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => void openFile(detail.site.id, file.path)}
+                            aria-label={t('common.edit')}
+                          />
+                        </Tooltip>,
                         <Popconfirm
                           key="delete"
                           title={t('sites.fileDeleteConfirm')}
                           onConfirm={() => void deleteFile(file.path)}
                         >
-                          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                          <Tooltip title={t('common.delete')}>
+                            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label={t('common.delete')} />
+                          </Tooltip>
                         </Popconfirm>,
                       ]}
                     >

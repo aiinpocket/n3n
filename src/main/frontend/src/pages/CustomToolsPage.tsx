@@ -408,18 +408,23 @@ export default function CustomToolsPage() {
     }
   }, [loadData])
 
-  // Re-search when sort or category changes
+  // Re-search when sort or category changes (skip initial mount — loadData handles it)
+  const initialSearchRef = useRef(true)
   useEffect(() => {
-    let cancelled = false
-    if (plugins.length > 0 || searchQuery) {
-      searchPlugins({
-        query: searchQuery || undefined,
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        sortBy,
-      })
-        .then((result) => { if (!cancelled) setPlugins(result.plugins) })
-        .catch(() => { /* Keep current data on error */ })
+    if (initialSearchRef.current) {
+      initialSearchRef.current = false
+      return
     }
+    let cancelled = false
+    searchPlugins({
+      query: searchQuery || undefined,
+      category: selectedCategory !== 'all' ? selectedCategory : undefined,
+      sortBy,
+    })
+      .then((result) => { if (!cancelled) setPlugins(result.plugins) })
+      .catch((error) => {
+        if (!cancelled) message.error(extractApiError(error, t('common.loadFailed')))
+      })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy, selectedCategory])
@@ -437,8 +442,9 @@ export default function CustomToolsPage() {
       })
       if (!mountedRef.current) return
       setPlugins(result.plugins)
-    } catch {
-      // Keep current data on error
+    } catch (error) {
+      if (!mountedRef.current) return
+      message.error(extractApiError(error, t('common.loadFailed')))
     }
   }
 

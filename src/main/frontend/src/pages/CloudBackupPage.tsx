@@ -167,7 +167,11 @@ export default function CloudBackupPage() {
   }
 
   const handleRestore = async () => {
-    if (!selectedRestore || !recoveryKeyInput.trim()) return
+    if (!selectedRestore) return
+    if (!recoveryKeyInput.trim()) {
+      message.warning(t('backup.enterRecoveryKey'))
+      return
+    }
     Modal.confirm({
       title: t('backup.confirmRestore'),
       content: t('backup.confirmRestoreDesc'),
@@ -318,13 +322,13 @@ export default function CloudBackupPage() {
               <Form.Item name="region" label={t('backup.region')}>
                 <Input placeholder={provider === 'r2' ? 'auto' : 'us-east-1'} />
               </Form.Item>
-              <Form.Item name="accessKey" label={t('backup.accessKey')}>
+              <Form.Item name="accessKey" label={t('backup.accessKey')} rules={[{ required: !settings?.hasAccessKey }]}>
                 <Input.Password placeholder={settings?.hasAccessKey ? t('backup.alreadySet') : ''} />
               </Form.Item>
-              <Form.Item name="secretKey" label={t('backup.secretKey')}>
+              <Form.Item name="secretKey" label={t('backup.secretKey')} rules={[{ required: !settings?.hasSecretKey }]}>
                 <Input.Password placeholder={settings?.hasSecretKey ? t('backup.alreadySet') : ''} />
               </Form.Item>
-              <Form.Item name="bucket" label={t('backup.bucket')}>
+              <Form.Item name="bucket" label={t('backup.bucket')} rules={[{ required: true }]}>
                 <Input placeholder="n3n-backups" />
               </Form.Item>
               <Form.Item name="basePath" label={t('backup.basePath')}>
@@ -336,13 +340,13 @@ export default function CloudBackupPage() {
           {/* GCS 欄位 */}
           {provider === 'gcs' && (
             <>
-              <Form.Item name="serviceAccountJson" label={t('backup.serviceAccountJson')}>
+              <Form.Item name="serviceAccountJson" label={t('backup.serviceAccountJson')} rules={[{ required: !settings?.hasServiceAccountJson }]}>
                 <TextArea
                   rows={4}
                   placeholder={settings?.hasServiceAccountJson ? t('backup.alreadySet') : t('backup.serviceAccountJsonPlaceholder')}
                 />
               </Form.Item>
-              <Form.Item name="bucket" label={t('backup.bucket')}>
+              <Form.Item name="bucket" label={t('backup.bucket')} rules={[{ required: true }]}>
                 <Input placeholder="n3n-backups" />
               </Form.Item>
               <Form.Item name="basePath" label={t('backup.basePath')}>
@@ -354,13 +358,13 @@ export default function CloudBackupPage() {
           {/* SFTP 欄位 */}
           {provider === 'sftp' && (
             <>
-              <Form.Item name="sftpHost" label={t('backup.sftpHost')}>
+              <Form.Item name="sftpHost" label={t('backup.sftpHost')} rules={[{ required: true }]}>
                 <Input placeholder="backup.example.com" />
               </Form.Item>
               <Form.Item name="sftpPort" label={t('backup.sftpPort')}>
                 <InputNumber min={1} max={65535} style={{ width: '100%' }} />
               </Form.Item>
-              <Form.Item name="sftpUsername" label={t('backup.sftpUsername')}>
+              <Form.Item name="sftpUsername" label={t('backup.sftpUsername')} rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
               <Form.Item name="sftpPassword" label={t('backup.sftpPassword')}>

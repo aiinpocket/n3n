@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ErrorBoundary from './error/ErrorBoundary'
 import { Layout, Menu, Dropdown, Avatar, Space, Modal, Typography, Badge } from 'antd'
@@ -65,7 +65,7 @@ export default function MainLayout() {
   }, [fetchPendingApprovals])
 
   // Dynamic page title
-  useEffect(() => {
+  const pageTitle = useMemo(() => {
     const titles: Record<string, string> = {
       '/': t('nav.dashboard'),
       '/flows': t('nav.flows'),
@@ -93,11 +93,14 @@ export default function MainLayout() {
       '/schedules': t('nav.schedules'),
       '/settings/backup': t('nav.cloudBackup'),
     }
-    const pageTitle = Object.entries(titles).find(([path]) =>
+    return Object.entries(titles).find(([path]) =>
       path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
     )?.[1]
-    document.title = pageTitle ? `${pageTitle} - N3N Flow` : 'N3N Flow'
   }, [location.pathname, t])
+
+  useEffect(() => {
+    document.title = pageTitle ? `${pageTitle} - N3N Flow` : 'N3N Flow'
+  }, [pageTitle])
 
   const menuItems = [
     // 創作
@@ -389,7 +392,7 @@ export default function MainLayout() {
           justifyContent: 'space-between',
         }}>
           <h2 style={{ margin: 0, fontSize: 16, color: 'var(--color-text-primary)' }}>
-            {document.title.replace(' - N3N Flow', '')}
+            {pageTitle || 'N3N Flow'}
           </h2>
           <Space size="large">
             <Dropdown

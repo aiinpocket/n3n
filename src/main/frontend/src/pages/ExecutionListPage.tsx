@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip, Result } from 'antd'
+import { Card, Table, Tag, Button, Space, message, Typography, Input, Select, Alert, Modal, Empty, Tooltip, Popconfirm, Result } from 'antd'
 import {
   ReloadOutlined,
   EyeOutlined,
@@ -278,17 +278,24 @@ export default function ExecutionListPage() {
               {t('execution.view')}
             </Button>
             {(status === 'running' || status === 'pending') && (
-              <Tooltip title={t('execution.cancel')}>
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<StopOutlined />}
-                  loading={actionLoading === record.id}
-                  onClick={() => handleCancel(record.id)}
-                  aria-label={t('execution.cancel')}
-                />
-              </Tooltip>
+              <Popconfirm
+                title={t('execution.cancelConfirm')}
+                okText={t('common.confirm')}
+                okButtonProps={{ danger: true }}
+                cancelText={t('common.cancel')}
+                onConfirm={() => handleCancel(record.id)}
+              >
+                <Tooltip title={t('execution.cancel')}>
+                  <Button
+                    type="link"
+                    size="small"
+                    danger
+                    icon={<StopOutlined />}
+                    loading={actionLoading === record.id}
+                    aria-label={t('execution.cancel')}
+                  />
+                </Tooltip>
+              </Popconfirm>
             )}
             {status === 'failed' && (
               <Tooltip title={t('execution.retry')}>

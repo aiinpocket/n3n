@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { websocketService, ExecutionEvent } from '../api/websocket';
+import { executionApi } from '../api/execution';
 import { logger } from '../utils/logger';
 
 export interface NodeExecutionState {
@@ -31,6 +32,7 @@ interface ExecutionStore {
   connect: () => Promise<void>;
   disconnect: () => void;
   subscribeToExecution: (executionId: string) => void;
+  refreshExecution: (executionId: string) => Promise<void>;
   unsubscribeFromExecution: (executionId: string) => void;
   subscribeToAllExecutions: () => void;
   getExecution: (executionId: string) => ExecutionState | undefined;
@@ -51,6 +53,10 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
       websocketService.onReconnectFailed = () => {
         logger.error('WebSocket reconnection failed after max attempts');
         set({ isConnected: false });
+      };
+      // Keep the Live/Disconnected indicator honest across auto-reconnects
+      websocketService.onConnectionChange = (connected) => {
+        set({ isConnected: connected });
       };
       await websocketService.connect();
       set({ isConnected: true });
@@ -95,6 +101,54 @@ export const useExecutionStore = create<ExecutionStore>((set, get) => ({
         nodeStates: new Map(),
       });
       set({ executions: newExecutions });
+    }
+
+    // Reconcile with REST state: fast executions can finish before the WebSocket
+    // subscription is active, which would leave the UI stuck on "pending"
+    void get().refreshExecution(executionId);
+  },
+
+  refreshExecution: async (executionId: string) => {
+    try {
+      const [exec, nodeExecs] = await Promise.all([
+        executionApi.get(executionId),
+        executionApi.getNodeExecutions(executionId).catch(() => []),
+      ]);
+      set((state) => {
+        const executions = new Map(state.executions);
+        const existing = executions.get(executionId);
+        // WebSocket events that arrived meanwhile are fresher; don't downgrade them
+        const terminalStates = ['completed', 'failed', 'cancelled'];
+        if (existing && terminalStates.includes(existing.status)) {
+          return {};
+        }
+        const nodeStates = new Map(existing?.nodeStates || []);
+        for (const n of nodeExecs) {
+          const current = nodeStates.get(n.nodeId);
+          if (!current || current.status === 'pending' || current.status === 'running') {
+            nodeStates.set(n.nodeId, {
+              nodeId: n.nodeId,
+              status: n.status,
+              error: n.errorMessage,
+              startedAt: n.startedAt,
+              completedAt: n.completedAt,
+              output: current?.output,
+            });
+          }
+        }
+        executions.set(executionId, {
+          id: executionId,
+          status: exec.status,
+          nodeStates,
+          error: existing?.error,
+          output: existing?.output,
+          startedAt: exec.startedAt,
+          completedAt: exec.completedAt,
+        });
+        return { executions };
+      });
+    } catch (error) {
+      logger.error('Failed to refresh execution state:', error);
     }
   },
 

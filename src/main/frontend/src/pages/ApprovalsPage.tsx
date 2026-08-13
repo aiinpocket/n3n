@@ -7,6 +7,7 @@ import {
   Tag,
   message,
   Modal,
+  Popconfirm,
   Input,
   Typography,
   Spin,
@@ -135,7 +136,7 @@ export default function ApprovalsPage() {
       ),
     },
     {
-      title: t('approval.waitingFor', { count: 0 }),
+      title: t('approval.progress'),
       key: 'progress',
       width: 140,
       render: (_: unknown, record: ApprovalSummary) => (
@@ -166,25 +167,38 @@ export default function ApprovalsPage() {
           >
             {t('common.details')}
           </Button>
-          <Button
-            size="small"
-            type="primary"
-            icon={<CheckCircleOutlined />}
-            onClick={() => handleAction(record.id, 'approve')}
-            loading={submittingIds[record.id]}
-            style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+          <Popconfirm
+            title={t('approval.confirmApprove')}
+            okText={t('approval.approve')}
+            cancelText={t('common.cancel')}
+            onConfirm={() => handleAction(record.id, 'approve')}
           >
-            {t('approval.approve')}
-          </Button>
-          <Button
-            size="small"
-            danger
-            icon={<CloseCircleOutlined />}
-            onClick={() => handleAction(record.id, 'reject')}
-            loading={submittingIds[record.id]}
+            <Button
+              size="small"
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              loading={submittingIds[record.id]}
+              style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+            >
+              {t('approval.approve')}
+            </Button>
+          </Popconfirm>
+          <Popconfirm
+            title={t('approval.confirmReject')}
+            okText={t('approval.reject')}
+            okButtonProps={{ danger: true }}
+            cancelText={t('common.cancel')}
+            onConfirm={() => handleAction(record.id, 'reject')}
           >
-            {t('approval.reject')}
-          </Button>
+            <Button
+              size="small"
+              danger
+              icon={<CloseCircleOutlined />}
+              loading={submittingIds[record.id]}
+            >
+              {t('approval.reject')}
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

@@ -31,6 +31,8 @@ interface FlowEditorState {
   loadFlow: (flowId: string, version?: string) => Promise<void>
   loadVersions: (flowId: string) => Promise<void>
   setNodes: (nodes: Node[]) => void
+  // Sync nodes without marking the flow dirty (selection/measure churn from React Flow)
+  syncNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
   onNodesChange: (changes: Node[]) => void
   onEdgesChange: (changes: Edge[]) => void
@@ -155,6 +157,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   },
 
   setNodes: (nodes) => set({ nodes, isDirty: true }),
+  syncNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges, isDirty: true }),
   onNodesChange: (nodes) => set({ nodes, isDirty: true }),
   onEdgesChange: (edges) => set({ edges, isDirty: true }),
@@ -497,11 +500,14 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
         definition,
       })
 
-      set({
-        currentVersion: flowVersion,
-        isDirty: false,
-        lastSavedAt: new Date(),
-      })
+      // Editor may have been cleared or switched to another flow while saving
+      if (get().currentFlow?.id === currentFlow.id) {
+        set({
+          currentVersion: flowVersion,
+          isDirty: false,
+          lastSavedAt: new Date(),
+        })
+      }
 
       return flowVersion
     } catch (error) {

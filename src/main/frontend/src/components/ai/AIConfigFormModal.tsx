@@ -173,7 +173,7 @@ const AIConfigFormModal: React.FC<Props> = ({
         <Form.Item
           name="provider"
           label={t('ai.provider')}
-          rules={[{ required: true, message: t('ai.provider') }]}
+          rules={[{ required: true, message: t('common.selectField', { field: t('ai.provider') }) }]}
         >
           <Select
             placeholder={t('ai.provider')}
@@ -186,7 +186,7 @@ const AIConfigFormModal: React.FC<Props> = ({
                   <strong>{type.displayName}</strong>
                   <br />
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {t(`ai.providerDesc.${type.id}` as const)}
+                    {t(`ai.providerDesc.${type.id}`, { defaultValue: '' })}
                   </Text>
                 </div>
               </Option>
@@ -198,7 +198,7 @@ const AIConfigFormModal: React.FC<Props> = ({
           name="name"
           label={t('ai.configName')}
           rules={[
-            { required: true, message: t('ai.configName') },
+            { required: true, message: t('common.enterField', { field: t('ai.configName') }) },
             { max: 255, message: t('common.maxLength', { max: 255 }) },
           ]}
         >
@@ -213,7 +213,7 @@ const AIConfigFormModal: React.FC<Props> = ({
               rules={[
                 {
                   required: !editingConfig?.hasCredential,
-                  message: t('ai.apiKeyPlaceholder'),
+                  message: t('common.enterField', { field: t('ai.apiKey') }),
                 },
               ]}
               extra={
@@ -281,7 +281,7 @@ const AIConfigFormModal: React.FC<Props> = ({
             <Form.Item
               name="baseUrl"
               label={t('ai.ollamaServerUrl')}
-              rules={[{ required: true, message: t('ai.ollamaServerUrl') }]}
+              rules={[{ required: true, message: t('common.enterField', { field: t('ai.ollamaServerUrl') }) }]}
             >
               <Input placeholder={t('ai.ollamaDefaultUrl')} maxLength={2000} />
             </Form.Item>
