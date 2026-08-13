@@ -400,7 +400,7 @@ export default function ExecutionListPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message={
+          title={
             <Space>
               <span>{t('execution.selectedCount', { count: selectedRowKeys.length })}</span>
               <Button size="small" danger icon={<DeleteOutlined />} loading={batchDeleting} onClick={handleBatchDelete}>

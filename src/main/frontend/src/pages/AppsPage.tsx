@@ -280,7 +280,7 @@ export default function AppsPage() {
                     </Popconfirm>,
                   ]}
                 >
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                  <Space orientation="vertical" size={4} style={{ width: '100%' }}>
                     <Space size={8}>
                       <Tag>{app.appType}</Tag>
                       <Text type="secondary" copyable={{ text: app.slug }}>

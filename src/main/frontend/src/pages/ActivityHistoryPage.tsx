@@ -318,7 +318,7 @@ export default function ActivityHistoryPage() {
           ? getResourceRoute(record.resourceType, record.resourceId)
           : null
         return (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             {resourceName && (
               route ? (
                 <Button type="link" style={{ padding: 0, height: 'auto' }} onClick={() => navigate(route)}>
@@ -401,7 +401,7 @@ export default function ActivityHistoryPage() {
           </Button>
         }
       >
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <Tabs
               activeKey={activeTab}

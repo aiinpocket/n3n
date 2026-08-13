@@ -119,7 +119,7 @@ export default function DataMappingEditor({
         tooltip={field.description}
         style={{ marginBottom: 16 }}
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="small">
+        <Space orientation="vertical" style={{ width: '100%' }} size="small">
           {/* Input mode selector */}
           <Radio.Group
             value={currentMode}
@@ -226,7 +226,7 @@ export default function DataMappingEditor({
       {upstreamOutputs.length === 0 && (
         <Alert
           type="info"
-          message={t('dataMapping.noUpstreamNodes')}
+          title={t('dataMapping.noUpstreamNodes')}
           description={t('dataMapping.noUpstreamNodesDesc')}
           showIcon
           style={{ marginBottom: 16 }}

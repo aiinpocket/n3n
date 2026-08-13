@@ -189,7 +189,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
           ) : (
             <Alert
               type={result.aiAvailable ? 'error' : 'warning'}
-              message={result.aiAvailable ? t('codeGenerator.generateFailed') : t('codeGenerator.aiUnavailable')}
+              title={result.aiAvailable ? t('codeGenerator.generateFailed') : t('codeGenerator.aiUnavailable')}
               description={result.error || t('codeGenerator.tryLater')}
               showIcon
             />
@@ -203,7 +203,7 @@ export const AiCodeGeneratorModal: React.FC<AiCodeGeneratorModalProps> = ({
           type="info"
           showIcon
           icon={<RobotOutlined />}
-          message={t('codeGenerator.tips')}
+          title={t('codeGenerator.tips')}
           description={
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               <li>{t('codeGenerator.tip1')}</li>

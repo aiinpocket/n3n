@@ -156,7 +156,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
       )}
 
       {!loading && !preview && (
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <div style={{ marginBottom: 16 }}>
             <Space>
               <Button
@@ -208,10 +208,10 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
       )}
 
       {preview && (
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <Alert
             type={preview.canImport ? 'success' : 'error'}
-            message={preview.canImport ? t('flow.validFormat') : t('flow.invalidFormat')}
+            title={preview.canImport ? t('flow.validFormat') : t('flow.invalidFormat')}
             showIcon
           />
 
@@ -253,7 +253,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
               <Text strong>{t('flow.importCredentialMapping')}:</Text>
               <Alert
                 type="info"
-                message={t('flow.importCredentialMappingHint')}
+                title={t('flow.importCredentialMappingHint')}
                 style={{ marginTop: 8, marginBottom: 8 }}
                 showIcon
               />
@@ -282,7 +282,7 @@ const FlowImportModal: React.FC<FlowImportModalProps> = ({
           {preview.blockers && preview.blockers.length > 0 && (
             <Alert
               type="error"
-              message={t('flow.importErrors')}
+              title={t('flow.importErrors')}
               description={
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
                   {preview.blockers.map((e, i) => (

@@ -364,7 +364,7 @@ export default function ServiceDetailPage() {
         }}
         footer={null}
         width={700}
-      >
+       forceRender>
         <Form form={form} layout="vertical" onFinish={handleEndpointSubmit}>
           <Form.Item
             name="name"

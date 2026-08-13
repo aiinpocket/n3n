@@ -429,7 +429,7 @@ export default function SkillsPage() {
 
         {error && (
           <Alert
-            message={error}
+            title={error}
             type="error"
             showIcon
             closable
@@ -481,7 +481,7 @@ export default function SkillsPage() {
         cancelText={t('common.cancel')}
         confirmLoading={formSubmitting}
         width={600}
-        destroyOnClose
+        forceRender
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           {!editingSkill && (

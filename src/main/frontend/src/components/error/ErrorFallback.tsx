@@ -96,7 +96,7 @@ export default function ErrorFallback({
       >
         {!friendlyError.isKnownError && (
           <Alert
-            message={t('error.unknownError')}
+            title={t('error.unknownError')}
             description={t('error.unknownErrorDesc')}
             type="info"
             showIcon

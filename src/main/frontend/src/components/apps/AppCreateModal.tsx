@@ -91,7 +91,7 @@ export default function AppCreateModal({ open, onClose, onDeployed }: Props) {
       okText={t('apps.createAndDeploy')}
       okButtonProps={{ disabled: !manifest, loading: submitting }}
       cancelText={t('common.cancel')}
-      destroyOnHidden
+      forceRender
       width={560}
     >
       <Text type="secondary">{t('apps.createHint')}</Text>
@@ -147,7 +147,7 @@ export default function AppCreateModal({ open, onClose, onDeployed }: Props) {
               <Alert
                 type="info"
                 showIcon
-                message={t('apps.paramsIntro')}
+                title={t('apps.paramsIntro')}
                 style={{ marginBottom: 16 }}
               />
             )}

@@ -127,7 +127,7 @@ function TemplateCard({
           </Tooltip>
         }
         description={
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Space orientation="vertical" size={4} style={{ width: '100%' }}>
             <Paragraph
               ellipsis={{ rows: 2 }}
               style={{ marginBottom: 8, minHeight: 44, color: 'var(--color-text-secondary)' }}
@@ -395,7 +395,7 @@ export default function TemplatePage() {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            <Space direction="vertical" size={4}>
+            <Space orientation="vertical" size={4}>
               <Text>{t('template.noTemplates')}</Text>
               <Text type="secondary">{t('template.noTemplatesDesc')}</Text>
             </Space>
@@ -448,7 +448,7 @@ export default function TemplatePage() {
 
       {error && (
         <Alert
-          message={error}
+          title={error}
           type="error"
           showIcon
           closable
@@ -545,7 +545,7 @@ export default function TemplatePage() {
         cancelText={t('common.cancel')}
         confirmLoading={createSubmitting}
         width={500}
-        destroyOnClose
+        forceRender
       >
         <Form form={createForm} layout="vertical" onFinish={handleCreateTemplate} style={{ marginTop: 16 }}>
           <Form.Item
@@ -594,7 +594,7 @@ export default function TemplatePage() {
           setSelectedTemplate(null)
         }}
         footer={null}
-      >
+       forceRender>
         <Form form={useForm} layout="vertical" onFinish={handleUseTemplate}>
           <Form.Item
             name="flowName"
@@ -639,7 +639,7 @@ export default function TemplatePage() {
         okText={t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
-        destroyOnClose
+        forceRender
         width={500}
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>

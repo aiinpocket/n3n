@@ -251,7 +251,7 @@ export default function MultiOperationConfig({
       {showCredentialWarning && (
         <Alert
           type="warning"
-          message={t('editor.credentialRequired')}
+          title={t('editor.credentialRequired')}
           description={t('editor.credentialRequiredDesc', { type: credentialType })}
           showIcon
           style={{ marginBottom: 16 }}

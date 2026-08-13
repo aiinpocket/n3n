@@ -81,7 +81,7 @@ export default function PasswordResetPage() {
         border: '1px solid var(--color-border)',
         boxShadow: '0 8px 32px rgba(59, 50, 42, 0.12)',
       }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
@@ -102,7 +102,7 @@ export default function PasswordResetPage() {
 
           {error && (
             <Alert
-              message={error}
+              title={error}
               type="error"
               showIcon
               closable
@@ -112,7 +112,7 @@ export default function PasswordResetPage() {
 
           {successMessage && (
             <Alert
-              message={successMessage}
+              title={successMessage}
               type="success"
               showIcon
             />

@@ -86,7 +86,7 @@ function SetupCheck({ children }: { children: React.ReactNode }) {
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <Spin size="large" tip={t('common.loading')} />
+        <Spin size="large" description={t('common.loading')} />
       </div>
     )
   }

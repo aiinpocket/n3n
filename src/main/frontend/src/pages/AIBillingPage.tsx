@@ -82,7 +82,7 @@ export default function AIBillingPage() {
         const limit = record.quotaLimit ?? 0
         const percent = limit > 0 ? Math.round((used / limit) * 100) : 0
         return (
-          <Space direction="vertical" size={0} style={{ width: 180 }}>
+          <Space orientation="vertical" size={0} style={{ width: 180 }}>
             <Progress percent={percent} size="small" status={percent > 90 ? 'exception' : 'active'} />
             <Text type="secondary" style={{ fontSize: 12 }}>
               {used.toLocaleString()} / {limit.toLocaleString()} {record.quotaUnit}
@@ -93,7 +93,7 @@ export default function AIBillingPage() {
       case 'USAGE_ONLY':
         return (
           <Tooltip title={t('aiBilling.usageOnlyTooltip')}>
-            <Space direction="vertical" size={0}>
+            <Space orientation="vertical" size={0}>
               <Text>≈ ${record.localSpentUsd?.toFixed(2) ?? '0.00'} {t('aiBilling.spent')}</Text>
               <Text type="secondary" style={{ fontSize: 12 }}>{t('aiBilling.usageOnlyHint')}</Text>
             </Space>
@@ -173,7 +173,7 @@ export default function AIBillingPage() {
       title: t('aiBilling.byUser.member'),
       key: 'member',
       render: (_: unknown, record: UserUsageRow) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text>{record.name ?? t('aiBilling.byUser.unknownMember')}</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>{record.email ?? '-'}</Text>
         </Space>
@@ -225,7 +225,7 @@ export default function AIBillingPage() {
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message={t('aiBilling.infoTitle')}
+        title={t('aiBilling.infoTitle')}
         description={t('aiBilling.infoDescription')}
       />
 

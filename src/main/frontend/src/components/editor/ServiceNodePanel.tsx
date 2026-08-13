@@ -131,7 +131,7 @@ export default function ServiceNodePanel({ open, onClose, onSelectEndpoint }: Se
         </Space>
       }
       placement="left"
-      width={400}
+      size={400}
       open={open}
       onClose={onClose}
     >

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Button, Card, Table, Space, Modal, Form, Input, Tag, Dropdown, Select, List, Tabs, Alert, Popconfirm } from 'antd'
+import { Button, Card, Table, Space, Modal, Form, Input, Tag, Dropdown, Select, Tabs, Alert, Popconfirm } from 'antd'
+import List from '../components/common/SimpleList'
 import { message, modal } from '../utils/feedback'
 import { PlusOutlined, EditOutlined, PlayCircleOutlined, DeleteOutlined, SearchOutlined, UploadOutlined, ExportOutlined, MoreOutlined, ThunderboltOutlined, BulbOutlined, ShareAltOutlined, EyeOutlined, CopyOutlined, BookOutlined, ReloadOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -498,7 +499,7 @@ export default function FlowListPage() {
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
-                    message={
+                    title={
                       <Space>
                         <span>{t('flow.selectedCount', { count: selectedRowKeys.length })}</span>
                         <Button size="small" danger icon={<DeleteOutlined />} loading={batchDeleting} onClick={handleBatchDelete}>
@@ -512,7 +513,7 @@ export default function FlowListPage() {
                   />
                 )}
                 {flowListError && (
-                  <Alert type="error" message={flowListError} closable showIcon style={{ marginBottom: 16 }} />
+                  <Alert type="error" title={flowListError} closable showIcon style={{ marginBottom: 16 }} />
                 )}
                 <Table
                   columns={columns}
@@ -538,7 +539,7 @@ export default function FlowListPage() {
                         title={t('flow.emptyTitle')}
                         subTitle={t('flow.emptySubtitle')}
                         extra={
-                          <Space direction="vertical" size="middle" style={{ width: '100%', maxWidth: 400 }}>
+                          <Space orientation="vertical" size="middle" style={{ width: '100%', maxWidth: 400 }}>
                             <Button
                               type="primary"
                               size="large"
@@ -605,7 +606,7 @@ export default function FlowListPage() {
           form.resetFields()
         }}
         footer={null}
-        destroyOnClose
+        forceRender
       >
         <Form
           form={form}
@@ -669,9 +670,9 @@ export default function FlowListPage() {
         onCancel={() => { setShareModalOpen(false); setShareFlow(null); setShares([]) }}
         footer={null}
         width={500}
-        destroyOnClose
+        destroyOnHidden
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space orientation="vertical" style={{ width: '100%' }} size="middle">
           <Space.Compact style={{ width: '100%' }}>
             <Input
               placeholder={t('share.emailPlaceholder')}
@@ -774,7 +775,7 @@ export default function FlowListPage() {
           setTemplateFlow(null)
         }}
         footer={null}
-        destroyOnClose
+        forceRender
       >
         <Form form={templateForm} layout="vertical" onFinish={handleSaveAsTemplate}>
           <Form.Item

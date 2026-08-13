@@ -196,7 +196,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
       onCancel={onClose}
       width={640}
       footer={null}
-      maskClosable={false}
+      mask={{ closable: false }}
     >
       {/* Steps indicator */}
       <Steps
@@ -245,7 +245,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           {error && (
             <Alert
               type="warning"
-              message={error}
+              title={error}
               description={t('aiAssistant.canStillPublish')}
               showIcon
               style={{ marginBottom: 16 }}
@@ -256,7 +256,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
           {analysis?.success && (!analysis.suggestions || analysis.suggestions.length === 0) && (
             <Alert
               type="success"
-              message={t('aiAssistant.noSuggestions')}
+              title={t('aiAssistant.noSuggestions')}
               description={t('aiAssistant.flowIsOptimal')}
               icon={<CheckCircleOutlined />}
               showIcon
@@ -269,7 +269,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
             <>
               <Alert
                 type="info"
-                message={t('aiAssistant.suggestionsFound', {
+                title={t('aiAssistant.suggestionsFound', {
                   count: analysis.suggestions.length,
                 })}
                 showIcon
@@ -300,7 +300,7 @@ const PublishFlowModal: React.FC<PublishFlowModalProps> = ({
               <Alert
                 type="info"
                 showIcon={false}
-                message={
+                title={
                   <Space>
                     <InfoCircleOutlined />
                     <span>

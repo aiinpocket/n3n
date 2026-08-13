@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import logger from '../../utils/logger'
 import { getLocale } from '../../utils/locale'
-import { List, Card, Tag, Typography, Skeleton, Button, Space, Tooltip } from 'antd'
+import { Card, Tag, Typography, Skeleton, Button, Space, Tooltip } from 'antd'
+import List from '../../components/common/SimpleList'
 import {
   FolderOutlined,
   NodeIndexOutlined,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Card, Typography, Input, Button, Space, List, Avatar, Spin, Empty, Alert, Tag, Divider, Modal } from 'antd'
+import { Card, Typography, Input, Button, Space, Avatar, Spin, Empty, Alert, Tag, Divider, Modal } from 'antd'
+import List from '../components/common/SimpleList'
 import { message, modal } from '../utils/feedback'
 import {
   SendOutlined,
@@ -216,7 +217,7 @@ const AIAssistantPage: React.FC = () => {
         <Alert
           type="warning"
           showIcon
-          message={t('chat.noAiConfig')}
+          title={t('chat.noAiConfig')}
           description={t('chat.noAiConfigDesc')}
           style={{ flexShrink: 0 }}
         />
@@ -225,7 +226,7 @@ const AIAssistantPage: React.FC = () => {
       {/* Main Chat Area */}
       <Card
         style={{ flex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}
-        bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}
+        styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' } }}
       >
         {/* Header */}
         <div style={{ padding: 16, borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between' }}>
@@ -327,7 +328,7 @@ const AIAssistantPage: React.FC = () => {
             {lastAiMessage.structuredData.understanding && (
               <Alert
                 type="info"
-                message={t('ai.understanding')}
+                title={t('ai.understanding')}
                 description={lastAiMessage.structuredData.understanding}
                 style={{ marginBottom: 16 }}
               />

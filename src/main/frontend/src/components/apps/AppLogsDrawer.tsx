@@ -38,7 +38,7 @@ export default function AppLogsDrawer({ app, onClose }: Props) {
       title={t('apps.logsTitle', { name: app?.name ?? '' })}
       open={app != null}
       onClose={onClose}
-      width={640}
+      size={640}
       extra={
         <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
           {t('apps.logsRefresh')}

@@ -178,7 +178,7 @@ export default function ServiceListPage() {
     >
       {error && (
         <Alert
-          message={error}
+          title={error}
           type="error"
           showIcon
           closable

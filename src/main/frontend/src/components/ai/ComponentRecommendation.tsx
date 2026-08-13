@@ -1,5 +1,6 @@
 import React from 'react'
-import { Typography, List, Tag, Card } from 'antd'
+import { Typography, Tag, Card } from 'antd'
+import List from '../../components/common/SimpleList'
 import { AppstoreOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type { ComponentRecommendation, NewComponentSuggestion } from '../../api/agent'

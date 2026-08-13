@@ -176,7 +176,7 @@ export default function ExecutionOverlay({
         </Button>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }}>
+      <Space orientation="vertical" style={{ width: '100%' }}>
         {/* Connection Status */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
           <span>{t('execution.realtime')}</span>

@@ -410,7 +410,7 @@ const WebhooksPage: React.FC = () => {
           form.resetFields()
         }}
         footer={null}
-      >
+       forceRender>
         <Form
           form={form}
           layout="vertical"
@@ -460,7 +460,7 @@ const WebhooksPage: React.FC = () => {
             extra={`${t('webhook.fullUrl')}: ${window.location.origin}/webhook/`}
           >
             <Input
-              addonBefore="/webhook/"
+              prefix={<span style={{ color: 'var(--color-text-secondary)' }}>/webhook/</span>}
               placeholder={t('webhook.pathPlaceholder')}
               maxLength={500}
             />
@@ -559,7 +559,7 @@ const WebhooksPage: React.FC = () => {
         okText={t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
-        destroyOnClose
+        forceRender
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item

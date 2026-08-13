@@ -69,7 +69,7 @@ export default function EdgeConfigPanel({
         onChange={handleChange}
         style={{ width: '100%' }}
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           {edgeTypeOptions.map((option) => (
             <Radio
               key={option.value}

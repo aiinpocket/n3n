@@ -59,7 +59,7 @@ export default function SetupPage() {
       background: 'var(--color-bg-primary)',
     }}>
       <Card style={{ width: '100%', maxWidth: 480, margin: '0 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, right: 0 }}>
               <LanguageSwitcher />
@@ -81,7 +81,7 @@ export default function SetupPage() {
           {step === 0 ? (
             <>
               <Alert
-                message={t('setup.firstTimeSetup')}
+                title={t('setup.firstTimeSetup')}
                 description={t('setup.firstTimeSetupDesc')}
                 type="info"
                 showIcon
@@ -89,7 +89,7 @@ export default function SetupPage() {
 
               {error && (
                 <Alert
-                  message={error}
+                  title={error}
                   type="error"
                   showIcon
                   closable

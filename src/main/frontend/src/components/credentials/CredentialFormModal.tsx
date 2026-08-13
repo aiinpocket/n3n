@@ -198,11 +198,12 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
       onOk={handleSubmit}
       confirmLoading={loading}
       width={600}
+      forceRender
       okText={t('common.create')}
       cancelText={t('common.cancel')}
     >
       <Alert
-        message={t('credential.securityTip')}
+        title={t('credential.securityTip')}
         description={t('credential.securityTipDesc')}
         type="info"
         showIcon
@@ -274,7 +275,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
               <Alert
                 type="info"
                 icon={<LinkOutlined />}
-                message={t('oauth2.setupHint')}
+                title={t('oauth2.setupHint')}
                 description={t('oauth2.setupHintDesc')}
                 showIcon
                 style={{ marginTop: 16 }}
@@ -284,7 +285,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
             {/* Test Connection Section */}
             {isTestable && (
               <div style={{ marginTop: 16, padding: 12, background: 'var(--color-bg-secondary)', borderRadius: 6 }}>
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Space orientation="vertical" style={{ width: '100%' }}>
                   <Button
                     type="default"
                     icon={<ApiOutlined />}
@@ -299,7 +300,7 @@ const CredentialFormModal: React.FC<CredentialFormModalProps> = ({
                     <Alert
                       type={testResult.success ? 'success' : 'error'}
                       icon={testResult.success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-                      message={
+                      title={
                         <Space>
                           <span>{testResult.success ? t('credential.connectionSuccess') : t('credential.connectionFailed')}</span>
                           {testResult.latencyMs > 0 && (

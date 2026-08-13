@@ -464,7 +464,7 @@ const CredentialListPage: React.FC = () => {
             type="warning"
             showIcon
             icon={<WarningOutlined />}
-            message={t('credential.keyMismatchBanner')}
+            title={t('credential.keyMismatchBanner')}
             description={t('credential.keyMismatchBannerDesc', {
               count: credentials.filter(c => c.keyStatus && c.keyStatus !== 'active').length,
             })}
@@ -504,7 +504,7 @@ const CredentialListPage: React.FC = () => {
 
         {error && (
           <Alert
-            message={error}
+            title={error}
             type="error"
             showIcon
             closable
@@ -557,7 +557,7 @@ const CredentialListPage: React.FC = () => {
         okText={t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
-        destroyOnClose
+        forceRender
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="description" label={t('common.description')}>
@@ -582,7 +582,7 @@ const CredentialListPage: React.FC = () => {
         <Alert
           type="warning"
           showIcon
-          message={t('credential.viewDataWarning')}
+          title={t('credential.viewDataWarning')}
           style={{ marginBottom: 16 }}
         />
         {viewDataLoading ? (

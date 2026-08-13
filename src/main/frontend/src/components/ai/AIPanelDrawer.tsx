@@ -1,20 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { getLocale } from '../../utils/locale'
-import {
-  Drawer,
-  Input,
-  Button,
-  Space,
-  Typography,
-  Spin,
-  Tag,
-  Tooltip,
-  List,
-  Alert,
-  Collapse,
-  Badge,
-  Popconfirm,
-} from 'antd'
+import { Drawer, Input, Button, Space, Typography, Spin, Tag, Tooltip, Alert, Collapse, Badge, Popconfirm } from 'antd'
+import List from '../../components/common/SimpleList'
 import {
   SendOutlined,
   RobotOutlined,
@@ -494,7 +481,7 @@ export default function AIPanelDrawer({
         </Space>
       }
       placement="right"
-      width={panelWidth}
+      size={panelWidth}
       onClose={closePanel}
       open={isPanelOpen}
       mask={false}
@@ -615,9 +602,9 @@ export default function AIPanelDrawer({
                 type="info"
                 showIcon
                 icon={<ThunderboltOutlined />}
-                message={t('aiPanel.generatorSuggestionTitle')}
+                title={t('aiPanel.generatorSuggestionTitle')}
                 description={
-                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                  <Space orientation="vertical" size={8} style={{ width: '100%' }}>
                     <Text type="secondary">{t('aiPanel.generatorSuggestionDesc')}</Text>
                     <Space>
                       <Button
@@ -654,7 +641,7 @@ export default function AIPanelDrawer({
             {/* Error Alert */}
             {error && (
               <Alert
-                message={error}
+                title={error}
                 type="error"
                 closable
                 onClose={clearError}

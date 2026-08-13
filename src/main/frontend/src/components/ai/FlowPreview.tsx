@@ -231,10 +231,12 @@ const FlowPreview: React.FC<Props> = ({
 
       <Card
         size="small"
-        bodyStyle={{
-          padding: 0,
-          height: previewHeight,
-          transition: 'height 0.3s ease-in-out',
+        styles={{
+          body: {
+            padding: 0,
+            height: previewHeight,
+            transition: 'height 0.3s ease-in-out',
+          },
         }}
       >
         <ReactFlowProvider>

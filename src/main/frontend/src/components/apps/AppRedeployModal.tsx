@@ -64,13 +64,13 @@ export default function AppRedeployModal({ app, onClose, onDeployed }: Props) {
       okText={t('apps.redeploy')}
       okButtonProps={{ loading: submitting }}
       cancelText={t('common.cancel')}
-      destroyOnHidden
+      forceRender
       width={520}
     >
       <Alert
         type="info"
         showIcon
-        message={t('apps.redeployHint')}
+        title={t('apps.redeployHint')}
         description={params.some((p) => p.secret) ? t('apps.redeploySecretNote') : undefined}
         style={{ marginBottom: 16 }}
       />

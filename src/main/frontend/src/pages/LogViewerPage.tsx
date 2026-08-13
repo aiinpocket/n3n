@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, List, Empty, Alert } from 'antd'
+import { Card, Button, Input, Space, Tag, Switch, Radio, Typography, Empty, Alert } from 'antd'
+import List from '../components/common/SimpleList'
 import { message } from '../utils/feedback'
 import {
   ReloadOutlined,
@@ -155,7 +156,7 @@ export default function LogViewerPage() {
       {loadError && (
         <Alert
           type="error"
-          message={loadError}
+          title={loadError}
           showIcon
           closable
           style={{ marginBottom: 16 }}

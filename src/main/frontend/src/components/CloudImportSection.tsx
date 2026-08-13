@@ -70,7 +70,7 @@ export default function CloudImportSection() {
         {t('cloudSync.importDescription')}
       </Paragraph>
 
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space orientation="vertical" style={{ width: '100%' }} size="middle">
         <div>
           <Text strong style={{ display: 'block', marginBottom: 4 }}>
             {t('cloudSync.recoveryKeyLabel')}
@@ -130,7 +130,7 @@ export default function CloudImportSection() {
             <Alert
               type="info"
               showIcon
-              message={t('cloudSync.reEncryptNote')}
+              title={t('cloudSync.reEncryptNote')}
               style={{ marginTop: 12, marginBottom: 12 }}
             />
 
@@ -147,7 +147,7 @@ export default function CloudImportSection() {
         )}
 
         {manifest && totalEntities === 0 && (
-          <Alert type="warning" showIcon message={t('cloudSync.noRemoteData')} />
+          <Alert type="warning" showIcon title={t('cloudSync.noRemoteData')} />
         )}
 
         {/* Import Results */}
@@ -156,7 +156,7 @@ export default function CloudImportSection() {
             type="success"
             showIcon
             icon={<CheckCircleOutlined />}
-            message={t('cloudSync.importSuccess')}
+            title={t('cloudSync.importSuccess')}
             description={t('cloudSync.importSummary', {
               flows: importResult.flowsImported,
               credentials: importResult.credentialsImported,
@@ -170,7 +170,7 @@ export default function CloudImportSection() {
           <Alert
             type="warning"
             showIcon
-            message={`${importResult.failed} ${t('cloudSync.importErrors')}`}
+            title={`${importResult.failed} ${t('cloudSync.importErrors')}`}
             description={
               <ul style={{ margin: 0, paddingLeft: 16 }}>
                 {importResult.errors.slice(0, 5).map((err, i) => (

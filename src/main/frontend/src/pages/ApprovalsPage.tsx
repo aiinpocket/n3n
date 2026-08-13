@@ -209,7 +209,7 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <Space orientation="vertical" style={{ width: '100%' }} size="large">
       <Card
         title={
           <Space>
@@ -295,7 +295,7 @@ export default function ApprovalsPage() {
             <Spin size="large" />
           </div>
         ) : selectedApproval ? (
-          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Space orientation="vertical" style={{ width: '100%' }} size="middle">
             {selectedApproval.message && (
               <div style={{ padding: 12, background: 'var(--color-bg-elevated)', borderRadius: 8 }}>
                 {selectedApproval.message}

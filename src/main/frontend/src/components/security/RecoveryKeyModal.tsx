@@ -86,7 +86,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
     <Modal
       open={open}
       closable={false}
-      maskClosable={false}
+      mask={{ closable: false }}
       title={
         <Space>
           <KeyOutlined style={{ color: 'var(--color-warning)' }} />
@@ -101,7 +101,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
           <Alert
             type="warning"
             showIcon
-            message={t('recovery.importantWarning')}
+            title={t('recovery.importantWarning')}
             description={t('recovery.writeDownInstructions')}
             style={{ marginBottom: 24 }}
           />
@@ -146,7 +146,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
             ))}
           </div>
 
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space orientation="vertical" style={{ width: '100%' }}>
             <Space style={{ width: '100%' }}>
               <Button
                 icon={copied ? <CheckCircleOutlined /> : <CopyOutlined />}
@@ -178,7 +178,7 @@ export default function RecoveryKeyModal({ open, recoveryKey, onConfirm }: Props
           <Alert
             type="info"
             showIcon
-            message={t('recovery.verifyPrompt')}
+            title={t('recovery.verifyPrompt')}
             description={t('recovery.verifyDescription')}
             style={{ marginBottom: 24 }}
           />

@@ -139,7 +139,7 @@ function ToolCard({
           </Space>
         }
         description={
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Space orientation="vertical" size={4} style={{ width: '100%' }}>
             <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 8, minHeight: 44 }}>
               {plugin.description}
             </Paragraph>
@@ -524,7 +524,7 @@ export default function CustomToolsPage() {
 
       {isOffline && (
         <Alert
-          message={t('customTools.offlineMode')}
+          title={t('customTools.offlineMode')}
           description={t('customTools.offlineDesc')}
           type="warning"
           showIcon

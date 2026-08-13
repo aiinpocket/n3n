@@ -301,7 +301,7 @@ export default function ArtifactsPage() {
         ]}
         title={preview?.artifact.filename}
         width={760}
-        destroyOnClose
+        destroyOnHidden
       >
         {preview && preview.artifact.mimeType.startsWith('image/') && (
           <img src={preview.url} alt={preview.artifact.filename} style={{ maxWidth: '100%' }} />

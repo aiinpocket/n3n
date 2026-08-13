@@ -1215,7 +1215,7 @@ export default function FlowEditorPage() {
               <Text style={{ display: 'block', marginBottom: 24, color: 'var(--color-text-secondary)' }}>
                 {t('editor.emptyState.subtitle')}
               </Text>
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                 <Button
                   type="primary"
                   size="large"
@@ -1318,6 +1318,7 @@ export default function FlowEditorPage() {
           saveForm.resetFields()
         }}
         footer={null}
+        forceRender
       >
         <Form form={saveForm} layout="vertical" onFinish={handleSave}>
           <Form.Item
@@ -1390,7 +1391,7 @@ export default function FlowEditorPage() {
           templateForm.resetFields()
         }}
         footer={null}
-        destroyOnClose
+        forceRender
       >
         <Form form={templateForm} layout="vertical" onFinish={handleSaveAsTemplate}>
           <Form.Item
@@ -1592,10 +1593,10 @@ export default function FlowEditorPage() {
         title={executionNodeDetail ? `${t('editor.nodeOutput')}: ${executionNodeDetail.nodeId}` : ''}
         open={!!executionNodeDetail}
         onClose={() => setExecutionNodeDetail(null)}
-        width={480}
+        size={480}
       >
         {executionNodeDetail && (
-          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Space orientation="vertical" style={{ width: '100%' }} size="middle">
             <div>
               <Text strong>{t('common.status')}: </Text>
               <Tag color={

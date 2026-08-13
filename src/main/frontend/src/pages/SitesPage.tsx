@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Col, Drawer, Empty, Form, Input, List, Modal, Popconfirm, Row, Space, Spin, Switch, Tag, Tooltip, Typography, Upload } from 'antd'
+import { Button, Card, Col, Drawer, Empty, Form, Input, Modal, Popconfirm, Row, Space, Spin, Switch, Tag, Tooltip, Typography, Upload } from 'antd'
+import List from '../components/common/SimpleList'
 import { message } from '../utils/feedback'
 import {
   CopyOutlined,
@@ -275,7 +276,7 @@ export default function SitesPage() {
                   <Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ minHeight: 44 }}>
                     {site.description || t('sites.noDescription')}
                   </Paragraph>
-                  <Space direction="vertical" size={2} style={{ width: '100%' }}>
+                  <Space orientation="vertical" size={2} style={{ width: '100%' }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       <FileOutlined />{' '}
                       {t('sites.fileSummary', {
@@ -304,7 +305,7 @@ export default function SitesPage() {
         onCancel={() => setCreateOpen(false)}
         confirmLoading={creating}
         okText={t('common.create')}
-        destroyOnClose
+        forceRender
       >
         <Paragraph type="secondary">{t('sites.createHint')}</Paragraph>
         <Form form={form} layout="vertical">
@@ -338,7 +339,7 @@ export default function SitesPage() {
             ''
           )
         }
-        width={720}
+        size={720}
         open={detail !== null}
         onClose={() => {
           setDetail(null)

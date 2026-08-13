@@ -92,7 +92,7 @@ export default function MigrateCredentialModal({
         type="warning"
         showIcon
         icon={<LockOutlined />}
-        message={t('recovery.keyMismatch', { name: credential.name })}
+        title={t('recovery.keyMismatch', { name: credential.name })}
         description={t('recovery.keyMismatchDescription')}
         style={{ marginBottom: 24 }}
       />
@@ -112,7 +112,7 @@ export default function MigrateCredentialModal({
 
       <Alert
         type="info"
-        message={t('recovery.reEncryptInfo')}
+        title={t('recovery.reEncryptInfo')}
       />
     </Modal>
   );

@@ -92,7 +92,7 @@ export default function MonitoringPage() {
         {error && (
           <Alert
             type="error"
-            message={t('monitoring.loadFailed')}
+            title={t('monitoring.loadFailed')}
             showIcon
             closable
             style={{ marginBottom: 16 }}

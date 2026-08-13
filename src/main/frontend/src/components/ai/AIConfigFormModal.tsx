@@ -157,13 +157,13 @@ const AIConfigFormModal: React.FC<Props> = ({
       onCancel={onClose}
       footer={null}
       width={560}
-      destroyOnClose
+      forceRender
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         {error && (
           <Alert
             type="error"
-            message={error}
+            title={error}
             closable
             onClose={clearError}
             style={{ marginBottom: 16 }}
@@ -238,7 +238,7 @@ const AIConfigFormModal: React.FC<Props> = ({
                 showIcon
                 icon={<LinkOutlined />}
                 style={{ marginBottom: 16, marginTop: -8 }}
-                message={
+                title={
                   <span>
                     {t('ai.noApiKey')}
                     <a
@@ -263,7 +263,7 @@ const AIConfigFormModal: React.FC<Props> = ({
               showIcon
               icon={<LinkOutlined />}
               style={{ marginBottom: 16 }}
-              message={
+              title={
                 <span>
                   {t('ai.ollamaFree')}
                   <a

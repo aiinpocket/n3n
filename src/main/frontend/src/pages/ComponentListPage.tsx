@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { Button, Card, Table, Tag, Space, Modal, Form, Input, Select, Popconfirm, Typography, Drawer, List, Descriptions, Tooltip, Alert, Empty } from 'antd'
+import { Button, Card, Table, Tag, Space, Modal, Form, Input, Select, Popconfirm, Typography, Drawer, Descriptions, Tooltip, Alert, Empty } from 'antd'
+import List from '../components/common/SimpleList'
 import { message } from '../utils/feedback'
 import {
   PlusOutlined,
@@ -401,7 +402,7 @@ export default function ComponentListPage() {
       </Card>
 
       {/* Create Component Modal */}
-      <Modal title={t('component.registerComponent')} open={createModalOpen} onCancel={() => setCreateModalOpen(false)} footer={null} destroyOnClose>
+      <Modal title={t('component.registerComponent')} open={createModalOpen} onCancel={() => setCreateModalOpen(false)} footer={null} forceRender>
         <Form form={createForm} layout="vertical" onFinish={handleCreate}>
           <Form.Item
             name="name"
@@ -448,7 +449,7 @@ export default function ComponentListPage() {
         okText={t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
-        destroyOnClose
+        forceRender
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
@@ -477,7 +478,7 @@ export default function ComponentListPage() {
       <Drawer
         title={`${selectedComponent?.displayName || ''} - ${t('component.versionManagement')}`}
         placement="right"
-        width={600}
+        size={600}
         open={versionDrawerOpen}
         onClose={() => {
           setVersionDrawerOpen(false)
@@ -492,7 +493,7 @@ export default function ComponentListPage() {
       >
         {versions.length === 0 && !loadingVersions && (
           <Alert
-            message={t('component.noVersions')}
+            title={t('component.noVersions')}
             description={t('component.noVersionsDesc')}
             type="info"
             showIcon
@@ -537,7 +538,7 @@ export default function ComponentListPage() {
       </Drawer>
 
       {/* Add Version Modal */}
-      <Modal title={t('component.addVersion')} open={addVersionModalOpen} onCancel={() => setAddVersionModalOpen(false)} footer={null} width={600} destroyOnClose>
+      <Modal title={t('component.addVersion')} open={addVersionModalOpen} onCancel={() => setAddVersionModalOpen(false)} footer={null} width={600} forceRender>
         <Form form={versionForm} layout="vertical" onFinish={handleAddVersion}>
           <Form.Item
             name="version"

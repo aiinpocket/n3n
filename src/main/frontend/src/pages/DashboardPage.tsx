@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Typography, List, Tag, Skeleton, Button, Space, Steps, Result } from 'antd'
+import { Card, Row, Col, Statistic, Typography, Tag, Skeleton, Button, Space, Steps, Result } from 'antd'
+import List from '../components/common/SimpleList'
 import { message } from '../utils/feedback'
 import { extractApiError } from '../utils/errorMessages'
 import {

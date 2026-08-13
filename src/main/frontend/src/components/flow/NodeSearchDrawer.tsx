@@ -97,7 +97,7 @@ const NodeSearchDrawer: React.FC<NodeSearchDrawerProps> = ({ open, onClose, onAd
     <Drawer
       title={t('editor.nodeSearch.title')}
       placement="right"
-      width={380}
+      size={380}
       open={open}
       onClose={onClose}
     >

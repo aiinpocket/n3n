@@ -107,7 +107,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
         backgroundColor: selected ? 'var(--color-bg-secondary, #f6ffed)' : undefined,
         animationDelay: `${animationDelay}ms`,
       }}
-      bodyStyle={{ padding: 12 }}
+      styles={{ body: { padding: 12 } }}
     >
       {/* Header */}
       <div

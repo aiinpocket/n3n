@@ -354,7 +354,7 @@ export default function AdminUsersPage() {
         open={createModalOpen}
         onCancel={() => { setCreateModalOpen(false); createForm.resetFields() }}
         footer={null}
-      >
+       forceRender>
         <Form form={createForm} layout="vertical" onFinish={handleCreateUser}>
           <Form.Item name="email" label={t('auth.email')} rules={[
             { required: true, message: t('auth.emailRequired') },
@@ -462,7 +462,7 @@ export default function AdminUsersPage() {
         open={rolesModalOpen}
         onCancel={() => { setRolesModalOpen(false); rolesForm.resetFields() }}
         footer={null}
-        destroyOnClose
+        forceRender
       >
         <Form form={rolesForm} layout="vertical" onFinish={handleUpdateRoles}>
           <Form.Item name="roles" label={t('admin.roles')} rules={[

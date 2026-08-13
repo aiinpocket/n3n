@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Card, Typography, Divider, Input, Button, Select, Tag, List, Space, Popconfirm, Empty, Tooltip } from 'antd'
+import { Card, Typography, Divider, Input, Button, Select, Tag, Space, Popconfirm, Empty, Tooltip } from 'antd'
+import List from '../../components/common/SimpleList'
 import { message } from '../../utils/feedback'
 import { BulbOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ClearOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'

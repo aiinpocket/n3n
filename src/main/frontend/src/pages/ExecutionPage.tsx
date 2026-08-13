@@ -422,7 +422,7 @@ export default function ExecutionPage() {
           </Space>
         }
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Space orientation="vertical" style={{ width: '100%' }} size="large">
           <Descriptions bordered column={2}>
             <Descriptions.Item label={t('execution.executionId')}>{executionData.id}</Descriptions.Item>
             <Descriptions.Item label={t('execution.flowName')}>
@@ -456,7 +456,7 @@ export default function ExecutionPage() {
               style={{ borderColor: 'var(--color-warning)', borderWidth: 2 }}
               size="small"
             >
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              <Space orientation="vertical" style={{ width: '100%' }} size="middle">
                 {approvalData.message && (
                   <div>
                     <Text strong>{t('approval.message')}:</Text>
@@ -574,7 +574,7 @@ export default function ExecutionPage() {
                       </Space>
                       {node.errorMessage && (
                         <div style={{ marginTop: 4 }}>
-                          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                          <Space orientation="vertical" size={4} style={{ width: '100%' }}>
                             <Space>
                               <Text type="danger">{node.errorMessage}</Text>
                               <Button
@@ -698,7 +698,7 @@ export default function ExecutionPage() {
           setDataDrawerOpen(false)
           setSelectedNodeData(null)
         }}
-        width={window.innerWidth < 768 ? '100%' : 600}
+        size={window.innerWidth < 768 ? '100%' : 600}
         placement="right"
       >
         {loadingNodeData ? (

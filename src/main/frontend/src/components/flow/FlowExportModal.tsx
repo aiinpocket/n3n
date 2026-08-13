@@ -80,7 +80,7 @@ const FlowExportModal: React.FC<FlowExportModalProps> = ({
         </Button>,
       ]}
     >
-      <Space direction="vertical" style={{ width: '100%' }}>
+      <Space orientation="vertical" style={{ width: '100%' }}>
         <div>
           <Text strong>{t('flow.flowName')}:</Text> {flowName}
         </div>
@@ -95,7 +95,7 @@ const FlowExportModal: React.FC<FlowExportModalProps> = ({
             onChange={(e) => setFormat(e.target.value)}
             style={{ marginTop: 8, display: 'block' }}
           >
-            <Space direction="vertical">
+            <Space orientation="vertical">
               <Radio value="json">
                 {t('flow.downloadAsJson')}
               </Radio>

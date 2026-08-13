@@ -395,7 +395,7 @@ export default function CloudBackupPage() {
 
       {/* 手動備份 */}
       <Card title={t('backup.manualBackup')} style={{ marginBottom: 16 }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <Paragraph type="secondary">{t('backup.manualBackupDesc')}</Paragraph>
           <Button
             type="primary"
@@ -423,12 +423,12 @@ export default function CloudBackupPage() {
         style={{ marginBottom: 16 }}
       >
         <Alert
-          message={t('backup.restoreWarning')}
+          title={t('backup.restoreWarning')}
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
         />
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <Text>{t('backup.enterRecoveryKeyLabel')}</Text>
           <TextArea
             rows={2}

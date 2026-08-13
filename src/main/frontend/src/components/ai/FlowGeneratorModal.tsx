@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Modal, Input, Button, Space, Typography, Card, Tag, Alert, Steps, Result, Progress, List, Spin } from 'antd'
+import { Modal, Input, Button, Space, Typography, Card, Tag, Alert, Steps, Result, Progress, Spin } from 'antd'
+import List from '../../components/common/SimpleList'
 import { message } from '../../utils/feedback'
 import {
   RobotOutlined,
@@ -701,7 +702,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         type="info"
         showIcon
         icon={<RobotOutlined />}
-        message={t('flowGenerator.conversationTip')}
+        title={t('flowGenerator.conversationTip')}
         description={t('flowGenerator.conversationTipDesc')}
       />
 
@@ -857,7 +858,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             </Space>
           }
         >
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Space orientation="vertical" size={4} style={{ width: '100%' }}>
             {requirementSummary.triggerType && (
               <div>
                 <Text type="secondary">{t('flowGenerator.summaryTrigger')}:</Text>{' '}
@@ -932,7 +933,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const renderGeneratingStep = () => (
     <div>
       <Card size="small" style={{ marginBottom: 16 }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space orientation="vertical" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text strong>{streamStage ? (t(`flowGenerator.stage.${streamStage}`, { defaultValue: streamStage }) as string) : t('flowGenerator.preparing')}</Text>
             <Text type="secondary">{streamProgress}%</Text>
@@ -1030,7 +1031,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             ) : null
           }
         >
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space orientation="vertical" style={{ width: '100%' }}>
             <Text type="secondary">
               <RobotOutlined /> {t('flowGenerator.aiUnderstanding')}：
             </Text>
@@ -1130,7 +1131,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             showIcon
             icon={installedNodes.size === missingNodes.length ?
               <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
-            message={installedNodes.size === missingNodes.length ?
+            title={installedNodes.size === missingNodes.length ?
               t('flowGenerator.allInstalled') : t('flowGenerator.missingNodes')}
             description={
               <div>

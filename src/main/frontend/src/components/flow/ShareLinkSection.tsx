@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Select, InputNumber, List, Space, Tag, Typography, Popconfirm, Tooltip, Divider } from 'antd'
+import { Button, Select, InputNumber, Space, Tag, Typography, Popconfirm, Tooltip, Divider } from 'antd'
+import List from '../../components/common/SimpleList'
 import { message } from '../../utils/feedback'
 import { LinkOutlined, CopyOutlined, DeleteOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
@@ -109,9 +110,9 @@ function ShareLinkSection({ flowId, visible }: ShareLinkSectionProps) {
           placeholder={t('share.linkExpiryPlaceholder')}
           value={expiresInDays}
           onChange={(value) => setExpiresInDays(value)}
-          style={{ width: 160 }}
-          addonAfter={t('share.linkExpiryDays')}
+          style={{ width: 120 }}
         />
+        <span style={{ color: 'var(--color-text-secondary)' }}>{t('share.linkExpiryDays')}</span>
         <Button type="primary" icon={<LinkOutlined />} loading={creating} onClick={handleCreate}>
           {t('share.createLink')}
         </Button>
@@ -145,7 +146,7 @@ function ShareLinkSection({ flowId, visible }: ShareLinkSectionProps) {
               </Popconfirm>,
             ]}
           >
-            <Space direction="vertical" size={0} style={{ overflow: 'hidden' }}>
+            <Space orientation="vertical" size={0} style={{ overflow: 'hidden' }}>
               <Text code copyable={false} ellipsis style={{ maxWidth: 360, fontSize: 12 }}>
                 {buildFullUrl(link.token)}
               </Text>

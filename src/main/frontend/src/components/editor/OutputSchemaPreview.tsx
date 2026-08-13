@@ -122,7 +122,7 @@ export default function OutputSchemaPreview({
         <Alert
           type="info"
           icon={<InfoCircleOutlined />}
-          message={t('outputSchema.dynamicOutput')}
+          title={t('outputSchema.dynamicOutput')}
           description={
             <div>
               <Text type="secondary">

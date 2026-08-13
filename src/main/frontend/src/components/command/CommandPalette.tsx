@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Modal, Input, List, Typography, Space, Tag, Empty } from 'antd'
+import { Modal, Input, Typography, Space, Tag, Empty } from 'antd'
+import List from '../../components/common/SimpleList'
 import {
   SaveOutlined,
   PlayCircleOutlined,

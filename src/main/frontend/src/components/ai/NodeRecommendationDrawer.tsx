@@ -1,20 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Drawer,
-  Input,
-  Tabs,
-  Card,
-  Button,
-  Tag,
-  Space,
-  Spin,
-  Empty,
-  Alert,
-  Typography,
-  List,
-  Tooltip,
-} from 'antd'
+import { Drawer, Input, Tabs, Card, Button, Tag, Space, Spin, Empty, Alert, Typography, Tooltip } from 'antd'
+import List from '../../components/common/SimpleList'
 import {
   SearchOutlined,
   PlusOutlined,
@@ -272,7 +259,7 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
     <Drawer
       title={t('nodeRecommendation.title')}
       placement="right"
-      width={480}
+      size={480}
       open={open}
       onClose={onClose}
       extra={
@@ -319,12 +306,12 @@ export const NodeRecommendationDrawer: React.FC<Props> = ({
             ),
             children: loading ? (
               <div style={{ textAlign: 'center', padding: 40 }}>
-                <Spin tip={t('nodeRecommendation.aiAnalyzing')} />
+                <Spin description={t('nodeRecommendation.aiAnalyzing')} />
               </div>
             ) : !aiAvailable ? (
               <Alert
                 type="info"
-                message={t('nodeRecommendation.aiUnavailable')}
+                title={t('nodeRecommendation.aiUnavailable')}
                 description={t('nodeRecommendation.aiUnavailableDesc')}
                 showIcon
               />

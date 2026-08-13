@@ -254,7 +254,7 @@ const AISettingsPage: React.FC = () => {
         {error && (
           <Alert
             type="error"
-            message={error}
+            title={error}
             closable
             onClose={clearError}
             style={{ marginBottom: 16 }}
@@ -263,7 +263,7 @@ const AISettingsPage: React.FC = () => {
 
         <Alert
           type="info"
-          message={t('ai.platform.info')}
+          title={t('ai.platform.info')}
           description={
             <ul style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
               <li>{t('ai.platform.infoList.shared')}</li>

@@ -533,7 +533,7 @@ export default function NodeConfigPanel({
       return (
         <Alert
           type="warning"
-          message={t('editor.handlerNotFound')}
+          title={t('editor.handlerNotFound')}
           description={t('editor.handlerNotFoundDesc', { type: nodeType })}
           action={
             <Button size="small" type="primary" href="/custom-tools" target="_self">
@@ -550,7 +550,7 @@ export default function NodeConfigPanel({
       return (
         <Alert
           type="info"
-          message={t('editor.nodeTypeUnavailable')}
+          title={t('editor.nodeTypeUnavailable')}
           description={t('editor.nodeTypeUnavailableDesc', { type: nodeType })}
           style={{ marginBottom: 16 }}
         />
@@ -579,7 +579,7 @@ export default function NodeConfigPanel({
               <Alert
                 type="warning"
                 showIcon
-                message={t('common.loadFailed')}
+                title={t('common.loadFailed')}
                 description={t('editor.nodeTypeUnavailableDesc', { type: nodeType })}
                 style={{ marginBottom: 16 }}
               />
@@ -677,7 +677,7 @@ export default function NodeConfigPanel({
               <Alert
                 type="warning"
                 showIcon
-                message={t('common.loadFailed')}
+                title={t('common.loadFailed')}
                 style={{ marginBottom: 12 }}
               />
             )}
@@ -691,7 +691,7 @@ export default function NodeConfigPanel({
         ) : (
           <Alert
             type="info"
-            message={t('editor.noInputFields')}
+            title={t('editor.noInputFields')}
             description={t('editor.noInputFieldsDesc')}
           />
         ),
@@ -712,7 +712,7 @@ export default function NodeConfigPanel({
         ) : (
           <Alert
             type="info"
-            message={t('editor.noOutputDef')}
+            title={t('editor.noOutputDef')}
             description={t('editor.noOutputDefDesc')}
           />
         ),
@@ -743,7 +743,7 @@ export default function NodeConfigPanel({
         </Space>
       }
       placement="right"
-      width={520}
+      size={520}
       onClose={onClose}
       open={!!node}
       extra={<Button type="text" icon={<CloseOutlined />} onClick={onClose} aria-label={t('common.close')} />}
@@ -751,14 +751,14 @@ export default function NodeConfigPanel({
     >
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin tip={t('common.loading')} />
+          <Spin description={t('common.loading')} />
         </div>
       ) : (
         <>
           {loadError && (
             <Alert
               type="warning"
-              message={t('editor.loadNodeInfoFailed')}
+              title={t('editor.loadNodeInfoFailed')}
               description={loadError}
               style={{ marginBottom: 16 }}
             />
@@ -779,7 +779,7 @@ export default function NodeConfigPanel({
           {isPinned && pinnedData && (
             <Alert
               type="success"
-              message={t('editor.pinnedData')}
+              title={t('editor.pinnedData')}
               description={
                 <div>
                   <Text type="secondary">{t('editor.pinnedDataDesc')}</Text>
@@ -796,7 +796,7 @@ export default function NodeConfigPanel({
           {/* Action buttons - always show delete button */}
           {!readOnly && (
           <div style={{ marginTop: 24 }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space orientation="vertical" style={{ width: '100%' }}>
               {onTest && (
                 <Button
                   type="primary"

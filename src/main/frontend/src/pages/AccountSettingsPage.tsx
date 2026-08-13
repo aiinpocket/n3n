@@ -137,7 +137,7 @@ export default function AccountSettingsPage() {
             onFinish={handleUpdateProfile}
             style={{ maxWidth: 400 }}
           >
-            <Descriptions column={1} labelStyle={{ color: 'var(--color-text-secondary)' }}>
+            <Descriptions column={1} styles={{ label: { color: 'var(--color-text-secondary)' } }}>
               <Descriptions.Item label={<><MailOutlined style={{ marginRight: 4 }} />{t('auth.email')}</>}>
                 {user?.email}
               </Descriptions.Item>
@@ -163,7 +163,7 @@ export default function AccountSettingsPage() {
             </Form.Item>
           </Form>
         ) : (
-          <Descriptions column={1} labelStyle={{ color: 'var(--color-text-secondary)' }}>
+          <Descriptions column={1} styles={{ label: { color: 'var(--color-text-secondary)' } }}>
             <Descriptions.Item label={<><MailOutlined style={{ marginRight: 4 }} />{t('auth.email')}</>}>
               {user?.email}
             </Descriptions.Item>
@@ -182,7 +182,7 @@ export default function AccountSettingsPage() {
       {/* Security Status */}
       {securityError && (
         <Card style={{ marginBottom: 24 }}>
-          <Alert type="warning" showIcon message={t('account.securityLoadFailed')} />
+          <Alert type="warning" showIcon title={t('account.securityLoadFailed')} />
         </Card>
       )}
       {securityStatus && (
@@ -193,14 +193,14 @@ export default function AccountSettingsPage() {
           </Title>
           <Divider style={{ margin: '8px 0 16px' }} />
 
-          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Space orientation="vertical" style={{ width: '100%' }} size="middle">
             {/* Recovery Key Status */}
             {securityStatus.needsRecoveryKeySetup ? (
               <Alert
                 type="warning"
                 showIcon
                 icon={<WarningOutlined />}
-                message={t('account.recoveryKeyNotSet')}
+                title={t('account.recoveryKeyNotSet')}
                 description={t('account.recoveryKeyNotSetDesc')}
                 action={
                   <Button size="small" type="primary" onClick={() => {
@@ -217,7 +217,7 @@ export default function AccountSettingsPage() {
                 type="success"
                 showIcon
                 icon={<CheckCircleOutlined />}
-                message={t('account.recoveryKeyConfigured')}
+                title={t('account.recoveryKeyConfigured')}
                 description={t('account.recoveryKeyConfiguredDesc')}
               />
             )}
@@ -227,7 +227,7 @@ export default function AccountSettingsPage() {
               <Alert
                 type="error"
                 showIcon
-                message={t('account.keyMismatch')}
+                title={t('account.keyMismatch')}
                 description={t('account.keyMismatchDesc')}
                 action={
                   <Space>
@@ -387,12 +387,12 @@ export default function AccountSettingsPage() {
         open={emergencyModalOpen}
         onCancel={() => { setEmergencyModalOpen(false); emergencyForm.resetFields() }}
         footer={null}
-        destroyOnClose
+        forceRender
       >
         <Alert
           type="warning"
           showIcon
-          message={t('account.emergencyRestoreWarning')}
+          title={t('account.emergencyRestoreWarning')}
           description={t('account.emergencyRestoreWarningDesc')}
           style={{ marginBottom: 24 }}
         />

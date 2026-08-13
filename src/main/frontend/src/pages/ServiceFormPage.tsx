@@ -230,7 +230,7 @@ export default function ServiceFormPage() {
         {testResult && (
           <Alert
             type={testResult.success ? 'success' : 'error'}
-            message={testResult.success ? t('common.success') : t('service.connectionFailed')}
+            title={testResult.success ? t('common.success') : t('service.connectionFailed')}
             showIcon
             style={{ marginBottom: 16 }}
           />
@@ -239,7 +239,7 @@ export default function ServiceFormPage() {
         <Divider titlePlacement="left">{t('service.authSettings')}</Divider>
 
         <Alert
-          message={t('service.securityTip')}
+          title={t('service.securityTip')}
           description={t('service.securityTipDesc')}
           type="info"
           showIcon

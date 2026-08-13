@@ -268,7 +268,7 @@ const SchedulerPage: React.FC = () => {
       render: (cron: string) => {
         const desc = describeCron(cron)
         return (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             <Text code>{cron}</Text>
             {desc && <Text type="secondary" style={{ fontSize: 12 }}>{desc}</Text>}
           </Space>
@@ -438,7 +438,7 @@ const SchedulerPage: React.FC = () => {
           form.resetFields()
         }}
         footer={null}
-      >
+       forceRender>
         <Form
           form={form}
           layout="vertical"
@@ -482,7 +482,7 @@ const SchedulerPage: React.FC = () => {
               { max: 100, message: t('common.maxLength', { max: 100 }) },
             ]}
             extra={
-              <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+              <Space orientation="vertical" size={4} style={{ marginTop: 4 }}>
                 {createCronDesc && (
                   <Text style={{ fontSize: 12, color: 'var(--color-primary)' }}>
                     {createCronDesc}
@@ -568,7 +568,7 @@ const SchedulerPage: React.FC = () => {
         okText={t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={editSubmitting}
-        destroyOnClose
+        forceRender
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
@@ -589,7 +589,7 @@ const SchedulerPage: React.FC = () => {
               { max: 100, message: t('common.maxLength', { max: 100 }) },
             ]}
             extra={
-              <Space direction="vertical" size={4} style={{ marginTop: 4 }}>
+              <Space orientation="vertical" size={4} style={{ marginTop: 4 }}>
                 {editCronDesc && (
                   <Text style={{ fontSize: 12, color: 'var(--color-primary)' }}>
                     {editCronDesc}
