@@ -118,19 +118,26 @@ export const AIThinkingIndicator: React.FC<Props> = ({
     }
   }, [thoughts, visibleThoughts, typingIndex, showThoughts])
 
-  const progress = useMemo(() => {
+  // 夾在有效範圍內：越界時若退回 stages[0]，畫面會在流程都快跑完時
+  // 倒退顯示「理解需求…」，與旁邊 94% 的進度互相矛盾
+  const stageIndex = useMemo(() => {
     if (stages.length === 0) return 0
-    return Math.round(((currentStage + 1) / stages.length) * 100)
+    return Math.min(Math.max(currentStage, 0), stages.length - 1)
   }, [currentStage, stages.length])
 
-  const currentStageData = stages[currentStage] || stages[0]
+  const progress = useMemo(() => {
+    if (stages.length === 0) return 0
+    return Math.round(((stageIndex + 1) / stages.length) * 100)
+  }, [stageIndex, stages.length])
+
+  const currentStageData = stages[stageIndex]
 
   return (
     <div
       className={styles.container}
       role="status"
       aria-live="polite"
-      aria-busy={currentStage < stages.length - 1}
+      aria-busy={stageIndex < stages.length - 1}
       aria-label={t('aiThinking.processing', { label: currentStageData?.label, description: currentStageData?.description })}
     >
       {/* 主要動畫區域 */}
@@ -170,8 +177,8 @@ export const AIThinkingIndicator: React.FC<Props> = ({
             {stages.map((stage, index) => (
               <Tag
                 key={stage.key}
-                color={index < currentStage ? 'purple' : index === currentStage ? 'processing' : 'default'}
-                icon={index < currentStage ? <CheckCircleOutlined /> : index === currentStage ? <LoadingOutlined /> : null}
+                color={index < stageIndex ? 'purple' : index === stageIndex ? 'processing' : 'default'}
+                icon={index < stageIndex ? <CheckCircleOutlined /> : index === stageIndex ? <LoadingOutlined /> : null}
                 className={styles.stageTag}
               >
                 {stage.label}

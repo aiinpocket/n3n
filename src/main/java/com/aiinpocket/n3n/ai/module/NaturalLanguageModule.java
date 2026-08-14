@@ -65,6 +65,7 @@ public class NaturalLanguageModule {
     private final com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService;
     private final com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine;
     private final com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService;
+    private final com.aiinpocket.n3n.ai.generation.GeneratedFlowSanitizer generatedFlowSanitizer;
 
     public NaturalLanguageModule(
             AssistantAiClient aiClient,
@@ -75,7 +76,9 @@ public class NaturalLanguageModule {
             @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
             com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService,
             com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine,
-            com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService) {
+            com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService,
+            com.aiinpocket.n3n.ai.generation.GeneratedFlowSanitizer generatedFlowSanitizer) {
+        this.generatedFlowSanitizer = generatedFlowSanitizer;
         this.generationProbeService = generationProbeService;
         this.flowLayoutEngine = flowLayoutEngine;
         this.aiClient = aiClient;
@@ -124,7 +127,7 @@ public class NaturalLanguageModule {
             // Build enhanced prompts using PromptBuilder
             String systemPrompt = promptBuilder.buildSystemPrompt(sanitizedInput);
             String userPrompt = promptBuilder.buildFlowGenerationPrompt(sanitizedInput, null,
-                    installedNodeTypes, null, null, null, loadUserMemory(userId));
+                    installedNodeTypes, null, null, null, loadUserMemory(userId), userId);
 
             log.debug("Generated system prompt length: {}, user prompt length: {}",
                     systemPrompt.length(), userPrompt.length());
@@ -202,11 +205,12 @@ public class NaturalLanguageModule {
                 emitProgress(sink, 25, "Building AI prompt...", "building_prompt");
                 String systemPrompt = promptBuilder.buildSystemPrompt(safeInput);
                 String userPrompt = promptBuilder.buildFlowGenerationPrompt(safeInput, requirementContext,
-                        installedNodeTypes, existingFlow, feedback, language, loadUserMemory(userId));
+                        installedNodeTypes, existingFlow, feedback, language, loadUserMemory(userId), userId);
                 emitProgress(sink, 30, "Prompt ready", "preparing");
 
                 // Phase 4: Calling AI (30-70%)
-                sink.tryEmitNext(FlowGenerationChunk.thinking("Generating flow architecture with AI..."));
+                // 這句會原封不動出現在使用者眼前的「AI 思考過程」，必須跟著介面語言走
+                sink.tryEmitNext(FlowGenerationChunk.thinking(planningThought(language)));
                 emitProgress(sink, 35, "Calling AI model...", "ai_generating");
 
                 String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId,
@@ -238,6 +242,15 @@ public class NaturalLanguageModule {
                 List<Map<String, String>> edges = result.flowDefinition().get("edges") != null
                         ? (List<Map<String, String>>) result.flowDefinition().get("edges")
                         : List.of();
+
+                // 清掉模型編出來的佔位假值、補上有預設值的必填欄位。
+                // 佔位值留著會讓流程「看起來建好了」卻在執行時失敗；清空後這些欄位
+                // 會被下面的背景驗證當成缺資訊，用白話向使用者問清楚。
+                List<com.aiinpocket.n3n.ai.generation.GeneratedFlowSanitizer.NodeSanitizeReport> sanitizeReports =
+                        generatedFlowSanitizer.sanitize(nodes);
+                if (!sanitizeReports.isEmpty()) {
+                    log.info("Sanitized {} generated node(s) before verification", sanitizeReports.size());
+                }
 
                 // 依 DAG 分層排版：串行節點往右延伸、並行節點同一直行上下展開，
                 // 使用者能一眼看出哪些節點同時進行
@@ -373,6 +386,21 @@ public class NaturalLanguageModule {
                 })
                 // 串流結束（完成/取消/錯誤）時喚醒等待中的驗證緒，避免殭屍執行緒
                 .doFinally(sig -> generationProbeService.cancelSession(probeSessionId));
+    }
+
+    /**
+     * 「AI 思考過程」要顯示給使用者看，不能永遠是英文。
+     * 進度訊息本身由前端依 stage 代碼翻譯，只有這句自由文字需要在後端決定語言。
+     */
+    private String planningThought(String language) {
+        String lang = language != null ? language : "zh-TW";
+        if (lang.startsWith("ja")) {
+            return "AI がフロー全体を設計しています…";
+        }
+        if (lang.startsWith("en")) {
+            return "Designing the whole flow with AI...";
+        }
+        return "正在請 AI 規劃整個流程…";
     }
 
     private void emitProgress(Sinks.Many<FlowGenerationChunk> sink, int percent, String message, String stage) {

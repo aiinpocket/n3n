@@ -1,5 +1,6 @@
 package com.aiinpocket.n3n.ai.prompt;
 
+import com.aiinpocket.n3n.ai.capability.GenerationCapabilityService;
 import com.aiinpocket.n3n.ai.codex.NodeCodex;
 import com.aiinpocket.n3n.ai.codex.NodeKnowledgeBase;
 import com.aiinpocket.n3n.ai.dto.GenerateFlowRequest.ExistingFlowDefinition;
@@ -28,6 +29,7 @@ public class PromptBuilder {
 
     private final NodeKnowledgeBase nodeKnowledgeBase;
     private final ObjectMapper objectMapper;
+    private final GenerationCapabilityService capabilityService;
 
     private String systemPromptTemplate;
     private List<FewShotExample> fewShotExamples;
@@ -117,6 +119,22 @@ public class PromptBuilder {
     public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
             Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback, String language,
             String userMemory) {
+        return buildFlowGenerationPrompt(userInput, context, installedNodeTypes, existingFlow, feedback,
+            language, userMemory, null);
+    }
+
+    /**
+     * Build user prompt for flow generation, aware of what this deployment and this user
+     * can actually run.
+     *
+     * <p>沒有這段環境事實時，模型會挑到本部署跑不起來的節點（例如容器裡不存在的瀏覽器），
+     * 或在使用者沒有 Google／Slack 憑證時仍假設用那些服務，產出的流程必定執行失敗。
+     *
+     * @param userId 產生流程的使用者；null 時只帶入與使用者無關的環境事實
+     */
+    public String buildFlowGenerationPrompt(String userInput, RequirementContext context,
+            Set<String> installedNodeTypes, ExistingFlowDefinition existingFlow, String feedback, String language,
+            String userMemory, UUID userId) {
         StringBuilder sb = new StringBuilder();
 
         // If iterating on existing flow, adjust the instruction
@@ -187,6 +205,16 @@ public class PromptBuilder {
         }
         // ===== end user memory block =====
 
+        // 執行環境事實：哪些節點在這個部署／這位使用者身上真的跑得起來。
+        // 放在節點清單之前，讓模型先知道界線再挑節點。
+        Set<String> unavailableNodeTypes = Set.of();
+        try {
+            sb.append(capabilityService.describeForPrompt(userId)).append("\n");
+            unavailableNodeTypes = capabilityService.unavailableNodeTypes(userId);
+        } catch (Exception e) {
+            log.warn("Failed to describe runtime capabilities, generating without them: {}", e.getMessage());
+        }
+
         // Detailed schemas for the nodes most relevant to this request
         List<NodeCodex> relevantNodes = nodeKnowledgeBase.searchNodes(userInput, MAX_RELEVANT_NODES);
         if (!relevantNodes.isEmpty()) {
@@ -212,7 +240,10 @@ public class PromptBuilder {
             sb.append("## ").append(getCategoryDisplayName(entry.getKey())).append("\n");
             for (NodeCodex node : entry.getValue()) {
                 String installed = installedNodeTypes.contains(node.getType()) ? " ✓" : "";
-                sb.append("- **").append(node.getType()).append("**").append(installed);
+                // 就地標記，模型挑節點時看到的那一行就帶著「不能用」的資訊
+                String blocked = unavailableNodeTypes.contains(node.getType())
+                    ? " ⛔ CANNOT RUN (missing credential or unsupported in this environment)" : "";
+                sb.append("- **").append(node.getType()).append("**").append(installed).append(blocked);
                 sb.append(": ").append(node.getDescription()).append("\n");
             }
             sb.append("\n");
