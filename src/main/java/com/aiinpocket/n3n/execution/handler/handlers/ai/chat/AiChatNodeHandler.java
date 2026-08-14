@@ -1,6 +1,8 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.chat;
 
 import com.aiinpocket.n3n.ai.provider.*;
+import com.aiinpocket.n3n.ai.entity.AiProviderConfig;
+import com.aiinpocket.n3n.ai.service.AiProviderService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import com.aiinpocket.n3n.execution.handler.handlers.ai.base.AbstractAiNodeHandler;
@@ -27,8 +29,17 @@ import java.util.*;
 @Slf4j
 public class AiChatNodeHandler extends AbstractAiNodeHandler {
 
-    public AiChatNodeHandler(AiProviderFactory providerFactory) {
+    private final AiProviderService aiProviderService;
+
+    public AiChatNodeHandler(AiProviderFactory providerFactory, AiProviderService aiProviderService) {
         super(providerFactory);
+        this.aiProviderService = aiProviderService;
+    }
+
+    /** aiChat 只有一種 resource/operation，AI 生成的節點缺這兩欄時直接套預設值 */
+    @Override
+    protected boolean applyDefaultResourceOperation() {
+        return true;
     }
 
     @Override
@@ -78,15 +89,14 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                         .required(),
                     FieldDef.select("model", "Model", List.of(
                             // OpenAI
-                            "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo",
+                            "gpt-5", "gpt-5-mini", "gpt-4o", "gpt-4o-mini",
                             // Claude
-                            "claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307",
+                            "claude-sonnet-5", "claude-opus-5", "claude-haiku-4-5",
                             // Gemini
-                            "gemini-1.5-pro", "gemini-1.5-flash"
+                            "gemini-2.5-pro", "gemini-2.5-flash"
                         ))
                         .withDefault("gpt-4o")
-                        .withDescription("Model to use")
-                        .required(),
+                        .withDescription("Model to use (leave empty to use the platform default)"),
                     FieldDef.textarea("systemPrompt", "System Prompt")
                         .withDescription("System instructions for the AI")
                         .withPlaceholder("You are a helpful assistant..."),
@@ -126,7 +136,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         }
 
         String providerId = getParam(params, "provider", "openai");
-        String model = getRequiredParam(params, "model");
+        String model = getParam(params, "model", "");
         String systemPrompt = getParam(params, "systemPrompt", "");
         String prompt = getRequiredParam(params, "prompt");
         double temperature = getDoubleParam(params, "temperature", 0.7);
@@ -134,16 +144,14 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         boolean includeHistory = getBoolParam(params, "includeHistory", false);
 
         try {
-            // Get provider
-            AiProvider provider = resolveProvider(providerId);
-            AiProviderSettings settings = buildProviderSettings(credential, providerId);
+            AiTarget target = resolveAiTarget(providerId, model, credential, context);
 
             // Build message list
             List<AiMessage> messages = buildMessages(context, systemPrompt, prompt, includeHistory);
 
             // Build request
             AiChatRequest request = AiChatRequest.builder()
-                .model(model)
+                .model(target.model())
                 .messages(messages)
                 .systemPrompt(systemPrompt.isEmpty() ? null : systemPrompt)
                 .temperature(temperature)
@@ -151,14 +159,14 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .build();
 
             // Execute request
-            AiResponse response = provider.chat(request, settings).get();
+            AiResponse response = target.provider().chat(request, target.settings()).get();
 
             // Record token usage
             if (response.getUsage() != null) {
                 recordTokenUsage(
                     context.getUserId(),
-                    providerId,
-                    model,
+                    target.providerId(),
+                    target.model(),
                     response.getUsage().getInputTokens(),
                     response.getUsage().getOutputTokens()
                 );
@@ -168,15 +176,61 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
             Map<String, Object> output = buildOutput(response, messages, prompt);
 
             log.info("AI Chat completed - provider: {}, model: {}, tokens: {}",
-                providerId, model,
+                target.providerId(), target.model(),
                 response.getUsage() != null ? response.getUsage().getTotalTokens() : "unknown");
 
             return NodeExecutionResult.success(output);
 
         } catch (Exception e) {
             log.error("AI Chat error: {}", e.getMessage(), e);
-            return NodeExecutionResult.failure("AI Chat error");
+            String reason = e.getMessage() != null ? e.getMessage() : "未知錯誤";
+            return NodeExecutionResult.failure("AI 對話失敗：" + reason);
         }
+    }
+
+    /** 解析後的執行目標：實際使用的供應商、模型與連線設定 */
+    private record AiTarget(String providerId, AiProvider provider, String model, AiProviderSettings settings) {}
+
+    /**
+     * 決定實際要用哪個 AI 服務執行：
+     * 1. 節點自己的憑證（或對應環境變數）→ 用節點指定的供應商與模型
+     * 2. 平台共用 AI 設定中「同一供應商」的金鑰 → 沿用節點模型（沒填則用平台預設模型）
+     * 3. 平台預設聊天供應商 → 連供應商與模型一起改用平台設定
+     * 這樣 AI 生成的流程不需要使用者自備 API 金鑰就能直接執行。
+     */
+    private AiTarget resolveAiTarget(
+        String providerId,
+        String model,
+        Map<String, Object> credential,
+        NodeExecutionContext context
+    ) {
+        String apiKey = resolveApiKey(credential, getEnvVarName(providerId));
+        if (apiKey != null && !apiKey.isEmpty()) {
+            String effectiveModel = model.isBlank() ? "gpt-4o" : model;
+            return new AiTarget(providerId, resolveProvider(providerId), effectiveModel,
+                buildProviderSettings(credential, providerId));
+        }
+
+        Optional<AiProviderConfig> sameProvider = aiProviderService.resolveSharedConfigFor(providerId);
+        if (sameProvider.isPresent()) {
+            AiProviderConfig config = sameProvider.get();
+            String effectiveModel = model.isBlank() ? config.getDefaultModel() : model;
+            return new AiTarget(providerId, resolveProvider(providerId), effectiveModel,
+                aiProviderService.buildSettingsFor(config));
+        }
+
+        Optional<AiProviderConfig> platformDefault =
+            aiProviderService.resolveConfigForExecution(context.getUserId());
+        if (platformDefault.isPresent()) {
+            AiProviderConfig config = platformDefault.get();
+            log.info("AI Chat falling back to platform provider '{}' (requested '{}' has no key)",
+                config.getProvider(), providerId);
+            return new AiTarget(config.getProvider(), resolveProvider(config.getProvider()),
+                config.getDefaultModel(), aiProviderService.buildSettingsFor(config));
+        }
+
+        throw new IllegalStateException(
+            "找不到可用的 AI 服務金鑰。請到「系統管理 → AI 設定」新增平台共用金鑰，或在節點掛上自己的 AI 憑證");
     }
 
     @SuppressWarnings("unchecked")
@@ -264,17 +318,15 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         boolean includeHistory = getBooleanConfig(context, "includeHistory", false);
 
         try {
-            // Get provider
-            AiProvider provider = resolveProvider(providerId);
             Map<String, Object> credential = resolveCredential(context);
-            AiProviderSettings settings = buildProviderSettings(credential, providerId);
+            AiTarget target = resolveAiTarget(providerId, model, credential, context);
 
             // Build message list
             List<AiMessage> messages = buildMessages(context, systemPrompt, prompt, includeHistory);
 
             // Build request
             AiChatRequest request = AiChatRequest.builder()
-                .model(model)
+                .model(target.model())
                 .messages(messages)
                 .systemPrompt(systemPrompt.isEmpty() ? null : systemPrompt)
                 .temperature(temperature)
@@ -282,11 +334,11 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 .build();
 
             // Execute streaming request
-            return provider.chatStream(request, settings)
+            return target.provider().chatStream(request, target.settings())
                 .map(chunk -> {
                     if (chunk.isDone()) {
                         return StreamChunk.done(Map.of(
-                            "model", model,
+                            "model", target.model(),
                             "finishReason", chunk.getStopReason() != null ? chunk.getStopReason() : "stop"
                         ));
                     }
@@ -294,12 +346,13 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                 })
                 .onErrorResume(e -> {
                     log.error("AI Chat stream error: {}", e.getMessage());
-                    return Flux.just(StreamChunk.error("AI Chat stream error"));
+                    return Flux.just(StreamChunk.error("AI 對話失敗：" + e.getMessage()));
                 });
 
         } catch (Exception e) {
             log.error("AI Chat stream setup error: {}", e.getMessage());
-            return Flux.just(StreamChunk.error("AI Chat stream error"));
+            String reason = e.getMessage() != null ? e.getMessage() : "未知錯誤";
+            return Flux.just(StreamChunk.error("AI 對話失敗：" + reason));
         }
     }
 

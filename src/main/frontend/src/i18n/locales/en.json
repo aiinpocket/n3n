@@ -1642,7 +1642,9 @@
       "identifying_optimizations": "Identifying Optimizations",
       "evaluating_suggestions": "Evaluating Suggestions",
       "generating_report": "Generating Report",
-      "validating": "Validating"
+      "validating": "Validating",
+      "verifying": "Verifying",
+      "waiting_input": "Waiting for you"
     },
     "autoTestLabel": "Auto-test & AI analysis after create",
     "autoTestHint": "After creating the flow, it runs once immediately and the AI chat companion reviews the actual result, explains what happened, and helps you adjust",
@@ -1658,7 +1660,21 @@
     "inputExtraJsonInvalid": "Additional config is not valid JSON",
     "inputWaitingNote": "If no reply within 3 minutes, this node is auto-skipped and downstream verification continues with mock data",
     "oneShotSuccess": "One-off request — generated directly",
-    "oneShotFailed": "Generation didn't succeed this time"
+    "oneShotFailed": "Generation didn't succeed this time",
+    "stageHint": {
+      "analyzing": "Understanding your request…",
+      "preparing": "Preparing the generator…",
+      "loading_nodes": "Loading available node types…",
+      "nodes_ready": "Node list ready, planning the flow",
+      "building_prompt": "Assembling planning context for the AI…",
+      "ai_generating": "Asking the AI to design the whole flow…",
+      "parsing": "Got the AI response, turning it into a flow…",
+      "building_flow": "Placing nodes onto the canvas…",
+      "verifying": "Running every node for real to confirm it works…",
+      "waiting_input": "We need a bit more info from you to keep verifying",
+      "checking_deps": "Checking for missing node types…",
+      "done": "Flow generation complete!"
+    }
   },
   "aiPanel": {
     "title": "AI Chat Companion",

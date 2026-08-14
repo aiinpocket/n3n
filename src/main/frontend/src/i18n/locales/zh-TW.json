@@ -1642,7 +1642,9 @@
       "identifying_optimizations": "識別優化機會",
       "evaluating_suggestions": "評估建議",
       "generating_report": "生成報告",
-      "validating": "驗證中"
+      "validating": "驗證中",
+      "verifying": "實測驗證中",
+      "waiting_input": "等你補充資訊"
     },
     "autoTestLabel": "建立後自動試跑並 AI 分析",
     "autoTestHint": "建立流程後系統會立刻執行一次，AI 小幫手會根據實際執行結果說明狀況、找出問題並協助你調整",
@@ -1658,7 +1660,21 @@
     "inputExtraJsonInvalid": "補充設定不是有效的 JSON",
     "inputWaitingNote": "3 分鐘內未回覆會自動跳過此節點，並以模擬資料繼續驗證下游",
     "oneShotSuccess": "這是一次性需求，已直接生成完成",
-    "oneShotFailed": "這次沒有生成成功"
+    "oneShotFailed": "這次沒有生成成功",
+    "stageHint": {
+      "analyzing": "正在理解你的需求描述…",
+      "preparing": "正在準備生成環境…",
+      "loading_nodes": "正在載入可用的節點清單…",
+      "nodes_ready": "節點清單就緒，開始規劃流程",
+      "building_prompt": "正在整理給 AI 的規劃資料…",
+      "ai_generating": "正在請 AI 規劃整個流程…",
+      "parsing": "收到 AI 回覆，正在整理成流程…",
+      "building_flow": "正在把節點一個個放上畫布…",
+      "verifying": "正在逐一真實執行每個節點，確認可以運作…",
+      "waiting_input": "需要你補充一點資訊才能繼續驗證",
+      "checking_deps": "正在檢查缺少的節點類型…",
+      "done": "流程生成完成！"
+    }
   },
   "aiPanel": {
     "title": "AI 聊天伴侶",

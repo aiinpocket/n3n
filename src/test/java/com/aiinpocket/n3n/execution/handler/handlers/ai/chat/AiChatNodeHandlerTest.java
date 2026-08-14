@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.execution.handler.handlers.ai.chat;
 
 import com.aiinpocket.n3n.ai.provider.AiProviderFactory;
+import com.aiinpocket.n3n.ai.service.AiProviderService;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,11 +22,14 @@ class AiChatNodeHandlerTest {
     @Mock
     private AiProviderFactory providerFactory;
 
+    @Mock
+    private AiProviderService aiProviderService;
+
     private AiChatNodeHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new AiChatNodeHandler(providerFactory);
+        handler = new AiChatNodeHandler(providerFactory, aiProviderService);
     }
 
     // ==================== Basic Properties ====================
@@ -157,7 +161,9 @@ class AiChatNodeHandlerTest {
     class ExecutionValidation {
 
         @Test
-        void execute_missingResource_returnFailure() {
+        void execute_missingResourceAndOperation_appliesDefaults_thenFailsOnMissingPrompt() {
+            // aiChat 只有一種 resource/operation：缺這兩欄會自動補預設值，
+            // 接著才因缺 prompt 失敗（AI 生成的節點不再卡在 resource/operation）
             NodeExecutionContext context = NodeExecutionContext.builder()
                     .executionId(UUID.randomUUID())
                     .nodeId("node-1")
@@ -169,11 +175,11 @@ class AiChatNodeHandlerTest {
 
             NodeExecutionResult result = handler.execute(context);
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.getErrorMessage()).contains("Resource");
+            assertThat(result.getErrorMessage()).contains("prompt");
         }
 
         @Test
-        void execute_missingOperation_returnFailure() {
+        void execute_missingOperation_appliesDefault_thenFailsOnMissingPrompt() {
             Map<String, Object> config = new HashMap<>();
             config.put("resource", "chat");
 
@@ -188,7 +194,7 @@ class AiChatNodeHandlerTest {
 
             NodeExecutionResult result = handler.execute(context);
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.getErrorMessage()).contains("Operation");
+            assertThat(result.getErrorMessage()).contains("prompt");
         }
 
         @Test

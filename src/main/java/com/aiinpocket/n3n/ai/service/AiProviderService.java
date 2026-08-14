@@ -401,6 +401,17 @@ public class AiProviderService {
     }
 
     /**
+     * 取得指定供應商的平台共用啟用設定（含 baseUrl / 預設模型）。
+     * 供流程節點（如 aiChat）在沒有個別憑證時沿用平台設定執行。
+     */
+    @Transactional(readOnly = true)
+    public Optional<AiProviderConfig> resolveSharedConfigFor(String providerId) {
+        return configRepository.findByIsSharedTrueAndIsActiveTrue().stream()
+                .filter(c -> providerId.equals(c.getProvider()))
+                .findFirst();
+    }
+
+    /**
      * 取得指定供應商的平台共用 API Key（解密後）。
      * 供流程節點（如 falAi）在沒有個別憑證時使用平台金鑰。
      */

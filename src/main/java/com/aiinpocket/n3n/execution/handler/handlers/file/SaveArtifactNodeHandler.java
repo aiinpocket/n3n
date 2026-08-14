@@ -65,6 +65,12 @@ public class SaveArtifactNodeHandler extends MultiOperationNodeHandler {
         return true;
     }
 
+    /** saveArtifact 只有一種 resource/operation，AI 生成的節點缺這兩欄時直接套預設值 */
+    @Override
+    protected boolean applyDefaultResourceOperation() {
+        return true;
+    }
+
     @Override
     public Map<String, ResourceDef> getResources() {
         Map<String, ResourceDef> resources = new LinkedHashMap<>();

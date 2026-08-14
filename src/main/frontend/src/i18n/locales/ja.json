@@ -1642,7 +1642,9 @@
       "identifying_optimizations": "最適化候補の特定",
       "evaluating_suggestions": "提案の評価",
       "generating_report": "レポート生成",
-      "validating": "検証中"
+      "validating": "検証中",
+      "verifying": "実行検証中",
+      "waiting_input": "入力待ち"
     },
     "autoTestLabel": "作成後に自動テスト＆AI分析",
     "autoTestHint": "フロー作成後すぐに一度実行し、AIチャットパートナーが実際の結果を確認して状況を説明し、調整をサポートします",
@@ -1658,7 +1660,21 @@
     "inputExtraJsonInvalid": "追加設定が有効なJSONではありません",
     "inputWaitingNote": "3分以内に応答がない場合、このノードは自動スキップされ、モックデータで下流の検証を続けます",
     "oneShotSuccess": "単発リクエストとして直接生成しました",
-    "oneShotFailed": "今回は生成できませんでした"
+    "oneShotFailed": "今回は生成できませんでした",
+    "stageHint": {
+      "analyzing": "ご要望を理解しています…",
+      "preparing": "生成の準備をしています…",
+      "loading_nodes": "利用可能なノードを読み込んでいます…",
+      "nodes_ready": "ノード一覧の準備ができ、フローを設計します",
+      "building_prompt": "AI に渡す設計情報を整えています…",
+      "ai_generating": "AI にフロー全体の設計を依頼しています…",
+      "parsing": "AI の回答をフローに変換しています…",
+      "building_flow": "ノードをキャンバスに配置しています…",
+      "verifying": "各ノードを実際に実行して動作を確認しています…",
+      "waiting_input": "検証を続けるには追加情報が必要です",
+      "checking_deps": "不足しているノードタイプを確認しています…",
+      "done": "フロー生成が完了しました！"
+    }
   },
   "aiPanel": {
     "title": "AIチャットパートナー",

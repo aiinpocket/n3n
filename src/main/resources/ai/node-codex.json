@@ -652,7 +652,7 @@
       "claude",
       "aiMemory"
     ],
-    "bestPractices": "搭配 AI Memory 節點可實現記憶功能"
+    "bestPractices": "不需要憑證也能執行：沒掛憑證時會自動改用平台共用 AI 設定（含供應商與模型）。resource 固定為 chat、operation 固定為 sendMessage（可省略，會自動補上）。建議不要指定 model，讓平台預設模型生效；若指定 provider 但平台沒有該供應商金鑰，會自動切換到平台預設供應商。prompt 為必填，可用 {{...}} 表達式帶入上游資料。搭配 AI Memory 節點可實現記憶功能"
   },
   "aiAgent": {
     "displayName": "AI Agent",
@@ -1941,7 +1941,7 @@
       "falAi",
       "markdown"
     ],
-    "bestPractices": "AI 圖片/影片（falAi）與 AI 語音（aiTts）等媒體節點會自動把產出存入作品庫，「不要」再接本節點重複儲存它們的輸出。本節點用於儲存文字/HTML/Markdown/JSON/base64 等自行組出的內容。"
+    "bestPractices": "resource 固定為 artifact、operation 固定為 save（可省略，會自動補上）。filename（含副檔名）與 content 為必填，content 可用 {{...}} 表達式帶入上游文字。AI 圖片/影片（falAi）與 AI 語音（aiTts）等媒體節點會自動把產出存入作品庫，「不要」再接本節點重複儲存它們的輸出。本節點用於儲存文字/HTML/Markdown/JSON/base64 等自行組出的內容。"
   },
   "spreadsheet": {
     "displayName": "試算表 / CSV",

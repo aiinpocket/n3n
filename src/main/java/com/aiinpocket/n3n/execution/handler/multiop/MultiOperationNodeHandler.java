@@ -107,10 +107,12 @@ public abstract class MultiOperationNodeHandler extends AbstractNodeHandler {
         final String operation = configuredOperation;
 
         if (resource.isEmpty()) {
-            return NodeExecutionResult.failure("Resource not selected");
+            return NodeExecutionResult.failure(
+                "Resource not selected｜這個節點還沒選擇要操作的資源類型，請開啟節點設定，選好「Resource」後再執行");
         }
         if (operation.isEmpty()) {
-            return NodeExecutionResult.failure("Operation not selected");
+            return NodeExecutionResult.failure(
+                "Operation not selected｜這個節點還沒選擇要執行的操作，請開啟節點設定，選好「Operation」後再執行");
         }
 
         // Validate resource exists

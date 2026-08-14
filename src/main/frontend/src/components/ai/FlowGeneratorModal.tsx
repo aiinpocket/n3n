@@ -1170,9 +1170,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             }}
             showInfo={false}
           />
-          {streamMessage && (
+          {(streamStage || streamMessage) && (
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {streamMessage}
+              {streamStage
+                ? (t(`flowGenerator.stageHint.${streamStage}`, { defaultValue: streamMessage || '' }) as string)
+                : streamMessage}
             </Text>
           )}
         </Space>
