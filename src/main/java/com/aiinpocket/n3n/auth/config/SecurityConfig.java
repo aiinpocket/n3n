@@ -80,6 +80,11 @@ public class SecurityConfig {
                 .cacheControl(cache -> {})
             )
             .authorizeHttpRequests(auth -> auth
+                // ASYNC 分派是「已授權請求」的延續（SSE / Flux 串流回應）；
+                // Security 6+ 預設會對 ASYNC 分派重跑授權，但 SecurityContext 不會
+                // 傳遞到非同步分派，導致 SSE（如 AI 生成流程串流）中途被 Access Denied
+                // 切斷。ERROR 分派同理（錯誤頁渲染）。
+                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC, jakarta.servlet.DispatcherType.ERROR).permitAll()
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/setup-status", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/google", "/api/auth/google/config").permitAll()
                 .requestMatchers("/api/public/**").permitAll()

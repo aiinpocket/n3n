@@ -3,6 +3,8 @@ package com.aiinpocket.n3n.common.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -11,6 +13,19 @@ import java.io.IOException;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    /**
+     * MVC 非同步（SSE / Flux 串流回應）的執行器：虛擬執行緒 per-task。
+     * 未設定時 Spring 落回 SimpleAsyncTaskExecutor 並在日誌警告不適合生產環境。
+     * 逾時設 10 分鐘以涵蓋 AI 生成流程等長串流。
+     */
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("n3n-mvc-async-");
+        executor.setVirtualThreads(true);
+        configurer.setTaskExecutor(executor);
+        configurer.setDefaultTimeout(600_000L);
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
