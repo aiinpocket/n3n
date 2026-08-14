@@ -1091,8 +1091,8 @@ public class ExecutionService {
         List<Object> results = new ArrayList<>();
         if (items.isEmpty()) {
             for (String bodyId : plan.bodyIds()) {
-                nodeOutputs.put(bodyId, Map.of());
-                context.put(bodyId, Map.of());
+                nodeOutputs.put(bodyId, new HashMap<>());
+                context.put(bodyId, new HashMap<>());
                 succeededNodes.add(bodyId);
                 loopBodyExecuted.add(bodyId);
             }
@@ -1111,7 +1111,7 @@ public class ExecutionService {
                     context.put("_loopItem", item);
                     context.put("_loopIndex", i);
 
-                    Map<String, Object> lastOut = Map.of();
+                    Map<String, Object> lastOut = new HashMap<>();
                     for (String bodyId : plan.bodyIds()) {
                         ExecuteNodeResult r = executeNodeWithPauseSupport(
                             executionId, bodyId, definition, context, iterOutputs);
@@ -1120,7 +1120,7 @@ public class ExecutionService {
                             throw new IllegalStateException(
                                 "Pause is not supported inside loop iterations (node " + bodyId + ")");
                         }
-                        lastOut = r.getOutput() != null ? r.getOutput() : Map.of();
+                        lastOut = r.getOutput() != null ? r.getOutput() : new HashMap<>();
                         iterOutputs.put(bodyId, lastOut);
                     }
                     results.add(lastOut);
@@ -1145,7 +1145,10 @@ public class ExecutionService {
         }
 
         // 收集點的輸入：所有迭代結果（AggregateNodeHandler 預設讀 inputData.items）
-        context.put("_loopCollector", Map.of("nodeId", plan.collectorId(), "items", results));
+        Map<String, Object> collectorInfo = new HashMap<>();
+        collectorInfo.put("nodeId", plan.collectorId());
+        collectorInfo.put("items", results);
+        context.put("_loopCollector", collectorInfo);
 
         // loop 節點輸出補上結果清單，供 $node 引用
         Map<String, Object> augmented = new LinkedHashMap<>(loopOutput);

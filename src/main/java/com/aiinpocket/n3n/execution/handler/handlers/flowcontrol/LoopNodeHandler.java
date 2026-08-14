@@ -90,7 +90,8 @@ public class LoopNodeHandler extends AbstractNodeHandler {
 
         for (int i = 0; i < items.size(); i += batchSize) {
             int end = Math.min(i + batchSize, items.size());
-            List<?> batch = items.subList(i, end);
+            // 複製為普通 ArrayList——SubList 進 Redis 後反序列化會失敗
+            List<?> batch = new ArrayList<>(items.subList(i, end));
 
             Map<String, Object> batchOutput = new HashMap<>();
             batchOutput.put("items", batch);
