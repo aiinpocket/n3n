@@ -147,6 +147,11 @@ export default function AIPanelDrawer({
     }
   }, [])
 
+  // 只有後端發的 UUID 才能當 conversationId；本地暫時 id（Date.now()-隨機碼）
+  // 傳給後端會因 UUID 解析失敗回 400，一律視為新對話
+  const isServerConversationId = (sessionId?: string): boolean =>
+    !!sessionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)
+
   const sendMessage = useCallback(async (message: string, executionId?: string) => {
     if (!message.trim() || isStreaming) return
 
@@ -163,7 +168,7 @@ export default function AIPanelDrawer({
       await chatStream(
         {
           message,
-          conversationId: currentSession?.id,
+          conversationId: isServerConversationId(currentSession?.id) ? currentSession?.id : undefined,
           flowId,
           flowDefinition: flowDefinition ? {
             nodes: flowDefinition.nodes,
