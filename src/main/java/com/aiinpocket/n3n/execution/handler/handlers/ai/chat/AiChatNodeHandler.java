@@ -116,7 +116,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                         .withRange(1, 200000)
                         .withDescription("Maximum tokens in the response")
                 ))
-                .outputDescription("Returns AI response in 'content' field, with 'history' and 'usage'")
+                .outputDescription("Returns AI response in 'content' (alias 'text'), with 'history' and 'usage'")
                 .build()
         ));
 
@@ -276,8 +276,9 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
     ) {
         Map<String, Object> output = new LinkedHashMap<>();
 
-        // Main response content
+        // Main response content（text 為 n8n 風格別名，AI 生成的流程常引用 $json.text）
         output.put("content", response.getContent());
+        output.put("text", response.getContent());
         output.put("model", response.getModel());
         output.put("finishReason", response.getStopReason());
 

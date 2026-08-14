@@ -35,6 +35,8 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
     private static final Pattern FIELD_PATH_PATTERN = Pattern.compile("^\\$([a-zA-Z_][a-zA-Z0-9_]*)(?:\\.(.+))?$");
     private static final Pattern NODE_REF_PATTERN = Pattern.compile("^\\$node\\[\"([^\"]+)\"\\]\\.json(?:\\.(.+))?$");
     private static final Pattern ENV_PATTERN = Pattern.compile("^\\$env\\.([a-zA-Z_][a-zA-Z0-9_]*)$");
+    private static final Pattern NOW_FORMAT_PATTERN =
+        Pattern.compile("^\\$(?:now|today)\\.format\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)$");
 
     private static final ObjectMapper TEMPLATE_MAPPER = new ObjectMapper();
 
@@ -132,7 +134,8 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             trimmed.startsWith("$env.") ||
             trimmed.startsWith("$execution.") ||
             trimmed.startsWith("$workflow.") ||
-            trimmed.equals("$now") ||
+            trimmed.startsWith("$now") ||
+            trimmed.startsWith("$today") ||
             trimmed.equals("$timestamp") ||
             trimmed.startsWith("$input")) {
             return ValidationResult.valid();
@@ -149,6 +152,15 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
         // Check for $now
         if ("$now".equals(expr)) {
             return Instant.now().toString();
+        }
+
+        // 寬容支援 AI 常見寫法 $now.format('YYYY-MM-DD')（n8n/moment 風格 token）
+        Matcher nowFormatMatcher = NOW_FORMAT_PATTERN.matcher(expr);
+        if (nowFormatMatcher.matches()) {
+            return formatNow(nowFormatMatcher.group(1));
+        }
+        if ("$today".equals(expr)) {
+            return formatNow("YYYY-MM-DD");
         }
 
         // Check for $timestamp
@@ -236,6 +248,24 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             return previousOutputs.get(nodeKey);
         }
         return previousOutputs.get(variable);
+    }
+
+    /**
+     * 以 moment/n8n 風格 token 格式化目前時間（台北時區慣用的 YYYY-MM-DD 等）。
+     * 僅轉換常見 token；其餘字元原樣保留。
+     */
+    private static String formatNow(String momentPattern) {
+        String javaPattern = momentPattern
+            .replace("YYYY", "yyyy")
+            .replace("DD", "dd")
+            .replace("A", "a");
+        try {
+            return java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern(javaPattern));
+        } catch (Exception e) {
+            log.warn("Unsupported date format pattern '{}': {}", momentPattern, e.getMessage());
+            return Instant.now().toString();
+        }
     }
 
     private Object getRootValue(String variable, NodeExecutionContext context) {

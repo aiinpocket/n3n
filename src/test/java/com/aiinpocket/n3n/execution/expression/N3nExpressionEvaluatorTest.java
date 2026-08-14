@@ -96,4 +96,26 @@ class N3nExpressionEvaluatorTest {
         Object value = evaluator.evaluate("{{$json.foo}}", context);
         assertThat(value).isEqualTo("bar");
     }
+
+    @Test
+    @DisplayName("$now.format('YYYY-MM-DD') 回傳當天日期字串")
+    void evaluate_nowFormat_returnsFormattedDate() {
+        Object value = evaluator.evaluate("{{$now.format('YYYY-MM-DD')}}", context);
+        assertThat(value).isInstanceOf(String.class);
+        assertThat((String) value).matches("\\d{4}-\\d{2}-\\d{2}");
+    }
+
+    @Test
+    @DisplayName("範本中的 $now.format 也會被替換而非留空")
+    void evaluateTemplate_nowFormat_interpolates() {
+        String result = evaluator.evaluateTemplate("報告_{{$now.format('YYYY-MM-DD')}}.md", context);
+        assertThat(result).matches("報告_\\d{4}-\\d{2}-\\d{2}\\.md");
+    }
+
+    @Test
+    @DisplayName("$today 回傳 YYYY-MM-DD")
+    void evaluate_today_returnsDate() {
+        Object value = evaluator.evaluate("{{$today}}", context);
+        assertThat((String) value).matches("\\d{4}-\\d{2}-\\d{2}");
+    }
 }
