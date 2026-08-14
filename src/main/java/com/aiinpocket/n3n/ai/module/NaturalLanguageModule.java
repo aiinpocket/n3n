@@ -63,6 +63,7 @@ public class NaturalLanguageModule {
     private final ObjectMapper objectMapper;
     private final PluginRepository pluginRepository;
     private final com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService;
+    private final com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine;
 
     public NaturalLanguageModule(
             AssistantAiClient aiClient,
@@ -71,7 +72,9 @@ public class NaturalLanguageModule {
             PromptBuilder promptBuilder,
             ObjectMapper objectMapper,
             @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
-            com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService) {
+            com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService,
+            com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine) {
+        this.flowLayoutEngine = flowLayoutEngine;
         this.aiClient = aiClient;
         this.nodeHandlerRegistry = nodeHandlerRegistry;
         this.nodeKnowledgeBase = nodeKnowledgeBase;
@@ -228,12 +231,19 @@ public class NaturalLanguageModule {
                         ? (List<Map<String, String>>) result.flowDefinition().get("edges")
                         : List.of();
 
-                int totalNodes = nodes.size();
-                int nodeIndex = 0;
-                double nodeX = 100;
-                double nodeY = 100;
+                // 依 DAG 分層排版：串行節點往右延伸、並行節點同一直行上下展開，
+                // 使用者能一眼看出哪些節點同時進行
+                List<Map<String, Object>> edgeMaps = edges.stream()
+                        .map(e -> new HashMap<String, Object>(e))
+                        .collect(Collectors.toList());
+                List<Map<String, Object>> layoutedNodes =
+                        flowLayoutEngine.layout(nodes, edgeMaps).nodes();
+                result.flowDefinition().put("nodes", layoutedNodes);
 
-                for (Map<String, Object> node : nodes) {
+                int totalNodes = layoutedNodes.size();
+                int nodeIndex = 0;
+
+                for (Map<String, Object> node : layoutedNodes) {
                     int progressPercent = totalNodes > 0
                             ? 85 + (int) ((nodeIndex / (double) totalNodes) * 10)
                             : 85;
@@ -241,14 +251,17 @@ public class NaturalLanguageModule {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> nodeConfig = node.get("config") instanceof Map
                             ? (Map<String, Object>) node.get("config") : Map.of();
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> nodePosition = node.get("position") instanceof Map
+                            ? (Map<String, Object>) node.get("position") : Map.of("x", 100, "y", 100);
                     FlowGenerationChunk.NodeData nodeData = FlowGenerationChunk.NodeData.builder()
                             .id(String.valueOf(node.get("id")))
                             .type(String.valueOf(node.get("type")))
                             .label(String.valueOf(node.getOrDefault("label", node.get("type"))))
                             .config(nodeConfig)
                             .position(FlowGenerationChunk.Position.builder()
-                                    .x(nodeX)
-                                    .y(nodeY + nodeIndex * 150)
+                                    .x(((Number) nodePosition.get("x")).doubleValue())
+                                    .y(((Number) nodePosition.get("y")).doubleValue())
                                     .build())
                             .build();
 
@@ -509,9 +522,14 @@ public class NaturalLanguageModule {
                 .filter(t -> !availableTypes.contains(t) && !installedNodeTypes.contains(t))
                 .toList();
 
+            // 可變 Map：後續排版引擎會回寫帶座標的 nodes
+            Map<String, Object> definition = new HashMap<>();
+            definition.put("nodes", nodes);
+            definition.put("edges", edges);
+
             return FlowGenerationResult.success(
                 understanding,
-                Map.of("nodes", nodes, "edges", edges),
+                definition,
                 requiredTypes,
                 missingTypes
             );

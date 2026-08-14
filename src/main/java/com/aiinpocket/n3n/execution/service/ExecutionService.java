@@ -392,7 +392,7 @@ public class ExecutionService {
             runExecution(executionId);
         } catch (Exception e) {
             log.error("EXECUTION_FAILED error={}", e.getMessage(), e);
-            updateExecutionFailed(executionId, "Execution failed");
+            updateExecutionFailed(executionId, failureReason(e));
         } finally {
             LogContext.clearExecutionContext();
         }
@@ -754,7 +754,7 @@ public class ExecutionService {
             runExecution(executionId, resumeData);
         } catch (Exception e) {
             log.error("Execution failed: {}", executionId, e);
-            updateExecutionFailed(executionId, "Execution failed");
+            updateExecutionFailed(executionId, failureReason(e));
         }
     }
 
@@ -884,15 +884,18 @@ public class ExecutionService {
 
             return ExecuteNodeResult.success(output, result.getBranchesToFollow());
         } catch (Exception e) {
+            // 保留真實錯誤訊息給使用者（欄位上限 255，截斷避免存檔失敗）
+            String reason = truncateError(e.getMessage() != null && !e.getMessage().isBlank()
+                ? e.getMessage() : "Execution failed");
             nodeExecution.setStatus("failed");
             nodeExecution.setCompletedAt(Instant.now());
             nodeExecution.setDurationMs((int) (nodeExecution.getCompletedAt().toEpochMilli() - nodeExecution.getStartedAt().toEpochMilli()));
-            nodeExecution.setErrorMessage("Execution failed");
+            nodeExecution.setErrorMessage(reason);
             nodeExecution.setErrorStack(e.getClass().getName());
             nodeExecutionRepository.save(nodeExecution);
 
-            stateManager.markNodeFailed(executionId, nodeId, "Execution failed");
-            notificationService.notifyNodeFailed(executionId, nodeId, "Execution failed");
+            stateManager.markNodeFailed(executionId, nodeId, reason);
+            notificationService.notifyNodeFailed(executionId, nodeId, reason);
             throw e;
         }
     }
@@ -1077,6 +1080,17 @@ public class ExecutionService {
         request.setInput(triggerData);
 
         return createExecution(request, userId);
+    }
+
+    /** 從例外萃取可讀的失敗原因；訊息為空時退回泛用文案。 */
+    private String failureReason(Exception e) {
+        String message = e.getMessage();
+        return truncateError(message != null && !message.isBlank() ? message : "Execution failed");
+    }
+
+    /** error_message 欄位上限 255，超長時截斷避免存檔失敗。 */
+    private String truncateError(String message) {
+        return message.length() > 255 ? message.substring(0, 252) + "..." : message;
     }
 
     private void updateExecutionFailed(UUID executionId, String errorMessage) {

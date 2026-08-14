@@ -116,6 +116,21 @@ class ScheduleTriggerHandlerTest {
         }
 
         @Test
+        void execute_aiGeneratedConfig_cronAliasAndFiveFieldExpression_succeeds() {
+            // AI 生成流程實際輸出的格式（Joseph 查看財報案例）
+            Map<String, Object> config = new HashMap<>();
+            config.put("cron", "0 9 * * *");
+            config.put("timezone", "Asia/Taipei");
+            config.put("label", "每日早上 9 點觸發");
+
+            NodeExecutionResult result = handler.execute(buildContext(config, null));
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(result.getOutput()).containsKey("nextExecution");
+            assertThat(result.getOutput()).containsEntry("timezone", "Asia/Taipei");
+        }
+
+        @Test
         void execute_invalidConfig_returnsFailure() {
             Map<String, Object> config = new HashMap<>();
             // Missing cronExpression for cron schedule type
@@ -171,6 +186,33 @@ class ScheduleTriggerHandlerTest {
             ValidationResult result = handler.validateConfig(config);
 
             assertThat(result.isValid()).isFalse();
+        }
+
+        @Test
+        void validateConfig_cronAlias_returnsValid() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("cron", "0 9 * * *");
+
+            ValidationResult result = handler.validateConfig(config);
+
+            assertThat(result.isValid()).isTrue();
+        }
+
+        @Test
+        void validateConfig_fiveFieldUnixCron_returnsValid() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("scheduleType", "cron");
+            config.put("cronExpression", "0 9 * * *");
+
+            ValidationResult result = handler.validateConfig(config);
+
+            assertThat(result.isValid()).isTrue();
+        }
+
+        @Test
+        void normalizeCron_fiveFields_prependsSeconds() {
+            assertThat(ScheduleTriggerHandler.normalizeCron("0 9 * * *")).isEqualTo("0 0 9 * * *");
+            assertThat(ScheduleTriggerHandler.normalizeCron("0 0 9 * * *")).isEqualTo("0 0 9 * * *");
         }
 
         @Test

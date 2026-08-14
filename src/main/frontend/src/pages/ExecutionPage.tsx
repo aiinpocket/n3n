@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { Card, Button, Space, Spin, Descriptions, Tag, Timeline, Result, Modal, Input, Typography, Drawer, Tabs } from 'antd'
 import { message } from '../utils/feedback'
@@ -19,6 +19,7 @@ import {
   CopyOutlined,
   CodeOutlined,
   HistoryOutlined,
+  RobotOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
@@ -27,6 +28,9 @@ import { flowApi } from '../api/flow'
 import logger from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale, formatDuration } from '../utils/locale'
+import { useAIAssistantStore } from '../stores/aiAssistantStore'
+
+const AIPanelDrawer = lazy(() => import('../components/ai/AIPanelDrawer'))
 
 const { Text } = Typography
 
@@ -56,6 +60,7 @@ export default function ExecutionPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const flowId = searchParams.get('flowId')
+  const aiPanelOpen = useAIAssistantStore((state) => state.isPanelOpen)
 
   const [executionData, setExecutionData] = useState<ExecutionResponse | null>(null)
   const [nodeExecutions, setNodeExecutions] = useState<NodeExecutionResponse[]>([])
@@ -411,6 +416,14 @@ export default function ExecutionPage() {
                 {t('execution.retry')}
               </Button>
             )}
+            {isFailed && id && (
+              <Button
+                icon={<RobotOutlined />}
+                onClick={() => useAIAssistantStore.getState().requestExecutionAnalysis(id)}
+              >
+                {t('execution.aiAnalyze')}
+              </Button>
+            )}
             {(isRunning || isWaiting) && (
               <Button danger icon={<StopOutlined />} onClick={() => setCancelModalOpen(true)}>
                 {t('execution.cancel')}
@@ -757,6 +770,13 @@ export default function ExecutionPage() {
           />
         )}
       </Drawer>
+
+      {/* AI 執行分析小幫手：失敗時由「AI 分析」按鈕開啟 */}
+      {aiPanelOpen && (
+        <Suspense fallback={null}>
+          <AIPanelDrawer flowId={executionData.flowId ? String(executionData.flowId) : undefined} />
+        </Suspense>
+      )}
     </>
   )
 }

@@ -12,6 +12,8 @@ export interface ChatStreamRequest {
     nodes: unknown[]
     edges: unknown[]
   }
+  /** 帶入執行 ID 時，後端會附上該次執行的節點結果與錯誤供 AI 分析 */
+  executionId?: string
 }
 
 export interface ChatStreamChunk {

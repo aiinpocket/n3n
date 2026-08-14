@@ -50,13 +50,24 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
         return true;
     }
 
+    /**
+     * Spring CronExpression 要求 6 欄（含秒）；AI 與使用者慣用的 Unix cron 是 5 欄。
+     * 5 欄時自動補上秒欄位 "0 "。
+     */
+    static String normalizeCron(String expression) {
+        String trimmed = expression.trim();
+        return trimmed.split("\\s+").length == 5 ? "0 " + trimmed : trimmed;
+    }
+
     @Override
     protected NodeExecutionResult doExecute(NodeExecutionContext context) {
         // Schedule triggers don't execute like regular nodes
         // They provide context about when/why they were triggered
 
         String scheduleType = getStringConfig(context, "scheduleType", "cron");
-        String cronExpression = getStringConfig(context, "cronExpression", "");
+        // AI 生成的流程常用 "cron" 作為鍵名，接受其為 cronExpression 的別名
+        String cronExpression = getStringConfig(context, "cronExpression",
+            getStringConfig(context, "cron", ""));
         String timezone = getStringConfig(context, "timezone", "UTC");
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of(timezone));
@@ -71,7 +82,7 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
 
             // Calculate next execution time
             try {
-                CronExpression cron = CronExpression.parse(cronExpression);
+                CronExpression cron = CronExpression.parse(normalizeCron(cronExpression));
                 LocalDateTime next = cron.next(now);
                 if (next != null) {
                     output.put("nextExecution", next.format(DateTimeFormatter.ISO_DATE_TIME));
@@ -97,11 +108,14 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
         if ("cron".equals(scheduleType)) {
             Object cronExpr = config.get("cronExpression");
             if (cronExpr == null || cronExpr.toString().trim().isEmpty()) {
+                cronExpr = config.get("cron");  // AI 生成流程常用的別名
+            }
+            if (cronExpr == null || cronExpr.toString().trim().isEmpty()) {
                 return ValidationResult.invalid("cronExpression", "Cron expression is required");
             }
 
             try {
-                CronExpression.parse(cronExpr.toString());
+                CronExpression.parse(normalizeCron(cronExpr.toString()));
             } catch (IllegalArgumentException e) {
                 log.debug("Cron expression validation failed: {}", e.getMessage(), e);
                 return ValidationResult.invalid("cronExpression", "Invalid cron expression");

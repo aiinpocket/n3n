@@ -76,11 +76,16 @@ interface AIAssistantState {
   // Error state
   error: string | null
 
+  // 執行分析請求：設定後 AI 面板開啟並自動送出分析訊息
+  analysisExecutionId: string | null
+
   // Actions
   openPanel: () => void
   closePanel: () => void
   togglePanel: () => void
   setPanelWidth: (width: number) => void
+  requestExecutionAnalysis: (executionId: string) => void
+  clearAnalysisRequest: () => void
 
   // Session management
   startNewSession: (flowId?: string) => void
@@ -153,12 +158,16 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       flowHistory: [],
       historyIndex: -1,
       error: null,
+      analysisExecutionId: null,
 
       // Panel actions
       openPanel: () => set({ isPanelOpen: true }),
       closePanel: () => set({ isPanelOpen: false }),
       togglePanel: () => set((state) => ({ isPanelOpen: !state.isPanelOpen })),
       setPanelWidth: (width) => set({ panelWidth: Math.max(320, Math.min(800, width)) }),
+      requestExecutionAnalysis: (executionId) =>
+        set({ analysisExecutionId: executionId, isPanelOpen: true }),
+      clearAnalysisRequest: () => set({ analysisExecutionId: null }),
 
       // Session management
       startNewSession: (flowId) => {

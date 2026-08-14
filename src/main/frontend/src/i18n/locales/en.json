@@ -599,7 +599,8 @@
     "outputData": "Output Data",
     "noData": "No data available",
     "goToFlows": "Go to flows",
-    "output": "Output"
+    "output": "Output",
+    "aiAnalyze": "Analyze failure with AI"
   },
   "service": {
     "title": "External Services",
@@ -1670,7 +1671,8 @@
       "removeNode": "Remove Node",
       "modifyNode": "Modify Node",
       "connectNodes": "Connect Nodes"
-    }
+    },
+    "analyzeExecutionMessage": "Please analyze this execution result: if it failed, explain the cause in plain language, point out which node has the problem, and tell me how to fix it. If you need more information, just ask me."
   },
   "dashboard": {
     "title": "Dashboard",

@@ -69,6 +69,8 @@ export default function AIPanelDrawer({
     exportSession,
     importSession,
     updateSessionId,
+    analysisExecutionId,
+    clearAnalysisRequest,
   } = useAIAssistantStore()
 
   const [inputValue, setInputValue] = useState('')
@@ -145,11 +147,9 @@ export default function AIPanelDrawer({
     }
   }, [])
 
-  const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || isStreaming) return
+  const sendMessage = useCallback(async (message: string, executionId?: string) => {
+    if (!message.trim() || isStreaming) return
 
-    const message = inputValue.trim()
-    setInputValue('')
     addUserMessage(message)
     setStreaming(true)
     clearError()
@@ -169,6 +169,7 @@ export default function AIPanelDrawer({
             nodes: flowDefinition.nodes,
             edges: flowDefinition.edges,
           } : undefined,
+          executionId,
         },
         {
           onThinking: (text) => {
@@ -228,7 +229,6 @@ export default function AIPanelDrawer({
       }
     }
   }, [
-    inputValue,
     isStreaming,
     currentSession?.id,
     flowId,
@@ -244,6 +244,22 @@ export default function AIPanelDrawer({
     updateSessionId,
     onOpenFlowGenerator,
   ])
+
+  const handleSendMessage = useCallback(() => {
+    const message = inputValue.trim()
+    if (!message) return
+    setInputValue('')
+    void sendMessage(message)
+  }, [inputValue, sendMessage])
+
+  // 執行分析請求：面板開啟後自動送出分析訊息（帶 executionId 讓後端附上執行紀錄）
+  useEffect(() => {
+    if (isPanelOpen && analysisExecutionId && !isStreaming) {
+      const executionId = analysisExecutionId
+      clearAnalysisRequest()
+      void sendMessage(t('aiPanel.analyzeExecutionMessage'), executionId)
+    }
+  }, [isPanelOpen, analysisExecutionId, isStreaming, clearAnalysisRequest, sendMessage, t])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

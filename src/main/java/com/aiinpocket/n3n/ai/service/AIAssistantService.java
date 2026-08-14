@@ -40,6 +40,7 @@ public class AIAssistantService {
     private final ConversationManager conversationManager;
     private final UserMemoryService userMemoryService;
     private final MemoryExtractionService memoryExtractionService;
+    private final ExecutionAnalysisContextBuilder executionAnalysisContextBuilder;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -248,6 +249,16 @@ public class AIAssistantService {
                     .content((String) m.get("content"))
                     .build())
                 .forEach(history::add);
+
+            // 執行分析情境：注入該次執行的節點結果與錯誤，並指示 AI 口語化回報
+            String executionContext = loadExecutionContext(request, userId);
+            if (!executionContext.isEmpty()) {
+                history.add(Message.builder()
+                    .role("system")
+                    .content(executionContext)
+                    .build());
+            }
+
             builder.conversationHistory(history);
         } catch (Exception e) {
             log.warn("Failed to load conversation history for {}", conversationId, e);
@@ -260,6 +271,32 @@ public class AIAssistantService {
         }
 
         return builder.build();
+    }
+
+    /**
+     * 載入執行分析上下文；未帶 executionId 或查詢失敗時退回空字串。
+     * 失敗不阻斷對話——AI 會改為請使用者描述問題。
+     */
+    private String loadExecutionContext(ChatStreamRequest request, UUID userId) {
+        if (request.getExecutionId() == null) {
+            return "";
+        }
+        try {
+            return executionAnalysisContextBuilder.build(request.getExecutionId(), userId)
+                + """
+
+                你現在是「執行分析小幫手」。請根據上面的執行紀錄：
+                1. 用口語化、非工程師也能懂的方式說明這次執行發生了什麼（避免直接貼原始錯誤碼，先翻譯成白話）。
+                2. 找出失敗的根本原因，指出是哪個節點、哪個設定的問題。
+                3. 給出具體可操作的修正步驟；如果你能直接提出流程修改，就提出修改建議。
+                4. 如果現有資訊不足以判斷（例如缺少憑證、網址、參數），主動列出你需要使用者回答的問題。
+                5. 如果執行其實是成功的，簡短總結結果即可。
+                請使用與使用者相同的語言回覆。
+                """;
+        } catch (Exception e) {
+            log.warn("Failed to load execution context for {}", request.getExecutionId(), e);
+            return "";
+        }
     }
 
     /**

@@ -36,6 +36,12 @@ public class ChatStreamRequest {
      */
     private FlowDefinition flowDefinition;
 
+    /**
+     * 執行 ID（可選）：帶入時 AI 會取得該次執行的節點結果與錯誤，
+     * 用於「執行失敗分析小幫手」情境
+     */
+    private UUID executionId;
+
     @Data
     public static class FlowDefinition {
         private List<Map<String, Object>> nodes;

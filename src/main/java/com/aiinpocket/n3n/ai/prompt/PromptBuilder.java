@@ -413,7 +413,7 @@ public class PromptBuilder {
                 {
                   "understanding": "Create a scheduled task that runs daily at 8 AM, calls a weather API to get forecast data, then sends it to a Slack channel",
                   "nodes": [
-                    {"id": "1", "type": "scheduleTrigger", "label": "Daily at 8 AM", "config": {"cron": "0 8 * * *"}},
+                    {"id": "1", "type": "scheduleTrigger", "label": "Daily at 8 AM", "config": {"cronExpression": "0 8 * * *"}},
                     {"id": "2", "type": "httpRequest", "label": "Fetch Weather Forecast", "config": {"method": "GET", "url": "https://api.weather.gov/forecast"}},
                     {"id": "3", "type": "slack", "label": "Send Weather Notification", "config": {"channel": "#general"}}
                   ],
@@ -432,7 +432,7 @@ public class PromptBuilder {
                 {
                   "understanding": "Create a monitoring task that runs every 5 minutes, calls the target API and checks response time; if it exceeds the threshold, sends an alert email",
                   "nodes": [
-                    {"id": "1", "type": "scheduleTrigger", "label": "Every 5 Minutes", "config": {"interval": "5m"}},
+                    {"id": "1", "type": "scheduleTrigger", "label": "Every 5 Minutes", "config": {"scheduleType": "interval", "interval": 5, "intervalUnit": "minutes"}},
                     {"id": "2", "type": "httpRequest", "label": "Check Website Health", "config": {"method": "GET", "url": "https://example.com/health"}},
                     {"id": "3", "type": "condition", "label": "Response Time Check", "config": {"rules": [{"field": "responseTime", "operator": "gt", "value": 3000}]}},
                     {"id": "4", "type": "sendEmail", "label": "Send Alert Email", "config": {"to": "admin@example.com", "subject": "Slow Response Alert"}}

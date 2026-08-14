@@ -8,9 +8,11 @@ import {
   CloseCircleOutlined,
   StopOutlined,
   ClockCircleOutlined,
+  RobotOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useExecutionStore, NodeExecutionState } from '../../stores/executionStore'
+import { useAIAssistantStore } from '../../stores/aiAssistantStore'
 import { useExecutionMonitor, useExecutionActions } from '../../hooks/useExecutionMonitor'
 import logger from '../../utils/logger'
 import { extractApiError } from '../../utils/errorMessages'
@@ -254,6 +256,15 @@ export default function ExecutionOverlay({
               disabled={starting}
             >
               {t('execution.reExecute')}
+            </Button>
+          )}
+          {(execution?.status === 'failed' || nodeStats.failed > 0) && executionId && (
+            <Button
+              size="small"
+              icon={<RobotOutlined />}
+              onClick={() => useAIAssistantStore.getState().requestExecutionAnalysis(executionId)}
+            >
+              {t('execution.aiAnalyze')}
             </Button>
           )}
         </Space>

@@ -242,7 +242,10 @@ public class ValidateFlowTool implements AgentTool {
                 }
                 break;
             case "scheduleTrigger":
-                if (!config.containsKey("cronExpression") || isEmptyString(config.get("cronExpression"))) {
+                // cronExpression 為正式鍵名；"cron" 為 AI 生成流程常見別名；interval 型排程則看 interval
+                boolean hasCron = !isEmptyString(config.get("cronExpression")) || !isEmptyString(config.get("cron"));
+                boolean hasInterval = config.get("interval") != null;
+                if (!hasCron && !hasInterval) {
                     missing.add("cronExpression");
                 }
                 break;

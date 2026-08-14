@@ -599,7 +599,8 @@
     "outputData": "輸出數據",
     "noData": "無可用數據",
     "goToFlows": "前往流程列表",
-    "output": "輸出結果"
+    "output": "輸出結果",
+    "aiAnalyze": "AI 分析失敗原因"
   },
   "service": {
     "title": "外部服務",
@@ -1670,7 +1671,8 @@
       "removeNode": "移除節點",
       "modifyNode": "修改節點",
       "connectNodes": "連接節點"
-    }
+    },
+    "analyzeExecutionMessage": "請幫我分析這次執行的結果：如果失敗了，請用白話說明原因、指出是哪個節點的問題，並告訴我要怎麼修正；如果需要更多資訊，請直接問我。"
   },
   "dashboard": {
     "title": "儀表板",

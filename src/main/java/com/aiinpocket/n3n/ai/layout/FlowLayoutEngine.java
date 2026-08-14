@@ -60,16 +60,19 @@ public class FlowLayoutEngine {
         // 分層（拓撲排序）
         List<List<String>> layers = assignLayers(allNodeIds, outgoing, incoming);
 
-        // 計算每層的節點位置
+        // 計算每層的節點位置：
+        // 各層以最大層為基準垂直置中，並行節點在同一 X 上下對稱展開，一眼可見誰與誰同時進行
         List<Map<String, Object>> layoutedNodes = new ArrayList<>();
         Map<String, int[]> positions = new HashMap<>();
+
+        int maxLayerSize = layers.stream().mapToInt(List::size).max().orElse(1);
+        int maxLayerHeight = maxLayerSize * (NODE_HEIGHT + VERTICAL_GAP) - VERTICAL_GAP;
 
         for (int layerIndex = 0; layerIndex < layers.size(); layerIndex++) {
             List<String> layer = layers.get(layerIndex);
 
-            // 計算該層的起始 Y 位置（垂直置中）
             int layerHeight = layer.size() * (NODE_HEIGHT + VERTICAL_GAP) - VERTICAL_GAP;
-            int startY = INITIAL_Y;
+            int startY = INITIAL_Y + (maxLayerHeight - layerHeight) / 2;
 
             for (int nodeIndex = 0; nodeIndex < layer.size(); nodeIndex++) {
                 String nodeId = layer.get(nodeIndex);

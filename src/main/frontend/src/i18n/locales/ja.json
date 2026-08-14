@@ -599,7 +599,8 @@
     "outputData": "出力データ",
     "noData": "データなし",
     "goToFlows": "フロー一覧へ",
-    "output": "出力結果"
+    "output": "出力結果",
+    "aiAnalyze": "AI で失敗原因を分析"
   },
   "service": {
     "title": "外部サービス",
@@ -1670,7 +1671,8 @@
       "removeNode": "ノード削除",
       "modifyNode": "ノード変更",
       "connectNodes": "ノード接続"
-    }
+    },
+    "analyzeExecutionMessage": "この実行結果を分析してください。失敗した場合は、原因をわかりやすく説明し、どのノードに問題があるかを指摘し、修正方法を教えてください。情報が足りない場合は質問してください。"
   },
   "dashboard": {
     "title": "ダッシュボード",
