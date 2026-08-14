@@ -611,6 +611,25 @@ public class GenerationProbeService {
         return merged;
     }
 
+    /**
+     * 節點設定 schema 的精簡描述，給修復用。
+     *
+     * <p>少了這段，修復器只看得到「Unknown HTML operation: extract」這種訊息，
+     * 不知道合法值是 extractText／extractBySelector／…，只能瞎猜同一個錯值。
+     */
+    private String describeSchemaForRepair(String nodeType) {
+        try {
+            return handlerRegistry.findHandler(nodeType)
+                .map(handler -> com.aiinpocket.n3n.ai.codex.ConfigSchemaCompactor
+                    .compact(handler.getConfigSchema()))
+                .filter(text -> text != null && !text.isBlank())
+                .orElse("(無法取得此節點的設定說明)");
+        } catch (Exception e) {
+            log.debug("Schema description for repair unavailable ({}): {}", nodeType, e.getMessage());
+            return "(無法取得此節點的設定說明)";
+        }
+    }
+
     /** AI 修設定：帶錯誤訊息與上游輸出樣本，只回 JSON config。 */
     private Map<String, Object> attemptRepair(UUID userId, String nodeType,
                                               Map<String, Object> config, String error,
@@ -618,13 +637,20 @@ public class GenerationProbeService {
         try {
             String prompt = """
                 節點類型：%s
+                這個節點允許的設定欄位與合法值（只能用這裡列出的欄位名與 enum 值）：
+                %s
+
                 目前設定：%s
                 試打錯誤：%s
                 上游節點的實際輸出（可用 {{ $node["節點id"].json.欄位 }} 引用）：%s
 
-                請修正這個節點的設定讓它能成功執行。只回傳修正後的設定 JSON 物件，不要任何說明文字。
+                請修正這個節點的設定讓它能成功執行。若錯誤訊息顯示某個值不被接受
+                （例如 operation 不合法），請從上面 schema 列出的合法值中挑一個最符合
+                這個節點原本用途的，不要自己發明新值。
+                只回傳修正後的設定 JSON 物件，不要任何說明文字。
                 如果錯誤是缺少憑證、金鑰或只有使用者知道的資訊，回傳字串 "CANNOT_FIX"。
-                """.formatted(nodeType, toJson(config, 2000), error, toJson(realOutputs, 1500));
+                """.formatted(nodeType, describeSchemaForRepair(nodeType),
+                    toJson(config, 2000), error, toJson(realOutputs, 1500));
             String answer = aiClient.chat(prompt,
                 "你是流程節點設定修復器，只輸出 JSON。", 1500, 0.2, userId).trim();
             if (answer.contains("CANNOT_FIX")) {

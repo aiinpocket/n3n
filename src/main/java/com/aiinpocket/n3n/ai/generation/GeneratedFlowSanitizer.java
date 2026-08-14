@@ -135,9 +135,22 @@ public class GeneratedFlowSanitizer {
 
         List<String> cleared = new ArrayList<>();
         for (Map.Entry<String, Object> entry : new LinkedHashMap<>(config).entrySet()) {
-            if (entry.getValue() instanceof String value && isPlaceholder(entry.getKey(), value)) {
-                config.remove(entry.getKey());
-                cleared.add(entry.getKey());
+            String key = entry.getKey();
+            if (!(entry.getValue() instanceof String value)) {
+                continue;
+            }
+            if (isPlaceholder(key, value)) {
+                config.remove(key);
+                cleared.add(key);
+                continue;
+            }
+            // enum 欄位填了不存在的值（例如 html 的 operation="extract"，合法值其實是
+            // extractText／extractBySelector…）執行時才會炸。能唯一對應就直接改對，
+            // 對不上就留給下游的實跑＋AI 修復處理，不在這裡亂猜。
+            String corrected = correctEnumValue(properties.get(key), value);
+            if (corrected != null && !corrected.equals(value)) {
+                config.put(key, corrected);
+                log.info("Corrected enum value on {} config: {}={} -> {}", type, key, value, corrected);
             }
         }
 
@@ -226,6 +239,37 @@ public class GeneratedFlowSanitizer {
             return !l.isEmpty();
         }
         return true;
+    }
+
+    /**
+     * 把不在 enum 中的值修正成合法值，修不了就回傳 null（維持原值）。
+     *
+     * <p>只在答案唯一時才動手：大小寫／底線差異，或恰好只有一個候選以該值開頭。
+     * 有多個候選（例如 "extract" 同時像 extractText 與 extractBySelector）時不猜——
+     * 猜錯會產生一個看起來正常、行為卻不對的流程，比留著讓實跑抓出來更糟。
+     */
+    String correctEnumValue(Object propertySchema, String value) {
+        if (!(propertySchema instanceof Map<?, ?> schema)
+            || !(schema.get("enum") instanceof List<?> allowed) || allowed.isEmpty()) {
+            return null;
+        }
+        List<String> options = allowed.stream().map(String::valueOf).toList();
+        if (options.contains(value)) {
+            return null;
+        }
+
+        String normalized = value.toLowerCase(Locale.ROOT).replace("_", "").replace("-", "");
+        List<String> caseMatches = options.stream()
+            .filter(o -> o.toLowerCase(Locale.ROOT).replace("_", "").replace("-", "").equals(normalized))
+            .toList();
+        if (caseMatches.size() == 1) {
+            return caseMatches.get(0);
+        }
+
+        List<String> prefixMatches = options.stream()
+            .filter(o -> o.toLowerCase(Locale.ROOT).startsWith(value.toLowerCase(Locale.ROOT)))
+            .toList();
+        return prefixMatches.size() == 1 ? prefixMatches.get(0) : null;
     }
 
     /** schema 的 default；沒有 default 但 enum 只有唯一選項時，那個選項就是唯一正解。 */
