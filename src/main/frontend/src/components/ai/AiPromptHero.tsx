@@ -93,12 +93,12 @@ export default function AiPromptHero() {
         open={generatorOpen}
         onClose={() => setGeneratorOpen(false)}
         initialDescription={prompt}
-        onCreateFlow={async (flowDef) => {
+        onCreateFlow={async (flowDef, options) => {
           if (!flowDef) return
           try {
             const flow = await createFlow(t('flow.aiGeneratedName'), t('flow.aiGeneratedDescription'))
             message.success(t('flow.createdRedirecting'))
-            navigate(`/flows/${flow.id}/edit`, { state: { generatedFlow: flowDef } })
+            navigate(`/flows/${flow.id}/edit`, { state: { generatedFlow: flowDef, autoTest: options?.autoTest } })
           } catch (err) {
             message.error(extractApiError(err, t('common.createFailed')))
           }

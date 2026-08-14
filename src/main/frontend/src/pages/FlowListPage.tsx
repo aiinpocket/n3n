@@ -748,7 +748,7 @@ export default function FlowListPage() {
       <FlowGeneratorModal
         open={aiGeneratorOpen}
         onClose={() => setAiGeneratorOpen(false)}
-        onCreateFlow={async (flowDef) => {
+        onCreateFlow={async (flowDef, options) => {
           if (flowDef) {
             // First create a flow, then navigate to editor with the generated content
             try {
@@ -756,7 +756,7 @@ export default function FlowListPage() {
               message.success(t('flow.createdRedirecting'))
               // Navigate to editor and let it handle the flow definition
               navigate(`/flows/${flow.id}/edit`, {
-                state: { generatedFlow: flowDef },
+                state: { generatedFlow: flowDef, autoTest: options?.autoTest },
               })
             } catch (err) {
               message.error(extractApiError(err, t('flow.createFailed')))

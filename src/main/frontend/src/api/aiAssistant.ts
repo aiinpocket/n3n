@@ -148,6 +148,8 @@ export interface GenerateFlowResponse {
       type: string
       label: string
       config?: Record<string, unknown>
+      /** 後端 FlowLayoutEngine 排版後的座標（並行節點同欄展開） */
+      position?: { x: number; y: number }
     }>
     edges: Array<{
       source: string

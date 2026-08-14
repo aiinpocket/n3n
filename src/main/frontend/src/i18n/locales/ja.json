@@ -1628,7 +1628,9 @@
       "evaluating_suggestions": "提案の評価",
       "generating_report": "レポート生成",
       "validating": "検証中"
-    }
+    },
+    "autoTestLabel": "作成後に自動テスト＆AI分析",
+    "autoTestHint": "フロー作成後すぐに一度実行し、AIアシスタントが実際の結果を確認して状況を説明し、調整をサポートします"
   },
   "aiPanel": {
     "title": "AIアシスタント",

@@ -1628,7 +1628,9 @@
       "evaluating_suggestions": "Evaluating Suggestions",
       "generating_report": "Generating Report",
       "validating": "Validating"
-    }
+    },
+    "autoTestLabel": "Auto-test & AI analysis after create",
+    "autoTestHint": "After creating the flow, it runs once immediately and the AI assistant reviews the actual result, explains what happened, and helps you adjust"
   },
   "aiPanel": {
     "title": "AI Assistant",

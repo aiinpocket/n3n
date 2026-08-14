@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Modal, Input, Button, Space, Typography, Card, Tag, Alert, Steps, Result, Progress, Spin } from 'antd'
+import { Modal, Input, Button, Space, Typography, Card, Tag, Alert, Steps, Result, Progress, Spin, Switch, Tooltip } from 'antd'
 import List from '../../components/common/SimpleList'
 import { message } from '../../utils/feedback'
 import {
@@ -48,7 +48,10 @@ const { Text, Paragraph } = Typography
 interface Props {
   open: boolean
   onClose: () => void
-  onCreateFlow?: (flowDefinition: GenerateFlowResponse['flowDefinition']) => void
+  onCreateFlow?: (
+    flowDefinition: GenerateFlowResponse['flowDefinition'],
+    options?: { autoTest?: boolean }
+  ) => void
   initialDescription?: string
 }
 
@@ -73,7 +76,8 @@ const buildEditorDefinition = (
   nodes: flowDef.nodes.map((n, i) => ({
     id: n.id,
     type: n.type,
-    position: { x: 250, y: i * 120 + 50 },
+    // 後端已做 DAG 分層排版（並行節點同欄展開），沒有座標時才退回直線排列
+    position: n.position ?? { x: 250, y: i * 120 + 50 },
     data: {
       label: n.label || n.type,
       nodeType: n.type,
@@ -104,6 +108,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('input')
   const [isPublishing, setIsPublishing] = useState(false)
+  // 建立後自動試跑一次，結束後交給 AI 分析小幫手依實際結果說明/調整
+  const [autoTest, setAutoTest] = useState(true)
   const [userInput, setUserInput] = useState('')
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -531,7 +537,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 
   const handleCreateFlow = () => {
     if (result?.flowDefinition) {
-      onCreateFlow?.(result.flowDefinition)
+      onCreateFlow?.(result.flowDefinition, { autoTest })
       handleClose()
     }
   }
@@ -574,7 +580,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           ? t('ai.generator.publishedWithSchedule')
           : t('ai.generator.publishedSuccess')
       )
-      navigate(`/flows/${flow.id}/edit`)
+      // autoTest：編輯器載入後自動試跑一次並交給 AI 分析小幫手
+      navigate(`/flows/${flow.id}/edit`, { state: { autoTest } })
       handleClose()
     } catch (err) {
       message.error(extractApiError(err, t('flow.createFailed')))
@@ -1309,6 +1316,12 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       case 'preview':
         return (
           <Space>
+            <Tooltip title={t('flowGenerator.autoTestHint')}>
+              <Space size={6}>
+                <Switch size="small" checked={autoTest} onChange={setAutoTest} />
+                <Text style={{ fontSize: 13 }}>{t('flowGenerator.autoTestLabel')}</Text>
+              </Space>
+            </Tooltip>
             <Button onClick={handleReset} disabled={isPublishing}>
               {t('flowGenerator.redescribe')}
             </Button>

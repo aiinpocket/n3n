@@ -82,7 +82,13 @@ const { Text } = Typography
 const AUTO_SAVE_DELAY = 5000 // 5 seconds
 
 interface GeneratedFlowDefinition {
-  nodes: Array<{ id: string; type: string; label?: string; config?: Record<string, unknown> }>
+  nodes: Array<{
+    id: string
+    type: string
+    label?: string
+    config?: Record<string, unknown>
+    position?: { x: number; y: number }
+  }>
   edges: Array<{ source: string; target: string }>
 }
 
@@ -326,7 +332,8 @@ export default function FlowEditorPage() {
         return {
           id: n.id,
           type: n.type,
-          position: existing?.position || { x: 250, y: i * 120 + 50 },
+          // 既有節點保留使用者拖過的位置；新節點優先用後端分層排版座標
+          position: existing?.position || n.position || { x: 250, y: i * 120 + 50 },
           data: {
             label: n.label || n.type,
             nodeType: n.type,
@@ -344,17 +351,41 @@ export default function FlowEditorPage() {
     [pushHistory, setNodes, setEdges]
   )
 
+  // 生成器「自動試跑」：pending 旗標（執行 → 完成後交給 AI 分析）
+  const autoTestPendingRef = useRef(false)
+  const autoAnalyzePendingRef = useRef(false)
+
   // Handle AI-generated flow from navigation state
   useEffect(() => {
-    const state = location.state as { generatedFlow?: GeneratedFlowDefinition } | null
+    const state = location.state as
+      | { generatedFlow?: GeneratedFlowDefinition; autoTest?: boolean }
+      | null
     if (state?.generatedFlow) {
       applyGeneratedFlow(state.generatedFlow)
       message.success(t('editor.aiFlowLoaded'))
+    }
+    if (state?.autoTest) {
+      // 生成器的「自動試跑」開關：流程就緒後自動執行一次並交給 AI 分析
+      autoTestPendingRef.current = true
+    }
+    if (state?.generatedFlow || state?.autoTest) {
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state])
+
+  // 自動試跑結束後，把執行結果交給 AI 分析小幫手（成功也總結、失敗給修法）
+  useEffect(() => {
+    if (!autoAnalyzePendingRef.current) return
+    if (!activeExecutionId) return
+    if (executionStatus === 'completed' || executionStatus === 'failed') {
+      autoAnalyzePendingRef.current = false
+      useAIAssistantStore.getState().requestExecutionAnalysis(activeExecutionId)
+    } else if (executionStatus === 'cancelled') {
+      autoAnalyzePendingRef.current = false
+    }
+  }, [executionStatus, activeExecutionId])
 
   // Auto-save with debounce (disabled in read-only mode)
   useEffect(() => {
@@ -755,6 +786,15 @@ export default function FlowEditorPage() {
       setExecutionMode(false)
     }
   }, [currentVersion, canEdit, autoSaveDraft, startExecution, t])
+
+  // 自動試跑：等流程載入完成（有版本、有節點）後執行一次
+  useEffect(() => {
+    if (!autoTestPendingRef.current) return
+    if (loading || !currentVersion || nodes.length === 0) return
+    autoTestPendingRef.current = false
+    autoAnalyzePendingRef.current = true
+    void handleExecute()
+  }, [loading, currentVersion, nodes.length, handleExecute])
 
   const handleValidate = async () => {
     // Validation runs server-side against the saved version; persist edits first

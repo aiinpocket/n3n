@@ -1628,7 +1628,9 @@
       "evaluating_suggestions": "評估建議",
       "generating_report": "生成報告",
       "validating": "驗證中"
-    }
+    },
+    "autoTestLabel": "建立後自動試跑並 AI 分析",
+    "autoTestHint": "建立流程後系統會立刻執行一次，AI 小幫手會根據實際執行結果說明狀況、找出問題並協助你調整"
   },
   "aiPanel": {
     "title": "AI 助手",
