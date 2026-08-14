@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -466,26 +467,104 @@ public class GenerationProbeService {
         } catch (Exception e) {
             log.debug("Friendly ask generation failed: {}", e.getMessage());
         }
-        return fallbackFriendlyAsk(nodeLabel, config, sideEffect);
+        return fallbackFriendlyAsk(nodeType, nodeLabel, config, sideEffect);
     }
 
-    /** AI 不可用時的白話 fallback：常見鍵查表、其餘用鍵名。 */
-    private FriendlyAsk fallbackFriendlyAsk(String nodeLabel, Map<String, Object> config,
-                                            boolean sideEffect) {
+    /**
+     * AI 不可用時的白話 fallback。
+     *
+     * <p>兩個原則：缺值的欄位排在前面（那才是真正擋住執行的東西），
+     * 標籤一律用人看得懂的字——查對照表，查不到就用節點 schema 的 title，
+     * 再不行才把 camelCase 鍵名拆成單字。直接把 {@code operation}、{@code selector}
+     * 這種鍵名丟給使用者，等於要他們自己去猜要填什麼。
+     */
+    private FriendlyAsk fallbackFriendlyAsk(String nodeType, String nodeLabel,
+                                            Map<String, Object> config, boolean sideEffect) {
+        Map<String, Object> properties = schemaProperties(nodeType);
+
+        // 缺值的欄位優先：使用者最該處理的是這些
+        List<String> keys = new ArrayList<>(config.keySet());
+        keys.sort(Comparator.comparing(k -> hasValue(config.get(k))));
+
         List<InputField> fields = new ArrayList<>();
-        for (String key : config.keySet()) {
+        boolean anyMissing = false;
+        for (String key : keys) {
             if (fields.size() >= 5) break;
-            String[] friendly = FRIENDLY_FIELD_LABELS.get(key);
-            if (friendly != null) {
-                fields.add(new InputField(key, friendly[0], friendly[1], friendly[2]));
-            } else {
-                fields.add(new InputField(key, key, "", ""));
+            if (!hasValue(config.get(key))) {
+                anyMissing = true;
             }
+            fields.add(describeField(key, properties));
         }
-        String question = sideEffect
-            ? "「" + nodeLabel + "」這一步會實際對外執行（例如真的寄出郵件）。請確認下面的內容沒問題，或補齊缺少的欄位；也可以先跳過，之後再設定。"
-            : "「" + nodeLabel + "」這一步還缺一些資訊才能運作，請幫忙補齊下面的欄位；也可以先跳過，之後再設定。";
+
+        String question;
+        if (sideEffect) {
+            question = "「" + nodeLabel + "」這一步會實際對外執行（例如真的寄出郵件）。"
+                + "請確認下面的內容沒問題，或補齊缺少的欄位；也可以先跳過，之後再設定。";
+        } else if (anyMissing) {
+            question = "「" + nodeLabel + "」這一步還缺一些資訊才能運作，"
+                + "請幫忙補齊下面的欄位；也可以先跳過，之後再設定。";
+        } else {
+            // 欄位都有值卻仍試打失敗：不要說「還缺資訊」，那會讓使用者對著填好的欄位發呆
+            question = "「" + nodeLabel + "」這一步試跑時沒有成功。"
+                + "下面是目前的設定，你可以調整後再試一次；也可以先跳過，之後再設定。";
+        }
         return new FriendlyAsk(question, fields);
+    }
+
+    /** 把設定鍵轉成使用者看得懂的欄位說明。 */
+    private InputField describeField(String key, Map<String, Object> properties) {
+        String[] friendly = FRIENDLY_FIELD_LABELS.get(key);
+        if (friendly != null) {
+            return new InputField(key, friendly[0], friendly[1], friendly[2]);
+        }
+        if (properties.get(key) instanceof Map<?, ?> schema) {
+            String title = schema.get("title") instanceof String s && !s.isBlank() ? s : humanize(key);
+            String hint = schema.get("description") instanceof String d && !d.isBlank() ? d : "";
+            String example = schema.get("x-placeholder") instanceof String p && !p.isBlank() ? p : "";
+            return new InputField(key, title, hint, example);
+        }
+        return new InputField(key, humanize(key), "", "");
+    }
+
+    /** camelCase／snake_case 鍵名拆成空白分隔的單字，至少不再是一團 code。 */
+    private String humanize(String key) {
+        if (key == null || key.isBlank()) {
+            return "";
+        }
+        String spaced = key.replace('_', ' ')
+            .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+            .trim();
+        return spaced.isEmpty() ? key : Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
+
+    private boolean hasValue(Object value) {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof String s) {
+            return !s.isBlank();
+        }
+        if (value instanceof Map<?, ?> m) {
+            return !m.isEmpty();
+        }
+        if (value instanceof List<?> l) {
+            return !l.isEmpty();
+        }
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> schemaProperties(String nodeType) {
+        try {
+            return handlerRegistry.findHandler(nodeType)
+                .map(handler -> handler.getConfigSchema())
+                .filter(schema -> schema.get("properties") instanceof Map)
+                .map(schema -> (Map<String, Object>) schema.get("properties"))
+                .orElse(Map.of());
+        } catch (Exception e) {
+            log.debug("No config schema for {}: {}", nodeType, e.getMessage());
+            return Map.of();
+        }
     }
 
     /** 跳過節點：產生模擬輸出餵給下游，讓後面還能繼續串接驗證。 */
