@@ -115,6 +115,12 @@ export default function DashboardPage() {
     paused: <PauseCircleOutlined />,
   }
 
+  // AiPromptHero 底下掛著 AI 流程生成器 modal，一次生成要一兩分鐘。
+  // 過去每個狀態分支各自渲染一份 hero，只要 dashboard 重新載入（loading 轉 true）
+  // 或流程數從 0 變 1 而換了分支，hero 就會在 React 樹中換位置、整個重新掛載，
+  // 正在生成的 modal 連同進度一起消失。改為 hero 固定在外層同一個位置，
+  // 只讓下方內容隨狀態切換。
+  const renderBody = () => {
   if (loading) {
     return (
       <div>
@@ -151,7 +157,6 @@ export default function DashboardPage() {
   if (stats && stats.totalFlows === 0) {
     return (
       <div>
-        <AiPromptHero />
         <Card
           style={{
             background: 'linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%)',
@@ -277,14 +282,6 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-        <Title level={3} style={{ color: 'var(--color-text-primary)', margin: 0 }}>
-          {userName ? t('dashboard.welcomeBack', { name: userName }) : t('dashboard.title')}
-        </Title>
-      </Space>
-
-      <AiPromptHero />
-
       {/* 需要人工處理的執行（等待批准/輸入）— 一眼看到哪裡卡住 */}
       {waitingExecutions.length > 0 && (
         <Card
@@ -452,6 +449,21 @@ export default function DashboardPage() {
         </Col>
       </Row>
 
+    </div>
+  )
+  }
+
+  return (
+    <div>
+      <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <Title level={3} style={{ color: 'var(--color-text-primary)', margin: 0 }}>
+          {userName ? t('dashboard.welcomeBack', { name: userName }) : t('dashboard.title')}
+        </Title>
+      </Space>
+
+      <AiPromptHero />
+
+      {renderBody()}
     </div>
   )
 }
