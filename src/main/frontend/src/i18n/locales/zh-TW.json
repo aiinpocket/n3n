@@ -792,6 +792,7 @@
     "deleteConfirm": "確定要刪除此元件？",
     "deleteSuccess": "元件已刪除",
     "noComponents": "尚未註冊任何元件",
+    "emptyExplainer": "元件是開發者擴充功能：註冊自訂節點定義後，流程編輯器就能使用。一般使用情境用內建節點即可。",
     "registerComponent": "註冊新元件",
     "componentName": "元件名稱",
     "componentNameRequired": "請輸入元件名稱",
@@ -1284,6 +1285,8 @@
     "confirmRemove": "確認移除",
     "removeWarning": "移除後，使用此工具的流程可能無法正常執行。",
     "noTools": "沒有找到符合條件的工具",
+    "catalogEmptyTitle": "平台尚未上架任何容器工具",
+    "catalogEmptyDesc": "此功能為預覽版：上架後即可在這裡瀏覽並一鍵安裝額外的容器工具。目前內建節點已涵蓋常用整合。",
     "noInstalledTools": "尚未安裝任何自訂工具。所有內建節點預設即可使用。",
     "overview": "概覽",
     "changelog": "更新日誌",
@@ -2914,7 +2917,7 @@
     "filterText": "文件"
   },
   "sites": {
-    "title": "小站台",
+    "title": "靜態站台",
     "subtitle": "跟 AI 說說你想要的網站，它蓋好之後就住在這裡——每一座都有自己的網址，隨時能分享給朋友。",
     "create": "蓋一座新站",
     "createTitle": "蓋一座新站",
@@ -2976,10 +2979,12 @@
     "dnsType": "類型",
     "dnsHost": "主機 / 名稱",
     "dnsValue": "值",
-    "dnsCopied": "已複製"
+    "dnsCopied": "已複製",
+    "crossLink": "這裡放純前端的靜態網頁（HTML/CSS/JS）。需要後端、資料庫或完整服務？請改用「容器應用」。",
+    "gotoApps": "前往容器應用"
   },
   "apps": {
-    "title": "小應用",
+    "title": "容器應用",
     "subtitle": "把自己的 docker-compose 或 Dockerfile 專案打包成 zip 交給平台，它會在沙盒裡替你把應用跑起來，還掛上專屬的網址。",
     "create": "上架一個應用",
     "createTitle": "上架一個應用",
@@ -3030,10 +3035,12 @@
     "logsEmpty": "還沒有日誌",
     "logsFailed": "日誌載入失敗",
     "empty": "還沒有任何應用",
-    "emptyHint": "把你的專案打包成 zip 上傳，第一個小應用就會在這裡落腳。",
+    "emptyHint": "把你的專案打包成 zip 上傳，第一個容器應用就會在這裡落腳。",
     "noUrlYet": "部署完成後就會有網址",
-    "disabledTitle": "小應用還沒開張",
-    "disabledHint": "此功能由管理員開啟後可用。請管理員設定 APPS_ENABLED=true 並以 docker-compose.apps.yml 覆蓋檔啟動。"
+    "disabledTitle": "容器應用還沒開張",
+    "disabledHint": "此功能由管理員開啟後可用。請管理員設定 APPS_ENABLED=true 並以 docker-compose.apps.yml 覆蓋檔啟動。",
+    "crossLink": "這裡跑完整的容器化應用（可含後端與資料庫）。只是靜態網頁？用「靜態站台」更簡單。",
+    "gotoSites": "前往靜態站台"
   },
   "memory": {
     "title": "AI 記憶",

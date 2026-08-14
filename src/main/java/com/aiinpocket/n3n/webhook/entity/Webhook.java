@@ -32,7 +32,15 @@ public class Webhook {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 500)
+    /**
+     * 使用者命名空間（隨機短碼，非帳號衍生）。觸發網址為 /webhook/{ns}/{path}，
+     * 唯一性為 (ns, path, method)——不同使用者可各自使用相同的 path。
+     * 舊資料 ns 為 null，沿用全域唯一的 /webhook/{path} 路徑。
+     */
+    @Column(length = 16)
+    private String ns;
+
+    @Column(nullable = false, length = 500)
     private String path;
 
     @Column(nullable = false, length = 10)

@@ -631,8 +631,20 @@ export default function CustomToolsPage() {
                       </Col>
                     ))}
                   </Row>
-                ) : (
+                ) : searchQuery || selectedCategory !== 'all' ? (
                   <Empty description={t('customTools.noTools')} />
+                ) : (
+                  // 目錄空且未搜尋 = 平台尚未上架任何工具（預覽功能），
+                  // 給說明而不是看起來像壞掉的「沒有找到」
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      <Space direction="vertical" size={4}>
+                        <Typography.Text strong>{t('customTools.catalogEmptyTitle')}</Typography.Text>
+                        <Typography.Text type="secondary">{t('customTools.catalogEmptyDesc')}</Typography.Text>
+                      </Space>
+                    }
+                  />
                 )}
               </>
             ),

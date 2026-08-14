@@ -12,6 +12,8 @@ import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.entity.Webhook;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
+import com.aiinpocket.n3n.auth.entity.User;
+import com.aiinpocket.n3n.auth.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -28,6 +30,9 @@ class WebhookServiceTest extends BaseServiceTest {
 
     @Mock
     private WebhookRepository webhookRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
     private ExecutionService executionService;
@@ -126,6 +131,33 @@ class WebhookServiceTest extends BaseServiceTest {
                 .hasMessageContaining("Webhook not found");
     }
 
+    // ========== Namespace Tests ==========
+
+    @Test
+    void resolveWebhookNs_missing_generatesAndPersistsRandomSlug() {
+        UUID userId = UUID.randomUUID();
+        User user = User.builder().id(userId).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByWebhookNs(any())).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String ns = webhookService.resolveWebhookNs(userId);
+
+        assertThat(ns).matches("[a-z0-9]{8}");
+        assertThat(user.getWebhookNs()).isEqualTo(ns);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void resolveWebhookNs_existing_returnsStoredSlugWithoutSaving() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(
+                User.builder().id(userId).webhookNs("keepns01").build()));
+
+        assertThat(webhookService.resolveWebhookNs(userId)).isEqualTo("keepns01");
+        verify(userRepository, never()).save(any());
+    }
+
     // ========== Create Tests ==========
 
     @Test
@@ -142,7 +174,9 @@ class WebhookServiceTest extends BaseServiceTest {
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
         when(flowShareService.getUserPermission(flowId, userId)).thenReturn("owner");
-        when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(
+                User.builder().id(userId).webhookNs("testns00").build()));
+        when(webhookRepository.existsByNsAndPathAndMethod("testns00", "test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);
             w.setId(UUID.randomUUID());
@@ -205,7 +239,9 @@ class WebhookServiceTest extends BaseServiceTest {
         request.setPath("existing-path");
 
         when(flowShareService.getUserPermission(flowId, userId)).thenReturn("owner");
-        when(webhookRepository.existsByPathAndMethod("existing-path", "POST")).thenReturn(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(
+                User.builder().id(userId).webhookNs("testns00").build()));
+        when(webhookRepository.existsByNsAndPathAndMethod("testns00", "existing-path", "POST")).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> webhookService.createWebhook(request, userId))
@@ -227,7 +263,9 @@ class WebhookServiceTest extends BaseServiceTest {
         ReflectionTestUtils.setField(webhookService, "baseUrl", "http://localhost:8080");
 
         when(flowShareService.getUserPermission(flowId, userId)).thenReturn("edit");
-        when(webhookRepository.existsByPathAndMethod("test-hook", "POST")).thenReturn(false);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(
+                User.builder().id(userId).webhookNs("testns00").build()));
+        when(webhookRepository.existsByNsAndPathAndMethod("testns00", "test-hook", "POST")).thenReturn(false);
         when(webhookRepository.save(any(Webhook.class))).thenAnswer(invocation -> {
             Webhook w = invocation.getArgument(0);
             w.setId(UUID.randomUUID());
@@ -416,7 +454,7 @@ class WebhookServiceTest extends BaseServiceTest {
                 .id(UUID.randomUUID())
                 .build();
 
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
         when(flowVersionRepository.findByFlowIdAndStatus(flowId, "published"))
                 .thenReturn(Optional.of(publishedVersion));
@@ -433,7 +471,7 @@ class WebhookServiceTest extends BaseServiceTest {
     @Test
     void triggerWebhook_inactiveWebhook_throwsException() {
         // Given
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.empty());
 
         // When/Then
@@ -449,7 +487,7 @@ class WebhookServiceTest extends BaseServiceTest {
         webhook.setIsActive(true);
         webhook.setAuthType("none"); // explicit opt-out of auth (null authType is now rejected)
 
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
         when(flowVersionRepository.findByFlowIdAndStatus(webhook.getFlowId(), "published"))
                 .thenReturn(Optional.empty());
@@ -467,7 +505,7 @@ class WebhookServiceTest extends BaseServiceTest {
         webhook.setIsActive(true);
         webhook.setAuthType(null);
 
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
 
         // When/Then
@@ -484,7 +522,7 @@ class WebhookServiceTest extends BaseServiceTest {
         webhook.setAuthConfig(Map.of("secret", "my-secret"));
         webhook.setIsActive(true);
 
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
 
         // When/Then
@@ -501,7 +539,7 @@ class WebhookServiceTest extends BaseServiceTest {
         webhook.setAuthConfig(Map.of("secret", "my-secret"));
         webhook.setIsActive(true);
 
-        when(webhookRepository.findByPathAndMethodAndIsActiveTrue("test-path", "POST"))
+        when(webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue("test-path", "POST"))
                 .thenReturn(Optional.of(webhook));
 
         // When/Then

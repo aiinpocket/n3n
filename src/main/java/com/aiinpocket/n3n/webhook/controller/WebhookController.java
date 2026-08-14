@@ -27,6 +27,17 @@ public class WebhookController {
     private final WebhookService webhookService;
     private final ActivityService activityService;
 
+    /**
+     * 取得（必要時建立）目前使用者的 webhook 命名空間，
+     * 供建立表單預先顯示完整觸發網址前綴。
+     */
+    @GetMapping("/namespace")
+    public ResponseEntity<Map<String, String>> getNamespace(
+            @AuthenticationPrincipal UserDetails user) {
+        UUID userId = UUID.fromString(user.getUsername());
+        return ResponseEntity.ok(Map.of("ns", webhookService.resolveWebhookNs(userId)));
+    }
+
     @GetMapping
     public ResponseEntity<List<WebhookResponse>> listWebhooks(
             @AuthenticationPrincipal UserDetails userDetails) {

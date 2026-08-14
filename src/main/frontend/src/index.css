@@ -1,5 +1,5 @@
 /* N3N Flow Platform - 紙上工作室設計系統（輕鬆文青風） */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* 字型改於 index.html 以 <link rel="preconnect"> + <link rel="stylesheet"> 平行載入 */
 
 /* CSS Variables - Warm Paper Theme */
 :root {

@@ -792,6 +792,7 @@
     "deleteConfirm": "このコンポーネントを削除してもよろしいですか？",
     "deleteSuccess": "コンポーネントを削除しました",
     "noComponents": "コンポーネントはまだありません",
+    "emptyExplainer": "コンポーネントは開発者向けの拡張機能です。カスタムノード定義を登録するとフローエディタで使用できます。通常の用途は組み込みノードで十分です。",
     "registerComponent": "新規コンポーネント登録",
     "componentName": "コンポーネント名",
     "componentNameRequired": "コンポーネント名を入力してください",
@@ -1284,6 +1285,8 @@
     "confirmRemove": "削除の確認",
     "removeWarning": "削除後、このツールを使用するフローが正常に動作しなくなる可能性があります。",
     "noTools": "ツールが見つかりません",
+    "catalogEmptyTitle": "コンテナツールはまだ公開されていません",
+    "catalogEmptyDesc": "これはプレビュー機能です。ツールが公開されると、ここで閲覧・インストールできます。一般的な連携は組み込みノードでカバーされています。",
     "noInstalledTools": "カスタムツールはまだインストールされていません。すべてのビルトインノードはデフォルトで利用可能です。",
     "overview": "概要",
     "changelog": "変更履歴",
@@ -2914,7 +2917,7 @@
     "filterText": "ドキュメント"
   },
   "sites": {
-    "title": "小さなサイト",
+    "title": "静的サイト",
     "subtitle": "つくりたいサイトを AI に伝えると、ここに建てて公開してくれます。どのサイトにも共有できる専用 URL があります。",
     "create": "新しいサイトを建てる",
     "createTitle": "新しいサイトを建てる",
@@ -2976,10 +2979,12 @@
     "dnsType": "タイプ",
     "dnsHost": "ホスト / 名前",
     "dnsValue": "値",
-    "dnsCopied": "コピーしました"
+    "dnsCopied": "コピーしました",
+    "crossLink": "静的サイトはフロントエンドのみのページ（HTML/CSS/JS）を配信します。バックエンドやデータベースが必要な場合は「コンテナアプリ」をご利用ください。",
+    "gotoApps": "コンテナアプリへ"
   },
   "apps": {
-    "title": "小さなアプリ",
+    "title": "コンテナアプリ",
     "subtitle": "docker-compose や Dockerfile のプロジェクトを zip にまとめて渡すと、プラットフォームがサンドボックスで動かし、専用のアドレスを用意します。",
     "create": "アプリを開店する",
     "createTitle": "アプリを開店する",
@@ -3033,7 +3038,9 @@
     "emptyHint": "プロジェクトを zip にまとめてアップロードすれば、最初の小さなアプリがここに住み着きます。",
     "noUrlYet": "デプロイが完了するとアドレスが表示されます",
     "disabledTitle": "小さなアプリはまだ開店前です",
-    "disabledHint": "この機能は管理者が有効化すると利用できます。APPS_ENABLED=true を設定し、docker-compose.apps.yml オーバーライドで起動するよう管理者に依頼してください。"
+    "disabledHint": "この機能は管理者が有効化すると利用できます。APPS_ENABLED=true を設定し、docker-compose.apps.yml オーバーライドで起動するよう管理者に依頼してください。",
+    "crossLink": "コンテナアプリは完全なコンテナ化アプリ（バックエンド・DB込み）を実行します。静的ページだけなら「静的サイト」の方が簡単です。",
+    "gotoSites": "静的サイトへ"
   },
   "memory": {
     "title": "AI メモリー",

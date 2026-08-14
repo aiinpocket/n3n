@@ -32,6 +32,13 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    /**
+     * Webhook 命名空間：隨機短碼（非帳號衍生，避免在公開網址暴露帳號），
+     * 首次建立 webhook 時產生。觸發網址為 /webhook/{webhookNs}/{path}。
+     */
+    @Column(name = "webhook_ns", unique = true, length = 16)
+    private String webhookNs;
+
     @Column(nullable = false)
     @Builder.Default
     private String status = "pending";

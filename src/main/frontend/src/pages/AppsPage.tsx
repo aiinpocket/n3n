@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Button, Card, Col, Empty, Popconfirm, Row, Space, Spin, Tag, Tooltip, Typography } from 'antd'
+import { Alert, Button, Card, Col, Empty, Popconfirm, Row, Space, Spin, Tag, Tooltip, Typography } from 'antd'
 import { message, modal } from '../utils/feedback'
 import {
   CaretRightOutlined,
@@ -12,6 +12,7 @@ import {
   SyncOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { appsApi, type AppsAvailability, type AppStatus, type HostedAppItem } from '../api/apps'
 import AppCreateModal from '../components/apps/AppCreateModal'
 import AppRedeployModal from '../components/apps/AppRedeployModal'
@@ -28,6 +29,7 @@ const POLL_INTERVAL_MS = 2000
  */
 export default function AppsPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [availability, setAvailability] = useState<AppsAvailability | null>(null)
   const [apps, setApps] = useState<HostedAppItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,6 +195,19 @@ export default function AppsPage() {
           {t('apps.create')}
         </Button>
       </Space>
+
+      {/* 與「靜態站台」的定位區分與導引 */}
+      <Alert
+        type="info"
+        showIcon
+        title={t('apps.crossLink')}
+        action={
+          <Button size="small" onClick={() => navigate('/sites')}>
+            {t('apps.gotoSites')}
+          </Button>
+        }
+        style={{ marginBottom: 16 }}
+      />
 
       {apps.length === 0 ? (
         <Card>

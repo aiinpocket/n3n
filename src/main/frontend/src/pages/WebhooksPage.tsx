@@ -37,6 +37,7 @@ const WebhooksPage: React.FC = () => {
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editForm] = Form.useForm()
   const [searchText, setSearchText] = useState('')
+  const [webhookNs, setWebhookNs] = useState<string | null>(null)
 
   const {
     webhooks,
@@ -80,6 +81,7 @@ const WebhooksPage: React.FC = () => {
   useEffect(() => {
     fetchWebhooks()
     loadEditableFlows()
+    webhookApi.namespace().then(setWebhookNs).catch(() => setWebhookNs(null))
   }, [fetchWebhooks, loadEditableFlows])
 
   const handleCreate = async (values: CreateWebhookRequest) => {
@@ -457,10 +459,10 @@ const WebhooksPage: React.FC = () => {
               },
               { max: 500, message: t('common.maxLength', { max: 500 }) },
             ]}
-            extra={`${t('webhook.fullUrl')}: ${window.location.origin}/webhook/`}
+            extra={`${t('webhook.fullUrl')}: ${window.location.origin}/webhook/${webhookNs ? `${webhookNs}/` : ''}`}
           >
             <Input
-              prefix={<span style={{ color: 'var(--color-text-secondary)' }}>/webhook/</span>}
+              prefix={<span style={{ color: 'var(--color-text-secondary)' }}>{`/webhook/${webhookNs ? `${webhookNs}/` : ''}`}</span>}
               placeholder={t('webhook.pathPlaceholder')}
               maxLength={500}
             />

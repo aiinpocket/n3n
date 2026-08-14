@@ -14,7 +14,9 @@ import java.util.UUID;
 @Repository
 public interface WebhookRepository extends JpaRepository<Webhook, UUID> {
 
-    Optional<Webhook> findByPathAndMethodAndIsActiveTrue(String path, String method);
+    Optional<Webhook> findByNsIsNullAndPathAndMethodAndIsActiveTrue(String path, String method);
+
+    Optional<Webhook> findByNsAndPathAndMethodAndIsActiveTrue(String ns, String path, String method);
 
     List<Webhook> findByFlowIdOrderByCreatedAtDesc(UUID flowId);
 
@@ -24,7 +26,9 @@ public interface WebhookRepository extends JpaRepository<Webhook, UUID> {
 
     boolean existsByPath(String path);
 
-    boolean existsByPathAndMethod(String path, String method);
+    boolean existsByNsAndPathAndMethod(String ns, String path, String method);
+
+    boolean existsByNsIsNullAndPathAndMethod(String path, String method);
 
     @Modifying
     @Query("UPDATE Webhook w SET w.isActive = false WHERE w.flowId = :flowId")

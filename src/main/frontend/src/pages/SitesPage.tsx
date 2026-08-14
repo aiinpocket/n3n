@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Col, Drawer, Empty, Form, Input, Modal, Popconfirm, Row, Space, Spin, Switch, Tag, Tooltip, Typography, Upload } from 'antd'
+import { Alert, Button, Card, Col, Drawer, Empty, Form, Input, Modal, Popconfirm, Row, Space, Spin, Switch, Tag, Tooltip, Typography, Upload } from 'antd'
 import List from '../components/common/SimpleList'
 import { message } from '../utils/feedback'
 import {
@@ -15,6 +15,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { sitesApi, type SiteDetail, type SiteItem } from '../api/sites'
 import SiteCustomDomainPanel from '../components/sites/SiteCustomDomainPanel'
 import { extractApiError } from '../utils/errorMessages'
@@ -39,6 +40,7 @@ interface EditorState {
  */
 export default function SitesPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [sites, setSites] = useState<SiteItem[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
@@ -212,6 +214,19 @@ export default function SitesPage() {
           </Button>
         </Space>
       </Space>
+
+      {/* 與「容器應用」的定位區分與導引 */}
+      <Alert
+        type="info"
+        showIcon
+        title={t('sites.crossLink')}
+        action={
+          <Button size="small" onClick={() => navigate('/apps')}>
+            {t('sites.gotoApps')}
+          </Button>
+        }
+        style={{ marginBottom: 16 }}
+      />
 
       <Spin spinning={loading}>
         {sites.length === 0 && !loading ? (

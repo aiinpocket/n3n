@@ -391,7 +391,16 @@ export default function ComponentListPage() {
             emptyText: (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={searchText || categoryFilter !== 'all' ? t('component.noMatchingComponents') : t('component.noComponents')}
+                description={
+                  searchText || categoryFilter !== 'all'
+                    ? t('component.noMatchingComponents')
+                    : (
+                      <Space direction="vertical" size={4}>
+                        <Typography.Text strong>{t('component.noComponents')}</Typography.Text>
+                        <Typography.Text type="secondary">{t('component.emptyExplainer')}</Typography.Text>
+                      </Space>
+                    )
+                }
               />
             )
           }}

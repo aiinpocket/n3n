@@ -12,6 +12,8 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    boolean existsByWebhookNs(String webhookNs);
+
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);

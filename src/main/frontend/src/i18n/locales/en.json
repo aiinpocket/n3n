@@ -792,6 +792,7 @@
     "deleteConfirm": "Are you sure you want to delete this component?",
     "deleteSuccess": "Component deleted",
     "noComponents": "No components yet",
+    "emptyExplainer": "Components are a developer extension point: register custom node definitions to use them in the flow editor. Built-in nodes cover typical use cases.",
     "registerComponent": "Register New Component",
     "componentName": "Component Name",
     "componentNameRequired": "Please enter component name",
@@ -1284,6 +1285,8 @@
     "confirmRemove": "Confirm Remove",
     "removeWarning": "Flows using this tool may not work properly after removal.",
     "noTools": "No tools found",
+    "catalogEmptyTitle": "No container tools published yet",
+    "catalogEmptyDesc": "This is a preview feature: once tools are published you can browse and install them here. Built-in nodes already cover common integrations.",
     "noInstalledTools": "No custom tools installed. All built-in nodes are available by default.",
     "overview": "Overview",
     "changelog": "Changelog",
@@ -2914,7 +2917,7 @@
     "filterText": "Documents"
   },
   "sites": {
-    "title": "Little Sites",
+    "title": "Static Sites",
     "subtitle": "Describe the site you want to the AI, and it will build and host it right here — each one gets its own shareable URL.",
     "create": "Build a new site",
     "createTitle": "Build a new site",
@@ -2976,10 +2979,12 @@
     "dnsType": "Type",
     "dnsHost": "Host / Name",
     "dnsValue": "Value",
-    "dnsCopied": "Copied"
+    "dnsCopied": "Copied",
+    "crossLink": "Static Sites host front-end-only pages (HTML/CSS/JS). Need a backend, database, or full service? Use Container Apps instead.",
+    "gotoApps": "Go to Container Apps"
   },
   "apps": {
-    "title": "Little Apps",
+    "title": "Container Apps",
     "subtitle": "Pack your docker-compose or Dockerfile project into a zip and hand it over — the platform runs it in a sandbox and gives it its own address.",
     "create": "Ship an app",
     "createTitle": "Ship an app",
@@ -3033,7 +3038,9 @@
     "emptyHint": "Pack your project into a zip and upload it — your first little app will settle in here.",
     "noUrlYet": "An address will appear once deployed",
     "disabledTitle": "Little Apps is not open yet",
-    "disabledHint": "This feature becomes available once an administrator enables it. Ask your admin to set APPS_ENABLED=true and start with the docker-compose.apps.yml override."
+    "disabledHint": "This feature becomes available once an administrator enables it. Ask your admin to set APPS_ENABLED=true and start with the docker-compose.apps.yml override.",
+    "crossLink": "Container Apps run full containerized applications (backend and database included). Just a static page? Static Sites is simpler.",
+    "gotoSites": "Go to Static Sites"
   },
   "memory": {
     "title": "AI Memory",

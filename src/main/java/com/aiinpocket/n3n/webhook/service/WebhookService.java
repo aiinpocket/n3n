@@ -10,6 +10,8 @@ import com.aiinpocket.n3n.webhook.dto.UpdateWebhookRequest;
 import com.aiinpocket.n3n.webhook.dto.WebhookResponse;
 import com.aiinpocket.n3n.webhook.entity.Webhook;
 import com.aiinpocket.n3n.webhook.repository.WebhookRepository;
+import com.aiinpocket.n3n.auth.entity.User;
+import com.aiinpocket.n3n.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ import java.util.UUID;
 public class WebhookService {
 
     private final WebhookRepository webhookRepository;
+    private final UserRepository userRepository;
     private final ExecutionService executionService;
     private final FlowVersionRepository flowVersionRepository;
     private final FlowShareService flowShareService;
@@ -40,6 +44,40 @@ public class WebhookService {
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+
+    private static final String NS_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int NS_LENGTH = 8;
+    private static final SecureRandom NS_RANDOM = new SecureRandom();
+
+    /**
+     * 取得使用者的 webhook 命名空間；尚未有時惰性產生一組隨機短碼
+     * （非帳號衍生，避免公開網址暴露帳號）並存回 users.webhook_ns。
+     */
+    @Transactional
+    public String resolveWebhookNs(UUID userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        if (user.getWebhookNs() != null && !user.getWebhookNs().isBlank()) {
+            return user.getWebhookNs();
+        }
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String candidate = randomNs();
+            if (!userRepository.existsByWebhookNs(candidate)) {
+                user.setWebhookNs(candidate);
+                userRepository.save(user);
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("Failed to allocate webhook namespace");
+    }
+
+    private static String randomNs() {
+        StringBuilder sb = new StringBuilder(NS_LENGTH);
+        for (int i = 0; i < NS_LENGTH; i++) {
+            sb.append(NS_ALPHABET.charAt(NS_RANDOM.nextInt(NS_ALPHABET.length())));
+        }
+        return sb.toString();
+    }
 
     @Transactional(readOnly = true)
     public List<WebhookResponse> listWebhooks(UUID userId) {
@@ -85,13 +123,16 @@ public class WebhookService {
         }
 
         String method = request.getMethod() != null ? request.getMethod().toUpperCase() : "POST";
-        if (webhookRepository.existsByPathAndMethod(request.getPath(), method)) {
+        String ns = resolveWebhookNs(userId);
+        // 唯一性以使用者命名空間為界：不同使用者可各自使用相同的 path
+        if (webhookRepository.existsByNsAndPathAndMethod(ns, request.getPath(), method)) {
             throw new IllegalArgumentException("Webhook path already exists for method " + method + ": " + request.getPath());
         }
 
         Webhook webhook = Webhook.builder()
             .flowId(request.getFlowId())
             .name(request.getName())
+            .ns(ns)
             .path(request.getPath())
             .method(method)
             .authType(request.getAuthType())
@@ -166,8 +207,20 @@ public class WebhookService {
 
     @Transactional
     public UUID triggerWebhook(String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request, boolean skipAuth) {
-        Webhook webhook = webhookRepository.findByPathAndMethodAndIsActiveTrue(path, method.toUpperCase())
+        // 舊式網址（無命名空間）只對應遷移前建立的 webhook
+        Webhook webhook = webhookRepository.findByNsIsNullAndPathAndMethodAndIsActiveTrue(path, method.toUpperCase())
             .orElseThrow(() -> new ResourceNotFoundException("Webhook not found or inactive: " + path));
+        return trigger(webhook, method, payload, signature, request, skipAuth);
+    }
+
+    @Transactional
+    public UUID triggerWebhook(String ns, String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request, boolean skipAuth) {
+        Webhook webhook = webhookRepository.findByNsAndPathAndMethodAndIsActiveTrue(ns, path, method.toUpperCase())
+            .orElseThrow(() -> new ResourceNotFoundException("Webhook not found or inactive: " + ns + "/" + path));
+        return trigger(webhook, method, payload, signature, request, skipAuth);
+    }
+
+    private UUID trigger(Webhook webhook, String method, Map<String, Object> payload, String signature, HttpServletRequest request, boolean skipAuth) {
 
         // Validate auth (skip only for internal test triggers authenticated via JWT).
         // A webhook with no configured auth type is treated as requiring explicit configuration:

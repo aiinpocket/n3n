@@ -16,6 +16,7 @@ public class WebhookResponse {
     private UUID id;
     private UUID flowId;
     private String name;
+    private String ns;
     private String path;
     private String method;
     private boolean isActive;
@@ -30,12 +31,16 @@ public class WebhookResponse {
             .id(webhook.getId())
             .flowId(webhook.getFlowId())
             .name(webhook.getName())
+            .ns(webhook.getNs())
             .path(webhook.getPath())
             .method(webhook.getMethod())
             .isActive(Boolean.TRUE.equals(webhook.getIsActive()))
             .authType(webhook.getAuthType())
             .authConfig(maskSecrets(webhook.getAuthConfig()))
-            .webhookUrl(baseUrl + "/webhook/" + webhook.getPath())
+            // 新式網址帶使用者命名空間；舊資料（無 ns）維持原網址
+            .webhookUrl(webhook.getNs() != null
+                ? baseUrl + "/webhook/" + webhook.getNs() + "/" + webhook.getPath()
+                : baseUrl + "/webhook/" + webhook.getPath())
             .createdAt(webhook.getCreatedAt())
             .updatedAt(webhook.getUpdatedAt())
             .build();

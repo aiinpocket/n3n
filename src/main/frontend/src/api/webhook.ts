@@ -24,6 +24,12 @@ export interface CreateWebhookRequest {
 }
 
 export const webhookApi = {
+  /** 取得（必要時建立）目前使用者的 webhook 命名空間 */
+  namespace: async (): Promise<string> => {
+    const { data } = await apiClient.get<{ ns: string }>('/webhooks/namespace')
+    return data.ns
+  },
+
   list: async (): Promise<Webhook[]> => {
     const response = await apiClient.get<Webhook[]>('/webhooks')
     return response.data

@@ -24,6 +24,45 @@ public class WebhookTriggerController {
     private final ActivityService activityService;
     private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
+    @GetMapping("/{ns}/{path}")
+    public ResponseEntity<Map<String, Object>> handleGetNs(
+            @PathVariable @Size(max = 16) String ns,
+            @PathVariable @Size(max = 255) String path,
+            @RequestParam(required = false) Map<String, String> params,
+            @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
+            HttpServletRequest request) {
+        return handleWebhook(ns, path, "GET", Map.of("params", params), signature, request);
+    }
+
+    @PostMapping("/{ns}/{path}")
+    public ResponseEntity<Map<String, Object>> handlePostNs(
+            @PathVariable @Size(max = 16) String ns,
+            @PathVariable @Size(max = 255) String path,
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
+            HttpServletRequest request) {
+        return handleWebhook(ns, path, "POST", body != null ? body : Map.of(), signature, request);
+    }
+
+    @PutMapping("/{ns}/{path}")
+    public ResponseEntity<Map<String, Object>> handlePutNs(
+            @PathVariable @Size(max = 16) String ns,
+            @PathVariable @Size(max = 255) String path,
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
+            HttpServletRequest request) {
+        return handleWebhook(ns, path, "PUT", body != null ? body : Map.of(), signature, request);
+    }
+
+    @DeleteMapping("/{ns}/{path}")
+    public ResponseEntity<Map<String, Object>> handleDeleteNs(
+            @PathVariable @Size(max = 16) String ns,
+            @PathVariable @Size(max = 255) String path,
+            @RequestHeader(value = "X-Webhook-Signature", required = false) String signature,
+            HttpServletRequest request) {
+        return handleWebhook(ns, path, "DELETE", Map.of(), signature, request);
+    }
+
     @GetMapping("/{path}")
     public ResponseEntity<Map<String, Object>> handleGet(
             @PathVariable @Size(max = 255) String path,
@@ -64,6 +103,11 @@ public class WebhookTriggerController {
 
     private ResponseEntity<Map<String, Object>> handleWebhook(
             String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request) {
+        return handleWebhook(null, path, method, payload, signature, request);
+    }
+
+    private ResponseEntity<Map<String, Object>> handleWebhook(
+            String ns, String path, String method, Map<String, Object> payload, String signature, HttpServletRequest request) {
         // Validate webhook path format
         if (path == null || path.isBlank() || !PATH_PATTERN.matcher(path).matches()) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -90,7 +134,9 @@ public class WebhookTriggerController {
         }
 
         try {
-            UUID executionId = webhookService.triggerWebhook(path, method, payload, signature, request);
+            UUID executionId = ns != null
+                ? webhookService.triggerWebhook(ns, path, method, payload, signature, request, false)
+                : webhookService.triggerWebhook(path, method, payload, signature, request);
             log.info("Webhook {} triggered successfully, executionId={}, sourceIp={}", path, executionId, sourceIp);
 
             // Log webhook trigger for security analysis
