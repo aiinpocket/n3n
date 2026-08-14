@@ -28,6 +28,8 @@ import DataMappingEditor from './DataMappingEditor'
 import OutputSchemaPreview from './OutputSchemaPreview'
 import AiCodeGeneratorModal from '../ai/AiCodeGeneratorModal'
 import { useFlowEditorStore } from '../../stores/flowEditorStore'
+import NodeDataPreview from '../execution/NodeDataPreview'
+import { extractApiError } from '../../utils/errorMessages'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
 const { Text, Title } = Typography
@@ -92,13 +94,69 @@ export default function NodeConfigPanel({
 
   // Data Pinning
   const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowEditorStore()
+
+  // 單節點試打：真的執行一次取得實際輸出
+  const setProbeOutput = useFlowEditorStore((state) => state.setProbeOutput)
+  const [probing, setProbing] = useState(false)
+  const [probeResult, setProbeResult] = useState<{
+    success: boolean
+    output: Record<string, unknown> | null
+    errorMessage: string | null
+    durationMs: number
+  } | null>(null)
   const isPinned = node?.id ? isNodePinned(node.id) : false
   const pinnedData = node?.id ? getNodePinnedData(node.id) : null
+
+  // 切換節點時清掉上一個節點的試打結果
+  useEffect(() => {
+    setProbeResult(null)
+  }, [node?.id])
 
   const nodeData = node?.data as Record<string, unknown> | undefined
   // Get nodeType from data.nodeType or fallback to node.type
   const nodeType = (nodeData?.nodeType as string) || (node?.type as string) || 'action'
   const isExternalService = nodeType === 'externalService'
+
+  /**
+   * 單節點試打：以面板目前的設定（含未儲存修改）真的執行一次節點。
+   * 上游資料使用其他節點先前的試打輸出 + 釘選資料，表達式據此求值。
+   */
+  const handleProbeNode = useCallback(async () => {
+    if (!node || probing) return
+    setProbing(true)
+    setProbeResult(null)
+    try {
+      const config = {
+        ...(node.data as Record<string, unknown>),
+        ...form.getFieldsValue(),
+      }
+      // 上游實際資料：試打輸出優先，其次是使用者釘選的測試資料
+      const { probeOutputs: outputs, pinnedData } = useFlowEditorStore.getState()
+      const previousOutputs: Record<string, unknown> = {
+        ...(pinnedData as Record<string, unknown>),
+        ...outputs,
+      }
+      const result = await executionApi.probeNode({
+        nodeType,
+        nodeId: node.id,
+        config,
+        previousOutputs,
+      })
+      setProbeResult(result)
+      if (result.success && result.output) {
+        setProbeOutput(node.id, result.output)
+      }
+    } catch (error) {
+      setProbeResult({
+        success: false,
+        output: null,
+        errorMessage: extractApiError(error, t('editor.probeFailed')),
+        durationMs: 0,
+      })
+    } finally {
+      setProbing(false)
+    }
+  }, [node, probing, form, nodeType, setProbeOutput, t])
 
   const [handlerMissing, setHandlerMissing] = useState(false)
 
@@ -797,15 +855,32 @@ export default function NodeConfigPanel({
           {!readOnly && (
           <div style={{ marginTop: 24 }}>
             <Space orientation="vertical" style={{ width: '100%' }}>
-              {onTest && (
-                <Button
-                  type="primary"
-                  icon={<PlayCircleOutlined />}
-                  onClick={() => onTest(node.id)}
-                  block
-                >
-                  {t('editor.testNode')}
-                </Button>
+              <Button
+                type="primary"
+                icon={<PlayCircleOutlined />}
+                onClick={onTest ? () => onTest(node.id) : handleProbeNode}
+                loading={probing}
+                block
+              >
+                {t('editor.testNode')}
+              </Button>
+              {probeResult && (
+                <div>
+                  <Alert
+                    type={probeResult.success ? 'success' : 'error'}
+                    showIcon
+                    message={
+                      probeResult.success
+                        ? t('editor.probeSuccess', { ms: probeResult.durationMs })
+                        : t('editor.probeFailed')
+                    }
+                    description={probeResult.errorMessage || undefined}
+                    style={{ marginBottom: 8 }}
+                  />
+                  {probeResult.success && probeResult.output && (
+                    <NodeDataPreview data={probeResult.output} maxHeight={280} />
+                  )}
+                </div>
               )}
               <Button
                 icon={isPinned ? <PushpinFilled /> : <PushpinOutlined />}

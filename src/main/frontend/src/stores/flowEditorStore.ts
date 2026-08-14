@@ -27,6 +27,9 @@ interface FlowEditorState {
   maxHistory: number
   // Pinned Data
   pinnedData: Record<string, unknown>
+  /** 單節點試打的實際輸出（{nodeId: output}） */
+  probeOutputs: Record<string, Record<string, unknown>>
+  setProbeOutput: (nodeId: string, output: Record<string, unknown>) => void
   // Actions
   loadFlow: (flowId: string, version?: string) => Promise<void>
   loadVersions: (flowId: string) => Promise<void>
@@ -92,6 +95,7 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
   maxHistory: 50,
   // Pinned Data
   pinnedData: {},
+  probeOutputs: {},
   // Validation
   validating: false,
   validationResult: null,
@@ -576,9 +580,14 @@ export const useFlowEditorStore = create<FlowEditorState>((set, get) => ({
       history: [],
       historyIndex: -1,
       pinnedData: {},
+      probeOutputs: {},
       validating: false,
       validationResult: null,
     }),
+
+  // 單節點試打結果（{nodeId: 實際輸出}），供下游節點試打時的表達式求值
+  setProbeOutput: (nodeId: string, output: Record<string, unknown>) =>
+    set((state) => ({ probeOutputs: { ...state.probeOutputs, [nodeId]: output } })),
 
   // Data Pinning actions
   pinNodeData: async (nodeId: string, data: Record<string, unknown>) => {

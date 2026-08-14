@@ -26,4 +26,19 @@ public interface ArtifactRepository extends JpaRepository<Artifact, UUID> {
 
     @Query("SELECT COALESCE(SUM(a.sizeBytes), 0) FROM Artifact a WHERE a.ownerId = :ownerId")
     long sumSizeBytesByOwnerId(@Param("ownerId") UUID ownerId);
+
+    /**
+     * 孤兒 artifacts：掛在已不存在的 execution 下（含單節點試打的臨時 probeId）、
+     * 未設為永久且超過保留期限者。
+     */
+    @Query(value = """
+        SELECT a.* FROM artifacts a
+        WHERE a.execution_id IS NOT NULL
+          AND a.pinned = FALSE
+          AND a.created_at < :cutoff
+          AND NOT EXISTS (SELECT 1 FROM executions e WHERE e.id = a.execution_id)
+        LIMIT :limit
+        """, nativeQuery = true)
+    java.util.List<Artifact> findOrphanedByMissingExecution(
+        @Param("cutoff") java.time.Instant cutoff, @Param("limit") int limit);
 }

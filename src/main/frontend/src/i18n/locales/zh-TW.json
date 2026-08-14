@@ -430,7 +430,9 @@
       "placeholder": "依名稱、描述或分類搜尋...",
       "resultCount": "找到 {{count}} 個節點",
       "noResults": "沒有符合搜尋條件的節點"
-    }
+    },
+    "probeSuccess": "試打成功（{{ms}} ms）——以下是這個節點的實際輸出，下一個節點可以直接引用",
+    "probeFailed": "試打失敗"
   },
   "optimizer": {
     "nodes": "節點數",

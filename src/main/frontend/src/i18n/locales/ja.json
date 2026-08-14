@@ -430,7 +430,9 @@
       "placeholder": "名前、説明、カテゴリで検索...",
       "resultCount": "{{count}}個のノードが見つかりました",
       "noResults": "検索条件に一致するノードはありません"
-    }
+    },
+    "probeSuccess": "テスト実行成功（{{ms}} ms）— これがノードの実際の出力です。次のノードで参照できます",
+    "probeFailed": "テスト実行に失敗しました"
   },
   "optimizer": {
     "nodes": "ノード数",

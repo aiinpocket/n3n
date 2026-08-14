@@ -430,7 +430,9 @@
       "placeholder": "Search by name, description, or category...",
       "resultCount": "{{count}} nodes found",
       "noResults": "No nodes match your search"
-    }
+    },
+    "probeSuccess": "Probe succeeded ({{ms}} ms) — this is the node's actual output, ready to reference in the next node",
+    "probeFailed": "Probe failed"
   },
   "optimizer": {
     "nodes": "Nodes",

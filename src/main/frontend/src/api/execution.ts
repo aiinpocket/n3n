@@ -141,6 +141,26 @@ export const executionApi = {
     return response.data;
   },
 
+  /**
+   * 單節點試打：以目前設定真的執行一次節點，取得實際輸出（臨時執行，不留紀錄）。
+   * previousOutputs 傳入上游節點的實際輸出讓 {{...}} 表達式求值。
+   */
+  probeNode: async (request: {
+    nodeType: string
+    nodeId?: string
+    config?: Record<string, unknown>
+    previousOutputs?: Record<string, unknown>
+  }): Promise<{
+    success: boolean
+    output: Record<string, unknown> | null
+    errorMessage: string | null
+    durationMs: number
+    probeId: string
+  }> => {
+    const response = await apiClient.post('/node-probe', request)
+    return response.data
+  },
+
   /** 設為永久 / 取消永久 */
   setPinned: async (id: string, pinned: boolean): Promise<ExecutionResponse> => {
     const response = await apiClient.post(`/executions/${id}/pin`, null, { params: { pinned } })

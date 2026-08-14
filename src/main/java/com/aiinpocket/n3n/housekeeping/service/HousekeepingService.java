@@ -168,6 +168,17 @@ public class HousekeepingService {
                     log.info("HOUSEKEEPING_TOKENS deleted={}", tokensDeleted);
                 }
 
+                // 清理孤兒 artifacts（含單節點試打的臨時產物，保留 1 天後回收）
+                try {
+                    int orphansDeleted = artifactService.cleanupOrphaned(
+                        Instant.now().minus(1, ChronoUnit.DAYS), 1000);
+                    if (orphansDeleted > 0) {
+                        log.info("HOUSEKEEPING_ORPHAN_ARTIFACTS deleted={}", orphansDeleted);
+                    }
+                } catch (Exception e) {
+                    log.warn("Orphan artifact cleanup failed: {}", e.getMessage());
+                }
+
                 // Expire old form triggers
                 int formsExpired = formService.expireOldFormTriggers();
                 if (formsExpired > 0) {

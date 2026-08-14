@@ -205,6 +205,21 @@ public class ArtifactService {
     }
 
     /**
+     * 清理孤兒 artifacts（掛在已刪除的 execution 或試打 probeId 下、逾期未 pinned）。
+     * @return 刪除數量
+     */
+    @Transactional
+    public int cleanupOrphaned(java.time.Instant cutoff, int limit) {
+        int deleted = 0;
+        for (Artifact artifact : artifactRepository.findOrphanedByMissingExecution(cutoff, limit)) {
+            artifactRepository.delete(artifact);
+            storageService.delete(artifact.getStoragePath());
+            deleted++;
+        }
+        return deleted;
+    }
+
+    /**
      * 使用者所有 artifacts 的總大小（bytes），用於用量統計。
      */
     @Transactional(readOnly = true)
