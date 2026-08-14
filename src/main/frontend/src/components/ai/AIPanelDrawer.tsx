@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { useAIAssistantStore, type ChatMessage, type PendingChange, type FlowSnapshot } from '../../stores/aiAssistantStore'
 import { chatStream } from '../../api/aiAssistantStream'
 import ReactMarkdown from 'react-markdown'
+import ChatArtifactPreview, { type GeneratedArtifact } from './ChatArtifactPreview'
 import styles from './AIPanelDrawer.module.css'
 
 const { Text, Paragraph } = Typography
@@ -76,6 +77,8 @@ export default function AIPanelDrawer({
   const [inputValue, setInputValue] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [generatorSuggestion, setGeneratorSuggestion] = useState<string | null>(null)
+  // 一次性生成的成果（如圖片），顯示於對話下方並已存入作品庫
+  const [generatedArtifacts, setGeneratedArtifacts] = useState<GeneratedArtifact[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -158,6 +161,7 @@ export default function AIPanelDrawer({
     addUserMessage(message)
     setStreaming(true)
     clearError()
+    setGeneratedArtifacts([])
     sessionIdSyncedRef.current = false
 
     // Abort any previous request before creating new one
@@ -187,6 +191,11 @@ export default function AIPanelDrawer({
             // Handle suggest_generator action from BuilderAgent
             if (data.action === 'suggest_generator' && onOpenFlowGenerator) {
               setGeneratorSuggestion(data.description as string || '')
+            }
+
+            // 一次性生成成果（已存作品庫）：顯示預覽卡
+            if (data.action === 'artifact_generated' && Array.isArray(data.artifacts)) {
+              setGeneratedArtifacts(data.artifacts as GeneratedArtifact[])
             }
 
             // Handle flow definition updates
@@ -616,6 +625,9 @@ export default function AIPanelDrawer({
                 <>
                   {currentSession?.messages.map(renderMessage)}
                   {renderStreamingMessage()}
+                  {generatedArtifacts.length > 0 && (
+                    <ChatArtifactPreview artifacts={generatedArtifacts} />
+                  )}
                   <div ref={messagesEndRef} />
                 </>
               )}

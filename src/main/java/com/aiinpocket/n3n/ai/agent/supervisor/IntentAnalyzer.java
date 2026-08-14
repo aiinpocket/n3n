@@ -73,7 +73,8 @@ public class IntentAnalyzer {
 
         try {
             String prompt = buildPrompt(context);
-            String response = aiClient.chat(prompt, SYSTEM_PROMPT, 1024, 0.3, context.getUserId());
+            String response = aiClient.chat(prompt, SYSTEM_PROMPT, 1024, 0.3, context.getUserId(),
+                com.aiinpocket.n3n.ai.provider.AiTaskType.LIGHT);
             return parseResponse(response);
         } catch (Exception e) {
             log.error("Failed to analyze intent with AI, falling back to rules", e);

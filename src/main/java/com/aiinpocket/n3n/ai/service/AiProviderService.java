@@ -358,6 +358,48 @@ public class AiProviderService {
                 && providerFactory.getProvider(config.getProvider()).supportsChat();
     }
 
+    /** 重任務（生成/分析）偏好推理強的供應商；順位越前越優先 */
+    private static final java.util.List<String> HEAVY_PREFERENCE =
+        java.util.List.of("claude", "anthropic", "openai", "gemini", "openrouter");
+
+    /** 輕任務（分類/擷取/修復）偏好快而省的供應商 */
+    private static final java.util.List<String> LIGHT_PREFERENCE =
+        java.util.List.of("gemini", "openai", "openrouter", "claude", "anthropic");
+
+    /**
+     * 依任務類型在「所有可用供應商」中挑選：設定了多家 AI 時自動分工
+     * （輕任務用快的、重任務用強的）；只有一家或 DEFAULT 時行為與
+     * {@link #resolveConfigForExecution(UUID)} 相同。
+     */
+    @Transactional(readOnly = true)
+    public Optional<AiProviderConfig> resolveConfigForTask(
+            UUID userId, com.aiinpocket.n3n.ai.provider.AiTaskType taskType) {
+        if (taskType == null || taskType == com.aiinpocket.n3n.ai.provider.AiTaskType.DEFAULT) {
+            return resolveConfigForExecution(userId);
+        }
+        List<AiProviderConfig> candidates = configRepository.findByIsSharedTrueAndIsActiveTrue().stream()
+                .filter(this::supportsChat)
+                .toList();
+        if (candidates.isEmpty() && userId != null) {
+            candidates = configRepository.findByOwnerIdAndIsActiveTrue(userId).stream()
+                    .filter(this::supportsChat)
+                    .toList();
+        }
+        if (candidates.isEmpty()) {
+            return resolveConfigForExecution(userId);
+        }
+        if (candidates.size() == 1) {
+            return Optional.of(candidates.get(0));
+        }
+        List<String> preference = taskType == com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY
+                ? HEAVY_PREFERENCE : LIGHT_PREFERENCE;
+        return candidates.stream()
+                .min(java.util.Comparator.comparingInt(c -> {
+                    int index = preference.indexOf(c.getProvider());
+                    return index >= 0 ? index : preference.size();
+                }));
+    }
+
     /**
      * 取得指定供應商的平台共用 API Key（解密後）。
      * 供流程節點（如 falAi）在沒有個別憑證時使用平台金鑰。

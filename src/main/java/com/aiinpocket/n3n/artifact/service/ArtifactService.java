@@ -146,6 +146,20 @@ public class ArtifactService {
     }
 
     /**
+     * 把 artifact 轉為「AI 助手對話產物」：脫離臨時 execution（一次性生成走
+     * NodeProbeService，probeId 沒有對應的 execution row，掛著會被孤兒清理回收），
+     * executionId 設為 null 後即永久保存於作品庫。
+     */
+    @Transactional
+    public Artifact claimForAssistant(UUID ownerId, UUID artifactId) {
+        Artifact artifact = getOwned(artifactId, ownerId);
+        artifact.setExecutionId(null);
+        artifact.setNodeId(null);
+        artifact.setSourceNodeType("aiAssistant");
+        return artifactRepository.save(artifact);
+    }
+
+    /**
      * 開啟檔案供下載，含擁有者檢查。
      */
     @Transactional(readOnly = true)

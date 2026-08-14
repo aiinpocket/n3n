@@ -41,6 +41,7 @@ public class AIAssistantService {
     private final UserMemoryService userMemoryService;
     private final MemoryExtractionService memoryExtractionService;
     private final ExecutionAnalysisContextBuilder executionAnalysisContextBuilder;
+    private final OneShotGenerationService oneShotGenerationService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     // Node category definitions
@@ -90,6 +91,26 @@ public class AIAssistantService {
                 .timeout(Duration.ofMinutes(5))
                 .onErrorResume(e -> {
                     log.error("Execution analysis stream error: {}", e.getClass().getSimpleName());
+                    return Flux.just(ChatStreamChunk.error("AI service error"));
+                });
+        }
+
+        // 一次性生成情境：使用者要的是「現在就給我成果」（如生成一張圖），
+        // 不建立流程——直接生成並存入作品庫
+        OneShotGenerationService.OneShotRequest oneShot =
+            oneShotGenerationService.detect(request.getMessage(), userId);
+        if (oneShot != null) {
+            return Flux.just(metaChunk)
+                .concatWith(oneShotGenerationService.generateStream(userId, oneShot, text -> {
+                    try {
+                        conversationManager.addMessage(conversationId, userId, "assistant", text, null);
+                    } catch (Exception e) {
+                        log.warn("Failed to save one-shot response to conversation {}", conversationId, e);
+                    }
+                }))
+                .timeout(Duration.ofMinutes(5))
+                .onErrorResume(e -> {
+                    log.error("One-shot generation stream error: {}", e.getClass().getSimpleName());
                     return Flux.just(ChatStreamChunk.error("AI service error"));
                 });
         }
@@ -306,7 +327,8 @@ public class AIAssistantService {
                 String systemPrompt = executionContext + EXECUTION_ANALYSIS_INSTRUCTIONS;
 
                 String prompt = buildAnalysisPrompt(request, userId, conversationId);
-                String answer = assistantAiClient.chat(prompt, systemPrompt, 6000, 0.5, userId);
+                String answer = assistantAiClient.chat(prompt, systemPrompt, 6000, 0.5, userId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY);
 
                 // 抽出 flow-fix 區塊：正文只留文字說明，修正後的流程以結構化事件送出，
                 // 前端顯示「套用修正」按鈕一鍵更新流程

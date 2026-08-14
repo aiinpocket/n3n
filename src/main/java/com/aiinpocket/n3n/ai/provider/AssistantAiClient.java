@@ -87,7 +87,16 @@ public class AssistantAiClient {
      * @throws IllegalStateException 尚未設定 Provider，或所有 Provider 都失敗
      */
     public String chat(String prompt, String systemPrompt, int maxTokens, double temperature, UUID userId) {
-        AiProviderConfig primary = aiProviderService.resolveConfigForExecution(userId)
+        return chat(prompt, systemPrompt, maxTokens, temperature, userId, AiTaskType.DEFAULT);
+    }
+
+    /**
+     * 進行 AI 對話並依任務類型選擇供應商：設定了多家 AI 時，
+     * 輕任務（分類/修復）走快而省的、重任務（生成/分析）走推理強的。
+     */
+    public String chat(String prompt, String systemPrompt, int maxTokens, double temperature,
+                       UUID userId, AiTaskType taskType) {
+        AiProviderConfig primary = aiProviderService.resolveConfigForTask(userId, taskType)
             .orElseThrow(() -> new IllegalStateException(NOT_CONFIGURED_MESSAGE));
 
         try {

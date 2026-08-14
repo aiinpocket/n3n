@@ -1700,7 +1700,9 @@
       "modifyNode": "修改節點",
       "connectNodes": "連接節點"
     },
-    "analyzeExecutionMessage": "請幫我分析這次執行的結果：如果失敗了，請用白話說明原因、指出是哪個節點的問題，並告訴我要怎麼修正；如果需要更多資訊，請直接問我。"
+    "analyzeExecutionMessage": "請幫我分析這次執行的結果：如果失敗了，請用白話說明原因、指出是哪個節點的問題，並告訴我要怎麼修正；如果需要更多資訊，請直接問我。",
+    "generatedArtifactTitle": "生成完成，已存入作品庫",
+    "goToArtifacts": "前往作品庫"
   },
   "dashboard": {
     "title": "儀表板",

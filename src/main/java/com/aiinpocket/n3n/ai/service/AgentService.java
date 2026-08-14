@@ -36,6 +36,7 @@ public class AgentService {
 
     private final ConversationService conversationService;
     private final AiProviderConfigRepository configRepository;
+    private final AiProviderService aiProviderService;
     private final AiProviderFactory providerFactory;
     private final CredentialService credentialService;
     private final PromptSanitizer promptSanitizer;
@@ -220,12 +221,8 @@ public class AgentService {
      * 平台共用預設 → 任一平台共用啟用設定 →（相容舊資料）使用者自己的設定
      */
     private AiProviderConfig getDefaultConfig(UUID userId) {
-        return configRepository.findByIsSharedTrueAndIsDefaultTrue()
-            .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
-            .or(() -> configRepository.findByIsSharedTrueAndIsActiveTrue().stream().findFirst())
-            .or(() -> configRepository.findByOwnerIdAndIsDefaultTrue(userId))
-            .or(() -> configRepository.findByOwnerIdAndIsActiveTrue(userId)
-                .stream().findFirst())
+        // 委派給統一的解析邏輯（含 supportsChat 過濾），避免選到媒體生成型設定
+        return aiProviderService.resolveConfigForExecution(userId)
             .orElseThrow(() -> new AiProviderException("Please configure an AI Provider first"));
     }
 

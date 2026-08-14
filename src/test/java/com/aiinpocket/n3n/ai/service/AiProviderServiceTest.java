@@ -360,6 +360,45 @@ class AiProviderServiceTest extends BaseServiceTest {
         }
 
         @Test
+        @DisplayName("task routing: HEAVY prefers claude, LIGHT prefers gemini among multiple providers")
+        void resolveConfigForTask_picksByTaskType() {
+            AiProviderConfig geminiConfig = AiProviderConfig.builder()
+                    .id(UUID.randomUUID())
+                    .provider("gemini")
+                    .name("Shared Gemini")
+                    .isActive(true)
+                    .isShared(true)
+                    .settings(Map.of())
+                    .build();
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(openaiConfig, anthropicConfig, geminiConfig));
+
+            assertThat(aiProviderService.resolveConfigForTask(memberId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY))
+                    .contains(anthropicConfig);
+            assertThat(aiProviderService.resolveConfigForTask(memberId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.LIGHT))
+                    .contains(geminiConfig);
+        }
+
+        @Test
+        @DisplayName("task routing: single provider or DEFAULT keeps existing behavior")
+        void resolveConfigForTask_fallsBackToDefault() {
+            when(configRepository.findByIsSharedTrueAndIsActiveTrue())
+                    .thenReturn(List.of(openaiConfig));
+
+            assertThat(aiProviderService.resolveConfigForTask(memberId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY))
+                    .contains(openaiConfig);
+
+            when(configRepository.findByIsSharedTrueAndIsDefaultTrue())
+                    .thenReturn(Optional.of(openaiConfig));
+            assertThat(aiProviderService.resolveConfigForTask(memberId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.DEFAULT))
+                    .contains(openaiConfig);
+        }
+
+        @Test
         @DisplayName("availability reports configured=false without leaking secrets when nothing is set up")
         void availability_notConfigured() {
             when(configRepository.findByIsSharedTrueAndIsDefaultTrue()).thenReturn(Optional.empty());

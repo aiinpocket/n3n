@@ -129,7 +129,8 @@ public class NaturalLanguageModule {
             log.debug("Generated system prompt length: {}, user prompt length: {}",
                     systemPrompt.length(), userPrompt.length());
 
-            String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId);
+            String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY);
             return parseFlowGenerationResponse(response, availableNodes, installedNodeTypes);
         } catch (Exception e) {
             log.error("Flow generation failed", e);
@@ -208,7 +209,8 @@ public class NaturalLanguageModule {
                 sink.tryEmitNext(FlowGenerationChunk.thinking("Generating flow architecture with AI..."));
                 emitProgress(sink, 35, "Calling AI model...", "ai_generating");
 
-                String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId);
+                String response = aiClient.chat(userPrompt, systemPrompt, 4096, 0.7, userId,
+                    com.aiinpocket.n3n.ai.provider.AiTaskType.HEAVY);
                 emitProgress(sink, 70, "AI response received", "parsing");
 
                 // Phase 5: Parsing response (70-85%)

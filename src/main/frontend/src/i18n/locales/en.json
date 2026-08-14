@@ -1700,7 +1700,9 @@
       "modifyNode": "Modify Node",
       "connectNodes": "Connect Nodes"
     },
-    "analyzeExecutionMessage": "Please analyze this execution result: if it failed, explain the cause in plain language, point out which node has the problem, and tell me how to fix it. If you need more information, just ask me."
+    "analyzeExecutionMessage": "Please analyze this execution result: if it failed, explain the cause in plain language, point out which node has the problem, and tell me how to fix it. If you need more information, just ask me.",
+    "generatedArtifactTitle": "Generated & saved to your library",
+    "goToArtifacts": "Open library"
   },
   "dashboard": {
     "title": "Dashboard",
