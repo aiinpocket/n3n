@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import logger from '../../utils/logger'
 import { getLocale } from '../../utils/locale'
-import { Card, Tag, Typography, Skeleton, Button, Space, Tooltip } from 'antd'
+import { Card, Tag, Typography, Button, Space, Tooltip } from 'antd'
 import List from '../../components/common/SimpleList'
 import {
   FolderOutlined,
@@ -61,7 +61,6 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation()
   const [flows, setFlows] = useState<SimilarFlow[]>([])
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const searchMode: SearchMode = 'keyword'
   const [searchTime, setSearchTime] = useState<number | null>(null)
@@ -75,7 +74,6 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
       return
     }
 
-    setLoading(true)
     setError(null)
     setSearchTime(null)
 
@@ -100,8 +98,6 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
       logger.error('Failed to fetch similar flows:', err)
       setError(t('aiAssistant.loadSimilarFailed'))
       setFlows([])
-    } finally {
-      setLoading(false)
     }
   }, [minQueryLength, maxResults, t])
 
@@ -130,31 +126,10 @@ export const SimilarFlowsPanel: React.FC<Props> = ({
     return date.toLocaleDateString(getLocale())
   }
 
-  if (query.length < minQueryLength) {
-    return null  // 查詢太短時不顯示
-  }
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <Text type="secondary" className={styles.title}>
-          <FolderOutlined /> {t('aiAssistant.similarFlows')}
-        </Text>
-        <Skeleton active paragraph={{ rows: 2 }} />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <Text type="secondary">{error}</Text>
-      </div>
-    )
-  }
-
-  if (flows.length === 0) {
-    return null  // 沒有類似流程時不顯示
+  // 搜尋過程完全靜默：不顯示載入骨架與錯誤訊息，避免打字停頓時面板閃現。
+  // 搜尋中維持前一次結果，只有實際找到類似流程才展開面板。
+  if (query.length < minQueryLength || error || flows.length === 0) {
+    return null
   }
 
   return (
