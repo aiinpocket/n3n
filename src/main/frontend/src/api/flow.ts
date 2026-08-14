@@ -124,6 +124,31 @@ export const flowApi = {
     return response.data
   },
 
+  /**
+   * 建立流程；名稱已存在時自動加序號重試（AI 生成的固定 fallback 名稱
+   * 第二次必撞名，不該把衝突丟給使用者處理）。
+   */
+  createFlowUnique: async (data: CreateFlowRequest): Promise<Flow> => {
+    const isNameConflict = (err: unknown): boolean => {
+      const resp = (err as { response?: { status?: number; data?: { message?: string } } }).response
+      return resp?.status === 400 && /already exists/i.test(resp?.data?.message || '')
+    }
+    try {
+      return await flowApi.createFlow(data)
+    } catch (err) {
+      if (!isNameConflict(err)) throw err
+    }
+    for (let i = 2; i <= 20; i++) {
+      try {
+        return await flowApi.createFlow({ ...data, name: `${data.name} ${i}` })
+      } catch (err) {
+        if (!isNameConflict(err)) throw err
+      }
+    }
+    // 連號都滿了就用時間戳保底
+    return flowApi.createFlow({ ...data, name: `${data.name} ${Date.now()}` })
+  },
+
   updateFlow: async (id: string, data: UpdateFlowRequest): Promise<Flow> => {
     const response = await apiClient.put(`/flows/${id}`, data)
     return response.data

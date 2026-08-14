@@ -4,7 +4,7 @@ import { message } from '../../utils/feedback'
 import { ThunderboltOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useFlowListStore } from '../../stores/flowListStore'
+import { flowApi } from '../../api/flow'
 import FlowGeneratorModal from './FlowGeneratorModal'
 import { extractApiError } from '../../utils/errorMessages'
 
@@ -18,7 +18,6 @@ const { TextArea } = Input
 export default function AiPromptHero() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const createFlow = useFlowListStore((s) => s.createFlow)
   const [prompt, setPrompt] = useState('')
   const [generatorOpen, setGeneratorOpen] = useState(false)
 
@@ -96,7 +95,10 @@ export default function AiPromptHero() {
         onCreateFlow={async (flowDef, options) => {
           if (!flowDef) return
           try {
-            const flow = await createFlow(t('flow.aiGeneratedName'), t('flow.aiGeneratedDescription'))
+            const flow = await flowApi.createFlowUnique({
+              name: t('flow.aiGeneratedName'),
+              description: t('flow.aiGeneratedDescription'),
+            })
             message.success(t('flow.createdRedirecting'))
             navigate(`/flows/${flow.id}/edit`, { state: { generatedFlow: flowDef, autoTest: options?.autoTest } })
           } catch (err) {

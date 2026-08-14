@@ -752,7 +752,10 @@ export default function FlowListPage() {
           if (flowDef) {
             // First create a flow, then navigate to editor with the generated content
             try {
-              const flow = await createFlow(t('flow.aiGeneratedName'), t('flow.aiGeneratedDescription'))
+              const flow = await flowApi.createFlowUnique({
+                name: t('flow.aiGeneratedName'),
+                description: t('flow.aiGeneratedDescription'),
+              })
               message.success(t('flow.createdRedirecting'))
               // Navigate to editor and let it handle the flow definition
               navigate(`/flows/${flow.id}/edit`, {

@@ -602,7 +602,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     let createdFlowId: string | null = null
 
     try {
-      const flow = await flowApi.createFlow({
+      const flow = await flowApi.createFlowUnique({
         name: deriveFlowName(),
         description: result.understanding || t('flow.aiGeneratedDescription'),
       })
