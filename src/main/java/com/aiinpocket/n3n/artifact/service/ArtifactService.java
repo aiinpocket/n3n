@@ -176,6 +176,35 @@ public class ArtifactService {
     }
 
     /**
+     * 清理某次執行的 artifacts（保留策略用）：pinned 的保留，其餘刪 DB row + 檔案。
+     * @return 刪除的檔案數
+     */
+    @Transactional
+    public int deleteUnpinnedByExecution(UUID executionId) {
+        int deleted = 0;
+        for (Artifact artifact : artifactRepository.findByExecutionId(executionId)) {
+            if (Boolean.TRUE.equals(artifact.getPinned())) {
+                continue;
+            }
+            artifactRepository.delete(artifact);
+            storageService.delete(artifact.getStoragePath());
+            deleted++;
+        }
+        return deleted;
+    }
+
+    /**
+     * 將某次執行的所有 artifacts 標記為永久/取消永久（跟隨執行的 pin 狀態）。
+     */
+    @Transactional
+    public void setPinnedByExecution(UUID executionId, boolean pinned) {
+        for (Artifact artifact : artifactRepository.findByExecutionId(executionId)) {
+            artifact.setPinned(pinned);
+            artifactRepository.save(artifact);
+        }
+    }
+
+    /**
      * 使用者所有 artifacts 的總大小（bytes），用於用量統計。
      */
     @Transactional(readOnly = true)

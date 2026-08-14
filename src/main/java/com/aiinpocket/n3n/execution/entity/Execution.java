@@ -88,4 +88,9 @@ public class Execution {
     @Column(name = "max_retries")
     @Builder.Default
     private Integer maxRetries = 3;
+
+    /** 設為永久：不受保留天數清理（連同其 artifacts） */
+    @Column(name = "pinned", nullable = false)
+    @Builder.Default
+    private Boolean pinned = false;
 }

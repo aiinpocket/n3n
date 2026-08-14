@@ -42,6 +42,9 @@ public class ExecutionResponse {
     private String flowName;
     private String flowVersion;
 
+    /** 設為永久：不受保留天數清理 */
+    private boolean pinned;
+
     public static ExecutionResponse from(Execution e) {
         int retryCount = e.getRetryCount() != null ? e.getRetryCount() : 0;
         int maxRetries = e.getMaxRetries() != null ? e.getMaxRetries() : 3;
@@ -70,6 +73,7 @@ public class ExecutionResponse {
             .waitingNodeId(e.getWaitingNodeId())
             .pauseReason(e.getPauseReason())
             .resumeCondition(e.getResumeCondition())
+            .pinned(Boolean.TRUE.equals(e.getPinned()))
             .build();
     }
 

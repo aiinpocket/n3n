@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.housekeeping.service;
 
 import com.aiinpocket.n3n.activity.repository.UserActivityRepository;
+import com.aiinpocket.n3n.artifact.service.ArtifactService;
 import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.common.logging.LogContext;
 import com.aiinpocket.n3n.execution.service.FormService;
@@ -54,6 +55,7 @@ public class HousekeepingService {
     private final UserActivityRepository userActivityRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final FormService formService;
+    private final ArtifactService artifactService;
     private final AtomicBoolean cleanupRunning = new AtomicBoolean(false);
 
     /**
@@ -114,8 +116,7 @@ public class HousekeepingService {
 
                 while (hasMore && iteration < maxIterations) {
                     iteration++;
-                    Page<Execution> batch = findExpiredExecutions(cutoffDate, batchSize);
-                    List<Execution> executions = batch.getContent();
+                    List<Execution> executions = findExpiredExecutions(cutoffDate, batchSize);
 
                     if (executions.isEmpty()) {
                         hasMore = false;
@@ -141,9 +142,8 @@ public class HousekeepingService {
                     log.info("HOUSEKEEPING_BATCH processed={} archived={} deleted={}",
                             totalProcessed, totalArchived, totalDeleted);
 
-                    // Since we always query page 0 and delete processed records,
-                    // check if there are still records to process
-                    hasMore = batch.getTotalElements() > executions.size();
+                    // 撈滿一整批表示可能還有；不足一批就代表處理完了
+                    hasMore = executions.size() >= batchSize;
                 }
 
                 if (iteration >= maxIterations) {
@@ -198,14 +198,11 @@ public class HousekeepingService {
     }
 
     /**
-     * Find expired executions (completed/failed/cancelled and older than cutoff).
+     * 保留策略選取：過期且已結束的執行，
+     * 排除設為永久（pinned）與各流程的最新一次執行。
      */
-    private Page<Execution> findExpiredExecutions(Instant cutoffDate, int batchSize) {
-        return executionRepository.findByStatusInAndStartedAtBefore(
-                List.of("completed", "failed", "cancelled"),
-                cutoffDate,
-                PageRequest.of(0, batchSize)
-        );
+    private List<Execution> findExpiredExecutions(Instant cutoffDate, int batchSize) {
+        return executionRepository.findExpiredForCleanup(cutoffDate, batchSize);
     }
 
     /**
@@ -277,6 +274,9 @@ public class HousekeepingService {
             nodeExecutionHistoryRepository.save(nodeHistory);
         }
 
+        // 歸檔只保留 metadata，artifacts 同樣依保留策略清理（pinned 者保留）
+        cleanupArtifacts(executionId);
+
         // Delete from main tables
         nodeExecutionRepository.deleteByExecutionId(executionId);
         executionRepository.deleteById(executionId);
@@ -291,11 +291,25 @@ public class HousekeepingService {
 
         log.debug("DELETE_EXECUTION id={}", executionId);
 
+        // 清理此執行的 artifacts（pinned 者保留）
+        cleanupArtifacts(executionId);
+
         // Delete node executions first (cascade)
         nodeExecutionRepository.deleteByExecutionId(executionId);
 
         // Delete execution
         executionRepository.deleteById(executionId);
+    }
+
+    private void cleanupArtifacts(UUID executionId) {
+        try {
+            int deleted = artifactService.deleteUnpinnedByExecution(executionId);
+            if (deleted > 0) {
+                log.debug("HOUSEKEEPING_ARTIFACTS executionId={} deleted={}", executionId, deleted);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to cleanup artifacts for execution {}: {}", executionId, e.getMessage());
+        }
     }
 
     /**

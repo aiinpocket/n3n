@@ -60,7 +60,8 @@
     "comingSoon": "近日公開",
     "deleteSuccess": "正常に削除しました",
     "help": "ヘルプ",
-    "enterField": "{{field}}を入力してください"
+    "enterField": "{{field}}を入力してください",
+    "download": "ダウンロード"
   },
   "error": {
     "title": "エラーが発生しました",
@@ -602,7 +603,14 @@
     "output": "出力結果",
     "aiAnalyze": "AI で失敗原因を分析",
     "previewRows": "先頭 {{shown}} 件を表示（全 {{total}} 件）",
-    "tableView": "テーブル"
+    "tableView": "テーブル",
+    "pin": "永久保存",
+    "unpin": "永久保存を解除",
+    "pinnedSuccess": "永久保存に設定しました。この実行と出力ファイルは自動削除されません",
+    "unpinnedSuccess": "永久保存を解除しました",
+    "retentionNotice": "実行履歴はデフォルトで 7 日間保持されます（各フローの最新実行を除く）。長期保存するには「永久保存」に設定するか、出力ファイルをダウンロードしてください。",
+    "fixDraftSaved": "AI の修正を新しい下書きとして保存しました。エディタでテストします",
+    "artifactUnavailable": "ファイルは保持期限切れか読み取れません"
   },
   "service": {
     "title": "外部サービス",

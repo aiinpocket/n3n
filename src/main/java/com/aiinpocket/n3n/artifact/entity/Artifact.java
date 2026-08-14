@@ -64,4 +64,9 @@ public class Artifact {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    /** 設為永久：執行紀錄清理時保留此檔案 */
+    @Column(name = "pinned", nullable = false)
+    @Builder.Default
+    private Boolean pinned = false;
 }

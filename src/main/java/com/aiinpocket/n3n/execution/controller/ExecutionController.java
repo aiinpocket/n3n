@@ -127,6 +127,16 @@ public class ExecutionController {
         return ResponseEntity.ok(executionService.cancelExecution(id, userId, reason));
     }
 
+    /** 設為永久 / 取消永久：pinned 執行（含其 artifacts）不受保留天數清理 */
+    @PostMapping("/{id}/pin")
+    public ResponseEntity<ExecutionResponse> pinExecution(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "true") boolean pinned,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(executionService.setPinned(id, userId, pinned));
+    }
+
     @PostMapping("/{id}/retry")
     public ResponseEntity<ExecutionResponse> retryExecution(
             @PathVariable UUID id,

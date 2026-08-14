@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { Card, Button, Space, Spin, Descriptions, Tag, Timeline, Result, Modal, Input, Typography, Drawer, Tabs } from 'antd'
+import { Card, Button, Space, Spin, Descriptions, Tag, Timeline, Result, Modal, Input, Typography, Drawer, Tabs, Alert } from 'antd'
 import { message } from '../utils/feedback'
 import {
   PlayCircleOutlined,
@@ -20,6 +20,8 @@ import {
   CodeOutlined,
   HistoryOutlined,
   RobotOutlined,
+  PushpinOutlined,
+  PushpinFilled,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { executionApi, ExecutionResponse, NodeExecutionResponse, ApprovalResponse } from '../api/execution'
@@ -433,10 +435,53 @@ export default function ExecutionPage() {
             <Button icon={<FileTextOutlined />} onClick={() => navigate(`/logs?search=${id}`)}>
               {t('execution.viewLogs')}
             </Button>
+            {!isRunning && !isWaiting && id && (
+              <Button
+                icon={executionData.pinned ? <PushpinFilled /> : <PushpinOutlined />}
+                type={executionData.pinned ? 'primary' : 'default'}
+                onClick={async () => {
+                  try {
+                    const updated = await executionApi.setPinned(id, !executionData.pinned)
+                    setExecutionData((prev) => (prev ? { ...prev, pinned: updated.pinned } : prev))
+                    message.success(updated.pinned ? t('execution.pinnedSuccess') : t('execution.unpinnedSuccess'))
+                  } catch (error) {
+                    message.error(extractApiError(error, t('common.error')))
+                  }
+                }}
+              >
+                {executionData.pinned ? t('execution.unpin') : t('execution.pin')}
+              </Button>
+            )}
           </Space>
         }
       >
         <Space orientation="vertical" style={{ width: '100%' }} size="large">
+          {!executionData.pinned && !isRunning && !isWaiting && (
+            <Alert
+              type="info"
+              showIcon
+              description={t('execution.retentionNotice')}
+              action={
+                id ? (
+                  <Button
+                    size="small"
+                    icon={<PushpinOutlined />}
+                    onClick={async () => {
+                      try {
+                        const updated = await executionApi.setPinned(id, true)
+                        setExecutionData((prev) => (prev ? { ...prev, pinned: updated.pinned } : prev))
+                        message.success(t('execution.pinnedSuccess'))
+                      } catch (error) {
+                        message.error(extractApiError(error, t('common.error')))
+                      }
+                    }}
+                  >
+                    {t('execution.pin')}
+                  </Button>
+                ) : undefined
+              }
+            />
+          )}
           <Descriptions bordered column={2}>
             <Descriptions.Item label={t('execution.executionId')}>{executionData.id}</Descriptions.Item>
             <Descriptions.Item label={t('execution.flowName')}>
@@ -759,10 +804,26 @@ export default function ExecutionPage() {
         )}
       </Drawer>
 
-      {/* AI 執行分析小幫手：失敗時由「AI 分析」按鈕開啟 */}
+      {/* AI 執行分析小幫手：失敗時由「AI 分析」按鈕開啟；套用修正會另存草稿並帶去編輯器 */}
       {aiPanelOpen && (
         <Suspense fallback={null}>
-          <AIPanelDrawer flowId={executionData.flowId ? String(executionData.flowId) : undefined} />
+          <AIPanelDrawer
+            flowId={executionData.flowId ? String(executionData.flowId) : undefined}
+            onApplyFlowChanges={async (flowDef) => {
+              if (!executionData.flowId) return
+              try {
+                const draftVersion = `draft-${Date.now()}`
+                await flowApi.saveVersion(String(executionData.flowId), {
+                  version: draftVersion,
+                  definition: flowDef as unknown as import('../api/flow').FlowDefinition,
+                })
+                message.success(t('execution.fixDraftSaved'))
+                navigate(`/flows/${executionData.flowId}/edit`, { state: { autoTest: true } })
+              } catch (error) {
+                message.error(extractApiError(error, t('editor.saveFailed')))
+              }
+            }}
+          />
         </Suspense>
       )}
     </>

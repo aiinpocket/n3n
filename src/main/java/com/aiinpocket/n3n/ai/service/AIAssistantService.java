@@ -41,6 +41,7 @@ public class AIAssistantService {
     private final UserMemoryService userMemoryService;
     private final MemoryExtractionService memoryExtractionService;
     private final ExecutionAnalysisContextBuilder executionAnalysisContextBuilder;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     // Node category definitions
     private static final Map<String, CategoryDefinition> CATEGORY_DEFINITIONS = Map.of(
@@ -280,9 +281,13 @@ public class AIAssistantService {
         你是「執行分析小幫手」。請根據上面的執行紀錄與使用者訊息：
         1. 用口語化、非工程師也能懂的方式說明這次執行發生了什麼（不要直接貼原始錯誤碼，先翻譯成白話）。
         2. 找出失敗的根本原因，指出是哪個節點、哪個設定的問題。
-        3. 給出具體可操作的修正步驟；如果你能直接提出流程修改，就提出修改建議。
-        4. 如果現有資訊不足以判斷（例如缺少憑證、網址、參數），主動列出你需要使用者回答的問題。
-        5. 如果執行其實是成功的，簡短總結結果即可。
+        3. 如果問題可以透過修改流程設定解決，「直接改好」：在回覆的最結尾輸出一個 ```flow-fix 程式碼區塊，
+           內容是完整修正後的流程定義 JSON——結構必須與執行紀錄中的「流程定義」完全一致
+           （nodes/edges 陣列；每個 node 保留原本的 id、type、position、data，只改需要修正的欄位）。
+           正文只用一兩句話說明你改了什麼，絕對不要在正文貼程式碼或 JSON——使用者會有「套用修正」按鈕。
+        4. 無法自動修正時（例如缺少憑證、金鑰、網址等只有使用者知道的資訊），不要輸出 flow-fix，
+           改為主動列出你需要使用者回答的問題。
+        5. 如果執行其實是成功的，簡短總結結果即可，不要輸出 flow-fix。
         請使用與使用者相同的語言、以 Markdown 回覆。
         """;
 
@@ -301,11 +306,20 @@ public class AIAssistantService {
                 String systemPrompt = executionContext + EXECUTION_ANALYSIS_INSTRUCTIONS;
 
                 String prompt = buildAnalysisPrompt(request, userId, conversationId);
-                String answer = assistantAiClient.chat(prompt, systemPrompt, 3000, 0.5, userId);
+                String answer = assistantAiClient.chat(prompt, systemPrompt, 6000, 0.5, userId);
 
-                sink.next(ChatStreamChunk.text(answer));
+                // 抽出 flow-fix 區塊：正文只留文字說明，修正後的流程以結構化事件送出，
+                // 前端顯示「套用修正」按鈕一鍵更新流程
+                AnalysisFix fix = extractFlowFix(answer);
+                sink.next(ChatStreamChunk.text(fix.text()));
+                if (fix.flowDefinition() != null) {
+                    sink.next(ChatStreamChunk.structured(Map.of(
+                        "action", "update_flow",
+                        "flowDefinition", fix.flowDefinition()
+                    )));
+                }
                 try {
-                    conversationManager.addMessage(conversationId, userId, "assistant", answer, null);
+                    conversationManager.addMessage(conversationId, userId, "assistant", fix.text(), null);
                 } catch (Exception e) {
                     log.warn("Failed to save analysis response to conversation {}", conversationId, e);
                 }
@@ -317,6 +331,35 @@ public class AIAssistantService {
                 sink.complete();
             }
         }));
+    }
+
+    /** 分析回覆拆解結果：text 為給使用者看的正文，flowDefinition 為可套用的修正（可為 null）。 */
+    private record AnalysisFix(String text, Map<String, Object> flowDefinition) {}
+
+    private static final java.util.regex.Pattern FLOW_FIX_PATTERN =
+        java.util.regex.Pattern.compile("```flow-fix\\s*([\\s\\S]*?)```", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 從分析回覆中抽出 ```flow-fix``` 區塊。
+     * JSON 解析失敗時安靜退回純文字（不讓使用者看到半套 JSON）。
+     */
+    @SuppressWarnings("unchecked")
+    private AnalysisFix extractFlowFix(String answer) {
+        var matcher = FLOW_FIX_PATTERN.matcher(answer);
+        if (!matcher.find()) {
+            return new AnalysisFix(answer.trim(), null);
+        }
+        String json = matcher.group(1).trim();
+        String text = FLOW_FIX_PATTERN.matcher(answer).replaceAll("").trim();
+        try {
+            Map<String, Object> definition = objectMapper.readValue(json, Map.class);
+            if (definition.get("nodes") instanceof List<?> nodes && !nodes.isEmpty()) {
+                return new AnalysisFix(text, definition);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse flow-fix block from analysis response: {}", e.getMessage());
+        }
+        return new AnalysisFix(text, null);
     }
 
     /** 分析提示詞：帶入近期對話讓追問有上下文。 */

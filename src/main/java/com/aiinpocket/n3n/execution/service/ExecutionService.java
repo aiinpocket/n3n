@@ -53,6 +53,7 @@ public class ExecutionService {
     private final ActivityService activityService;
     private final FlowShareService flowShareService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final com.aiinpocket.n3n.artifact.service.ArtifactService artifactService;
 
     @Value("${execution.max-concurrent:100}")
     private int maxConcurrentExecutions;
@@ -136,6 +137,18 @@ public class ExecutionService {
         Execution execution = findExecutionWithOwnerCheck(id, userId);
         nodeExecutionRepository.deleteByExecutionId(id);
         executionRepository.delete(execution);
+    }
+
+    /**
+     * 設為永久 / 取消永久：pinned 的執行（連同其 artifacts）不受保留天數清理。
+     */
+    @Transactional
+    public ExecutionResponse setPinned(UUID id, UUID userId, boolean pinned) {
+        Execution execution = findExecutionWithOwnerCheck(id, userId);
+        execution.setPinned(pinned);
+        executionRepository.save(execution);
+        artifactService.setPinnedByExecution(id, pinned);
+        return enrichExecution(execution);
     }
 
     @Transactional(readOnly = true)

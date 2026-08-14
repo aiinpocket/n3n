@@ -90,8 +90,10 @@ interface GeneratedFlowDefinition {
     label?: string
     config?: Record<string, unknown>
     position?: { x: number; y: number }
+    /** 編輯器格式（AI 分析 flow-fix 會回吐與原定義相同的結構） */
+    data?: Record<string, unknown>
   }>
-  edges: Array<{ source: string; target: string }>
+  edges: Array<{ id?: string; source: string; target: string; edgeType?: string }>
 }
 
 // Random suffix avoids duplicate IDs when nodes are added within the same millisecond
@@ -338,7 +340,8 @@ export default function FlowEditorPage() {
           type: n.type,
           // 既有節點保留使用者拖過的位置；新節點優先用後端分層排版座標
           position: existing?.position || n.position || { x: 250, y: i * 120 + 50 },
-          data: {
+          // 生成器格式（label+config）與編輯器格式（data）都支援
+          data: n.data ?? {
             label: n.label || n.type,
             nodeType: n.type,
             ...n.config,
@@ -347,9 +350,10 @@ export default function FlowEditorPage() {
       })
       setNodes(newNodes)
       setEdges(flowDef.edges.map((e, i) => ({
-        id: `edge-${i}`,
+        id: e.id || `edge-${i}`,
         source: e.source,
         target: e.target,
+        ...(e.edgeType ? { edgeType: e.edgeType } : {}),
       })))
     },
     [pushHistory, setNodes, setEdges]
@@ -1647,6 +1651,9 @@ export default function FlowEditorPage() {
         onApplyFlowChanges={(flowDef) => {
           applyGeneratedFlow(flowDef)
           message.success(t('editor.flowChangesApplied'))
+          // 套用 AI 修正後自動再試跑一次並重新分析，形成修正閉環
+          autoAnalyzePendingRef.current = true
+          setTimeout(() => { void handleExecute() }, 600)
         }}
       /></Suspense>}
 

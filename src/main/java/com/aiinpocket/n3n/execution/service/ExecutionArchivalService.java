@@ -38,6 +38,7 @@ public class ExecutionArchivalService {
     private final FlowVersionRepository flowVersionRepository;
     private final FlowRepository flowRepository;
     private final StateManager stateManager;
+    private final com.aiinpocket.n3n.artifact.service.ArtifactService artifactService;
 
     @Value("${execution.history.retention-days:30}")
     private int retentionDays;
@@ -74,8 +75,7 @@ public class ExecutionArchivalService {
         int maxIterations = 10000;
         int iteration = 0;
 
-        List<Execution> toArchive = executionRepository.findByCompletedAtBeforeAndStatusIn(
-            cutoffDate, COMPLETED_STATUSES, batchSize);
+        List<Execution> toArchive = executionRepository.findExpiredForCleanup(cutoffDate, batchSize);
 
         while (!toArchive.isEmpty() && iteration < maxIterations) {
             iteration++;
@@ -116,8 +116,7 @@ public class ExecutionArchivalService {
                 break;
             }
 
-            toArchive = executionRepository.findByCompletedAtBeforeAndStatusIn(
-                cutoffDate, COMPLETED_STATUSES, batchSize);
+            toArchive = executionRepository.findExpiredForCleanup(cutoffDate, batchSize);
         }
 
         if (iteration >= maxIterations) {
@@ -198,6 +197,14 @@ public class ExecutionArchivalService {
             .build();
 
         archiveRepository.save(archive);
+
+        // 依保留策略清理 artifacts（pinned 者保留）
+        try {
+            artifactService.deleteUnpinnedByExecution(execution.getId());
+        } catch (Exception e) {
+            log.warn("Failed to cleanup artifacts for archived execution {}: {}",
+                execution.getId(), e.getMessage());
+        }
 
         // Delete from main tables
         nodeExecutionRepository.deleteByExecutionId(execution.getId());

@@ -60,7 +60,8 @@
     "comingSoon": "Coming soon",
     "deleteSuccess": "Deleted successfully",
     "help": "Help",
-    "enterField": "Please enter {{field}}"
+    "enterField": "Please enter {{field}}",
+    "download": "Download"
   },
   "error": {
     "title": "Something went wrong",
@@ -602,7 +603,14 @@
     "output": "Output",
     "aiAnalyze": "Analyze failure with AI",
     "previewRows": "Showing first {{shown}} of {{total}} rows",
-    "tableView": "Table"
+    "tableView": "Table",
+    "pin": "Keep forever",
+    "unpin": "Unpin",
+    "pinnedSuccess": "Pinned — this execution and its output files will not be auto-cleaned",
+    "unpinnedSuccess": "Unpinned",
+    "retentionNotice": "Execution records are kept for 7 days by default (except the latest run of each flow). Pin this execution to keep it forever, or download the output files.",
+    "fixDraftSaved": "AI fix saved as a new draft — taking you to the editor to test it",
+    "artifactUnavailable": "File expired or unavailable"
   },
   "service": {
     "title": "External Services",

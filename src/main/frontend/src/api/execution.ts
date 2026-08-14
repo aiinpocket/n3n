@@ -32,6 +32,8 @@ export interface ExecutionResponse {
   retryCount?: number;
   maxRetries?: number;
   canRetry?: boolean;
+  /** 設為永久：不受保留天數清理 */
+  pinned?: boolean;
 }
 
 export interface NodeExecutionResponse {
@@ -137,6 +139,12 @@ export const executionApi = {
       `/executions/${executionId}/output`
     );
     return response.data;
+  },
+
+  /** 設為永久 / 取消永久 */
+  setPinned: async (id: string, pinned: boolean): Promise<ExecutionResponse> => {
+    const response = await apiClient.post(`/executions/${id}/pin`, null, { params: { pinned } })
+    return response.data
   },
 
   retry: async (id: string): Promise<ExecutionResponse> => {

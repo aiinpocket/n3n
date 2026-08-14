@@ -60,7 +60,8 @@
     "comingSoon": "即將推出",
     "deleteSuccess": "刪除成功",
     "help": "幫助",
-    "enterField": "請輸入{{field}}"
+    "enterField": "請輸入{{field}}",
+    "download": "下載"
   },
   "error": {
     "title": "發生錯誤",
@@ -602,7 +603,14 @@
     "output": "輸出結果",
     "aiAnalyze": "AI 分析失敗原因",
     "previewRows": "顯示前 {{shown}} 筆，共 {{total}} 筆",
-    "tableView": "表格"
+    "tableView": "表格",
+    "pin": "設為永久",
+    "unpin": "取消永久",
+    "pinnedSuccess": "已設為永久保留，此執行與其產出檔案不會被自動清理",
+    "unpinnedSuccess": "已取消永久保留",
+    "retentionNotice": "執行紀錄預設保留 7 天（每個流程的最新一次執行除外）。需要長期留存請「設為永久」，或先下載輸出檔案。",
+    "fixDraftSaved": "已將 AI 修正存成新草稿，帶你前往編輯器試跑驗證",
+    "artifactUnavailable": "檔案已過保留期或無法讀取"
   },
   "service": {
     "title": "外部服務",

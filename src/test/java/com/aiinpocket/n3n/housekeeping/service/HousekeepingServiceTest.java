@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -84,8 +85,8 @@ class HousekeepingServiceTest extends BaseServiceTest {
             j.setId(UUID.randomUUID());
             return j;
         });
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
+                .thenReturn(List.of());
 
         // When
         HousekeepingJob result = housekeepingService.runCleanup();
@@ -108,7 +109,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
 
         // Then
         assertThat(result).isNull();
-        verify(executionRepository, never()).findByStatusInAndStartedAtBefore(any(), any(), any());
+        verify(executionRepository, never()).findExpiredForCleanup(any(), anyInt());
 
         // Reset for other tests
         ((AtomicBoolean) cleanupRunningField.get(housekeepingService)).set(false);
@@ -128,9 +129,9 @@ class HousekeepingServiceTest extends BaseServiceTest {
             return j;
         });
         // First batch has one item, then next batch is empty
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
-                .thenReturn(new PageImpl<>(List.of(expiredExecution)))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
+                .thenReturn(List.of(expiredExecution))
+                .thenReturn(List.of());
 
         // When
         HousekeepingJob result = housekeepingService.runCleanup();
@@ -161,9 +162,9 @@ class HousekeepingServiceTest extends BaseServiceTest {
             return j;
         });
 
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
-                .thenReturn(new PageImpl<>(List.of(expiredExecution)))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
+                .thenReturn(List.of(expiredExecution))
+                .thenReturn(List.of());
 
         when(flowVersionRepository.findById(expiredExecution.getFlowVersionId()))
                 .thenReturn(Optional.empty());
@@ -191,8 +192,8 @@ class HousekeepingServiceTest extends BaseServiceTest {
             if (j.getId() == null) j.setId(UUID.randomUUID());
             return j;
         });
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
+                .thenReturn(List.of());
         when(nodeExecutionHistoryRepository.deleteByArchivedAtBefore(any(Instant.class))).thenReturn(5);
         when(executionHistoryRepository.deleteByArchivedAtBefore(any(Instant.class))).thenReturn(3);
 
@@ -218,8 +219,8 @@ class HousekeepingServiceTest extends BaseServiceTest {
             if (j.getId() == null) j.setId(UUID.randomUUID());
             return j;
         });
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
+                .thenReturn(List.of());
 
         // When
         housekeepingService.runCleanup();
@@ -241,7 +242,7 @@ class HousekeepingServiceTest extends BaseServiceTest {
             if (j.getId() == null) j.setId(UUID.randomUUID());
             return j;
         });
-        when(executionRepository.findByStatusInAndStartedAtBefore(anyList(), any(Instant.class), any()))
+        when(executionRepository.findExpiredForCleanup(any(Instant.class), anyInt()))
                 .thenThrow(new RuntimeException("Database error"));
 
         // When/Then

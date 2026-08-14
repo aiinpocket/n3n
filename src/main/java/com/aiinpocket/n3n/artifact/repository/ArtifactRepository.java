@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ import java.util.UUID;
 public interface ArtifactRepository extends JpaRepository<Artifact, UUID> {
 
     Optional<Artifact> findByIdAndOwnerId(UUID id, UUID ownerId);
+
+    List<Artifact> findByExecutionId(UUID executionId);
 
     Page<Artifact> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId, Pageable pageable);
 

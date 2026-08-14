@@ -21,7 +21,7 @@ public class HousekeepingProperties {
      * Number of days to retain execution records.
      * Records older than this will be processed.
      */
-    private int retentionDays = 30;
+    private int retentionDays = 7;
 
     /**
      * Whether to archive records to history tables.

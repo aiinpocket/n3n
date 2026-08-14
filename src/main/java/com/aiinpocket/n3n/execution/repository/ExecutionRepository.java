@@ -65,6 +65,30 @@ public interface ExecutionRepository extends JpaRepository<Execution, UUID> {
         Pageable pageable);
 
     /**
+     * 保留策略選取：過期且已結束的執行，但排除
+     * (1) 設為永久（pinned）者、(2) 各流程「最新一次執行」（不論狀態）。
+     */
+    @Query(value = """
+        SELECT e.* FROM executions e
+        JOIN flow_versions fv ON fv.id = e.flow_version_id
+        WHERE e.status IN ('completed','failed','cancelled')
+          AND e.completed_at < :cutoff
+          AND e.pinned = FALSE
+          AND e.id NOT IN (
+              SELECT e2.id FROM executions e2
+              JOIN flow_versions fv2 ON fv2.id = e2.flow_version_id
+              WHERE e2.started_at = (
+                  SELECT MAX(e3.started_at) FROM executions e3
+                  JOIN flow_versions fv3 ON fv3.id = e3.flow_version_id
+                  WHERE fv3.flow_id = fv2.flow_id
+              )
+          )
+        ORDER BY e.completed_at ASC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Execution> findExpiredForCleanup(@Param("cutoff") Instant cutoff, @Param("limit") int limit);
+
+    /**
      * Aggregate user-specific execution statistics in a single query for dashboard.
      * Returns: [total, completed, failed, running]
      */

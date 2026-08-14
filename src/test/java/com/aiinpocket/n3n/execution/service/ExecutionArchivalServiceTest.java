@@ -198,7 +198,7 @@ class ExecutionArchivalServiceTest extends BaseServiceTest {
         @Test
         void archiveOldExecutions_noOldExecutions_doesNothing() {
             // Given
-            when(executionRepository.findByCompletedAtBeforeAndStatusIn(any(), any(), eq(100)))
+            when(executionRepository.findExpiredForCleanup(any(), eq(100)))
                     .thenReturn(List.of());
 
             // When
@@ -222,7 +222,7 @@ class ExecutionArchivalServiceTest extends BaseServiceTest {
                     .completedAt(Instant.now().minus(45, ChronoUnit.DAYS))
                     .build();
 
-            when(executionRepository.findByCompletedAtBeforeAndStatusIn(any(), any(), eq(100)))
+            when(executionRepository.findExpiredForCleanup(any(), eq(100)))
                     .thenReturn(List.of(old1, old2))
                     .thenReturn(List.of()); // second call returns empty to stop loop
 
@@ -251,7 +251,7 @@ class ExecutionArchivalServiceTest extends BaseServiceTest {
                     .id(goodId).flowVersionId(versionId)
                     .status("completed").build();
 
-            when(executionRepository.findByCompletedAtBeforeAndStatusIn(any(), any(), eq(100)))
+            when(executionRepository.findExpiredForCleanup(any(), eq(100)))
                     .thenReturn(List.of(bad, good))
                     .thenReturn(List.of());
 

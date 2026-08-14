@@ -26,7 +26,8 @@ import java.util.UUID;
 public class ExecutionAnalysisContextBuilder {
 
     private static final int MAX_OUTPUT_CHARS = 600;
-    private static final int MAX_DEFINITION_CHARS = 6000;
+    // 流程定義要完整給模型，它才能輸出可套用的 flow-fix（截斷會讓修正殘缺）
+    private static final int MAX_DEFINITION_CHARS = 20000;
 
     private final ExecutionService executionService;
     private final FlowVersionRepository flowVersionRepository;
