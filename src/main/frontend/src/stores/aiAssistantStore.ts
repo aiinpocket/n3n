@@ -79,6 +79,11 @@ interface AIAssistantState {
   // 執行分析請求：設定後 AI 面板開啟並自動送出分析訊息
   analysisExecutionId: string | null
 
+  // 分析情境的追問上下文：面板重開後追問仍帶著這個 executionId，
+  // 讓後端持續參照執行紀錄（放 store 而非元件 ref，避免面板 unmount 遺失）
+  analysisContextExecId: string | null
+  setAnalysisContextExecId: (executionId: string | null) => void
+
   // Actions
   openPanel: () => void
   closePanel: () => void
@@ -159,6 +164,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       historyIndex: -1,
       error: null,
       analysisExecutionId: null,
+      analysisContextExecId: null,
 
       // Panel actions
       openPanel: () => set({ isPanelOpen: true }),
@@ -166,8 +172,9 @@ export const useAIAssistantStore = create<AIAssistantState>()(
       togglePanel: () => set((state) => ({ isPanelOpen: !state.isPanelOpen })),
       setPanelWidth: (width) => set({ panelWidth: Math.max(320, Math.min(800, width)) }),
       requestExecutionAnalysis: (executionId) =>
-        set({ analysisExecutionId: executionId, isPanelOpen: true }),
+        set({ analysisExecutionId: executionId, analysisContextExecId: executionId, isPanelOpen: true }),
       clearAnalysisRequest: () => set({ analysisExecutionId: null }),
+      setAnalysisContextExecId: (executionId) => set({ analysisContextExecId: executionId }),
 
       // Session management
       startNewSession: (flowId) => {
@@ -184,6 +191,7 @@ export const useAIAssistantStore = create<AIAssistantState>()(
           sessions: [session, ...state.sessions].slice(0, 20), // Keep last 20 sessions
           pendingChanges: [],
           error: null,
+          analysisContextExecId: null,
         }))
       },
 

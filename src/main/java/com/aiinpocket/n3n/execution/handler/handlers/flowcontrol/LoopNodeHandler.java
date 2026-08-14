@@ -103,6 +103,7 @@ public class LoopNodeHandler extends AbstractNodeHandler {
 
         Map<String, Object> output = new HashMap<>();
         output.put("batches", batches);
+        output.put("items", new ArrayList<>(items));
         output.put("totalItems", items.size());
         output.put("batchSize", batchSize);
         output.put("totalBatches", batches.size());

@@ -241,7 +241,7 @@
     "inputFormats": [
       "陣列/列表"
     ],
-    "bestPractices": "重要限制：loop 節點目前「不會」讓下游節點逐項重複執行，它只把清單分批放進輸出。固定的少量清單（例如 2-3 支股票、幾個網址）請不要用 loop——直接為每個項目建立各自的節點（如「取得 ONDS 財報」「取得 VST 財報」兩個 httpRequest），或在單一節點內一次處理全部項目。設定來源可用 arrayField（輸入資料中的欄位路徑）或 loopOver（{{...}} 表達式）。"
+    "bestPractices": "迭代規則：loop 之後接「線性」節點鏈（不能分支），鏈的終點接一個 merge 或 aggregate 節點當收集點，引擎就會對清單中每個項目把這段鏈各執行一次；body 節點用 {{$json.item}} 取當前項目、{{$json.index}} 取序號，收集點會在輸入的 items 拿到所有迭代結果。設定來源：arrayField（輸入資料中的欄位路徑，如 stocks）或 loopOver（{{...}} 表達式）。注意：body 內不能有分支或多入邊，否則不會迭代（只執行一次）；固定 2-3 個項目也可以直接展開成各自節點。"
   },
   "code": {
     "displayName": "程式碼",

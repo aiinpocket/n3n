@@ -260,21 +260,21 @@ export default function AIPanelDrawer({
   ])
 
   // 分析情境下的追問也帶著 executionId，AI 才能持續參照執行紀錄
-  const analysisExecIdRef = useRef<string | undefined>(undefined)
+  // （存 store 而非 ref：面板關閉重開後追問仍有執行上下文）
+  const analysisContextExecId = useAIAssistantStore((state) => state.analysisContextExecId)
 
   const handleSendMessage = useCallback(() => {
     const message = inputValue.trim()
     if (!message) return
     setInputValue('')
-    void sendMessage(message, analysisExecIdRef.current)
-  }, [inputValue, sendMessage])
+    void sendMessage(message, analysisContextExecId ?? undefined)
+  }, [inputValue, sendMessage, analysisContextExecId])
 
   // 執行分析請求：面板開啟後自動送出分析訊息（帶 executionId 讓後端附上執行紀錄）
   useEffect(() => {
     if (isPanelOpen && analysisExecutionId && !isStreaming) {
       const executionId = analysisExecutionId
       clearAnalysisRequest()
-      analysisExecIdRef.current = executionId
       void sendMessage(t('aiPanel.analyzeExecutionMessage'), executionId)
     }
   }, [isPanelOpen, analysisExecutionId, isStreaming, clearAnalysisRequest, sendMessage, t])

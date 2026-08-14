@@ -114,16 +114,23 @@ public class WorkingFlowDraft {
                 String id = (String) nodeMap.get("id");
                 String type = (String) nodeMap.get("type");
                 Map<String, Object> data = (Map<String, Object>) nodeMap.get("data");
-                String label = data != null ? (String) data.get("label") : type;
+
+                // 相容兩種來源形狀：
+                // 後端定義 {id,type,position,data:{label,...config}}；
+                // 前端 AI 面板送的 {id,type,label,config}（無 data/position）
+                String label = data != null && data.get("label") instanceof String s ? s
+                    : nodeMap.get("label") instanceof String s2 ? s2 : type;
+
                 Map<String, Object> positionMap = (Map<String, Object>) nodeMap.get("position");
+                Position position = positionMap != null
+                    && positionMap.get("x") instanceof Number px
+                    && positionMap.get("y") instanceof Number py
+                    ? new Position(px.intValue(), py.intValue())
+                    : calculatePosition();
 
-                Position position = new Position(
-                    ((Number) positionMap.get("x")).intValue(),
-                    ((Number) positionMap.get("y")).intValue()
-                );
-
-                Map<String, Object> config = data != null ?
-                    (Map<String, Object>) data.get("config") : new HashMap<>();
+                Map<String, Object> config = data != null
+                    ? (data.get("config") instanceof Map<?, ?> c ? (Map<String, Object>) c : new HashMap<>(data))
+                    : (nodeMap.get("config") instanceof Map<?, ?> c2 ? (Map<String, Object>) c2 : new HashMap<>());
 
                 nodes.add(new Node(id, type, label, position, config != null ? config : new HashMap<>()));
 

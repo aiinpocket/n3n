@@ -203,6 +203,33 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
     private record AiTarget(String providerId, AiProvider provider, String model, AiProviderSettings settings) {}
 
     /**
+     * 已退役/易踩雷的舊模型名 → 現行等價模型。
+     * AI 生成的流程常寫 gpt-4（8K 上下文），塞入真實資料就會 400；一律升級到現行同級模型。
+     */
+    private static final Map<String, String> LEGACY_MODEL_MAP = Map.ofEntries(
+        Map.entry("gpt-4", "gpt-4o"),
+        Map.entry("gpt-4-turbo", "gpt-4o"),
+        Map.entry("gpt-4-0613", "gpt-4o"),
+        Map.entry("gpt-3.5-turbo", "gpt-4o-mini"),
+        Map.entry("claude-3-opus-20240229", "claude-opus-5"),
+        Map.entry("claude-3-5-sonnet-20241022", "claude-sonnet-4-5"),
+        Map.entry("claude-3-sonnet-20240229", "claude-sonnet-4-5"),
+        Map.entry("claude-3-haiku-20240307", "claude-haiku-4-5"),
+        Map.entry("gemini-1.5-pro", "gemini-2.5-pro"),
+        Map.entry("gemini-1.5-flash", "gemini-2.5-flash"),
+        Map.entry("gemini-pro", "gemini-2.5-pro")
+    );
+
+    private static String normalizeModel(String model) {
+        String mapped = LEGACY_MODEL_MAP.get(model);
+        if (mapped != null) {
+            log.info("Normalizing legacy model '{}' to '{}'", model, mapped);
+            return mapped;
+        }
+        return model;
+    }
+
+    /**
      * 決定實際要用哪個 AI 服務執行：
      * 1. 節點自己的憑證（或對應環境變數）→ 用節點指定的供應商與模型
      * 2. 平台共用 AI 設定中「同一供應商」的金鑰 → 沿用節點模型（沒填則用平台預設模型）
@@ -215,6 +242,7 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         Map<String, Object> credential,
         NodeExecutionContext context
     ) {
+        model = model.isBlank() ? model : normalizeModel(model);
         String apiKey = resolveApiKey(credential, getEnvVarName(providerId));
         if (apiKey != null && !apiKey.isEmpty()) {
             String effectiveModel = model.isBlank() ? "gpt-4o" : model;

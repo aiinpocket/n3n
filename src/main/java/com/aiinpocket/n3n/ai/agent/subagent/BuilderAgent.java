@@ -269,7 +269,7 @@ public class BuilderAgent implements Agent {
 
         try {
             String prompt = String.format("""
-                User requirement: %s
+                %sUser requirement: %s
 
                 Plan the flow by specifying nodes to add and how to connect them.
                 Respond in JSON format:
@@ -288,7 +288,8 @@ public class BuilderAgent implements Agent {
                 use fields listed in the given config schemas — do not invent config fields.
 
                 %s
-                """, context.getUserInput(), buildNodeCatalogSection(context.getUserInput()));
+                """, renderRecentHistory(context), context.getUserInput(),
+                buildNodeCatalogSection(context.getUserInput()));
 
             String response = aiClient.chat(prompt, BUILDER_SYSTEM_PROMPT, 2000, 0.3, context.getUserId());
             return parseAndBuildFromPlan(response, context);
@@ -518,7 +519,8 @@ public class BuilderAgent implements Agent {
         Map<String, Object> config = (Map<String, Object>) entities.get("config");
 
         if (config == null || config.isEmpty()) {
-            return AgentResult.error("Please specify configuration parameters");
+            // 意圖解析抓不到具體參數時，交給 AI 依現有流程與對話脈絡直接改
+            return modifyFlow(context);
         }
 
         ToolResult result = configureNodeTool.execute(
@@ -546,8 +548,100 @@ public class BuilderAgent implements Agent {
      * 修改流程
      */
     private AgentResult modifyFlow(AgentContext context) {
-        // 使用 AI 理解修改需求
-        return planAndBuildFlow(context);
+        WorkingFlowDraft draft = context.getFlowDraft();
+        if (draft == null || !draft.hasContent()) {
+            // 沒有現有流程可改 → 視為建立新流程
+            return planAndBuildFlow(context);
+        }
+        if (!aiClient.isAvailable(context.getUserId())) {
+            return AgentResult.error("AI service unavailable");
+        }
+
+        try {
+            String currentDefinition = objectMapper.writeValueAsString(draft.toDefinition());
+            String prompt = String.format("""
+                以下是使用者「目前開啟中」的流程定義（JSON）：
+                ```json
+                %s
+                ```
+                %s
+                使用者的修改要求：%s
+
+                請輸出「完整修改後」的流程定義 JSON：
+                - 結構必須是 {"nodes": [...], "edges": [...]}，與上面現有定義相同格式
+                - 保留未被要求修改的 nodes 的 id、type、position、data，只改需要修改的欄位
+                - 移除節點時，記得一併移除連到該節點的 edges，必要時補上跨過它的新連線
+                - 絕對不要使用 n8n 的節點格式（例如 n8n-nodes-base.* type、parameters 欄位）
+                - 只輸出 JSON（可用 ```json 包裹），不要任何其他文字
+                """, currentDefinition, renderRecentHistory(context), context.getUserInput());
+
+            String response = aiClient.chat(prompt, BUILDER_SYSTEM_PROMPT, 4000, 0.2, context.getUserId());
+            Map<String, Object> updated = parseDefinitionJson(response);
+            if (updated == null || !(updated.get("nodes") instanceof List<?> nodes) || nodes.isEmpty()) {
+                return AgentResult.error("修改結果解析失敗，請再描述一次要改什麼");
+            }
+
+            WorkingFlowDraft newDraft = new WorkingFlowDraft();
+            newDraft.initializeFromDefinition(updated);
+            context.setFlowDraft(newDraft);
+
+            return AgentResult.builder()
+                .success(true)
+                .content("已依你的要求修改流程（共 " + nodes.size() + " 個節點）。請確認右側的變更後套用。")
+                .flowDefinition(newDraft.toDefinition())
+                .pendingChanges(List.of(AgentResult.PendingChange.builder()
+                    .id(UUID.randomUUID().toString())
+                    .type("modify_node")
+                    .description("更新流程定義")
+                    .after(newDraft.toDefinition())
+                    .build()))
+                .build();
+        } catch (Exception e) {
+            log.error("AI flow modification failed", e);
+            return AgentResult.error("流程修改失敗：" + e.getMessage());
+        }
+    }
+
+    /** 取最近幾則對話（截斷長訊息），讓「套用剛剛那個修改」這類追問有脈絡 */
+    private String renderRecentHistory(AgentContext context) {
+        List<Message> history = context.getConversationHistory();
+        if (history == null || history.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder("最近的對話（供理解上下文）：\n");
+        int from = Math.max(0, history.size() - 6);
+        for (Message m : history.subList(from, history.size())) {
+            String content = m.getContent() != null ? m.getContent() : "";
+            if (content.length() > 500) {
+                content = content.substring(0, 500) + "…";
+            }
+            sb.append(m.getRole()).append(": ").append(content).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /** 從 AI 回覆抽出定義 JSON（容忍 ```json 圍欄與前後雜訊） */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parseDefinitionJson(String response) {
+        if (response == null) {
+            return null;
+        }
+        String text = response.trim();
+        Matcher fence = Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```").matcher(text);
+        if (fence.find()) {
+            text = fence.group(1).trim();
+        }
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start < 0 || end <= start) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(text.substring(start, end + 1), Map.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse modified flow definition: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**

@@ -521,8 +521,13 @@ public class ExecutionService {
         Set<String> succeededNodes = new HashSet<>(completedNodes);
         Set<String> failedNodes = new HashSet<>();
         Map<String, List<String>> branchSelections = new HashMap<>();
+        // loop 迭代已代為執行的 body 節點（主迴圈直接跳過）
+        Set<String> loopBodyExecuted = new HashSet<>();
 
         for (String nodeId : nodesToExecute) {
+            if (loopBodyExecuted.contains(nodeId)) {
+                continue;
+            }
             // Check if execution was cancelled or should stop
             String currentStatus = stateManager.getExecutionStatus(executionId);
             if ("cancelled".equals(currentStatus) || "waiting".equals(currentStatus)) {
@@ -566,6 +571,10 @@ public class ExecutionService {
                 if (result.getBranchesToFollow() != null) {
                     branchSelections.put(nodeId, result.getBranchesToFollow());
                 }
+
+                // loop 節點：對 body（線性鏈至第一個 merge/aggregate 收集點）逐項執行
+                runLoopIterations(executionId, nodeId, version.getDefinition(), context,
+                    nodeOutputs, allEdges, succeededNodes, loopBodyExecuted, nodeOutput);
 
                 // Clear resume data after successful execution
                 if (isResume && nodeId.equals(waitingNodeId)) {
@@ -1044,6 +1053,175 @@ public class ExecutionService {
         return result;
     }
 
+    /** loop 迭代計畫：body 為 loop 之後的線性鏈，collector 為第一個 merge/aggregate 節點 */
+    private record LoopPlan(List<String> bodyIds, String collectorId) {}
+
+    private static final int MAX_LOOP_BODY_NODES = 20;
+    private static final int MAX_LOOP_ITERATIONS = 200;
+
+    /**
+     * loop 節點的逐項執行：把 loop 之後的線性 body 鏈對每個項目各執行一次，
+     * 每次迭代 body 讀到的 $json.item / $json.index 是當前項目；
+     * 收集點（merge/aggregate）會在 inputData.items 拿到所有迭代的結果清單。
+     * body 內有分支、fan-in 或找不到收集點時不迭代（維持原single-pass行為）。
+     */
+    @SuppressWarnings("unchecked")
+    private void runLoopIterations(UUID executionId, String loopNodeId, Map<String, Object> definition,
+                                   Map<String, Object> context, Map<String, Object> nodeOutputs,
+                                   List<DagParser.FlowEdge> allEdges, Set<String> succeededNodes,
+                                   Set<String> loopBodyExecuted, Map<String, Object> loopOutput) {
+        if (!isLoopNode(definition, loopNodeId)) {
+            return;
+        }
+        LoopPlan plan = computeLoopPlan(loopNodeId, definition, allEdges);
+        if (plan == null) {
+            log.debug("Loop {} has no iterable linear body with a collector; keeping single-pass behavior",
+                loopNodeId);
+            return;
+        }
+
+        List<Object> items = extractLoopItems(loopOutput);
+        if (items.size() > MAX_LOOP_ITERATIONS) {
+            log.warn("Loop {} items truncated from {} to {}", loopNodeId, items.size(), MAX_LOOP_ITERATIONS);
+            items = items.subList(0, MAX_LOOP_ITERATIONS);
+        }
+        log.info("Loop {} iterating {} items over body {} → collector {}",
+            loopNodeId, items.size(), plan.bodyIds(), plan.collectorId());
+
+        List<Object> results = new ArrayList<>();
+        if (items.isEmpty()) {
+            for (String bodyId : plan.bodyIds()) {
+                nodeOutputs.put(bodyId, Map.of());
+                context.put(bodyId, Map.of());
+                succeededNodes.add(bodyId);
+                loopBodyExecuted.add(bodyId);
+            }
+        } else {
+            try {
+                for (int i = 0; i < items.size(); i++) {
+                    Object item = items.get(i);
+                    Map<String, Object> iterOutputs = new LinkedHashMap<>(nodeOutputs);
+                    Map<String, Object> iterLoopOut = new LinkedHashMap<>(loopOutput);
+                    iterLoopOut.put("item", item);
+                    iterLoopOut.put("index", i);
+                    iterOutputs.put(loopNodeId, iterLoopOut);
+
+                    // 讓 body 每個節點的輸入都帶 item/index（AI 慣用 {{$json.item}}，
+                    // 不限第一個 body 節點）
+                    context.put("_loopItem", item);
+                    context.put("_loopIndex", i);
+
+                    Map<String, Object> lastOut = Map.of();
+                    for (String bodyId : plan.bodyIds()) {
+                        ExecuteNodeResult r = executeNodeWithPauseSupport(
+                            executionId, bodyId, definition, context, iterOutputs);
+                        if (r.isPauseRequested()) {
+                            // 迭代中不支援暫停；視為失敗讓上層錯誤處理接手
+                            throw new IllegalStateException(
+                                "Pause is not supported inside loop iterations (node " + bodyId + ")");
+                        }
+                        lastOut = r.getOutput() != null ? r.getOutput() : Map.of();
+                        iterOutputs.put(bodyId, lastOut);
+                    }
+                    results.add(lastOut);
+
+                    if (i == items.size() - 1) {
+                        // 最後一輪的 body 輸出寫回主表，讓下游 $node 引用有值
+                        for (String bodyId : plan.bodyIds()) {
+                            Object out = iterOutputs.get(bodyId);
+                            nodeOutputs.put(bodyId, out);
+                            context.put(bodyId, out);
+                        }
+                    }
+                }
+            } finally {
+                context.remove("_loopItem");
+                context.remove("_loopIndex");
+            }
+            for (String bodyId : plan.bodyIds()) {
+                succeededNodes.add(bodyId);
+                loopBodyExecuted.add(bodyId);
+            }
+        }
+
+        // 收集點的輸入：所有迭代結果（AggregateNodeHandler 預設讀 inputData.items）
+        context.put("_loopCollector", Map.of("nodeId", plan.collectorId(), "items", results));
+
+        // loop 節點輸出補上結果清單，供 $node 引用
+        Map<String, Object> augmented = new LinkedHashMap<>(loopOutput);
+        augmented.put("results", results);
+        nodeOutputs.put(loopNodeId, augmented);
+        context.put(loopNodeId, augmented);
+        stateManager.markNodeCompleted(executionId, loopNodeId, augmented);
+    }
+
+    private boolean isLoopNode(Map<String, Object> definition, String nodeId) {
+        return "loop".equals(normalizeNodeType(nodeTypeOf(definition, nodeId)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private String nodeTypeOf(Map<String, Object> definition, String nodeId) {
+        List<Map<String, Object>> nodes = (List<Map<String, Object>>) definition.get("nodes");
+        if (nodes == null) return null;
+        return nodes.stream()
+            .filter(n -> nodeId.equals(String.valueOf(n.get("id"))))
+            .map(n -> (String) n.get("type"))
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * 從 loop 節點沿唯一的 success 後繼往下找線性 body，直到第一個 merge/aggregate 收集點。
+     * 遇到分支、fan-in、或沒有收集點時回傳 null（不迭代）。
+     */
+    private LoopPlan computeLoopPlan(String loopNodeId, Map<String, Object> definition,
+                                     List<DagParser.FlowEdge> allEdges) {
+        Map<String, List<String>> outgoing = new HashMap<>();
+        Map<String, Integer> incomingCount = new HashMap<>();
+        for (DagParser.FlowEdge edge : allEdges) {
+            outgoing.computeIfAbsent(edge.getSource(), k -> new ArrayList<>()).add(edge.getTarget());
+            incomingCount.merge(edge.getTarget(), 1, Integer::sum);
+        }
+
+        List<String> body = new ArrayList<>();
+        String current = loopNodeId;
+        while (body.size() <= MAX_LOOP_BODY_NODES) {
+            List<String> outs = outgoing.getOrDefault(current, List.of());
+            if (outs.size() != 1) {
+                return null;
+            }
+            String next = outs.get(0);
+            String nextType = normalizeNodeType(nodeTypeOf(definition, next));
+            if ("merge".equals(nextType) || "aggregate".equals(nextType)) {
+                return body.isEmpty() ? null : new LoopPlan(List.copyOf(body), next);
+            }
+            if (incomingCount.getOrDefault(next, 0) != 1) {
+                return null;
+            }
+            body.add(next);
+            current = next;
+        }
+        return null;
+    }
+
+    /** 取 loop 節點輸出中的項目清單（items 或攤平 batches） */
+    @SuppressWarnings("unchecked")
+    private List<Object> extractLoopItems(Map<String, Object> loopOutput) {
+        Object items = loopOutput.get("items");
+        if (items instanceof List<?> list) {
+            return new ArrayList<>((List<Object>) list);
+        }
+        List<Object> flattened = new ArrayList<>();
+        if (loopOutput.get("batches") instanceof List<?> batches) {
+            for (Object batch : batches) {
+                if (batch instanceof Map<?, ?> bm && bm.get("items") instanceof List<?> bi) {
+                    flattened.addAll((List<Object>) bi);
+                }
+            }
+        }
+        return flattened;
+    }
+
     private String normalizeNodeType(String nodeType) {
         if (nodeType == null || nodeType.isEmpty()) {
             return "action";
@@ -1081,6 +1259,19 @@ public class ExecutionService {
             } else {
                 inputData.put("data", input);
             }
+        }
+
+        // loop 收集點：把所有迭代結果以 items 提供（AggregateNodeHandler 預設讀這個鍵）
+        Object loopCollector = context.get("_loopCollector");
+        if (loopCollector instanceof Map<?, ?> collector
+            && nodeId.equals(collector.get("nodeId"))) {
+            inputData.put("items", collector.get("items"));
+        }
+
+        // loop 迭代中：body 節點的輸入一律帶當前 item/index
+        if (context.containsKey("_loopItem")) {
+            inputData.put("item", context.get("_loopItem"));
+            inputData.put("index", context.get("_loopIndex"));
         }
 
         // Find the most recent output to use as input
