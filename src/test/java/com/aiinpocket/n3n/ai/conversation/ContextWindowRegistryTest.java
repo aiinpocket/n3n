@@ -30,7 +30,20 @@ class ContextWindowRegistryTest {
     void claude1mFlag_raisesWindow() {
         ReflectionTestUtils.setField(registry, "claude1mEnabled", true);
         assertThat(registry.windowFor("claude-sonnet-4-5")).isEqualTo(1_000_000);
-        assertThat(registry.windowFor("claude-opus-4-1")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-opus-4-5")).isEqualTo(1_000_000);
+        // 4.1 世代不支援 1M beta
+        assertThat(registry.windowFor("claude-opus-4-1")).isEqualTo(200_000);
+    }
+
+    @Test
+    @DisplayName("claude 4.6+ / 5 世代標準即 1M（不需 beta flag）")
+    void claude46Plus_default1m() {
+        assertThat(registry.windowFor("claude-sonnet-4-6")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-sonnet-5")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-opus-4-8")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-opus-5")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-fable-5")).isEqualTo(1_000_000);
+        assertThat(registry.windowFor("claude-haiku-4-5")).isEqualTo(200_000);
     }
 
     @Test

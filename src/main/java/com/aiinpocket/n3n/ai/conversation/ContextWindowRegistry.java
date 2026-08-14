@@ -16,10 +16,10 @@ import java.util.Map;
 @Slf4j
 public class ContextWindowRegistry {
 
-    /** Claude 4 系列標準 window */
+    /** Claude 4.5 世代以前的標準 window（Sonnet 4.5、Opus 4.5、Haiku 4.5 等） */
     private static final int CLAUDE_4_WINDOW = 200_000;
-    /** Claude 4 系列 1M beta window（需 beta header）*/
-    private static final int CLAUDE_4_1M_WINDOW = 1_000_000;
+    /** Claude 4.6+ / 5 世代標準 window（1M，不需 beta header） */
+    private static final int CLAUDE_1M_WINDOW = 1_000_000;
     /** Gemini 2.5 Pro / Flash */
     private static final int GEMINI_25_WINDOW = 1_048_576;
     /** GPT-4o */
@@ -63,12 +63,22 @@ public class ContextWindowRegistry {
      * 前綴 → window 對照表（依序比對，較特定的前綴放前面）。
      */
     private Map<String, Integer> buildPatternTable() {
-        int claudeWindow = claude1mEnabled ? CLAUDE_4_1M_WINDOW : CLAUDE_4_WINDOW;
+        // Claude 4.5 世代（200K 標準）可經 claude-1m beta header 升到 1M
+        int claude45Window = claude1mEnabled ? CLAUDE_1M_WINDOW : CLAUDE_4_WINDOW;
 
         Map<String, Integer> table = new LinkedHashMap<>();
-        table.put("claude-sonnet-4-5", claudeWindow);
-        table.put("claude-opus-4", claudeWindow);
-        table.put("claude-sonnet-4", claudeWindow);
+        // 較特定的前綴放前面（依序比對）
+        table.put("claude-sonnet-4-5", claude45Window);
+        table.put("claude-opus-4-5", claude45Window);
+        table.put("claude-opus-4-1", CLAUDE_4_WINDOW);
+        table.put("claude-opus-4-0", CLAUDE_4_WINDOW);
+        // 4.6+ / 5 世代標準即 1M
+        table.put("claude-fable-5", CLAUDE_1M_WINDOW);
+        table.put("claude-mythos", CLAUDE_1M_WINDOW);
+        table.put("claude-opus-5", CLAUDE_1M_WINDOW);
+        table.put("claude-opus-4", CLAUDE_1M_WINDOW);
+        table.put("claude-sonnet-5", CLAUDE_1M_WINDOW);
+        table.put("claude-sonnet-4", CLAUDE_1M_WINDOW);
         table.put("claude-haiku-4", CLAUDE_4_WINDOW);
         table.put("claude", CLAUDE_4_WINDOW);
         table.put("gemini-2.5-pro", GEMINI_25_WINDOW);
