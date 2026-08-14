@@ -75,17 +75,29 @@ public class AIAssistantService {
             log.warn("Failed to save user message to conversation {}", conversationId, e);
         }
 
-        // 建立帶有歷史的 Agent 上下文
-        AgentContext context = buildAgentContext(request, userId, conversationId);
-
-        // 用於收集完整回應
-        StringBuilder responseCollector = new StringBuilder();
-
         // 先發送含 conversationId 的 metadata chunk
         ChatStreamChunk metaChunk = ChatStreamChunk.builder()
             .type("metadata")
             .conversationId(conversationId.toString())
             .build();
+
+        // 執行分析情境：跳過多代理路由，直接以執行紀錄作為上下文回答
+        // （多代理管線依意圖路由，無法保證讀到執行紀錄）
+        if (request.getExecutionId() != null) {
+            return Flux.just(metaChunk)
+                .concatWith(executionAnalysisStream(request, userId, conversationId))
+                .timeout(Duration.ofMinutes(5))
+                .onErrorResume(e -> {
+                    log.error("Execution analysis stream error: {}", e.getClass().getSimpleName());
+                    return Flux.just(ChatStreamChunk.error("AI service error"));
+                });
+        }
+
+        // 建立帶有歷史的 Agent 上下文
+        AgentContext context = buildAgentContext(request, userId, conversationId);
+
+        // 用於收集完整回應
+        StringBuilder responseCollector = new StringBuilder();
 
         // 執行 Supervisor Agent 串流
         return Flux.just(metaChunk)
@@ -249,16 +261,6 @@ public class AIAssistantService {
                     .content((String) m.get("content"))
                     .build())
                 .forEach(history::add);
-
-            // 執行分析情境：注入該次執行的節點結果與錯誤，並指示 AI 口語化回報
-            String executionContext = loadExecutionContext(request, userId);
-            if (!executionContext.isEmpty()) {
-                history.add(Message.builder()
-                    .role("system")
-                    .content(executionContext)
-                    .build());
-            }
-
             builder.conversationHistory(history);
         } catch (Exception e) {
             log.warn("Failed to load conversation history for {}", conversationId, e);
@@ -273,30 +275,69 @@ public class AIAssistantService {
         return builder.build();
     }
 
-    /**
-     * 載入執行分析上下文；未帶 executionId 或查詢失敗時退回空字串。
-     * 失敗不阻斷對話——AI 會改為請使用者描述問題。
-     */
-    private String loadExecutionContext(ChatStreamRequest request, UUID userId) {
-        if (request.getExecutionId() == null) {
-            return "";
-        }
-        try {
-            return executionAnalysisContextBuilder.build(request.getExecutionId(), userId)
-                + """
+    private static final String EXECUTION_ANALYSIS_INSTRUCTIONS = """
 
-                你現在是「執行分析小幫手」。請根據上面的執行紀錄：
-                1. 用口語化、非工程師也能懂的方式說明這次執行發生了什麼（避免直接貼原始錯誤碼，先翻譯成白話）。
-                2. 找出失敗的根本原因，指出是哪個節點、哪個設定的問題。
-                3. 給出具體可操作的修正步驟；如果你能直接提出流程修改，就提出修改建議。
-                4. 如果現有資訊不足以判斷（例如缺少憑證、網址、參數），主動列出你需要使用者回答的問題。
-                5. 如果執行其實是成功的，簡短總結結果即可。
-                請使用與使用者相同的語言回覆。
-                """;
+        你是「執行分析小幫手」。請根據上面的執行紀錄與使用者訊息：
+        1. 用口語化、非工程師也能懂的方式說明這次執行發生了什麼（不要直接貼原始錯誤碼，先翻譯成白話）。
+        2. 找出失敗的根本原因，指出是哪個節點、哪個設定的問題。
+        3. 給出具體可操作的修正步驟；如果你能直接提出流程修改，就提出修改建議。
+        4. 如果現有資訊不足以判斷（例如缺少憑證、網址、參數），主動列出你需要使用者回答的問題。
+        5. 如果執行其實是成功的，簡短總結結果即可。
+        請使用與使用者相同的語言、以 Markdown 回覆。
+        """;
+
+    /**
+     * 執行分析直通串流：以執行紀錄作為 system prompt、附上對話歷史支援追問，
+     * 直接呼叫 AI 模型（不經多代理路由）。
+     */
+    private Flux<ChatStreamChunk> executionAnalysisStream(ChatStreamRequest request, UUID userId,
+                                                          UUID conversationId) {
+        return Flux.create(sink -> Thread.ofVirtual().start(() -> {
+            try {
+                sink.next(ChatStreamChunk.thinking("Reading execution results..."));
+
+                String executionContext =
+                    executionAnalysisContextBuilder.build(request.getExecutionId(), userId);
+                String systemPrompt = executionContext + EXECUTION_ANALYSIS_INSTRUCTIONS;
+
+                String prompt = buildAnalysisPrompt(request, userId, conversationId);
+                String answer = assistantAiClient.chat(prompt, systemPrompt, 3000, 0.5, userId);
+
+                sink.next(ChatStreamChunk.text(answer));
+                try {
+                    conversationManager.addMessage(conversationId, userId, "assistant", answer, null);
+                } catch (Exception e) {
+                    log.warn("Failed to save analysis response to conversation {}", conversationId, e);
+                }
+                sink.next(ChatStreamChunk.done());
+                sink.complete();
+            } catch (Exception e) {
+                log.error("Execution analysis failed for {}", request.getExecutionId(), e);
+                sink.next(ChatStreamChunk.error("Failed to analyze execution"));
+                sink.complete();
+            }
+        }));
+    }
+
+    /** 分析提示詞：帶入近期對話讓追問有上下文。 */
+    private String buildAnalysisPrompt(ChatStreamRequest request, UUID userId, UUID conversationId) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            List<Map<String, Object>> history = conversationManager.getContextForAI(conversationId, userId);
+            // 最後一筆是剛存入的本次使用者訊息，避免重複
+            int end = Math.max(0, history.size() - 1);
+            if (end > 0) {
+                sb.append("先前對話：\n");
+                for (Map<String, Object> m : history.subList(Math.max(0, end - 10), end)) {
+                    sb.append(m.get("role")).append(": ").append(m.get("content")).append("\n");
+                }
+                sb.append("\n");
+            }
         } catch (Exception e) {
-            log.warn("Failed to load execution context for {}", request.getExecutionId(), e);
-            return "";
+            log.debug("No conversation history for analysis prompt: {}", conversationId);
         }
+        sb.append("使用者訊息：").append(request.getMessage());
+        return sb.toString();
     }
 
     /**

@@ -245,11 +245,14 @@ export default function AIPanelDrawer({
     onOpenFlowGenerator,
   ])
 
+  // 分析情境下的追問也帶著 executionId，AI 才能持續參照執行紀錄
+  const analysisExecIdRef = useRef<string | undefined>(undefined)
+
   const handleSendMessage = useCallback(() => {
     const message = inputValue.trim()
     if (!message) return
     setInputValue('')
-    void sendMessage(message)
+    void sendMessage(message, analysisExecIdRef.current)
   }, [inputValue, sendMessage])
 
   // 執行分析請求：面板開啟後自動送出分析訊息（帶 executionId 讓後端附上執行紀錄）
@@ -257,6 +260,7 @@ export default function AIPanelDrawer({
     if (isPanelOpen && analysisExecutionId && !isStreaming) {
       const executionId = analysisExecutionId
       clearAnalysisRequest()
+      analysisExecIdRef.current = executionId
       void sendMessage(t('aiPanel.analyzeExecutionMessage'), executionId)
     }
   }, [isPanelOpen, analysisExecutionId, isStreaming, clearAnalysisRequest, sendMessage, t])
