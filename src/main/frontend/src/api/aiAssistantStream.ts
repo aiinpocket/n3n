@@ -156,6 +156,7 @@ export interface FlowGenerationChunk {
     | 'node_added'
     | 'edge_added'
     | 'node_probed'
+    | 'node_input_required'
     | 'missing_nodes'
     | 'done'
     | 'error'
@@ -165,6 +166,7 @@ export interface FlowGenerationChunk {
   node?: NodeData
   edge?: EdgeData
   probe?: NodeProbeInfo
+  inputRequest?: NodeInputRequest
   missingNodes?: MissingNodeInfo[]
   flowDefinition?: {
     nodes: unknown[]
@@ -206,6 +208,17 @@ export interface NodeProbeInfo {
   outputSample?: string
 }
 
+/** 背景驗證需要使用者提供資訊／確認副作用的詢問 */
+export interface NodeInputRequest {
+  sessionId: string
+  nodeId: string
+  nodeLabel: string
+  nodeType: string
+  reason: string
+  sideEffect: boolean
+  config?: Record<string, unknown>
+}
+
 export interface FlowGenerationCallbacks {
   onThinking?: (message: string) => void
   onProgress?: (percent: number, stage: string, message?: string) => void
@@ -213,6 +226,7 @@ export interface FlowGenerationCallbacks {
   onNodeAdded?: (node: NodeData) => void
   onEdgeAdded?: (edge: EdgeData) => void
   onNodeProbed?: (probe: NodeProbeInfo) => void
+  onInputRequired?: (request: NodeInputRequest) => void
   onMissingNodes?: (missing: MissingNodeInfo[]) => void
   onDone?: (flowDefinition: { nodes: unknown[]; edges: unknown[] }, requiredNodes: string[]) => void
   onError?: (error: string) => void
@@ -277,6 +291,11 @@ export async function generateFlowStream(
               callbacks.onNodeProbed?.(chunk.probe)
             }
             break
+          case 'node_input_required':
+            if (chunk.inputRequest) {
+              callbacks.onInputRequired?.(chunk.inputRequest)
+            }
+            break
           case 'missing_nodes':
             if (chunk.missingNodes) {
               callbacks.onMissingNodes?.(chunk.missingNodes)
@@ -303,6 +322,25 @@ export async function generateFlowStream(
       throw error
     },
   })
+}
+
+/**
+ * 回覆背景驗證的 node_input_required 詢問。
+ * skip=true 表示「先跳過這段，之後提供」；否則帶入補充設定後系統會真的執行一次。
+ */
+export async function submitProbeInput(
+  sessionId: string,
+  nodeId: string,
+  skip: boolean,
+  config?: Record<string, unknown>
+): Promise<boolean> {
+  const response = await client.post('/ai-assistant/generate-flow/probe-input', {
+    sessionId,
+    nodeId,
+    skip,
+    config,
+  })
+  return response.data?.accepted === true
 }
 
 // ==================== Plugin Install ====================

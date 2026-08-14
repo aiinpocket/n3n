@@ -29,6 +29,7 @@ import OutputSchemaPreview from './OutputSchemaPreview'
 import AiCodeGeneratorModal from '../ai/AiCodeGeneratorModal'
 import { useFlowEditorStore } from '../../stores/flowEditorStore'
 import NodeDataPreview from '../execution/NodeDataPreview'
+import NodeConfigSummary from './NodeConfigSummary'
 import { extractApiError } from '../../utils/errorMessages'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
@@ -690,6 +691,20 @@ export default function NodeConfigPanel({
                 <Divider style={{ margin: '16px 0' }} />
               </div>
             )}
+
+            {/* 目前設定值（唯讀攤平）：AI 生成的設定鍵不一定對得上 schema 表單，
+                這裡保證使用者一定看得到節點實際配置了什麼 */}
+            <div style={{
+              marginBottom: 16,
+              padding: 12,
+              border: '1px solid var(--color-border, rgba(128,128,128,0.25))',
+              borderRadius: 6,
+            }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                {t('editor.currentConfig')}
+              </Text>
+              <NodeConfigSummary data={nodeData as Record<string, unknown>} />
+            </div>
 
             {/* Node label field */}
             <Form.Item name="label" label={t('editor.nodeName')}>

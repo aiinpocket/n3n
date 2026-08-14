@@ -39,6 +39,7 @@ public class AIAssistantController {
     private final FlowShareService flowShareService;
     private final ConversationManager conversationManager;
     private final com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
+    private final com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService;
 
     /**
      * AI 對話串流 API
@@ -210,6 +211,33 @@ public class AIAssistantController {
             .map(chunk -> ServerSentEvent.<FlowGenerationChunk>builder()
                 .data(chunk)
                 .build());
+    }
+
+    /**
+     * 回覆背景驗證的 node_input_required 詢問
+     * POST /api/ai-assistant/generate-flow/probe-input
+     * body: {sessionId, nodeId, skip, config}
+     * skip=true 表示「先跳過這段，之後提供」；否則帶入補充設定後系統會真的執行一次
+     */
+    @PostMapping("/generate-flow/probe-input")
+    public ResponseEntity<Map<String, Object>> submitProbeInput(
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+        UUID userId = requireUserId(principal);
+        ipRateLimiter.checkAllowed("ai-probe-input", userId.toString(), 60, 60);
+
+        String sessionId = body.get("sessionId") instanceof String s ? s : null;
+        String nodeId = body.get("nodeId") instanceof String s ? s : null;
+        if (sessionId == null || sessionId.isBlank() || nodeId == null || nodeId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("accepted", false, "error", "sessionId and nodeId are required"));
+        }
+        boolean skip = Boolean.TRUE.equals(body.get("skip"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> config = body.get("config") instanceof Map<?, ?> m
+            ? (Map<String, Object>) m : Map.of();
+
+        boolean accepted = generationProbeService.submitInput(sessionId, nodeId, userId, skip, config);
+        return ResponseEntity.ok(Map.of("accepted", accepted));
     }
 
     /**

@@ -15,8 +15,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -117,9 +117,18 @@ public class NodeProbeService {
                 .credentialResolver(credentialResolver)
                 .build();
 
-            CompletableFuture<NodeExecutionResult> future =
-                CompletableFuture.supplyAsync(() -> handler.execute(context), probeExecutor);
-            NodeExecutionResult result = future.get(timeoutSeconds, TimeUnit.SECONDS);
+            // 用 ExecutorService.submit 的 Future 而非 CompletableFuture：
+            // 逾時 cancel(true) 才會真的 interrupt 底層虛擬執行緒，不留殭屍
+            Future<NodeExecutionResult> future =
+                probeExecutor.submit(() -> handler.execute(context));
+            NodeExecutionResult result;
+            try {
+                result = future.get(timeoutSeconds, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+                return new ProbeResult(false, null,
+                    "Probe timed out after " + timeoutSeconds + "s", elapsed(start), probeId);
+            }
 
             long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
             if (result.isSuccess()) {
@@ -129,9 +138,6 @@ public class NodeProbeService {
             return new ProbeResult(false, null,
                 result.getErrorMessage() != null ? result.getErrorMessage() : "Node execution failed",
                 durationMs, probeId);
-        } catch (TimeoutException e) {
-            return new ProbeResult(false, null,
-                "Probe timed out after " + timeoutSeconds + "s", elapsed(start), probeId);
         } catch (Exception e) {
             log.warn("Node probe failed: type={} error={}", nodeType, e.getMessage());
             String message = e.getMessage() != null ? e.getMessage() : "Probe failed";

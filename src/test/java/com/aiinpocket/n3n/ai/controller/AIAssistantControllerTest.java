@@ -52,6 +52,9 @@ class AIAssistantControllerTest {
     @Mock
     private com.aiinpocket.n3n.auth.security.IpRateLimiter ipRateLimiter;
 
+    @Mock
+    private com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService;
+
     @InjectMocks
     private AIAssistantController controller;
 

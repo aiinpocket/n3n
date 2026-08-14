@@ -152,8 +152,10 @@ interface ExecutionAwareNodeData {
 }
 
 function getExecutionStyle(status: NodeExecutionStatus, selected: boolean): React.CSSProperties {
+  // 邊框固定 2px、狀態強調改用 box-shadow，且 transition 只限顏色/陰影：
+  // 邊框寬度變化會改變節點尺寸 → ResizeObserver 重量測 → edge 路徑抖動閃爍
   const baseStyle: React.CSSProperties = {
-    transition: 'all 0.3s ease',
+    transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
   }
 
   switch (status) {
@@ -161,25 +163,29 @@ function getExecutionStyle(status: NodeExecutionStatus, selected: boolean): Reac
       return {
         ...baseStyle,
         animation: 'executionPulse 1.5s ease-in-out infinite',
-        border: '3px solid var(--color-info)',
+        border: '2px solid var(--color-info)',
+        boxShadow: '0 0 0 1px var(--color-info)',
       }
     case 'waiting':
       return {
         ...baseStyle,
         animation: 'executionWaiting 2s ease-in-out infinite',
-        border: '3px solid var(--color-warning)',
+        border: '2px solid var(--color-warning)',
+        boxShadow: '0 0 0 1px var(--color-warning)',
       }
     case 'completed':
       return {
         ...baseStyle,
         animation: 'executionSuccess 1s ease-out forwards',
-        border: '3px solid var(--color-success)',
+        border: '2px solid var(--color-success)',
+        boxShadow: '0 0 0 1px var(--color-success)',
       }
     case 'failed':
       return {
         ...baseStyle,
         animation: 'executionFailed 1s ease-in-out 3',
-        border: '3px solid var(--color-danger)',
+        border: '2px solid var(--color-danger)',
+        boxShadow: '0 0 0 1px var(--color-danger)',
       }
     default:
       return {

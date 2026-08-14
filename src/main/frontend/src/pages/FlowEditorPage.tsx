@@ -62,6 +62,7 @@ import type { EdgeType } from '../types'
 import { useFlowExecution } from '../hooks/useFlowExecution'
 import { executionApi } from '../api/execution'
 import NodeDataPreview from '../components/execution/NodeDataPreview'
+import NodeConfigSummary from '../components/editor/NodeConfigSummary'
 import { useExecutionStore, NodeExecutionState } from '../stores/executionStore'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 const PublishFlowModal = lazy(() => import('../components/ai/PublishFlowModal'))
@@ -595,6 +596,19 @@ export default function FlowEditorPage() {
       }
     },
     [nodes, setNodes, syncNodes]
+  )
+
+  // 執行監看/唯讀模式的 onNodesChange：只吸收 dimensions（節點量測值）寫回 store。
+  // 少了它，store 節點永遠沒有 measured，每則 WS 事件重建節點時
+  // React Flow 會失去 handle 位置，連線端點閃爍
+  const onNodesChangeReadOnly = useCallback(
+    (changes: NodeChange<Node>[]) => {
+      const dimensionChanges = changes.filter((c) => c.type === 'dimensions')
+      if (dimensionChanges.length > 0) {
+        syncNodes(applyNodeChanges(dimensionChanges, nodes))
+      }
+    },
+    [nodes, syncNodes]
   )
 
   // Snapshot history when a node drag starts so drags are undoable
@@ -1231,7 +1245,7 @@ export default function FlowEditorPage() {
             type: 'custom',
             animated: false,
           }}
-          onNodesChange={(executionMode || isReadOnly) ? undefined : onNodesChange}
+          onNodesChange={(executionMode || isReadOnly) ? onNodesChangeReadOnly : onNodesChange}
           onNodeDragStart={(executionMode || isReadOnly) ? undefined : onNodeDragStart}
           onEdgesChange={(executionMode || isReadOnly) ? undefined : onEdgesChange}
           onConnect={(executionMode || isReadOnly) ? undefined : onConnect}
@@ -1707,6 +1721,15 @@ export default function FlowEditorPage() {
                 </pre>
               </div>
             )}
+            <div>
+              <Text strong>{t('editor.currentConfig')}: </Text>
+              <div style={{ marginTop: 8 }}>
+                <NodeConfigSummary
+                  data={nodes.find((n) => n.id === executionNodeDetail.nodeId)?.data as
+                    Record<string, unknown> | undefined}
+                />
+              </div>
+            </div>
             <div>
               <Text strong>{t('execution.output')}: </Text>
               <div style={{ marginTop: 8 }}>

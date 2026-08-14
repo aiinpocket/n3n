@@ -432,7 +432,10 @@
       "noResults": "沒有符合搜尋條件的節點"
     },
     "probeSuccess": "試打成功（{{ms}} ms）——以下是這個節點的實際輸出，下一個節點可以直接引用",
-    "probeFailed": "試打失敗"
+    "probeFailed": "試打失敗",
+    "currentConfig": "目前設定值",
+    "noConfigSet": "此節點尚未設定任何欄位",
+    "inputMappingsLabel": "上游欄位導入"
   },
   "optimizer": {
     "nodes": "節點數",
@@ -1646,7 +1649,14 @@
     "verificationTitle": "背景驗證結果（系統已實際執行過）",
     "probeVerified": "已驗證通過（{{ms}} ms，真的執行過一次）",
     "probeNeedsInput": "需要你提供資訊",
-    "probeSkipped": "未背景執行"
+    "probeSkipped": "已跳過（可之後提供，已以模擬資料續接下游）",
+    "inputRequiredTitle": "「{{node}}」需要你的資訊",
+    "inputSideEffectWarning": "確認後系統會真的執行一次此動作（例如真的寄出郵件、寫入資料）",
+    "inputProvideRun": "提供並實際測試",
+    "inputSkipForNow": "先跳過這段，我之後提供",
+    "inputExtraJson": "補充設定（JSON，選填）",
+    "inputExtraJsonInvalid": "補充設定不是有效的 JSON",
+    "inputWaitingNote": "3 分鐘內未回覆會自動跳過此節點，並以模擬資料繼續驗證下游"
   },
   "aiPanel": {
     "title": "AI 助手",

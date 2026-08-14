@@ -29,10 +29,12 @@ import {
   installMissingNodes,
   getInstallTaskStatus,
   generateFlowStream,
+  submitProbeInput,
   type PluginInstallTaskStatus,
   type NodeData,
   type EdgeData,
   type NodeProbeInfo,
+  type NodeInputRequest,
   type MissingNodeInfo,
   type RequirementContext,
   type ExistingFlowDefinition,
@@ -135,6 +137,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [previewNodes, setPreviewNodes] = useState<NodeData[]>([])
   // 背景驗證結果：生成時系統逐節點真打一次的狀態（{nodeId: probe}）
   const [probeResults, setProbeResults] = useState<Record<string, NodeProbeInfo>>({})
+  // 背景驗證的互動詢問：缺資訊或有副作用時後端會發 node_input_required 等使用者回覆
+  const [inputRequest, setInputRequest] = useState<NodeInputRequest | null>(null)
+  const [inputValues, setInputValues] = useState<Record<string, string>>({})
+  const [inputExtraJson, setInputExtraJson] = useState('')
+  const [inputSubmitting, setInputSubmitting] = useState(false)
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -288,6 +295,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setPreviewNodes([])
     setPreviewEdges([])
     setProbeResults({})
+    setInputRequest(null)
+    setInputValues({})
+    setInputExtraJson('')
     setStreamMissingNodes([])
     setThinkingStage(0)
     setThinkingThoughts([])
@@ -459,6 +469,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setPreviewNodes([])
     setPreviewEdges([])
     setProbeResults({})
+    setInputRequest(null)
+    setInputValues({})
+    setInputExtraJson('')
     setStreamMissingNodes([])
 
     const controller = new AbortController()
@@ -507,6 +520,18 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           onNodeProbed: (probe) => {
             if (!mountedRef.current || controller.signal.aborted) return
             setProbeResults((prev) => ({ ...prev, [probe.nodeId]: probe }))
+            // 該節點的詢問已有結論（提供後真打完成/跳過/逾時），收起輸入卡片
+            setInputRequest((prev) => (prev && prev.nodeId === probe.nodeId ? null : prev))
+          },
+          onInputRequired: (request) => {
+            if (!mountedRef.current || controller.signal.aborted) return
+            setInputRequest(request)
+            const values: Record<string, string> = {}
+            Object.entries(request.config || {}).forEach(([key, value]) => {
+              values[key] = typeof value === 'string' ? value : JSON.stringify(value)
+            })
+            setInputValues(values)
+            setInputExtraJson('')
           },
           onMissingNodes: (missing) => {
             if (!mountedRef.current || controller.signal.aborted) return
@@ -947,6 +972,130 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     </div>
   )
 
+  /** 把編輯後的字串值還原成合理型別（物件/陣列/數字/布林維持 JSON 解析結果） */
+  const parseInputValue = (raw: string): unknown => {
+    const trimmed = raw.trim()
+    if (!trimmed) return raw
+    if (/^[[{"]|^(true|false|null)$|^-?\d+(\.\d+)?$/.test(trimmed)) {
+      try {
+        return JSON.parse(trimmed)
+      } catch {
+        return raw
+      }
+    }
+    return raw
+  }
+
+  /** 回覆背景驗證詢問：skip=false 時提供設定並讓系統真的執行一次 */
+  const handleProbeInputRespond = async (skip: boolean) => {
+    if (!inputRequest || inputSubmitting) return
+    let config: Record<string, unknown> | undefined
+    if (!skip) {
+      config = {}
+      Object.entries(inputValues).forEach(([key, value]) => {
+        config![key] = parseInputValue(value)
+      })
+      if (inputExtraJson.trim()) {
+        try {
+          const extra = JSON.parse(inputExtraJson)
+          if (extra && typeof extra === 'object' && !Array.isArray(extra)) {
+            config = { ...config, ...(extra as Record<string, unknown>) }
+          }
+        } catch {
+          message.error(t('flowGenerator.inputExtraJsonInvalid'))
+          return
+        }
+      }
+    }
+    setInputSubmitting(true)
+    try {
+      const accepted = await submitProbeInput(inputRequest.sessionId, inputRequest.nodeId, skip, config)
+      if (!accepted) {
+        // session 已逾時或結束：收起卡片，結果會以 node_probed 呈現
+        setInputRequest(null)
+      } else if (skip) {
+        setInputRequest(null)
+      }
+      // 提供資訊時保留卡片直到 node_probed 回來（顯示驗證中）
+    } catch (err) {
+      message.error(extractApiError(err, t('common.error')))
+    } finally {
+      if (mountedRef.current) setInputSubmitting(false)
+    }
+  }
+
+  const renderProbeInputCard = () => {
+    if (!inputRequest) return null
+    return (
+      <Card
+        title={
+          <Space>
+            <ExclamationCircleOutlined style={{ color: 'var(--color-warning, #faad14)' }} />
+            <span>{t('flowGenerator.inputRequiredTitle', { node: inputRequest.nodeLabel })}</span>
+          </Space>
+        }
+        size="small"
+        style={{ marginTop: 16, borderColor: 'var(--color-warning, #faad14)' }}
+      >
+        <Space orientation="vertical" style={{ width: '100%' }} size={10}>
+          <Text style={{ fontSize: 13 }}>{inputRequest.reason}</Text>
+          {inputRequest.sideEffect && (
+            <Alert
+              type="warning"
+              showIcon
+              title={t('flowGenerator.inputSideEffectWarning')}
+            />
+          )}
+          {Object.keys(inputValues).length > 0 && (
+            <div>
+              {Object.entries(inputValues).map(([key, value]) => (
+                <div key={key} style={{ marginBottom: 8 }}>
+                  <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>{key}</Text>
+                  <Input
+                    size="small"
+                    value={value}
+                    onChange={(e) => setInputValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          <div>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>
+              {t('flowGenerator.inputExtraJson')}
+            </Text>
+            <TextArea
+              rows={2}
+              value={inputExtraJson}
+              onChange={(e) => setInputExtraJson(e.target.value)}
+              placeholder='{"apiKey": "..."}'
+            />
+          </div>
+          <Space>
+            <Button
+              type="primary"
+              size="small"
+              loading={inputSubmitting}
+              onClick={() => handleProbeInputRespond(false)}
+            >
+              {t('flowGenerator.inputProvideRun')}
+            </Button>
+            <Button
+              size="small"
+              disabled={inputSubmitting}
+              onClick={() => handleProbeInputRespond(true)}
+            >
+              {t('flowGenerator.inputSkipForNow')}
+            </Button>
+          </Space>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {t('flowGenerator.inputWaitingNote')}
+          </Text>
+        </Space>
+      </Card>
+    )
+  }
+
   const renderGeneratingStep = () => (
     <div>
       <Card size="small" style={{ marginBottom: 16 }}>
@@ -979,6 +1128,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         showThoughts={true}
         animated={true}
       />
+
+      {/* 背景驗證互動：缺資訊/副作用確認時請使用者提供或先跳過 */}
+      {renderProbeInputCard()}
 
       {previewNodes.length > 0 && (
         <Card

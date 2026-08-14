@@ -174,6 +174,9 @@ public class NaturalLanguageModule {
         // 使用清理後的輸入
         final String safeInput = sanitizedInput;
 
+        // 背景驗證互動 session：前端以此 id 回覆 node_input_required 詢問
+        final String probeSessionId = UUID.randomUUID().toString();
+
         // Execute flow generation in background thread
         Thread.startVirtualThread(() -> {
             try {
@@ -288,21 +291,35 @@ public class NaturalLanguageModule {
                     Thread.sleep(100);
                 }
 
-                // Phase 6.5: 背景驗證（92-98%）——系統逐節點真打一次，
-                // 實際輸出往下游餵；有副作用的節點只驗設定不執行
+                // Phase 6.5: 背景驗證（92-98%）——系統逐節點真打一次，實際輸出往下游餵；
+                // 缺資訊或有副作用時即時詢問使用者（node_input_required），
+                // 提供後真的執行、跳過則以模擬資料續串，等待期間送心跳保持 SSE
                 emitProgress(sink, 92, "Verifying nodes with real execution...", "verifying");
                 try {
-                    generationProbeService.verifyFlow(userId, layoutedNodes, edges, verification -> {
-                        Map<String, Object> probe = new HashMap<>();
-                        probe.put("nodeId", verification.nodeId());
-                        probe.put("status", verification.status());
-                        if (verification.message() != null) probe.put("message", verification.message());
-                        probe.put("durationMs", verification.durationMs());
-                        if (verification.outputSample() != null) {
-                            probe.put("outputSample", verification.outputSample());
-                        }
-                        sink.tryEmitNext(FlowGenerationChunk.nodeProbed(probe));
-                    });
+                    generationProbeService.verifyFlow(userId, probeSessionId, layoutedNodes, edges,
+                        verification -> {
+                            Map<String, Object> probe = new HashMap<>();
+                            probe.put("nodeId", verification.nodeId());
+                            probe.put("status", verification.status());
+                            if (verification.message() != null) probe.put("message", verification.message());
+                            probe.put("durationMs", verification.durationMs());
+                            if (verification.outputSample() != null) {
+                                probe.put("outputSample", verification.outputSample());
+                            }
+                            sink.tryEmitNext(FlowGenerationChunk.nodeProbed(probe));
+                        },
+                        inputRequest -> {
+                            Map<String, Object> payload = new HashMap<>();
+                            payload.put("sessionId", inputRequest.sessionId());
+                            payload.put("nodeId", inputRequest.nodeId());
+                            payload.put("nodeLabel", inputRequest.nodeLabel());
+                            payload.put("nodeType", inputRequest.nodeType());
+                            payload.put("reason", inputRequest.reason());
+                            payload.put("sideEffect", inputRequest.sideEffect());
+                            payload.put("config", inputRequest.config());
+                            sink.tryEmitNext(FlowGenerationChunk.nodeInputRequired(payload));
+                        },
+                        () -> emitProgress(sink, 94, "Waiting for your input...", "waiting_input"));
                 } catch (Exception e) {
                     log.warn("Generation background verification failed: {}", e.getMessage());
                 }
@@ -342,7 +359,9 @@ public class NaturalLanguageModule {
                 .onErrorResume(e -> {
                     log.error("Flow generation stream error", e);
                     return Flux.just(FlowGenerationChunk.error("Flow generation failed"));
-                });
+                })
+                // 串流結束（完成/取消/錯誤）時喚醒等待中的驗證緒，避免殭屍執行緒
+                .doFinally(sig -> generationProbeService.cancelSession(probeSessionId));
     }
 
     private void emitProgress(Sinks.Many<FlowGenerationChunk> sink, int percent, String message, String stage) {

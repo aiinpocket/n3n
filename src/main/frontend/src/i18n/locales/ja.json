@@ -432,7 +432,10 @@
       "noResults": "検索条件に一致するノードはありません"
     },
     "probeSuccess": "テスト実行成功（{{ms}} ms）— これがノードの実際の出力です。次のノードで参照できます",
-    "probeFailed": "テスト実行に失敗しました"
+    "probeFailed": "テスト実行に失敗しました",
+    "currentConfig": "現在の設定値",
+    "noConfigSet": "このノードにはまだ設定がありません",
+    "inputMappingsLabel": "上流フィールドの取り込み"
   },
   "optimizer": {
     "nodes": "ノード数",
@@ -1646,7 +1649,14 @@
     "verificationTitle": "バックグラウンド検証結果（実際に実行済み）",
     "probeVerified": "検証済み（{{ms}} ms、実際に実行）",
     "probeNeedsInput": "情報の入力が必要",
-    "probeSkipped": "バックグラウンド未実行"
+    "probeSkipped": "スキップ済み（後で提供可、モックデータで下流を継続）",
+    "inputRequiredTitle": "「{{node}}」に情報が必要です",
+    "inputSideEffectWarning": "確認するとシステムがこの動作を実際に一度実行します（例：メールを本当に送信、データを書き込み）",
+    "inputProvideRun": "提供して実際にテスト",
+    "inputSkipForNow": "今はスキップ、後で提供する",
+    "inputExtraJson": "追加設定（JSON、任意）",
+    "inputExtraJsonInvalid": "追加設定が有効なJSONではありません",
+    "inputWaitingNote": "3分以内に応答がない場合、このノードは自動スキップされ、モックデータで下流の検証を続けます"
   },
   "aiPanel": {
     "title": "AIアシスタント",

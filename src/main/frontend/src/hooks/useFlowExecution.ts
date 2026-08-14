@@ -54,6 +54,12 @@ export function useFlowExecution({ flowId, nodes }: UseFlowExecutionOptions): Us
       const nodeState = execution.nodeStates.get(node.id)
       const executionStatus: NodeExecutionStatus = nodeState?.status
 
+      // 狀態沒變就回傳原物件：保住 React Flow 內部節點快取（量測值、handleBounds），
+      // 否則每則 WS 事件整批換新物件會讓 edge 端點瞬間失去位置而閃爍
+      if (node.data.executionStatus === executionStatus) {
+        return node
+      }
+
       return {
         ...node,
         data: {

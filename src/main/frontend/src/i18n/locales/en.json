@@ -432,7 +432,10 @@
       "noResults": "No nodes match your search"
     },
     "probeSuccess": "Probe succeeded ({{ms}} ms) — this is the node's actual output, ready to reference in the next node",
-    "probeFailed": "Probe failed"
+    "probeFailed": "Probe failed",
+    "currentConfig": "Current configuration",
+    "noConfigSet": "No fields configured on this node yet",
+    "inputMappingsLabel": "Upstream field mappings"
   },
   "optimizer": {
     "nodes": "Nodes",
@@ -1646,7 +1649,14 @@
     "verificationTitle": "Background verification (actually executed)",
     "probeVerified": "Verified ({{ms}} ms, executed for real)",
     "probeNeedsInput": "Needs your input",
-    "probeSkipped": "Not executed in background"
+    "probeSkipped": "Skipped (provide later; downstream continued with mock data)",
+    "inputRequiredTitle": "“{{node}}” needs your input",
+    "inputSideEffectWarning": "Once confirmed, the system will actually execute this action once (e.g. really send the email or write data)",
+    "inputProvideRun": "Provide & test for real",
+    "inputSkipForNow": "Skip for now, I'll provide later",
+    "inputExtraJson": "Additional config (JSON, optional)",
+    "inputExtraJsonInvalid": "Additional config is not valid JSON",
+    "inputWaitingNote": "If no reply within 3 minutes, this node is auto-skipped and downstream verification continues with mock data"
   },
   "aiPanel": {
     "title": "AI Assistant",

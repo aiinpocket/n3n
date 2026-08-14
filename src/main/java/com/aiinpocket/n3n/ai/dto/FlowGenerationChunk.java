@@ -77,6 +77,12 @@ public class FlowGenerationChunk {
     private Map<String, Object> probe;
 
     /**
+     * 需要使用者提供資訊／確認副作用（type=node_input_required 時）：
+     * {sessionId, nodeId, nodeLabel, nodeType, reason, sideEffect, config}
+     */
+    private Map<String, Object> inputRequest;
+
+    /**
      * 時間戳記
      */
     @Builder.Default
@@ -168,6 +174,16 @@ public class FlowGenerationChunk {
                 .type("node_probed")
                 .flowDefinition(null)
                 .probe(probe)
+                .build();
+    }
+
+    /**
+     * 背景驗證需要使用者提供資訊／確認副作用的詢問事件。
+     */
+    public static FlowGenerationChunk nodeInputRequired(Map<String, Object> inputRequest) {
+        return FlowGenerationChunk.builder()
+                .type("node_input_required")
+                .inputRequest(inputRequest)
                 .build();
     }
 
