@@ -149,7 +149,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   // 一次性生成成果（非流程需求：如「幫我生成一張圖」，直接產出並存作品庫）
   const [oneShotResult, setOneShotResult] = useState<{ artifacts: OneShotArtifact[]; message: string } | null>(null)
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
-  const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
+  // 串流回呼是在送出當下建立的，讀 state 變數會拿到當時的舊值；
+  // onDone 需要的是「串流期間累積到現在」的缺件清單，所以另外用 ref 同步。
+  const streamMissingNodesRef = useRef<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
   const mountedRef = useRef(true)
   const conversationIdRef = useRef<string | undefined>(undefined)
@@ -304,7 +306,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setOneShotResult(null)
     setInputRequest(null)
     setInputValues({})
-    setStreamMissingNodes([])
+    streamMissingNodesRef.current = []
     setThinkingStage(0)
     setThinkingThoughts([])
     setIsPublishing(false)
@@ -478,7 +480,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setOneShotResult(null)
     setInputRequest(null)
     setInputValues({})
-    setStreamMissingNodes([])
+    streamMissingNodesRef.current = []
 
     const controller = new AbortController()
     abortControllerRef.current = controller
@@ -549,18 +551,21 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           },
           onMissingNodes: (missing) => {
             if (!mountedRef.current || controller.signal.aborted) return
-            setStreamMissingNodes(missing)
+            streamMissingNodesRef.current = missing
           },
           onDone: (flowDefinition, requiredNodes) => {
             if (!mountedRef.current || controller.signal.aborted) return
-            setResult({
+            // 用 updater 讀前一個 state：understanding 是串流途中由 onUnderstanding
+            // 寫入的，直接讀 result 會拿到回呼建立當下的 null，導致「AI 的理解」永遠空白
+            setResult((prev) => ({
+              ...(prev || {}),
               success: true,
               aiAvailable: true,
-              understanding: result?.understanding || '',
+              understanding: prev?.understanding || '',
               flowDefinition: flowDefinition as GenerateFlowResponse['flowDefinition'],
               requiredNodes,
-              missingNodes: streamMissingNodes.map((m) => m.nodeType),
-            })
+              missingNodes: streamMissingNodesRef.current.map((m) => m.nodeType),
+            }))
             setStep('preview')
           },
           onError: (err) => {
