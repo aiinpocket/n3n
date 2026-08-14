@@ -600,7 +600,9 @@
     "noData": "無可用數據",
     "goToFlows": "前往流程列表",
     "output": "輸出結果",
-    "aiAnalyze": "AI 分析失敗原因"
+    "aiAnalyze": "AI 分析失敗原因",
+    "previewRows": "顯示前 {{shown}} 筆，共 {{total}} 筆",
+    "tableView": "表格"
   },
   "service": {
     "title": "外部服務",

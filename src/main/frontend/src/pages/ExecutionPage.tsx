@@ -29,6 +29,7 @@ import logger from '../utils/logger'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale, formatDuration } from '../utils/locale'
 import { useAIAssistantStore } from '../stores/aiAssistantStore'
+import NodeDataPreview from '../components/execution/NodeDataPreview'
 
 const AIPanelDrawer = lazy(() => import('../components/ai/AIPanelDrawer'))
 
@@ -748,20 +749,7 @@ export default function ExecutionPage() {
                 key: 'output',
                 label: <span style={{ color: 'var(--color-success)' }}>{t('execution.outputData')}</span>,
                 children: selectedNodeData?.output ? (
-                  <pre
-                    style={{
-                      background: 'var(--color-bg-elevated)',
-                      color: 'var(--color-text-primary)',
-                      padding: 16,
-                      borderRadius: 8,
-                      overflow: 'auto',
-                      maxHeight: 'calc(100vh - 200px)',
-                      fontSize: 13,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {JSON.stringify(selectedNodeData.output, null, 2)}
-                  </pre>
+                  <NodeDataPreview data={selectedNodeData.output} maxHeight={520} />
                 ) : (
                   <Text type="secondary">{t('execution.noData')}</Text>
                 ),

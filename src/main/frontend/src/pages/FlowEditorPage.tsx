@@ -60,6 +60,8 @@ import { customEdgeTypes } from '../components/edges/CustomEdges'
 import EdgeConfigPanel, { EdgeLegend } from '../components/edges/EdgeConfigPanel'
 import type { EdgeType } from '../types'
 import { useFlowExecution } from '../hooks/useFlowExecution'
+import { executionApi } from '../api/execution'
+import NodeDataPreview from '../components/execution/NodeDataPreview'
 import { useExecutionStore, NodeExecutionState } from '../stores/executionStore'
 import ExecutionOverlay from '../components/flow/ExecutionOverlay'
 const PublishFlowModal = lazy(() => import('../components/ai/PublishFlowModal'))
@@ -160,6 +162,8 @@ export default function FlowEditorPage() {
     searchParams.get('executionId')
   )
   const [executionNodeDetail, setExecutionNodeDetail] = useState<NodeExecutionState | null>(null)
+  // 節點輸出：WS 推播的狀態常不含 output，開啟詳情時再從後端（Redis）補抓
+  const [nodeDetailOutput, setNodeDetailOutput] = useState<unknown>(null)
   const getNodeState = useExecutionStore((state) => state.getNodeState)
 
   // Flow execution hook
@@ -374,6 +378,24 @@ export default function FlowEditorPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state])
+
+  // 開啟節點詳情時補抓節點輸出（WS 狀態沒帶 output 的話）
+  useEffect(() => {
+    setNodeDetailOutput(null)
+    if (!executionNodeDetail || !activeExecutionId) return
+    if (executionNodeDetail.output) {
+      setNodeDetailOutput(executionNodeDetail.output)
+      return
+    }
+    let cancelled = false
+    executionApi
+      .getNodeData(activeExecutionId, executionNodeDetail.nodeId)
+      .then((data) => {
+        if (!cancelled) setNodeDetailOutput(data?.output ?? null)
+      })
+      .catch(() => { /* Redis 逾期或節點無輸出，維持空狀態 */ })
+    return () => { cancelled = true }
+  }, [executionNodeDetail, activeExecutionId])
 
   // 自動試跑結束後，把執行結果交給 AI 分析小幫手（成功也總結、失敗給修法）
   useEffect(() => {
@@ -1678,21 +1700,12 @@ export default function FlowEditorPage() {
                 </pre>
               </div>
             )}
-            {executionNodeDetail.output && (
-              <div>
-                <Text strong>{t('execution.output')}: </Text>
-                <pre style={{
-                  background: 'var(--color-bg-container, #FFFDF7)',
-                  padding: 12,
-                  borderRadius: 6,
-                  maxHeight: 400,
-                  overflow: 'auto',
-                  fontSize: 12,
-                }}>
-                  {JSON.stringify(executionNodeDetail.output, null, 2)}
-                </pre>
+            <div>
+              <Text strong>{t('execution.output')}: </Text>
+              <div style={{ marginTop: 8 }}>
+                <NodeDataPreview data={nodeDetailOutput} maxHeight={400} />
               </div>
-            )}
+            </div>
           </Space>
         )}
       </Drawer>

@@ -600,7 +600,9 @@
     "noData": "データなし",
     "goToFlows": "フロー一覧へ",
     "output": "出力結果",
-    "aiAnalyze": "AI で失敗原因を分析"
+    "aiAnalyze": "AI で失敗原因を分析",
+    "previewRows": "先頭 {{shown}} 件を表示（全 {{total}} 件）",
+    "tableView": "テーブル"
   },
   "service": {
     "title": "外部サービス",
