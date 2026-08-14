@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.execution.expression;
 import com.aiinpocket.n3n.execution.handler.ExpressionEvaluator;
 import com.aiinpocket.n3n.execution.handler.NodeExecutionContext;
 import com.aiinpocket.n3n.execution.handler.ValidationResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,26 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
     private static final Pattern NODE_REF_PATTERN = Pattern.compile("^\\$node\\[\"([^\"]+)\"\\]\\.json(?:\\.(.+))?$");
     private static final Pattern ENV_PATTERN = Pattern.compile("^\\$env\\.([a-zA-Z_][a-zA-Z0-9_]*)$");
 
+    private static final ObjectMapper TEMPLATE_MAPPER = new ObjectMapper();
+
+    /**
+     * 範本插值時 Map/List 序列化為 JSON（而非 Java toString），
+     * 讓 {{$json.someObject}} 進到 prompt 的內容是可讀的 JSON。
+     */
+    private static String stringifyForTemplate(Object value) {
+        if (value == null) {
+            return "";
+        }
+        if (value instanceof Map || value instanceof List) {
+            try {
+                return TEMPLATE_MAPPER.writeValueAsString(value);
+            } catch (Exception e) {
+                return value.toString();
+            }
+        }
+        return value.toString();
+    }
+
     @Override
     public Object evaluate(String expression, NodeExecutionContext context) {
         if (expression == null || expression.isEmpty()) {
@@ -63,7 +84,7 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
         while (matcher.find()) {
             String expr = matcher.group(1).trim();
             Object value = evaluateExpression(expr, context);
-            String replacement = value != null ? value.toString() : "";
+            String replacement = stringifyForTemplate(value);
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);

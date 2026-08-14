@@ -271,7 +271,7 @@
     "outputFormats": [
       "return 值"
     ],
-    "bestPractices": "保持程式碼簡潔，複雜邏輯應拆分成多個節點",
+    "bestPractices": "保持程式碼簡潔，複雜邏輯應拆分成多個節點。$input 就是上游輸出的資料物件（可直接取屬性），同時相容 n8n 風格 $input.item(n)/first()/last()/all() 與 .json。用 return 回傳結果物件即為節點輸出。沙箱無法使用 require/fetch/網路。",
     "examples": [
       {
         "scenario": "資料轉換",
@@ -485,7 +485,7 @@
       "condition",
       "splitOut"
     ],
-    "bestPractices": "確保合併的資料格式相容"
+    "bestPractices": "適合用於處理多種情況，每個分支應有明確的條件。mode 支援 append/mergeByPosition（依上游節點順序合成陣列）、combine（合併物件）、multiplex、chooseBranch；輸出包在 outputKey（預設 merged）底下。"
   },
   "splitOut": {
     "displayName": "分割",

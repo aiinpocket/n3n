@@ -52,7 +52,9 @@ public class MergeNodeHandler extends AbstractNodeHandler {
 
         switch (mode) {
             case "append":
-                // Combine all inputs into a list
+            case "mergeByPosition":
+            case "mergeByIndex":
+                // Combine all inputs into a list（n8n 風格別名一併支援）
                 result = combineToList(inputData);
                 break;
 
@@ -88,7 +90,7 @@ public class MergeNodeHandler extends AbstractNodeHandler {
     private List<Object> combineToList(Map<String, Object> inputData) {
         List<Object> result = new ArrayList<>();
 
-        for (Object value : inputData.values()) {
+        for (Object value : sortedValues(inputData)) {
             if (value instanceof List) {
                 result.addAll((List<Object>) value);
             } else if (value != null) {
@@ -103,7 +105,7 @@ public class MergeNodeHandler extends AbstractNodeHandler {
     private Map<String, Object> combineToObject(Map<String, Object> inputData) {
         Map<String, Object> result = new LinkedHashMap<>();
 
-        for (Map.Entry<String, Object> entry : inputData.entrySet()) {
+        for (Map.Entry<String, Object> entry : sortedEntries(inputData)) {
             Object value = entry.getValue();
             if (value instanceof Map) {
                 result.putAll((Map<String, Object>) value);
@@ -116,10 +118,31 @@ public class MergeNodeHandler extends AbstractNodeHandler {
     }
 
     private Object chooseFirstNonNull(Map<String, Object> inputData) {
-        return inputData.values().stream()
+        return sortedValues(inputData).stream()
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(null);
+    }
+
+    /**
+     * 上游輸出的 key 是節點 id；依數字排序讓合併順序可預期
+     * （對應流程圖上節點的宣告順序），非數字 key 則按字典序。
+     */
+    private List<Map.Entry<String, Object>> sortedEntries(Map<String, Object> inputData) {
+        return inputData.entrySet().stream()
+            .sorted(Comparator.comparing(entry -> {
+                String key = entry.getKey();
+                return key.matches("\\d+")
+                    ? String.format("%010d", Long.parseLong(key))
+                    : key;
+            }))
+            .collect(Collectors.toList());
+    }
+
+    private List<Object> sortedValues(Map<String, Object> inputData) {
+        return sortedEntries(inputData).stream()
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -131,9 +154,10 @@ public class MergeNodeHandler extends AbstractNodeHandler {
                     "type", "string",
                     "title", "Merge Mode",
                     "description", "How to combine the inputs",
-                    "enum", List.of("append", "combine", "multiplex", "chooseBranch"),
+                    "enum", List.of("append", "mergeByPosition", "combine", "multiplex", "chooseBranch"),
                     "enumNames", List.of(
                         "Append (combine as list)",
+                        "Merge By Position (list, ordered by input)",
                         "Combine (merge objects)",
                         "Multiplex (output all)",
                         "Choose Branch (first non-null)"

@@ -93,6 +93,61 @@ public class JavaScriptEngine implements ScriptEngine {
 
                 context.eval("js", consoleSetup);
 
+                // n8n 風格相容層：AI 生成的程式碼常用 $input.item(n)/.first()/.last()/.all() 與 .json，
+                // 這裡以不可列舉屬性補上，同時保留原本「$input 即資料物件」的用法
+                String compatSetup = """
+                    (function () {
+                        const raw = $input;
+                        const isNumericKeys = (keys) => keys.length > 0 && keys.every(k => /^\\d+$/.test(k));
+                        const toItems = (d) => {
+                            if (d === null || d === undefined) return [];
+                            if (Array.isArray(d)) return d;
+                            if (typeof d !== 'object') return [d];
+                            const keys = Object.keys(d);
+                            if (keys.length === 1) {
+                                const v = d[keys[0]];
+                                if (Array.isArray(v)) return v;
+                                if (v && typeof v === 'object') {
+                                    const vk = Object.keys(v);
+                                    if (isNumericKeys(vk)) {
+                                        return vk.sort((a, b) => Number(a) - Number(b)).map(k => v[k]);
+                                    }
+                                    if (keys[0] === 'merged') return Object.values(v);
+                                }
+                            }
+                            if (isNumericKeys(keys)) {
+                                return keys.sort((a, b) => Number(a) - Number(b)).map(k => d[k]);
+                            }
+                            return [d];
+                        };
+                        const wrap = (v) => {
+                            if (v !== null && typeof v === 'object') {
+                                if (!('json' in v)) {
+                                    try { Object.defineProperty(v, 'json', { value: v, enumerable: false }); } catch (e) {}
+                                }
+                                return v;
+                            }
+                            return { json: v };
+                        };
+                        const items = toItems(raw).map(wrap);
+                        const helpers = {
+                            item: (i) => items[i],
+                            first: () => items[0],
+                            last: () => items[items.length - 1],
+                            all: () => items,
+                        };
+                        if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+                            for (const name of Object.keys(helpers)) {
+                                if (!(name in raw)) {
+                                    try { Object.defineProperty(raw, name, { value: helpers[name], enumerable: false }); } catch (e) {}
+                                }
+                            }
+                            wrap(raw);
+                        }
+                    })();
+                    """;
+                context.eval("js", compatSetup);
+
                 // Wrap user code to return result
                 String wrappedCode = """
                     (function() {
@@ -142,10 +197,16 @@ public class JavaScriptEngine implements ScriptEngine {
                     e.isResourceExhausted() ? "RESOURCE_EXHAUSTED" :
                         e.isCancelled() ? "CANCELLED" : "RUNTIME_ERROR";
 
+                // 帶回具體錯誤訊息（使用者自己的腳本錯誤），方便除錯與 AI 自動修復
+                String detail = e.getMessage();
+                String errorMessage = (detail == null || detail.isBlank())
+                    ? "Script execution failed"
+                    : "Script execution failed: " + detail;
+
                 return ScriptResult.builder()
                     .success(false)
                     .errorType(errorType)
-                    .errorMessage("Script execution failed")
+                    .errorMessage(errorMessage)
                     .logs(logs)
                     .executionTimeMs(executionTime)
                     .build();
