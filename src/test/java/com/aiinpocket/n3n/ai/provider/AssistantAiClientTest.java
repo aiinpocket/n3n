@@ -127,7 +127,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("chat throws a clear error when no provider is configured")
     void chat_notConfigured_throws() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.empty());
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> client.chat("hi", null, userId))
             .isInstanceOf(IllegalStateException.class)
@@ -137,7 +137,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("chat sends model, prompts and parameters from the resolved config")
     void chat_happyPath_buildsRequestFromConfig() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.of(primaryConfig));
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.of(primaryConfig));
         when(aiProviderService.buildSettingsFor(primaryConfig)).thenReturn(settings);
         when(providerFactory.getProvider("openai")).thenReturn(openAiProvider);
         when(openAiProvider.chat(any(), eq(settings)))
@@ -159,7 +159,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("when the primary provider fails, another shared active config is tried once")
     void chat_primaryFails_failsOverOnce() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.of(primaryConfig));
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.of(primaryConfig));
         when(aiProviderService.buildSettingsFor(primaryConfig)).thenReturn(settings);
         when(aiProviderService.buildSettingsFor(fallbackConfig)).thenReturn(settings);
         when(providerFactory.getProvider("openai")).thenReturn(openAiProvider);
@@ -180,7 +180,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("when primary fails and no other shared config exists, the failure surfaces")
     void chat_primaryFails_noFallback_throws() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.of(primaryConfig));
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.of(primaryConfig));
         when(aiProviderService.buildSettingsFor(primaryConfig)).thenReturn(settings);
         when(providerFactory.getProvider("openai")).thenReturn(openAiProvider);
         when(openAiProvider.chat(any(), any()))
@@ -196,7 +196,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("when primary and fallback both fail, a clear all-failed error is thrown")
     void chat_bothFail_throwsAllFailed() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.of(primaryConfig));
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.of(primaryConfig));
         when(aiProviderService.buildSettingsFor(any())).thenReturn(settings);
         when(providerFactory.getProvider("openai")).thenReturn(openAiProvider);
         when(providerFactory.getProvider("claude")).thenReturn(claudeProvider);
@@ -215,7 +215,7 @@ class AssistantAiClientTest extends BaseServiceTest {
     @Test
     @DisplayName("an empty provider response triggers failover")
     void chat_emptyResponse_failsOver() {
-        when(aiProviderService.resolveConfigForExecution(userId)).thenReturn(Optional.of(primaryConfig));
+        when(aiProviderService.resolveConfigForTask(userId, AiTaskType.DEFAULT)).thenReturn(Optional.of(primaryConfig));
         when(aiProviderService.buildSettingsFor(any())).thenReturn(settings);
         when(providerFactory.getProvider("openai")).thenReturn(openAiProvider);
         when(providerFactory.getProvider("claude")).thenReturn(claudeProvider);
