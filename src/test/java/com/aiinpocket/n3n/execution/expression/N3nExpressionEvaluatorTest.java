@@ -118,4 +118,18 @@ class N3nExpressionEvaluatorTest {
         Object value = evaluator.evaluate("{{$today}}", context);
         assertThat((String) value).matches("\\d{4}-\\d{2}-\\d{2}");
     }
+
+    @Test
+    @DisplayName("單引號節點引用 $node['id'] 也能解析")
+    void evaluate_singleQuotedNodeRef_resolvesField() {
+        Object value = evaluator.evaluate("{{$node['2'].json.imageUrl}}", context);
+        assertThat(value).isEqualTo("https://fal.media/files/a.png");
+    }
+
+    @Test
+    @DisplayName("$node[...].output 與 .json 等價")
+    void evaluate_nodeRefOutputAlias_resolvesField() {
+        Object value = evaluator.evaluate("{{$node['2'].output.imageUrl}}", context);
+        assertThat(value).isEqualTo("https://fal.media/files/a.png");
+    }
 }

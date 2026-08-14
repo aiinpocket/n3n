@@ -33,7 +33,9 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
 
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\{\\{\\s*(.+?)\\s*\\}\\}");
     private static final Pattern FIELD_PATH_PATTERN = Pattern.compile("^\\$([a-zA-Z_][a-zA-Z0-9_]*)(?:\\.(.+))?$");
-    private static final Pattern NODE_REF_PATTERN = Pattern.compile("^\\$node\\[\"([^\"]+)\"\\]\\.json(?:\\.(.+))?$");
+    // 同時接受雙引號與單引號（AI 生成的流程慣用 $node['名稱']）
+    private static final Pattern NODE_REF_PATTERN =
+        Pattern.compile("^\\$node\\[[\"']([^\"']+)[\"']\\]\\.(?:json|output)(?:\\.(.+))?$");
     private static final Pattern ENV_PATTERN = Pattern.compile("^\\$env\\.([a-zA-Z_][a-zA-Z0-9_]*)$");
     private static final Pattern NOW_FORMAT_PATTERN =
         Pattern.compile("^\\$(?:now|today)\\.format\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)$");
