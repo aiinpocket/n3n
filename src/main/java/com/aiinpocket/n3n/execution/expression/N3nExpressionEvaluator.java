@@ -169,6 +169,27 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             String variable = fieldMatcher.group(1);
             String fieldPath = fieldMatcher.group(2);
 
+            // 寬容支援 AI 常見寫法 $node2.output.field / $node2.json.field
+            // （previousOutputs 以節點 id 為 key，如 "2"）
+            if (variable.startsWith("node") && variable.length() > 4) {
+                Object nodeOutput = resolveNodeOutputByRef(variable, context);
+                if (nodeOutput != null) {
+                    if (fieldPath == null || fieldPath.equals("output") || fieldPath.equals("json")) {
+                        return nodeOutput;
+                    }
+                    String adjusted = fieldPath;
+                    if (adjusted.startsWith("output.")) {
+                        adjusted = adjusted.substring("output.".length());
+                    } else if (adjusted.startsWith("json.")) {
+                        adjusted = adjusted.substring("json.".length());
+                    }
+                    if (nodeOutput instanceof Map) {
+                        return getNestedValue((Map<?, ?>) nodeOutput, adjusted);
+                    }
+                    return null;
+                }
+            }
+
             Object rootValue = getRootValue(variable, context);
             if (fieldPath != null && rootValue instanceof Map) {
                 return getNestedValue((Map<?, ?>) rootValue, fieldPath);
@@ -178,6 +199,22 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
 
         log.debug("Unknown expression format: {}", expr);
         return null;
+    }
+
+    /**
+     * 以 $node2 / $node_abc 形式解析上游節點輸出：
+     * 先試去掉 "node" 前綴的 id（"2"），再試完整名稱（"node2"）。
+     */
+    private Object resolveNodeOutputByRef(String variable, NodeExecutionContext context) {
+        Map<String, Object> previousOutputs = context.getPreviousOutputs();
+        if (previousOutputs == null) {
+            return null;
+        }
+        String nodeKey = variable.substring("node".length());
+        if (previousOutputs.containsKey(nodeKey)) {
+            return previousOutputs.get(nodeKey);
+        }
+        return previousOutputs.get(variable);
     }
 
     private Object getRootValue(String variable, NodeExecutionContext context) {
@@ -250,6 +287,10 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
                 }
             } else if (current instanceof Map) {
                 current = ((Map<?, ?>) current).get(part);
+            } else if (current instanceof String && ("url".equals(part) || "href".equals(part))) {
+                // 寬容處理 AI 生成的 n8n 風格路徑（如 images[0].url）：
+                // 值本身已是 URL 字串時，取 .url 直接回傳字串本身
+                continue;
             } else {
                 return null;
             }

@@ -126,7 +126,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
                         .withDefault(1)
                         .withRange(1, 4)
                 ))
-                .outputDescription("Returns 'images' (list of URLs) and 'raw' response")
+                .outputDescription("Returns 'imageUrl' and 'images' (URL strings); files are auto-saved to the artifact library ('artifactId', 'downloadUrl') — no extra saveArtifact node needed")
                 .build()
         ));
 
@@ -156,7 +156,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
                         .withRange(60, 1800)
                         .withDescription("Max time to wait for generation to finish")
                 ))
-                .outputDescription("Returns 'videoUrl' and 'raw' response")
+                .outputDescription("Returns 'videoUrl'; the file is auto-saved to the artifact library ('artifactId', 'downloadUrl') — no extra saveArtifact node needed")
                 .build(),
             OperationDef.create("imageToVideo", "Image to Video")
                 .description("Animate a reference image into a video guided by a prompt")
@@ -184,7 +184,7 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
                         .withDefault(600)
                         .withRange(60, 1800)
                 ))
-                .outputDescription("Returns 'videoUrl' and 'raw' response")
+                .outputDescription("Returns 'videoUrl'; the file is auto-saved to the artifact library ('artifactId', 'downloadUrl') — no extra saveArtifact node needed")
                 .build()
         ));
 

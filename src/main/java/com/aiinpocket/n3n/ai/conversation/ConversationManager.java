@@ -37,8 +37,8 @@ public class ConversationManager {
      */
     static final int MAX_CONTEXT_MESSAGES = 200;
 
-    /** 可用預算比例：window × ratio 為對話可用的 token 上限 */
-    @Value("${n3n.ai.context.usable-ratio:0.5}")
+    /** 可用預算比例：window × ratio 為對話可用的 token 上限（預留 system prompt 與回應空間） */
+    @Value("${n3n.ai.context.usable-ratio:0.85}")
     private double usableRatio;
 
     /** 超過可用預算的此比例時觸發壓縮 */

@@ -26,6 +26,12 @@ public class ContextWindowRegistry {
     private static final int GPT_4O_WINDOW = 128_000;
     /** GPT-4.1 */
     private static final int GPT_41_WINDOW = 1_047_576;
+    /** GPT-5 系列 */
+    private static final int GPT_5_WINDOW = 400_000;
+    /** OpenAI o 系列推理模型 */
+    private static final int O_SERIES_WINDOW = 200_000;
+    /** Gemini 1.5 Pro */
+    private static final int GEMINI_15_PRO_WINDOW = 2_097_152;
 
     /** 是否啟用 Claude 1M context beta（需要 API beta header 才真的生效） */
     @Value("${n3n.ai.context.claude-1m:false}")
@@ -67,8 +73,14 @@ public class ContextWindowRegistry {
         table.put("claude", CLAUDE_4_WINDOW);
         table.put("gemini-2.5-pro", GEMINI_25_WINDOW);
         table.put("gemini-2.5-flash", GEMINI_25_WINDOW);
+        table.put("gemini-2.0", GEMINI_25_WINDOW);
+        table.put("gemini-1.5-pro", GEMINI_15_PRO_WINDOW);
+        table.put("gemini-1.5-flash", GEMINI_25_WINDOW);
+        table.put("gpt-5", GPT_5_WINDOW);
         table.put("gpt-4o", GPT_4O_WINDOW);
         table.put("gpt-4.1", GPT_41_WINDOW);
+        table.put("o3", O_SERIES_WINDOW);
+        table.put("o4", O_SERIES_WINDOW);
         return table;
     }
 }

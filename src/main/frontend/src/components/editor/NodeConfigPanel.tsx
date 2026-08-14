@@ -289,14 +289,41 @@ export default function NodeConfigPanel({
     [node, onUpdate, flushPendingUpdate]
   )
 
+  // 執行引擎只讀 node.data 的頂層設定值（含 {{...}} 表達式）；
+  // 資料映射分頁與基本設定共用同一份值：平面欄位直接寫回頂層，
+  // 巢狀欄位（外部服務的 pathParams.x 等）保留在 inputMappings。
   const handleMappingsChange = useCallback(
     (mappings: Record<string, string>) => {
-      if (node && onUpdate) {
-        onUpdate(node.id, { ...node.data, inputMappings: mappings })
-      }
+      if (!node || !onUpdate) return
+      const data = { ...node.data } as Record<string, unknown>
+      const nested: Record<string, string> = {}
+      const flat: Record<string, string> = {}
+      Object.entries(mappings).forEach(([key, value]) => {
+        if (key.includes('.')) {
+          nested[key] = value
+        } else {
+          flat[key] = value
+        }
+      })
+      form.setFieldsValue(flat)
+      onUpdate(node.id, { ...data, ...flat, inputMappings: nested })
     },
-    [node, onUpdate]
+    [node, onUpdate, form]
   )
+
+  // 資料映射分頁的顯示值：頂層設定值（字串/數字）+ 既有 inputMappings（優先）
+  const mappingValues = useMemo(() => {
+    const values: Record<string, string> = {}
+    const internal = new Set(['label', 'nodeType', 'position', 'pinnedData', 'inputMappings', 'onTest'])
+    Object.entries((nodeData as Record<string, unknown>) || {}).forEach(([key, value]) => {
+      if (internal.has(key)) return
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        values[key] = String(value)
+      }
+    })
+    const existing = (nodeData?.inputMappings as Record<string, string>) || {}
+    return { ...values, ...existing }
+  }, [nodeData])
 
   // Fetch the node's latest real execution output for pinning
   const fetchLatestNodeOutput = useCallback(async (nodeId: string): Promise<Record<string, unknown> | null> => {
@@ -740,9 +767,10 @@ export default function NodeConfigPanel({
               />
             )}
             <DataMappingEditor
+              key={node?.id}
               schema={configSchema}
               upstreamOutputs={upstreamOutputs}
-              inputMappings={(nodeData?.inputMappings as Record<string, string>) || {}}
+              inputMappings={mappingValues}
               onChange={handleMappingsChange}
             />
           </>

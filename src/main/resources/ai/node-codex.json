@@ -1631,7 +1631,13 @@
       "aiVision",
       "saveArtifact"
     ],
-    "bestPractices": "config 必須同時包含 resource 與 operation：圖片用 resource=image、operation=generate；影片用 resource=video、operation=textToVideo 或 imageToVideo。prompt 建議使用英文描述。",
+    "bestPractices": "config 必須同時包含 resource 與 operation：圖片用 resource=image、operation=generate；影片用 resource=video、operation=textToVideo 或 imageToVideo。prompt 建議使用英文描述。此節點會自動把產出存入使用者的作品庫並輸出 artifactId 與 downloadUrl，「絕對不要」再接 saveArtifact 節點重複儲存。輸出欄位：imageUrl（第一張圖的 URL 字串）、images（URL 字串陣列，不是物件陣列，沒有 .url 屬性）、videoUrl、artifactId、downloadUrl。",
+    "outputFormats": [
+      "imageUrl: 第一張圖片 URL（字串）",
+      "images: 圖片 URL 字串陣列（引用第一張請用 images[0] 或 imageUrl，不要用 images[0].url）",
+      "videoUrl: 影片 URL（字串）",
+      "artifactId / downloadUrl: 已自動存入作品庫的檔案 ID 與站內下載連結"
+    ],
     "examples": [
       {
         "scenario": "文生圖（FLUX）",
@@ -1934,7 +1940,8 @@
       "aiTts",
       "falAi",
       "markdown"
-    ]
+    ],
+    "bestPractices": "AI 圖片/影片（falAi）與 AI 語音（aiTts）等媒體節點會自動把產出存入作品庫，「不要」再接本節點重複儲存它們的輸出。本節點用於儲存文字/HTML/Markdown/JSON/base64 等自行組出的內容。"
   },
   "spreadsheet": {
     "displayName": "試算表 / CSV",
