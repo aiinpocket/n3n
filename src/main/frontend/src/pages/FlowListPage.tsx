@@ -745,27 +745,10 @@ export default function FlowListPage() {
       </Modal>
 
       {/* AI Flow Generator Modal */}
+      {/* 建立/發布流程由 modal 內部處理（建立 → 存草稿版本 → 導向編輯器） */}
       <FlowGeneratorModal
         open={aiGeneratorOpen}
         onClose={() => setAiGeneratorOpen(false)}
-        onCreateFlow={async (flowDef, options) => {
-          if (flowDef) {
-            // First create a flow, then navigate to editor with the generated content
-            try {
-              const flow = await flowApi.createFlowUnique({
-                name: t('flow.aiGeneratedName'),
-                description: t('flow.aiGeneratedDescription'),
-              })
-              message.success(t('flow.createdRedirecting'))
-              // Navigate to editor and let it handle the flow definition
-              navigate(`/flows/${flow.id}/edit`, {
-                state: { generatedFlow: flowDef, autoTest: options?.autoTest },
-              })
-            } catch (err) {
-              message.error(extractApiError(err, t('flow.createFailed')))
-            }
-          }
-        }}
       />
 
       {/* Save as Template Modal */}

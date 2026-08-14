@@ -296,7 +296,8 @@ public class NaturalLanguageModule {
                 // 提供後真的執行、跳過則以模擬資料續串，等待期間送心跳保持 SSE
                 emitProgress(sink, 92, "Verifying nodes with real execution...", "verifying");
                 try {
-                    generationProbeService.verifyFlow(userId, probeSessionId, layoutedNodes, edges,
+                    generationProbeService.verifyFlow(userId, probeSessionId,
+                        language != null ? language : "zh-TW", layoutedNodes, edges,
                         verification -> {
                             Map<String, Object> probe = new HashMap<>();
                             probe.put("nodeId", verification.nodeId());
@@ -317,6 +318,14 @@ public class NaturalLanguageModule {
                             payload.put("reason", inputRequest.reason());
                             payload.put("sideEffect", inputRequest.sideEffect());
                             payload.put("config", inputRequest.config());
+                            payload.put("question", inputRequest.question());
+                            payload.put("fields", inputRequest.fields().stream()
+                                .map(f -> Map.of(
+                                    "key", f.key(),
+                                    "label", f.label(),
+                                    "hint", f.hint() != null ? f.hint() : "",
+                                    "example", f.example() != null ? f.example() : ""))
+                                .toList());
                             sink.tryEmitNext(FlowGenerationChunk.nodeInputRequired(payload));
                         },
                         () -> emitProgress(sink, 94, "Waiting for your input...", "waiting_input"));

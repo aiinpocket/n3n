@@ -208,6 +208,14 @@ export interface NodeProbeInfo {
   outputSample?: string
 }
 
+/** 詢問中要使用者填寫的欄位（白話標籤，非技術 key） */
+export interface NodeInputField {
+  key: string
+  label: string
+  hint?: string
+  example?: string
+}
+
 /** 背景驗證需要使用者提供資訊／確認副作用的詢問 */
 export interface NodeInputRequest {
   sessionId: string
@@ -217,6 +225,10 @@ export interface NodeInputRequest {
   reason: string
   sideEffect: boolean
   config?: Record<string, unknown>
+  /** 給一般使用者看的白話說明 */
+  question?: string
+  /** 白話標籤的填寫欄位 */
+  fields?: NodeInputField[]
 }
 
 export interface FlowGenerationCallbacks {

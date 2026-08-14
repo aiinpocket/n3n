@@ -1618,6 +1618,7 @@ export default function FlowEditorPage() {
           setFlowGeneratorInitialDesc(undefined)
         }}
         initialDescription={flowGeneratorInitialDesc}
+        applyInEditor
         onCreateFlow={(flowDef) => {
           if (flowDef) {
             applyGeneratedFlow(flowDef)

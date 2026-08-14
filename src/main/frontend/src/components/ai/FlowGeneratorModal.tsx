@@ -56,6 +56,8 @@ interface Props {
     flowDefinition: GenerateFlowResponse['flowDefinition'],
     options?: { autoTest?: boolean }
   ) => void
+  /** 在流程編輯器內開啟時為 true：建立=套用到當前畫布（onCreateFlow），不另建流程 */
+  applyInEditor?: boolean
   initialDescription?: string
 }
 
@@ -106,6 +108,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   open,
   onClose,
   onCreateFlow,
+  applyInEditor,
   initialDescription,
 }) => {
   const { t, i18n } = useTranslation()
@@ -140,7 +143,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   // 背景驗證的互動詢問：缺資訊或有副作用時後端會發 node_input_required 等使用者回覆
   const [inputRequest, setInputRequest] = useState<NodeInputRequest | null>(null)
   const [inputValues, setInputValues] = useState<Record<string, string>>({})
-  const [inputExtraJson, setInputExtraJson] = useState('')
   const [inputSubmitting, setInputSubmitting] = useState(false)
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
@@ -297,7 +299,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setProbeResults({})
     setInputRequest(null)
     setInputValues({})
-    setInputExtraJson('')
     setStreamMissingNodes([])
     setThinkingStage(0)
     setThinkingThoughts([])
@@ -471,7 +472,6 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setProbeResults({})
     setInputRequest(null)
     setInputValues({})
-    setInputExtraJson('')
     setStreamMissingNodes([])
 
     const controller = new AbortController()
@@ -526,12 +526,15 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           onInputRequired: (request) => {
             if (!mountedRef.current || controller.signal.aborted) return
             setInputRequest(request)
+            // 以後端給的白話欄位為準，帶入目前設定值當預設
             const values: Record<string, string> = {}
-            Object.entries(request.config || {}).forEach(([key, value]) => {
-              values[key] = typeof value === 'string' ? value : JSON.stringify(value)
-            })
+            for (const field of request.fields || []) {
+              const current = request.config?.[field.key]
+              values[field.key] = current == null
+                ? ''
+                : typeof current === 'string' ? current : JSON.stringify(current)
+            }
             setInputValues(values)
-            setInputExtraJson('')
           },
           onMissingNodes: (missing) => {
             if (!mountedRef.current || controller.signal.aborted) return
@@ -570,10 +573,45 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     }
   }
 
-  const handleCreateFlow = () => {
-    if (result?.flowDefinition) {
-      onCreateFlow?.(result.flowDefinition, { autoTest })
+  const [isCreating, setIsCreating] = useState(false)
+
+  /**
+   * 建立此流程（不發布）：在編輯器內開啟時交給呼叫端套用到當前畫布；
+   * 否則由 modal 自己「建立流程 → 存草稿版本 → 導向編輯器」，
+   * 定義一定會被保存，不再只塞導頁 state（失敗時 modal 保持開啟）。
+   */
+  const handleCreateFlow = async () => {
+    if (!result?.flowDefinition || isCreating) return
+    if (applyInEditor && onCreateFlow) {
+      onCreateFlow(result.flowDefinition, { autoTest })
       handleClose()
+      return
+    }
+
+    setIsCreating(true)
+    const definition = buildEditorDefinition(result.flowDefinition)
+    let createdFlowId: string | null = null
+    try {
+      const flow = await flowApi.createFlowUnique({
+        name: deriveFlowName(),
+        description: result.understanding || t('flow.aiGeneratedDescription'),
+      })
+      createdFlowId = flow.id
+      await flowApi.saveVersion(flow.id, { version: INITIAL_VERSION, definition })
+      message.success(t('flow.createdRedirecting'))
+      navigate(`/flows/${flow.id}/edit`, { state: { autoTest } })
+      handleClose()
+    } catch (err) {
+      message.error(extractApiError(err, t('flow.createFailed')))
+      // 流程已建立但存版本失敗：仍導向編輯器並帶上定義，生成結果不遺失
+      if (createdFlowId) {
+        navigate(`/flows/${createdFlowId}/edit`, {
+          state: { generatedFlow: result.flowDefinition, autoTest },
+        })
+        handleClose()
+      }
+    } finally {
+      if (mountedRef.current) setIsCreating(false)
     }
   }
 
@@ -993,19 +1031,10 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     if (!skip) {
       config = {}
       Object.entries(inputValues).forEach(([key, value]) => {
-        config![key] = parseInputValue(value)
-      })
-      if (inputExtraJson.trim()) {
-        try {
-          const extra = JSON.parse(inputExtraJson)
-          if (extra && typeof extra === 'object' && !Array.isArray(extra)) {
-            config = { ...config, ...(extra as Record<string, unknown>) }
-          }
-        } catch {
-          message.error(t('flowGenerator.inputExtraJsonInvalid'))
-          return
+        if (value.trim() !== '') {
+          config![key] = parseInputValue(value)
         }
-      }
+      })
     }
     setInputSubmitting(true)
     try {
@@ -1038,7 +1067,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         style={{ marginTop: 16, borderColor: 'var(--color-warning, #faad14)' }}
       >
         <Space orientation="vertical" style={{ width: '100%' }} size={10}>
-          <Text style={{ fontSize: 13 }}>{inputRequest.reason}</Text>
+          {/* 白話說明（後端 AI 產生），沒有才退回技術原因 */}
+          <Text style={{ fontSize: 13 }}>{inputRequest.question || inputRequest.reason}</Text>
           {inputRequest.sideEffect && (
             <Alert
               type="warning"
@@ -1046,31 +1076,29 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               title={t('flowGenerator.inputSideEffectWarning')}
             />
           )}
-          {Object.keys(inputValues).length > 0 && (
+          {(inputRequest.fields || []).length > 0 && (
             <div>
-              {Object.entries(inputValues).map(([key, value]) => (
-                <div key={key} style={{ marginBottom: 8 }}>
-                  <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>{key}</Text>
+              {(inputRequest.fields || []).map((field) => (
+                <div key={field.key} style={{ marginBottom: 10 }}>
+                  <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 2 }}>
+                    {field.label}
+                  </Text>
+                  {field.hint && (
+                    <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                      {field.hint}
+                    </Text>
+                  )}
                   <Input
-                    size="small"
-                    value={value}
-                    onChange={(e) => setInputValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                    value={inputValues[field.key] ?? ''}
+                    placeholder={field.example || undefined}
+                    onChange={(e) =>
+                      setInputValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                    }
                   />
                 </div>
               ))}
             </div>
           )}
-          <div>
-            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>
-              {t('flowGenerator.inputExtraJson')}
-            </Text>
-            <TextArea
-              rows={2}
-              value={inputExtraJson}
-              onChange={(e) => setInputExtraJson(e.target.value)}
-              placeholder='{"apiKey": "..."}'
-            />
-          </div>
           <Space>
             <Button
               type="primary"
@@ -1526,6 +1554,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             <Button
               icon={<CheckCircleOutlined />}
               onClick={handleCreateFlow}
+              loading={isCreating}
               disabled={isPublishing}
             >
               {t('flowGenerator.createFlow')}
@@ -1534,6 +1563,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
               type="primary"
               icon={<ThunderboltOutlined />}
               loading={isPublishing}
+              disabled={isCreating}
               onClick={handleCreateAndPublish}
             >
               {t('ai.generator.createAndPublish')}

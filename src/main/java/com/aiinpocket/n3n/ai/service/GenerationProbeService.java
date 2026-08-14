@@ -81,9 +81,34 @@ public class GenerationProbeService {
     /** 使用者對單一節點詢問的回覆：skip=true 表示「先跳過這段，之後提供」 */
     public record UserInputResponse(boolean skip, Map<String, Object> config) {}
 
-    /** 發給前端的詢問內容 */
+    /** 詢問中要使用者填寫的單一欄位（白話標籤與範例，非技術 key） */
+    public record InputField(String key, String label, String hint, String example) {}
+
+    /**
+     * 發給前端的詢問內容。question 是給一般使用者看的白話說明，
+     * fields 是白話標籤的填寫欄位；reason 保留技術原因供除錯。
+     */
     public record InputRequest(String sessionId, String nodeId, String nodeLabel, String nodeType,
-                               String reason, boolean sideEffect, Map<String, Object> config) {}
+                               String reason, boolean sideEffect, Map<String, Object> config,
+                               String question, List<InputField> fields) {}
+
+    /** 常見設定鍵的白話對照（AI 產生失敗時的 fallback） */
+    private static final Map<String, String[]> FRIENDLY_FIELD_LABELS = Map.ofEntries(
+        Map.entry("to", new String[]{"收件人 Email", "要把信寄給誰", "name@example.com"}),
+        Map.entry("subject", new String[]{"信件主旨", "郵件的標題", "每日資料摘要"}),
+        Map.entry("body", new String[]{"信件內容", "郵件正文要寫什麼", "您好，附上今日摘要…"}),
+        Map.entry("url", new String[]{"網址", "要連到哪個網頁或 API", "https://example.com/api"}),
+        Map.entry("method", new String[]{"HTTP 方法", "GET 讀取、POST 送出資料", "GET"}),
+        Map.entry("provider", new String[]{"AI 服務商", "要用哪家 AI（openai / claude / gemini）", "openai"}),
+        Map.entry("model", new String[]{"AI 模型", "要用的模型名稱", "gpt-4o-mini"}),
+        Map.entry("messages", new String[]{"要給 AI 的指示", "想請 AI 做什麼", "幫我把資料整理成摘要"}),
+        Map.entry("prompt", new String[]{"要給 AI 的指示", "想請 AI 做什麼", "幫我把資料整理成摘要"}),
+        Map.entry("apiKey", new String[]{"API 金鑰", "服務提供的存取金鑰", "sk-…"}),
+        Map.entry("credentialId", new String[]{"憑證", "在「憑證管理」建立後選擇", ""}),
+        Map.entry("host", new String[]{"主機位址", "伺服器的網址或 IP", "db.example.com"}),
+        Map.entry("channel", new String[]{"頻道", "要發到哪個頻道", "#general"}),
+        Map.entry("token", new String[]{"存取權杖", "服務提供的 Token", ""})
+    );
 
     private static final class ProbeSession {
         final UUID userId;
@@ -153,6 +178,18 @@ public class GenerationProbeService {
                                              Consumer<NodeVerification> onResult,
                                              Consumer<InputRequest> onInputRequired,
                                              Runnable heartbeat) {
+        return verifyFlow(userId, sessionId, "zh-TW", nodes, edges, onResult, onInputRequired, heartbeat);
+    }
+
+    /**
+     * @param language 詢問使用者時的語言（口語化問題與欄位標籤以此語言產生）
+     */
+    public List<NodeVerification> verifyFlow(UUID userId, String sessionId, String language,
+                                             List<Map<String, Object>> nodes,
+                                             List<Map<String, String>> edges,
+                                             Consumer<NodeVerification> onResult,
+                                             Consumer<InputRequest> onInputRequired,
+                                             Runnable heartbeat) {
         ProbeSession session = new ProbeSession(userId);
         sessions.put(sessionId, session);
         List<NodeVerification> results = new ArrayList<>();
@@ -175,10 +212,10 @@ public class GenerationProbeService {
                     verification = new NodeVerification(nodeId, "skipped",
                         "驗證時間預算已用盡，此節點未試打", 0, null, null);
                 } else if (hasSideEffect(nodeType, config)) {
-                    verification = confirmAndProbe(userId, session, sessionId, nodeId, nodeLabel,
+                    verification = confirmAndProbe(userId, session, sessionId, language, nodeId, nodeLabel,
                         nodeType, config, realOutputs, node, onInputRequired, heartbeat);
                 } else {
-                    verification = probeWithRepair(userId, session, sessionId, nodeId, nodeLabel,
+                    verification = probeWithRepair(userId, session, sessionId, language, nodeId, nodeLabel,
                         nodeType, config, realOutputs, node, onInputRequired, heartbeat);
                 }
                 // 只把「實際試打」時間計入預算；等待使用者不算（在 askUser 中另計）
@@ -208,6 +245,7 @@ public class GenerationProbeService {
      * 確認（可補資訊）後「真的執行一次」；或先跳過用模擬資料續串。
      */
     private NodeVerification confirmAndProbe(UUID userId, ProbeSession session, String sessionId,
+                                             String language,
                                              String nodeId, String nodeLabel, String nodeType,
                                              Map<String, Object> config,
                                              Map<String, Object> realOutputs,
@@ -228,8 +266,8 @@ public class GenerationProbeService {
             }
         }
 
-        UserInputResponse response = askUser(session, sessionId, nodeId, nodeLabel, nodeType,
-            reason, true, config, onInputRequired, heartbeat);
+        UserInputResponse response = askUser(userId, session, sessionId, language, nodeId, nodeLabel,
+            nodeType, reason, true, config, onInputRequired, heartbeat);
         if (response == null || response.skip()) {
             return skipWithMock(userId, nodeId, nodeType, config, realOutputs,
                 response == null ? "等候回覆逾時，已自動跳過並以模擬資料繼續驗證下游"
@@ -258,6 +296,7 @@ public class GenerationProbeService {
      * 提供後再真打；跳過或再失敗都以模擬資料續串。
      */
     private NodeVerification probeWithRepair(UUID userId, ProbeSession session, String sessionId,
+                                             String language,
                                              String nodeId, String nodeLabel, String nodeType,
                                              Map<String, Object> config,
                                              Map<String, Object> realOutputs,
@@ -288,8 +327,8 @@ public class GenerationProbeService {
         }
 
         // AI 修不好：問使用者
-        UserInputResponse response = askUser(session, sessionId, nodeId, nodeLabel, nodeType,
-            friendlyReason(result.errorMessage()), false, config, onInputRequired, heartbeat);
+        UserInputResponse response = askUser(userId, session, sessionId, language, nodeId, nodeLabel,
+            nodeType, friendlyReason(result.errorMessage()), false, config, onInputRequired, heartbeat);
         if (response != null && !response.skip()) {
             Map<String, Object> merged = mergeConfig(config, response.config());
             NodeProbeService.ProbeResult retry = nodeProbeService.probe(
@@ -316,7 +355,8 @@ public class GenerationProbeService {
      * 詢問使用者並等待回覆。回傳 null 代表逾時；等待期間每 10 秒送一次心跳。
      * session 已取消時立即回傳 skip，不進入等待。
      */
-    private UserInputResponse askUser(ProbeSession session, String sessionId, String nodeId,
+    private UserInputResponse askUser(UUID userId, ProbeSession session, String sessionId,
+                                      String language, String nodeId,
                                       String nodeLabel, String nodeType, String reason,
                                       boolean sideEffect, Map<String, Object> config,
                                       Consumer<InputRequest> onInputRequired, Runnable heartbeat) {
@@ -327,8 +367,10 @@ public class GenerationProbeService {
         session.pending.put(nodeId, future);
         long waitStart = Instant.now().toEpochMilli();
         try {
+            FriendlyAsk friendly = buildFriendlyAsk(userId, language, nodeLabel, nodeType,
+                config, reason, sideEffect);
             onInputRequired.accept(new InputRequest(sessionId, nodeId, nodeLabel, nodeType,
-                reason, sideEffect, config));
+                reason, sideEffect, config, friendly.question(), friendly.fields()));
             long waitedSeconds = 0;
             while (waitedSeconds < WAIT_FOR_INPUT_SECONDS) {
                 try {
@@ -358,6 +400,79 @@ public class GenerationProbeService {
             session.pending.remove(nodeId);
             lastWaitMs.set(lastWaitMs.get() + (Instant.now().toEpochMilli() - waitStart));
         }
+    }
+
+    private record FriendlyAsk(String question, List<InputField> fields) {}
+
+    /**
+     * 把技術性的錯誤與設定鍵，轉成一般使用者看得懂的白話問題與填寫欄位。
+     * 先請 AI 產生（依使用者語言）；失敗時退回靜態白話對照表。
+     */
+    private FriendlyAsk buildFriendlyAsk(UUID userId, String language, String nodeLabel,
+                                         String nodeType, Map<String, Object> config,
+                                         String technicalReason, boolean sideEffect) {
+        try {
+            String prompt = """
+                你在協助一位完全不懂技術的使用者完成自動化流程。系統在設定「%s」這個步驟（節點類型 %s）時需要使用者補充資訊。
+                目前設定：%s
+                技術原因：%s
+                %s
+
+                請用 %s 產生：
+                1. question：一到兩句白話說明「需要使用者提供什麼、為什麼」，不要出現技術行話、錯誤代碼、JSON 等字眼。
+                2. fields：使用者需要填寫或確認的欄位（最多 5 個），每個欄位給白話名稱、提示與範例。
+
+                只回傳 JSON，格式：
+                {"question":"...","fields":[{"key":"對應的設定鍵","label":"白話名稱","hint":"要填什麼的說明","example":"範例值"}]}
+                """.formatted(nodeLabel, nodeType, toJson(config, 1200),
+                    technicalReason == null ? "缺少必要資訊" : technicalReason,
+                    sideEffect ? "注意：此步驟會實際對外執行動作（例如寄出郵件），question 要提醒使用者確認後會真的執行一次。" : "",
+                    language == null || language.isBlank() ? "zh-TW" : language);
+            String answer = aiClient.chat(prompt,
+                "你是把技術設定翻譯成白話的助手，只輸出 JSON。", 900, 0.3, userId).trim();
+            String json = answer.replaceAll("^```(json)?", "").replaceAll("```$", "").trim();
+            Map<String, Object> parsed = objectMapper.readValue(json,
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            String question = parsed.get("question") instanceof String q && !q.isBlank() ? q : null;
+            List<InputField> fields = new ArrayList<>();
+            if (parsed.get("fields") instanceof List<?> rawFields) {
+                for (Object item : rawFields) {
+                    if (item instanceof Map<?, ?> f && fields.size() < 5) {
+                        Object label = f.get("label") != null ? f.get("label") : f.get("key");
+                        fields.add(new InputField(
+                            String.valueOf(f.get("key")),
+                            String.valueOf(label),
+                            f.get("hint") != null ? String.valueOf(f.get("hint")) : "",
+                            f.get("example") != null ? String.valueOf(f.get("example")) : ""));
+                    }
+                }
+            }
+            if (question != null && !fields.isEmpty()) {
+                return new FriendlyAsk(question, fields);
+            }
+        } catch (Exception e) {
+            log.debug("Friendly ask generation failed: {}", e.getMessage());
+        }
+        return fallbackFriendlyAsk(nodeLabel, config, sideEffect);
+    }
+
+    /** AI 不可用時的白話 fallback：常見鍵查表、其餘用鍵名。 */
+    private FriendlyAsk fallbackFriendlyAsk(String nodeLabel, Map<String, Object> config,
+                                            boolean sideEffect) {
+        List<InputField> fields = new ArrayList<>();
+        for (String key : config.keySet()) {
+            if (fields.size() >= 5) break;
+            String[] friendly = FRIENDLY_FIELD_LABELS.get(key);
+            if (friendly != null) {
+                fields.add(new InputField(key, friendly[0], friendly[1], friendly[2]));
+            } else {
+                fields.add(new InputField(key, key, "", ""));
+            }
+        }
+        String question = sideEffect
+            ? "「" + nodeLabel + "」這一步會實際對外執行（例如真的寄出郵件）。請確認下面的內容沒問題，或補齊缺少的欄位；也可以先跳過，之後再設定。"
+            : "「" + nodeLabel + "」這一步還缺一些資訊才能運作，請幫忙補齊下面的欄位；也可以先跳過，之後再設定。";
+        return new FriendlyAsk(question, fields);
     }
 
     /** 跳過節點：產生模擬輸出餵給下游，讓後面還能繼續串接驗證。 */
