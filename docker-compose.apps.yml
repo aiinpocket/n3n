@@ -28,10 +28,12 @@ services:
     volumes:
       # 見上方安全性說明
       - /var/run/docker.sock:/var/run/docker.sock
-    # app 容器以非 root（uid 1000）執行，而 docker.sock 通常是 root:root 660；
-    # 把容器使用者加進 gid 0 群組以取得 socket 的群組讀寫權（比改用 root 執行安全）
+    # app 容器以非 root（uid 1000）執行，需要 docker.sock 的群組讀寫權。
+    # sock 的群組因發行版而異：多為 root:root(0)，Ubuntu 上常是 docker 群組
+    # （查法：stat -c %g /var/run/docker.sock），不同時在 .env 設 DOCKER_SOCK_GID。
     group_add:
       - "0"
+      - "${DOCKER_SOCK_GID:-0}"
     networks:
       # default 保留原有平台網路；n3n-apps 讓 app 容器能以 DNS 名稱
       # 直接連到小應用的 web 容器（反向代理目標）
