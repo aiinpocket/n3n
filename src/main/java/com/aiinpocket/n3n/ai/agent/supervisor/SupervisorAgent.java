@@ -67,7 +67,7 @@ public class SupervisorAgent implements Agent {
 
         try {
             // 1. 分析意圖
-            Intent intent = intentAnalyzer.analyze(context);
+            Intent intent = refineIntent(intentAnalyzer.analyze(context), context);
             context.setIntent(intent);
             log.debug("Analyzed intent: {} (confidence: {})",
                 intent.getType(), intent.getConfidence());
@@ -122,7 +122,7 @@ public class SupervisorAgent implements Agent {
             try {
                 // 分析意圖
                 sink.next(AgentStreamChunk.thinking("Analyzing your request..."));
-                Intent intent = intentAnalyzer.analyze(context);
+                Intent intent = refineIntent(intentAnalyzer.analyze(context), context);
                 context.setIntent(intent);
 
                 // 初始化流程草稿
@@ -175,6 +175,43 @@ public class SupervisorAgent implements Agent {
                 sink.complete();
             }
         });
+    }
+
+    /** 使用者輸入含明確修改語意的樣式（zh/en） */
+    private static final java.util.regex.Pattern MODIFY_SIGNAL = java.util.regex.Pattern.compile(
+        "改成|修改|改為|改用|調整|換成|設成|設定為|移除|刪除|刪掉|拿掉|加上|補上"
+        + "|change|modify|update|set\\s|remove|delete|replace|rename");
+
+    /**
+     * 意圖修正：LLM 意圖分析偶爾解析失敗回 UNKNOWN/CHITCHAT，
+     * 或把「照剛剛說的做」判成 CONFIRM——這些在「編輯器已開啟流程」的情境下
+     * 都應該交給 Builder 依現有流程與對話歷史處理，避免落到閒聊代理亂答。
+     */
+    private Intent refineIntent(Intent intent, AgentContext context) {
+        boolean hasFlow = context.getCurrentNodes() != null && !context.getCurrentNodes().isEmpty();
+        if (!hasFlow || intent == null) {
+            return intent;
+        }
+        String input = context.getUserInput() != null ? context.getUserInput() : "";
+        boolean modifySignal = MODIFY_SIGNAL.matcher(input.toLowerCase()).find();
+        boolean hasHistory = context.getConversationHistory() != null
+            && !context.getConversationHistory().isEmpty();
+
+        Intent.IntentType type = intent.getType();
+        boolean shouldRetarget =
+            ((type == Intent.IntentType.UNKNOWN || type == Intent.IntentType.CHITCHAT) && modifySignal)
+            || (type == Intent.IntentType.CONFIRM && hasHistory);
+        if (!shouldRetarget) {
+            return intent;
+        }
+        log.info("Refining intent {} -> MODIFY_FLOW (flow open, modifySignal={}, history={})",
+            type, modifySignal, hasHistory);
+        return Intent.builder()
+            .type(Intent.IntentType.MODIFY_FLOW)
+            .confidence(0.7)
+            .understanding(intent.getUnderstanding())
+            .entities(intent.getEntities())
+            .build();
     }
 
     /**
