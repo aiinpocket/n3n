@@ -132,4 +132,32 @@ class N3nExpressionEvaluatorTest {
         Object value = evaluator.evaluate("{{$node['2'].output.imageUrl}}", context);
         assertThat(value).isEqualTo("https://fal.media/files/a.png");
     }
+
+    @Test
+    @DisplayName("n8n 風格的 ={{ }} 前綴會被剝除而非當成字面字串")
+    void evaluate_n8nEqualsPrefix_resolvesField() {
+        Object value = evaluator.evaluate("={{$json.foo}}", context);
+        assertThat(value).isEqualTo("bar");
+    }
+
+    @Test
+    @DisplayName("範本的 ={{ }} 前綴同樣會被剝除並代入值")
+    void evaluateTemplate_n8nEqualsPrefix_interpolates() {
+        String result = evaluator.evaluateTemplate("={{$json.foo}}-suffix", context);
+        assertThat(result).isEqualTo("bar-suffix");
+    }
+
+    @Test
+    @DisplayName("不是 ={{ 開頭的等號字串不受影響（例如純文字設定值）")
+    void evaluateTemplate_plainEquals_isUntouched() {
+        String result = evaluator.evaluateTemplate("=not an expression", context);
+        assertThat(result).isEqualTo("=not an expression");
+    }
+
+    @Test
+    @DisplayName("範本前後空白不會被吃掉")
+    void evaluateTemplate_preservesSurroundingWhitespace() {
+        String result = evaluator.evaluateTemplate("  {{$json.foo}}  ", context);
+        assertThat(result).isEqualTo("  bar  ");
+    }
 }

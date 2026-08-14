@@ -66,7 +66,7 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             return null;
         }
 
-        String trimmed = expression.trim();
+        String trimmed = stripLeadingEquals(expression.trim());
 
         // Remove surrounding {{ }} if present
         if (trimmed.startsWith("{{") && trimmed.endsWith("}}")) {
@@ -76,14 +76,32 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
         return evaluateExpression(trimmed, context);
     }
 
+    /**
+     * 剝掉 n8n 風格的 {@code =} 前綴（{@code ={{ $json.x }}}）。
+     *
+     * <p>AI 生成流程時很容易寫成這種形式。不處理的話整個值會被當成字面字串，
+     * 不會報錯卻輸出一串 {@code ={{ ... }}}——是最難查的那種靜默錯誤。
+     */
+    private static String stripLeadingEquals(String value) {
+        if (value.length() > 1 && value.charAt(0) == '=' && value.startsWith("={{")) {
+            return value.substring(1).trim();
+        }
+        return value;
+    }
+
     @Override
     public String evaluateTemplate(String template, NodeExecutionContext context) {
-        if (template == null || !containsExpression(template)) {
-            return template;
+        if (template == null) {
+            return null;
+        }
+        // 同樣容忍 ={{ ... }}。只在確實是這個前綴時剝除，不動其餘內容的前後空白
+        String normalized = template.startsWith("={{") ? template.substring(1) : template;
+        if (!containsExpression(normalized)) {
+            return normalized;
         }
 
         StringBuffer result = new StringBuffer();
-        Matcher matcher = EXPRESSION_PATTERN.matcher(template);
+        Matcher matcher = EXPRESSION_PATTERN.matcher(normalized);
 
         while (matcher.find()) {
             String expr = matcher.group(1).trim();
