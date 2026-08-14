@@ -32,7 +32,6 @@ services:
     # sock 的群組因發行版而異：多為 root:root(0)，Ubuntu 上常是 docker 群組
     # （查法：stat -c %g /var/run/docker.sock），不同時在 .env 設 DOCKER_SOCK_GID。
     group_add:
-      - "0"
       - "${DOCKER_SOCK_GID:-0}"
     networks:
       # default 保留原有平台網路；n3n-apps 讓 app 容器能以 DNS 名稱
