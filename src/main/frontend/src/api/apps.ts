@@ -44,6 +44,8 @@ export interface HostedAppItem {
 export interface AppsAvailability {
   enabled: boolean
   baseDomain: string | null
+  /** slug 之後的完整字尾（含 "." 或 "-" 分隔符），例如 "-n3n.example.com" */
+  hostSuffix?: string | null
 }
 
 export const appsApi = {

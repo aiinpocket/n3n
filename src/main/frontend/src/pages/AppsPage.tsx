@@ -79,8 +79,9 @@ export default function AppsPage() {
   }, [apps, load])
 
   const appUrl = (app: HostedAppItem): string | null => {
-    if (availability?.baseDomain) {
-      return `https://${app.slug}.${availability.baseDomain}/`
+    const suffix = availability?.hostSuffix || (availability?.baseDomain ? `.${availability.baseDomain}` : null)
+    if (suffix) {
+      return `https://${app.slug}${suffix}/`
     }
     if (app.hostPort != null) {
       return `http://${window.location.hostname}:${app.hostPort}/`

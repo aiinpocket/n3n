@@ -37,14 +37,16 @@ public class HostedAppController {
 
     /**
      * 功能可用性查詢（永遠可用，UI 據此隱藏入口）。
-     * baseDomain 供前端組出 {slug}.{base-domain} 網址；未設定時為 null，
-     * 前端退回 http://{host}:{hostPort}。
+     * hostSuffix 供前端組出 {slug}{hostSuffix} 網址（含 "." 或 "-" 分隔符）；
+     * 未設定時為 null，前端退回 http://{host}:{hostPort}。
+     * baseDomain 保留給舊版前端相容。
      */
     @GetMapping("/availability")
     public ResponseEntity<Map<String, Object>> availability() {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("enabled", appService.isEnabled());
         body.put("baseDomain", siteDomains.isConfigured() ? siteDomains.baseDomain() : null);
+        body.put("hostSuffix", siteDomains.isConfigured() ? siteDomains.hostSuffix() : null);
         return ResponseEntity.ok(body);
     }
 
