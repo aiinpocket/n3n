@@ -1656,7 +1656,9 @@
     "inputSkipForNow": "今はスキップ、後で提供する",
     "inputExtraJson": "追加設定（JSON、任意）",
     "inputExtraJsonInvalid": "追加設定が有効なJSONではありません",
-    "inputWaitingNote": "3分以内に応答がない場合、このノードは自動スキップされ、モックデータで下流の検証を続けます"
+    "inputWaitingNote": "3分以内に応答がない場合、このノードは自動スキップされ、モックデータで下流の検証を続けます",
+    "oneShotSuccess": "単発リクエストとして直接生成しました",
+    "oneShotFailed": "今回は生成できませんでした"
   },
   "aiPanel": {
     "title": "AIアシスタント",

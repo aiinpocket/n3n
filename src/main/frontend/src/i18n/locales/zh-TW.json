@@ -1656,7 +1656,9 @@
     "inputSkipForNow": "先跳過這段，我之後提供",
     "inputExtraJson": "補充設定（JSON，選填）",
     "inputExtraJsonInvalid": "補充設定不是有效的 JSON",
-    "inputWaitingNote": "3 分鐘內未回覆會自動跳過此節點，並以模擬資料繼續驗證下游"
+    "inputWaitingNote": "3 分鐘內未回覆會自動跳過此節點，並以模擬資料繼續驗證下游",
+    "oneShotSuccess": "這是一次性需求，已直接生成完成",
+    "oneShotFailed": "這次沒有生成成功"
   },
   "aiPanel": {
     "title": "AI 助手",

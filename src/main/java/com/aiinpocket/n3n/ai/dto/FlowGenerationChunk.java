@@ -83,6 +83,12 @@ public class FlowGenerationChunk {
     private Map<String, Object> inputRequest;
 
     /**
+     * 一次性生成成果（type=one_shot_result 時）：
+     * [{id, filename, mimeType, downloadUrl}]，已存入作品庫
+     */
+    private Object artifacts;
+
+    /**
      * 時間戳記
      */
     @Builder.Default
@@ -184,6 +190,18 @@ public class FlowGenerationChunk {
         return FlowGenerationChunk.builder()
                 .type("node_input_required")
                 .inputRequest(inputRequest)
+                .build();
+    }
+
+    /**
+     * 一次性生成結束事件：artifacts 為空代表生成失敗或服務未設定，
+     * message 帶白話說明。
+     */
+    public static FlowGenerationChunk oneShotResult(Object artifacts, String message) {
+        return FlowGenerationChunk.builder()
+                .type("one_shot_result")
+                .artifacts(artifacts)
+                .message(message)
                 .build();
     }
 

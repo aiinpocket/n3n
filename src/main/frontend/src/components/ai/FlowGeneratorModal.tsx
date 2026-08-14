@@ -35,11 +35,13 @@ import {
   type EdgeData,
   type NodeProbeInfo,
   type NodeInputRequest,
+  type OneShotArtifact,
   type MissingNodeInfo,
   type RequirementContext,
   type ExistingFlowDefinition,
 } from '../../api/aiAssistantStream'
 import MiniFlowPreview from './MiniFlowPreview'
+import ChatArtifactPreview from './ChatArtifactPreview'
 import AIThinkingIndicator from './AIThinkingIndicator'
 import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
@@ -61,7 +63,7 @@ interface Props {
   initialDescription?: string
 }
 
-type Step = 'input' | 'conversation' | 'generating' | 'preview' | 'error'
+type Step = 'input' | 'conversation' | 'generating' | 'preview' | 'oneShotDone' | 'error'
 
 /** Initial version created by the one-click "Create & Publish" action */
 const INITIAL_VERSION = '1.0.0'
@@ -144,6 +146,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [inputRequest, setInputRequest] = useState<NodeInputRequest | null>(null)
   const [inputValues, setInputValues] = useState<Record<string, string>>({})
   const [inputSubmitting, setInputSubmitting] = useState(false)
+  // 一次性生成成果（非流程需求：如「幫我生成一張圖」，直接產出並存作品庫）
+  const [oneShotResult, setOneShotResult] = useState<{ artifacts: OneShotArtifact[]; message: string } | null>(null)
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -297,6 +301,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setPreviewNodes([])
     setPreviewEdges([])
     setProbeResults({})
+    setOneShotResult(null)
     setInputRequest(null)
     setInputValues({})
     setStreamMissingNodes([])
@@ -470,6 +475,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setPreviewNodes([])
     setPreviewEdges([])
     setProbeResults({})
+    setOneShotResult(null)
     setInputRequest(null)
     setInputValues({})
     setStreamMissingNodes([])
@@ -522,6 +528,11 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             setProbeResults((prev) => ({ ...prev, [probe.nodeId]: probe }))
             // 該節點的詢問已有結論（提供後真打完成/跳過/逾時），收起輸入卡片
             setInputRequest((prev) => (prev && prev.nodeId === probe.nodeId ? null : prev))
+          },
+          onOneShotResult: (artifacts, msg) => {
+            if (!mountedRef.current || controller.signal.aborted) return
+            setOneShotResult({ artifacts, message: msg })
+            setStep('oneShotDone')
           },
           onInputRequired: (request) => {
             if (!mountedRef.current || controller.signal.aborted) return
@@ -1124,6 +1135,24 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     )
   }
 
+  /** 一次性生成結果：成果已存作品庫（或顯示無法生成的白話說明） */
+  const renderOneShotDoneStep = () => {
+    if (!oneShotResult) return null
+    const success = oneShotResult.artifacts.length > 0
+    return (
+      <div>
+        <Alert
+          type={success ? 'success' : 'warning'}
+          showIcon
+          title={success ? t('flowGenerator.oneShotSuccess') : t('flowGenerator.oneShotFailed')}
+          description={oneShotResult.message}
+          style={{ marginBottom: 16 }}
+        />
+        {success && <ChatArtifactPreview artifacts={oneShotResult.artifacts} />}
+      </div>
+    )
+  }
+
   const renderGeneratingStep = () => (
     <div>
       <Card size="small" style={{ marginBottom: 16 }}>
@@ -1468,6 +1497,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
         return renderGeneratingStep()
       case 'preview':
         return renderPreviewStep()
+      case 'oneShotDone':
+        return renderOneShotDoneStep()
       case 'error':
         return renderErrorStep()
     }
@@ -1482,6 +1513,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       case 'generating':
         return 2
       case 'preview':
+      case 'oneShotDone':
       case 'error':
         return 3
     }
@@ -1568,6 +1600,13 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             >
               {t('ai.generator.createAndPublish')}
             </Button>
+          </Space>
+        )
+      case 'oneShotDone':
+        return (
+          <Space>
+            <Button onClick={handleReset}>{t('flowGenerator.redescribe')}</Button>
+            <Button type="primary" onClick={handleClose}>{t('common.close')}</Button>
           </Space>
         )
       case 'error':

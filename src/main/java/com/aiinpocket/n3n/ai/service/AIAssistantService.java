@@ -803,6 +803,14 @@ public class AIAssistantService {
     public Flux<FlowGenerationChunk> generateFlowStream(GenerateFlowRequest request, UUID userId) {
         log.info("Starting flow generation stream for user: {}", userId);
 
+        // 一次性生成：使用者要的是「現在就給我一張圖」而非流程——
+        // 直接生成、存作品庫，以 one_shot_result 回覆生成器
+        OneShotGenerationService.OneShotRequest oneShot =
+            oneShotGenerationService.detect(request.getUserInput(), userId);
+        if (oneShot != null) {
+            return oneShotFlowGeneratorStream(userId, oneShot);
+        }
+
         Set<String> installedTypes = getInstalledNodeTypes(userId);
 
         return naturalLanguageModule.generateFlowStreamFull(
@@ -819,6 +827,45 @@ public class AIAssistantService {
             .onErrorResume(e -> {
                 log.error("Flow generation stream error: {}", e.getClass().getSimpleName());
                 return Flux.just(FlowGenerationChunk.error("Flow generation stream error"));
+            });
+    }
+
+    /**
+     * 把一次性生成的聊天串流轉成流程生成器聽得懂的 chunk：
+     * text→thinking、progress→progress(one_shot)、結果→one_shot_result；
+     * 若串流結束都沒有成果（失敗/未設金鑰），補發空 artifacts 的 one_shot_result
+     * 讓前端能顯示說明而不是卡在生成畫面。
+     */
+    private Flux<FlowGenerationChunk> oneShotFlowGeneratorStream(
+            UUID userId, OneShotGenerationService.OneShotRequest oneShot) {
+        StringBuilder textCollector = new StringBuilder();
+        java.util.concurrent.atomic.AtomicBoolean resultEmitted =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        return oneShotGenerationService.generateStream(userId, oneShot, text -> {})
+            .flatMap(chunk -> {
+                switch (chunk.getType()) {
+                    case "progress":
+                        return Flux.just(FlowGenerationChunk.progress(
+                            chunk.getProgress() != null ? chunk.getProgress() : 50, "one_shot"));
+                    case "text":
+                        textCollector.append(chunk.getText());
+                        return Flux.just(FlowGenerationChunk.thinking(chunk.getText()));
+                    case "structured":
+                        resultEmitted.set(true);
+                        return Flux.just(FlowGenerationChunk.oneShotResult(
+                            chunk.getStructuredData().get("artifacts"), textCollector.toString()));
+                    default:
+                        return Flux.empty();
+                }
+            })
+            .concatWith(Flux.defer(() -> resultEmitted.get()
+                ? Flux.empty()
+                : Flux.just(FlowGenerationChunk.oneShotResult(List.of(), textCollector.toString()))))
+            .timeout(Duration.ofMinutes(5))
+            .onErrorResume(e -> {
+                log.error("One-shot generator stream error: {}", e.getClass().getSimpleName());
+                return Flux.just(FlowGenerationChunk.error("One-shot generation failed"));
             });
     }
 

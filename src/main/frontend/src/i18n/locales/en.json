@@ -1656,7 +1656,9 @@
     "inputSkipForNow": "Skip for now, I'll provide later",
     "inputExtraJson": "Additional config (JSON, optional)",
     "inputExtraJsonInvalid": "Additional config is not valid JSON",
-    "inputWaitingNote": "If no reply within 3 minutes, this node is auto-skipped and downstream verification continues with mock data"
+    "inputWaitingNote": "If no reply within 3 minutes, this node is auto-skipped and downstream verification continues with mock data",
+    "oneShotSuccess": "One-off request — generated directly",
+    "oneShotFailed": "Generation didn't succeed this time"
   },
   "aiPanel": {
     "title": "AI Assistant",

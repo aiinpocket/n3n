@@ -58,7 +58,10 @@ public class OneShotGenerationService {
     );
 
     /**
-     * 判斷訊息是否為一次性媒體生成需求。非此類需求回傳 null（走原本的多代理路由）。
+     * 判斷訊息是否為一次性媒體生成需求。非此類需求回傳 null（走原本的路由）。
+     *
+     * 規則命中（有媒體字眼、無流程字眼）即預設為一次性；AI 只負責「否決」與
+     * 產生更好的英文提示詞——AI 失敗時仍以原訊息當提示詞繼續，不讓偵測默默失效。
      */
     public OneShotRequest detect(String message, UUID userId) {
         if (message == null || message.isBlank()) {
@@ -74,24 +77,29 @@ public class OneShotGenerationService {
             String prompt = """
                 使用者訊息：%s
 
-                判斷這是不是「現在就要一個生成結果」的一次性請求（例如：幫我畫一張圖），
-                而不是要建立自動化流程。只回傳 JSON：
-                {"oneShot": true|false, "kind": "image"|"none", "prompt": "適合拿去給文生圖模型的英文描述"}
-                不確定就回 {"oneShot": false, "kind": "none", "prompt": ""}。
+                這則訊息含有圖片相關字眼且沒有排程/自動化字眼，預設視為「現在就要一張圖」的一次性生成請求。
+                只有在訊息明顯是在「詢問、討論或設定流程」而非要求生成時才否決。只回傳 JSON：
+                {"oneShot": true|false, "prompt": "適合文生圖模型的英文描述（具體、含風格與構圖）"}
                 """.formatted(message.length() > 800 ? message.substring(0, 800) : message);
             String answer = aiClient.chat(prompt, "你是需求分類器，只輸出 JSON。", 300, 0.1, userId,
                 com.aiinpocket.n3n.ai.provider.AiTaskType.LIGHT).trim();
             String json = answer.replaceAll("^```(json)?", "").replaceAll("```$", "").trim();
             Map<String, Object> parsed = objectMapper.readValue(json,
                 new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-            if (Boolean.TRUE.equals(parsed.get("oneShot")) && "image".equals(parsed.get("kind"))
-                && parsed.get("prompt") instanceof String p && !p.isBlank()) {
-                return new OneShotRequest("image", p);
+            if (Boolean.FALSE.equals(parsed.get("oneShot"))) {
+                log.info("One-shot detection vetoed by AI for message: {}",
+                    message.substring(0, Math.min(50, message.length())));
+                return null;
             }
+            String refined = parsed.get("prompt") instanceof String p && !p.isBlank() ? p : message;
+            log.info("One-shot image generation detected: {}",
+                message.substring(0, Math.min(50, message.length())));
+            return new OneShotRequest("image", refined);
         } catch (Exception e) {
-            log.debug("One-shot detection failed: {}", e.getMessage());
+            // AI 不可用也不放棄：規則已命中，用原訊息當提示詞直接生成
+            log.info("One-shot AI confirmation unavailable ({}), proceeding by rule", e.getMessage());
+            return new OneShotRequest("image", message);
         }
-        return null;
     }
 
     /**

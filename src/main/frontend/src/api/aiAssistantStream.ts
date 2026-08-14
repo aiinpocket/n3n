@@ -157,6 +157,7 @@ export interface FlowGenerationChunk {
     | 'edge_added'
     | 'node_probed'
     | 'node_input_required'
+    | 'one_shot_result'
     | 'missing_nodes'
     | 'done'
     | 'error'
@@ -167,6 +168,8 @@ export interface FlowGenerationChunk {
   edge?: EdgeData
   probe?: NodeProbeInfo
   inputRequest?: NodeInputRequest
+  /** 一次性生成成果（已存作品庫；空陣列代表失敗或服務未設定） */
+  artifacts?: OneShotArtifact[]
   missingNodes?: MissingNodeInfo[]
   flowDefinition?: {
     nodes: unknown[]
@@ -208,6 +211,14 @@ export interface NodeProbeInfo {
   outputSample?: string
 }
 
+/** 一次性生成成果 */
+export interface OneShotArtifact {
+  id: string
+  filename: string
+  mimeType: string
+  downloadUrl?: string
+}
+
 /** 詢問中要使用者填寫的欄位（白話標籤，非技術 key） */
 export interface NodeInputField {
   key: string
@@ -239,6 +250,7 @@ export interface FlowGenerationCallbacks {
   onEdgeAdded?: (edge: EdgeData) => void
   onNodeProbed?: (probe: NodeProbeInfo) => void
   onInputRequired?: (request: NodeInputRequest) => void
+  onOneShotResult?: (artifacts: OneShotArtifact[], message: string) => void
   onMissingNodes?: (missing: MissingNodeInfo[]) => void
   onDone?: (flowDefinition: { nodes: unknown[]; edges: unknown[] }, requiredNodes: string[]) => void
   onError?: (error: string) => void
@@ -307,6 +319,9 @@ export async function generateFlowStream(
             if (chunk.inputRequest) {
               callbacks.onInputRequired?.(chunk.inputRequest)
             }
+            break
+          case 'one_shot_result':
+            callbacks.onOneShotResult?.(chunk.artifacts || [], chunk.message || '')
             break
           case 'missing_nodes':
             if (chunk.missingNodes) {
