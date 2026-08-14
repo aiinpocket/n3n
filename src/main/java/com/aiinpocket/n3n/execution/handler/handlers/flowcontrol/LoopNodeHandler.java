@@ -52,7 +52,15 @@ public class LoopNodeHandler extends AbstractNodeHandler {
         boolean stopOnError = getBooleanConfig(context, "stopOnError", false);
 
         // Get the array to iterate
-        Object arrayValue = getNestedValue(inputData, arrayField);
+        // AI 生成的節點常用 loopOver/items 直接放（已評估的）清單，優先採用
+        Object arrayValue = context.getNodeConfig().get("loopOver");
+        if (!(arrayValue instanceof List) && !(arrayValue != null && arrayValue.getClass().isArray())) {
+            Object itemsConfig = context.getNodeConfig().get("items");
+            arrayValue = (itemsConfig instanceof List) ? itemsConfig : null;
+        }
+        if (arrayValue == null) {
+            arrayValue = getNestedValue(inputData, arrayField);
+        }
 
         if (arrayValue == null) {
             log.warn("Array field '{}' not found in input data", arrayField);

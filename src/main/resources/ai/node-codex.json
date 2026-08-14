@@ -241,7 +241,7 @@
     "inputFormats": [
       "陣列/列表"
     ],
-    "bestPractices": "注意迴圈次數限制，避免無限迴圈"
+    "bestPractices": "重要限制：loop 節點目前「不會」讓下游節點逐項重複執行，它只把清單分批放進輸出。固定的少量清單（例如 2-3 支股票、幾個網址）請不要用 loop——直接為每個項目建立各自的節點（如「取得 ONDS 財報」「取得 VST 財報」兩個 httpRequest），或在單一節點內一次處理全部項目。設定來源可用 arrayField（輸入資料中的欄位路徑）或 loopOver（{{...}} 表達式）。"
   },
   "code": {
     "displayName": "程式碼",
@@ -652,7 +652,7 @@
       "claude",
       "aiMemory"
     ],
-    "bestPractices": "不需要憑證也能執行：沒掛憑證時會自動改用平台共用 AI 設定（含供應商與模型）。resource 固定為 chat、operation 固定為 sendMessage（可省略，會自動補上）。建議不要指定 model，讓平台預設模型生效；若指定 provider 但平台沒有該供應商金鑰，會自動切換到平台預設供應商。prompt 為必填，可用 {{...}} 表達式帶入上游資料。搭配 AI Memory 節點可實現記憶功能"
+    "bestPractices": "提示詞欄位名稱是 prompt（不要用 userPrompt/message，雖然系統會相容讀取）；systemPrompt 選填。prompt 中用 {{$node['節點名'].json.field}} 帶入上游資料，AI 回覆在輸出的 content（別名 text）。不需要憑證也能執行：沒掛憑證時會自動改用平台共用 AI 設定（含供應商與模型）。resource 固定為 chat、operation 固定為 sendMessage（可省略，會自動補上）。建議不要指定 model，讓平台預設模型生效；若指定 provider 但平台沒有該供應商金鑰，會自動切換到平台預設供應商。搭配 AI Memory 節點可實現記憶功能"
   },
   "aiAgent": {
     "displayName": "AI Agent",

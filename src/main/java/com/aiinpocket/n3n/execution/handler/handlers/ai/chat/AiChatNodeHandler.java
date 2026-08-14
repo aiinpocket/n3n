@@ -138,7 +138,18 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         String providerId = getParam(params, "provider", "openai");
         String model = getParam(params, "model", "");
         String systemPrompt = getParam(params, "systemPrompt", "");
-        String prompt = getRequiredParam(params, "prompt");
+        // AI 生成的節點常把提示詞放在 userPrompt/message，一併接受（config 已完成表達式評估）
+        String prompt = getParam(params, "prompt", "");
+        if (prompt.isBlank()) {
+            prompt = getStringConfig(context, "userPrompt", "");
+        }
+        if (prompt.isBlank()) {
+            prompt = getStringConfig(context, "message", "");
+        }
+        if (prompt.isBlank()) {
+            return NodeExecutionResult.failure(
+                "Required parameter 'prompt' is missing｜請在節點設定填寫要給 AI 的訊息內容");
+        }
         double temperature = getDoubleParam(params, "temperature", 0.7);
         int maxTokens = getIntParam(params, "maxTokens", 4096);
         boolean includeHistory = getBoolParam(params, "includeHistory", false);

@@ -873,7 +873,8 @@ public class ExecutionService {
         try {
             // Execute using handler registry
             NodeExecutionResult result = executeNodeHandler(
-                executionId, nodeId, nodeType, data, context, nodeOutputs);
+                executionId, nodeId, nodeType, data, context, nodeOutputs,
+                withLabelAliases(nodes, nodeOutputs));
 
             // Check for pause request
             if (result.isPauseRequested()) {
@@ -913,10 +914,35 @@ public class ExecutionService {
         }
     }
 
+    /**
+     * previousOutputs 以節點 id 為 key；補上「節點標籤 → 同一輸出」的別名，
+     * 讓 AI 生成流程慣用的 {{$node['取得財報資料'].json}} 也能解析。
+     * 只做為表達式解析用，不寫回實際儲存的輸出。
+     */
+    private Map<String, Object> withLabelAliases(List<Map<String, Object>> nodes,
+                                                 Map<String, Object> nodeOutputs) {
+        Map<String, Object> augmented = new LinkedHashMap<>(nodeOutputs);
+        for (Map<String, Object> node : nodes) {
+            Object id = node.get("id");
+            Object dataObj = node.get("data");
+            if (id == null || !(dataObj instanceof Map)) {
+                continue;
+            }
+            Object label = ((Map<?, ?>) dataObj).get("label");
+            if (label instanceof String l && !l.isBlank()
+                && !augmented.containsKey(l)
+                && nodeOutputs.containsKey(id.toString())) {
+                augmented.put(l, nodeOutputs.get(id.toString()));
+            }
+        }
+        return augmented;
+    }
+
     @SuppressWarnings("unchecked")
     private NodeExecutionResult executeNodeHandler(UUID executionId, String nodeId, String nodeType,
                                                     Map<String, Object> data, Map<String, Object> context,
-                                                    Map<String, Object> nodeOutputs) {
+                                                    Map<String, Object> nodeOutputs,
+                                                    Map<String, Object> previousOutputsAliased) {
         // Normalize node type
         String handlerType = normalizeNodeType(nodeType);
         log.info("Node {} has type '{}', normalized to '{}'", nodeId, nodeType, handlerType);
@@ -981,7 +1007,7 @@ public class ExecutionService {
             .nodeConfig(nodeConfig)
             .inputData(inputData)
             .globalContext(context)
-            .previousOutputs(nodeOutputs)
+            .previousOutputs(previousOutputsAliased)
             .flowId(flowId)
             .flowVersion(flowVersion)
             .userId(userId)
@@ -998,7 +1024,7 @@ public class ExecutionService {
             .nodeConfig(evaluatedConfig)
             .inputData(inputData)
             .globalContext(context)
-            .previousOutputs(nodeOutputs)
+            .previousOutputs(previousOutputsAliased)
             .flowId(flowId)
             .flowVersion(flowVersion)
             .userId(userId)
