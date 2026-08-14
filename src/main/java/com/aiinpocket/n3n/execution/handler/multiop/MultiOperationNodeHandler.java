@@ -84,8 +84,27 @@ public abstract class MultiOperationNodeHandler extends AbstractNodeHandler {
     @Override
     protected final NodeExecutionResult doExecute(NodeExecutionContext context) {
         // Extract resource and operation from config
-        String resource = getStringConfig(context, "resource", "");
-        String operation = getStringConfig(context, "operation", "");
+        String configuredResource = getStringConfig(context, "resource", "");
+        String configuredOperation = getStringConfig(context, "operation", "");
+
+        // 套用與 getConfigSchema() 一致的預設值（僅 opt-in 的節點）：AI 生成的 config 可能缺 resource/operation
+        if (applyDefaultResourceOperation()) {
+            if (configuredResource.isEmpty() && !getResources().isEmpty()) {
+                configuredResource = inferResourceFromOperation(configuredOperation)
+                    .orElse(getResources().keySet().iterator().next());
+                log.debug("Node {} missing 'resource', defaulting to '{}'", getType(), configuredResource);
+            }
+            if (configuredOperation.isEmpty()) {
+                List<OperationDef> resourceOps = getOperations().get(configuredResource);
+                if (resourceOps != null && !resourceOps.isEmpty()) {
+                    configuredOperation = resourceOps.get(0).getName();
+                    log.debug("Node {} missing 'operation', defaulting to '{}'", getType(), configuredOperation);
+                }
+            }
+        }
+
+        final String resource = configuredResource;
+        final String operation = configuredOperation;
 
         if (resource.isEmpty()) {
             return NodeExecutionResult.failure("Resource not selected");
@@ -115,6 +134,27 @@ public abstract class MultiOperationNodeHandler extends AbstractNodeHandler {
             getType(), resource, operation, params.size());
 
         return executeOperation(context, resource, operation, credential, params);
+    }
+
+    /**
+     * 是否在 config 缺 resource/operation 時套用 schema 預設值（而非直接失敗）。
+     * 預設關閉以維持 fail-fast；只有預設行為安全的節點（如 falAi 生圖）覆寫為 true。
+     */
+    protected boolean applyDefaultResourceOperation() {
+        return false;
+    }
+
+    /**
+     * 由 operation 名稱反查其所屬 resource（config 缺 resource 時使用）。
+     */
+    private Optional<String> inferResourceFromOperation(String operation) {
+        if (operation == null || operation.isEmpty()) {
+            return Optional.empty();
+        }
+        return getOperations().entrySet().stream()
+            .filter(e -> e.getValue().stream().anyMatch(op -> op.getName().equals(operation)))
+            .map(Map.Entry::getKey)
+            .findFirst();
     }
 
     /**

@@ -30,7 +30,6 @@ import { executionApi, type ExecutionResponse } from '../api/execution'
 import { activityApi, type UserActivity } from '../api/activity'
 import { getLocale } from '../utils/locale'
 import { useAuthStore } from '../stores/authStore'
-import CloudImportSection from '../components/CloudImportSection'
 import AiPromptHero from '../components/ai/AiPromptHero'
 
 const { Title, Text, Paragraph } = Typography
@@ -453,8 +452,6 @@ export default function DashboardPage() {
         </Col>
       </Row>
 
-      {/* Cloud Import */}
-      <CloudImportSection />
     </div>
   )
 }

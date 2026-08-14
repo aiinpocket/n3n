@@ -1630,6 +1630,30 @@
     "relatedNodes": [
       "aiVision",
       "saveArtifact"
+    ],
+    "bestPractices": "config 必須同時包含 resource 與 operation：圖片用 resource=image、operation=generate；影片用 resource=video、operation=textToVideo 或 imageToVideo。prompt 建議使用英文描述。",
+    "examples": [
+      {
+        "scenario": "文生圖（FLUX）",
+        "config": {
+          "resource": "image",
+          "operation": "generate",
+          "model": "fal-ai/flux/schnell",
+          "prompt": "A cozy coffee shop interior, warm lighting, watercolor style",
+          "imageSize": "landscape_16_9"
+        },
+        "expectedOutput": "imageUrl"
+      },
+      {
+        "scenario": "文生影片",
+        "config": {
+          "resource": "video",
+          "operation": "textToVideo",
+          "model": "fal-ai/kling-video/v2.1/standard/text-to-video",
+          "prompt": "A time-lapse of clouds over a mountain lake"
+        },
+        "expectedOutput": "videoUrl"
+      }
     ]
   },
   "googleCloudStorage": {

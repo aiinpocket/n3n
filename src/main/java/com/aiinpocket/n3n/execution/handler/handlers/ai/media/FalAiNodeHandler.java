@@ -52,6 +52,12 @@ public class FalAiNodeHandler extends MultiOperationNodeHandler {
         return "falAi";
     }
 
+    /** AI 生成的 config 常缺 resource/operation；此節點套預設值（image.generate）是安全的 */
+    @Override
+    protected boolean applyDefaultResourceOperation() {
+        return true;
+    }
+
     @Override
     public String getDisplayName() {
         return "AI Image / Video (fal.ai)";
