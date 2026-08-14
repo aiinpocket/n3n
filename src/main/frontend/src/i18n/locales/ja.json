@@ -1642,7 +1642,11 @@
       "validating": "検証中"
     },
     "autoTestLabel": "作成後に自動テスト＆AI分析",
-    "autoTestHint": "フロー作成後すぐに一度実行し、AIアシスタントが実際の結果を確認して状況を説明し、調整をサポートします"
+    "autoTestHint": "フロー作成後すぐに一度実行し、AIアシスタントが実際の結果を確認して状況を説明し、調整をサポートします",
+    "verificationTitle": "バックグラウンド検証結果（実際に実行済み）",
+    "probeVerified": "検証済み（{{ms}} ms、実際に実行）",
+    "probeNeedsInput": "情報の入力が必要",
+    "probeSkipped": "バックグラウンド未実行"
   },
   "aiPanel": {
     "title": "AIアシスタント",

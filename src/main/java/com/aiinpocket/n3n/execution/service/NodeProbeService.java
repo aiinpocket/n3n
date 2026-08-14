@@ -54,6 +54,12 @@ public class NodeProbeService {
 
     public ProbeResult probe(UUID userId, String nodeType, String nodeId,
                              Map<String, Object> config, Map<String, Object> previousOutputs) {
+        return probe(userId, nodeType, nodeId, config, previousOutputs, PROBE_TIMEOUT_SECONDS);
+    }
+
+    public ProbeResult probe(UUID userId, String nodeType, String nodeId,
+                             Map<String, Object> config, Map<String, Object> previousOutputs,
+                             long timeoutSeconds) {
         UUID probeId = UUID.randomUUID();
         Instant start = Instant.now();
         String handlerType = normalizeNodeType(nodeType);
@@ -113,7 +119,7 @@ public class NodeProbeService {
 
             CompletableFuture<NodeExecutionResult> future =
                 CompletableFuture.supplyAsync(() -> handler.execute(context), probeExecutor);
-            NodeExecutionResult result = future.get(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            NodeExecutionResult result = future.get(timeoutSeconds, TimeUnit.SECONDS);
 
             long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
             if (result.isSuccess()) {
@@ -125,7 +131,7 @@ public class NodeProbeService {
                 durationMs, probeId);
         } catch (TimeoutException e) {
             return new ProbeResult(false, null,
-                "Probe timed out after " + PROBE_TIMEOUT_SECONDS + "s", elapsed(start), probeId);
+                "Probe timed out after " + timeoutSeconds + "s", elapsed(start), probeId);
         } catch (Exception e) {
             log.warn("Node probe failed: type={} error={}", nodeType, e.getMessage());
             String message = e.getMessage() != null ? e.getMessage() : "Probe failed";
@@ -138,7 +144,7 @@ public class NodeProbeService {
     }
 
     /** 與 ExecutionService.normalizeNodeType 一致的別名對應。 */
-    static String normalizeNodeType(String nodeType) {
+    public static String normalizeNodeType(String nodeType) {
         if (nodeType == null || nodeType.isEmpty()) {
             return "action";
         }

@@ -64,6 +64,7 @@ public class NaturalLanguageModule {
     private final PluginRepository pluginRepository;
     private final com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService;
     private final com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine;
+    private final com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService;
 
     public NaturalLanguageModule(
             AssistantAiClient aiClient,
@@ -73,7 +74,9 @@ public class NaturalLanguageModule {
             ObjectMapper objectMapper,
             @Qualifier("pluginPluginRepository") PluginRepository pluginRepository,
             com.aiinpocket.n3n.ai.usermemory.service.UserMemoryService userMemoryService,
-            com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine) {
+            com.aiinpocket.n3n.ai.layout.FlowLayoutEngine flowLayoutEngine,
+            com.aiinpocket.n3n.ai.service.GenerationProbeService generationProbeService) {
+        this.generationProbeService = generationProbeService;
         this.flowLayoutEngine = flowLayoutEngine;
         this.aiClient = aiClient;
         this.nodeHandlerRegistry = nodeHandlerRegistry;
@@ -284,6 +287,26 @@ public class NaturalLanguageModule {
                     sink.tryEmitNext(FlowGenerationChunk.edgeAdded(edgeData));
                     Thread.sleep(100);
                 }
+
+                // Phase 6.5: 背景驗證（92-98%）——系統逐節點真打一次，
+                // 實際輸出往下游餵；有副作用的節點只驗設定不執行
+                emitProgress(sink, 92, "Verifying nodes with real execution...", "verifying");
+                try {
+                    generationProbeService.verifyFlow(userId, layoutedNodes, edges, verification -> {
+                        Map<String, Object> probe = new HashMap<>();
+                        probe.put("nodeId", verification.nodeId());
+                        probe.put("status", verification.status());
+                        if (verification.message() != null) probe.put("message", verification.message());
+                        probe.put("durationMs", verification.durationMs());
+                        if (verification.outputSample() != null) {
+                            probe.put("outputSample", verification.outputSample());
+                        }
+                        sink.tryEmitNext(FlowGenerationChunk.nodeProbed(probe));
+                    });
+                } catch (Exception e) {
+                    log.warn("Generation background verification failed: {}", e.getMessage());
+                }
+                emitProgress(sink, 98, "Verification complete", "verifying");
 
                 // Phase 7: Check for missing nodes (95-100%)
                 if (!result.missingNodes().isEmpty()) {

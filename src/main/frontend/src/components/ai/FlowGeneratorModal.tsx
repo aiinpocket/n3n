@@ -7,6 +7,7 @@ import {
   ThunderboltOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
+  InfoCircleOutlined,
   DownloadOutlined,
   LoadingOutlined,
   CheckOutlined,
@@ -31,6 +32,7 @@ import {
   type PluginInstallTaskStatus,
   type NodeData,
   type EdgeData,
+  type NodeProbeInfo,
   type MissingNodeInfo,
   type RequirementContext,
   type ExistingFlowDefinition,
@@ -131,6 +133,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [streamStage, setStreamStage] = useState('')
   const [streamMessage, setStreamMessage] = useState('')
   const [previewNodes, setPreviewNodes] = useState<NodeData[]>([])
+  // 背景驗證結果：生成時系統逐節點真打一次的狀態（{nodeId: probe}）
+  const [probeResults, setProbeResults] = useState<Record<string, NodeProbeInfo>>({})
   const [previewEdges, setPreviewEdges] = useState<EdgeData[]>([])
   const [streamMissingNodes, setStreamMissingNodes] = useState<MissingNodeInfo[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -283,6 +287,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStreamMessage('')
     setPreviewNodes([])
     setPreviewEdges([])
+    setProbeResults({})
     setStreamMissingNodes([])
     setThinkingStage(0)
     setThinkingThoughts([])
@@ -453,6 +458,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     setStreamMessage('')
     setPreviewNodes([])
     setPreviewEdges([])
+    setProbeResults({})
     setStreamMissingNodes([])
 
     const controller = new AbortController()
@@ -497,6 +503,10 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           onEdgeAdded: (edge) => {
             if (!mountedRef.current || controller.signal.aborted) return
             setPreviewEdges((prev) => [...prev, edge])
+          },
+          onNodeProbed: (probe) => {
+            if (!mountedRef.current || controller.signal.aborted) return
+            setProbeResults((prev) => ({ ...prev, [probe.nodeId]: probe }))
           },
           onMissingNodes: (missing) => {
             if (!mountedRef.current || controller.signal.aborted) return
@@ -1131,6 +1141,42 @@ export const FlowGeneratorModal: React.FC<Props> = ({
             </Space>
           </div>
         </Card>
+
+        {/* 背景驗證結果：系統已逐節點真打過一次 */}
+        {Object.keys(probeResults).length > 0 && (
+          <Card title={t('flowGenerator.verificationTitle')} size="small" style={{ marginBottom: 16 }}>
+            <Space orientation="vertical" style={{ width: '100%' }} size={6}>
+              {nodes.map((n) => {
+                const probe = probeResults[n.id]
+                if (!probe) return null
+                const icon = probe.status === 'verified'
+                  ? <CheckCircleOutlined style={{ color: 'var(--color-success, #52c41a)' }} />
+                  : probe.status === 'needsInput'
+                    ? <ExclamationCircleOutlined style={{ color: 'var(--color-warning, #faad14)' }} />
+                    : <InfoCircleOutlined style={{ color: 'var(--color-text-muted, #999)' }} />
+                return (
+                  <div key={n.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    {icon}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={{ fontSize: 13 }}>
+                        {n.label || n.id}
+                        {' — '}
+                        {probe.status === 'verified'
+                          ? t('flowGenerator.probeVerified', { ms: probe.durationMs ?? 0 })
+                          : probe.status === 'needsInput'
+                            ? t('flowGenerator.probeNeedsInput')
+                            : t('flowGenerator.probeSkipped')}
+                      </Text>
+                      {probe.message && (
+                        <div><Text type="secondary" style={{ fontSize: 12 }}>{probe.message}</Text></div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </Space>
+          </Card>
+        )}
 
         {missingNodes && missingNodes.length > 0 && (
           <Alert

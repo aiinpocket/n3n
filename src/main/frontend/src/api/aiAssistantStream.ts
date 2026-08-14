@@ -155,6 +155,7 @@ export interface FlowGenerationChunk {
     | 'understanding'
     | 'node_added'
     | 'edge_added'
+    | 'node_probed'
     | 'missing_nodes'
     | 'done'
     | 'error'
@@ -163,6 +164,7 @@ export interface FlowGenerationChunk {
   message?: string
   node?: NodeData
   edge?: EdgeData
+  probe?: NodeProbeInfo
   missingNodes?: MissingNodeInfo[]
   flowDefinition?: {
     nodes: unknown[]
@@ -195,12 +197,22 @@ export interface MissingNodeInfo {
   canAutoInstall: boolean
 }
 
+/** 背景驗證（生成時系統真打節點）結果 */
+export interface NodeProbeInfo {
+  nodeId: string
+  status: 'verified' | 'needsInput' | 'skipped'
+  message?: string
+  durationMs?: number
+  outputSample?: string
+}
+
 export interface FlowGenerationCallbacks {
   onThinking?: (message: string) => void
   onProgress?: (percent: number, stage: string, message?: string) => void
   onUnderstanding?: (understanding: string) => void
   onNodeAdded?: (node: NodeData) => void
   onEdgeAdded?: (edge: EdgeData) => void
+  onNodeProbed?: (probe: NodeProbeInfo) => void
   onMissingNodes?: (missing: MissingNodeInfo[]) => void
   onDone?: (flowDefinition: { nodes: unknown[]; edges: unknown[] }, requiredNodes: string[]) => void
   onError?: (error: string) => void
@@ -258,6 +270,11 @@ export async function generateFlowStream(
           case 'edge_added':
             if (chunk.edge) {
               callbacks.onEdgeAdded?.(chunk.edge)
+            }
+            break
+          case 'node_probed':
+            if (chunk.probe) {
+              callbacks.onNodeProbed?.(chunk.probe)
             }
             break
           case 'missing_nodes':

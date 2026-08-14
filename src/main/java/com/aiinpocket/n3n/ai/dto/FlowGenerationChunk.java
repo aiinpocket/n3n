@@ -71,6 +71,12 @@ public class FlowGenerationChunk {
     private List<String> requiredNodes;
 
     /**
+     * 背景驗證結果（type=node_probed 時）：
+     * {nodeId, status, message?, durationMs?, outputSample?}
+     */
+    private Map<String, Object> probe;
+
+    /**
      * 時間戳記
      */
     @Builder.Default
@@ -153,6 +159,18 @@ public class FlowGenerationChunk {
     /**
      * 建立錯誤片段
      */
+    /**
+     * 背景驗證（節點試打）結果事件。
+     * probe: {nodeId, status: verified|needsInput|skipped|failed, message?, durationMs?, outputSample?}
+     */
+    public static FlowGenerationChunk nodeProbed(Map<String, Object> probe) {
+        return FlowGenerationChunk.builder()
+                .type("node_probed")
+                .flowDefinition(null)
+                .probe(probe)
+                .build();
+    }
+
     public static FlowGenerationChunk error(String message) {
         return FlowGenerationChunk.builder()
                 .type("error")

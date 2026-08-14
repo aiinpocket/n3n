@@ -1642,7 +1642,11 @@
       "validating": "Validating"
     },
     "autoTestLabel": "Auto-test & AI analysis after create",
-    "autoTestHint": "After creating the flow, it runs once immediately and the AI assistant reviews the actual result, explains what happened, and helps you adjust"
+    "autoTestHint": "After creating the flow, it runs once immediately and the AI assistant reviews the actual result, explains what happened, and helps you adjust",
+    "verificationTitle": "Background verification (actually executed)",
+    "probeVerified": "Verified ({{ms}} ms, executed for real)",
+    "probeNeedsInput": "Needs your input",
+    "probeSkipped": "Not executed in background"
   },
   "aiPanel": {
     "title": "AI Assistant",

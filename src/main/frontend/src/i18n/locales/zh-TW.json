@@ -1642,7 +1642,11 @@
       "validating": "驗證中"
     },
     "autoTestLabel": "建立後自動試跑並 AI 分析",
-    "autoTestHint": "建立流程後系統會立刻執行一次，AI 小幫手會根據實際執行結果說明狀況、找出問題並協助你調整"
+    "autoTestHint": "建立流程後系統會立刻執行一次，AI 小幫手會根據實際執行結果說明狀況、找出問題並協助你調整",
+    "verificationTitle": "背景驗證結果（系統已實際執行過）",
+    "probeVerified": "已驗證通過（{{ms}} ms，真的執行過一次）",
+    "probeNeedsInput": "需要你提供資訊",
+    "probeSkipped": "未背景執行"
   },
   "aiPanel": {
     "title": "AI 助手",
