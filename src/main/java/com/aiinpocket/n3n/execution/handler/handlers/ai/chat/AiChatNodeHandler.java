@@ -150,6 +150,16 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
             return NodeExecutionResult.failure(
                 "Required parameter 'prompt' is missing｜請在節點設定填寫要給 AI 的訊息內容");
         }
+        String unresolved = findUnresolvedExpression(prompt);
+        if (unresolved != null) {
+            // 提示詞裡還留著沒接上的表達式，代表上游那份資料根本沒進來。
+            // 這時若照樣送給模型，它不會報錯，而是憑空生出一篇看似合理的內容，
+            // 流程一路顯示成功、使用者打開產出才發現是廢話——寧可在這裡就停下來。
+            return NodeExecutionResult.failure(
+                "Prompt contains unresolved expression " + unresolved
+                    + "｜要分析的資料沒有傳進來（" + unresolved + " 取不到值），"
+                    + "請確認上一個步驟有正確輸出，或調整這個欄位要引用的來源");
+        }
         double temperature = getDoubleParam(params, "temperature", 0.7);
         int maxTokens = getIntParam(params, "maxTokens", 4096);
         boolean includeHistory = getBoolParam(params, "includeHistory", false);
@@ -414,5 +424,22 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
                        "description", "Token usage statistics")
             )
         );
+    }
+
+    /** 表達式引擎解析不出來時會把 {{ ... }} 原樣留下，這裡把第一個找出來。 */
+    private static final java.util.regex.Pattern UNRESOLVED_EXPRESSION =
+        java.util.regex.Pattern.compile("\\{\\{\\s*\\$[^}]*}}");
+
+    /**
+     * 找出提示詞裡沒被代換掉的表達式；沒有就回傳 null。
+     *
+     * <p>只認以 {@code $} 開頭的形式，避免把使用者真的想輸出的大括號文字誤判成錯誤。
+     */
+    static String findUnresolvedExpression(String prompt) {
+        if (prompt == null || prompt.isEmpty()) {
+            return null;
+        }
+        java.util.regex.Matcher matcher = UNRESOLVED_EXPRESSION.matcher(prompt);
+        return matcher.find() ? matcher.group().trim() : null;
     }
 }

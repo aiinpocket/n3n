@@ -217,4 +217,31 @@ class AiChatNodeHandlerTest {
             assertThat(result.getErrorMessage()).contains("Unknown resource");
         }
     }
+
+    @Nested
+    @DisplayName("提示詞含未解析表達式")
+    class UnresolvedExpression {
+
+        @Test
+        @DisplayName("找得出沒被代換掉的 $node 表達式")
+        void findsUnresolvedNodeRef() {
+            assertThat(AiChatNodeHandler.findUnresolvedExpression(
+                "請分析這份財報：{{ $node[\"3\"].json.data }}"))
+                .isEqualTo("{{ $node[\"3\"].json.data }}");
+        }
+
+        @Test
+        @DisplayName("已完整代換的提示詞不會誤判")
+        void resolvedPromptIsClean() {
+            assertThat(AiChatNodeHandler.findUnresolvedExpression("請分析這份財報：營收 1000 億"))
+                .isNull();
+        }
+
+        @Test
+        @DisplayName("使用者自己寫的大括號文字不算未解析表達式")
+        void plainBracesNotTreatedAsExpression() {
+            assertThat(AiChatNodeHandler.findUnresolvedExpression("輸出格式為 {{ 標題 }}"))
+                .isNull();
+        }
+    }
 }
