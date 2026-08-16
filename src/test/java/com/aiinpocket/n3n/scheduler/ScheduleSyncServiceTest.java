@@ -9,6 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -251,5 +252,38 @@ class ScheduleSyncServiceTest extends BaseServiceTest {
         assertThat(ScheduleSyncService.resolveQuartzCron(Map.of(
                 "cronExpression", "0 8 * * *", "cron", "0 9 * * *")))
                 .isEqualTo("0 0 8 * * ?");
+    }
+
+    /**
+     * 編輯器實際存下來的格式：節點設定直接放在 data 頂層，沒有巢狀的 config。
+     * 上面的 definitionWithTrigger 用的是 data.config，跟真實資料不一樣——
+     * 測試因此一直是綠的，正式環境卻一個排程都沒掛上。
+     */
+    private Map<String, Object> definitionWithFlatTrigger(Map<String, Object> config) {
+        Map<String, Object> data = new HashMap<>(config);
+        data.put("label", "每季執行（財報公布後）");
+        data.put("nodeType", "scheduleTrigger");
+        return Map.of("nodes", List.of(
+                Map.of("id", "node-1", "type", "scheduleTrigger", "data", data),
+                Map.of("id", "node-2", "type", "httpRequest", "data", Map.of())
+        ));
+    }
+
+    @Test
+    @DisplayName("設定放在 data 頂層（實際儲存格式）也要掛上排程")
+    void syncFromDefinition_readsConfigFromDataRoot() throws Exception {
+        when(scheduleRepository.findByFlowId(flowId)).thenReturn(List.of());
+        when(schedulerService.scheduleCron(eq(flowId), anyString(), anyString(), eq(ownerId)))
+                .thenReturn("quartz-flat");
+
+        scheduleSyncService.syncFromDefinition(flowId, definitionWithFlatTrigger(Map.of(
+                "cron", "0 9 15 1,4,7,10 *",
+                "timezone", "Asia/Taipei"
+        )), ownerId);
+
+        ArgumentCaptor<Schedule> captor = ArgumentCaptor.forClass(Schedule.class);
+        verify(scheduleRepository).save(captor.capture());
+        assertThat(captor.getValue().getCronExpression()).isEqualTo("0 0 9 15 1,4,7,10 ?");
+        assertThat(captor.getValue().getTimezone()).isEqualTo("Asia/Taipei");
     }
 }

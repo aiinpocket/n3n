@@ -170,10 +170,15 @@ public class ScheduleSyncService {
             if (!SCHEDULE_TRIGGER_TYPE.equals(node.get("type"))) continue;
             Object id = node.get("id");
             if (id == null) continue;
+            // 節點設定就放在 data 頂層（{"cron": "...", "label": "...", "nodeType": "..."}），
+            // 不是 data.config。只認巢狀 config 的話，這裡永遠拿到空設定，
+            // 於是每個 scheduleTrigger 都被當成「沒有排程設定」略過——流程顯示已發布，
+            // 排程卻一個都沒掛上。巢狀格式仍相容，舊資料才不會壞。
             Map<String, Object> config = new HashMap<>();
-            if (node.get("data") instanceof Map<?, ?> data
-                    && data.get("config") instanceof Map<?, ?> cfg) {
-                config = new HashMap<>((Map<String, Object>) cfg);
+            if (node.get("data") instanceof Map<?, ?> data) {
+                config = data.get("config") instanceof Map<?, ?> cfg
+                    ? new HashMap<>((Map<String, Object>) cfg)
+                    : new HashMap<>((Map<String, Object>) data);
             }
             result.put(id.toString(), config);
         }
