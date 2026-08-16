@@ -152,8 +152,8 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
         }
         String unresolved = findUnresolvedExpression(prompt);
         if (unresolved != null) {
-            // 提示詞裡還留著沒接上的表達式，代表上游那份資料根本沒進來。
-            // 這時若照樣送給模型，它不會報錯，而是憑空生出一篇看似合理的內容，
+            // 提示詞裡還留著沒接上的表達式，代表要分析的資料根本沒進來。
+            // 照樣送出去的話模型不會報錯，而是憑空生出一篇看似合理的內容，
             // 流程一路顯示成功、使用者打開產出才發現是廢話——寧可在這裡就停下來。
             return NodeExecutionResult.failure(
                 "Prompt contains unresolved expression " + unresolved
@@ -434,6 +434,8 @@ public class AiChatNodeHandler extends AbstractAiNodeHandler {
      * 找出提示詞裡沒被代換掉的表達式；沒有就回傳 null。
      *
      * <p>只認以 {@code $} 開頭的形式，避免把使用者真的想輸出的大括號文字誤判成錯誤。
+     * 這個檢查放在 aiChat 而不是所有節點：到這裡時 config 的表達式已由執行引擎
+     * 評估完畢，但有些節點（例如 setFields）是在自己內部才解析，統一攔會誤傷。
      */
     static String findUnresolvedExpression(String prompt) {
         if (prompt == null || prompt.isEmpty()) {
