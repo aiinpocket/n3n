@@ -77,7 +77,8 @@ class ScheduleSyncServiceTest extends BaseServiceTest {
 
         scheduleSyncService.syncFromDefinition(flowId, definitionWithTrigger(Map.of(
                 "scheduleType", "cron",
-                "cronExpression", "0 0 9 * * ?"
+                "cronExpression", "0 0 9 * * ?",
+                "timezone", "UTC"
         )), ownerId);
 
         verify(schedulerService, never()).scheduleCron(any(), anyString(), anyString(), any());
@@ -103,7 +104,8 @@ class ScheduleSyncServiceTest extends BaseServiceTest {
 
         scheduleSyncService.syncFromDefinition(flowId, definitionWithTrigger(Map.of(
                 "scheduleType", "cron",
-                "cronExpression", "0 0 18 * * ?"
+                "cronExpression", "0 0 18 * * ?",
+                "timezone", "UTC"
         )), ownerId);
 
         verify(schedulerService).unschedule("quartz-old");
@@ -284,6 +286,22 @@ class ScheduleSyncServiceTest extends BaseServiceTest {
         ArgumentCaptor<Schedule> captor = ArgumentCaptor.forClass(Schedule.class);
         verify(scheduleRepository).save(captor.capture());
         assertThat(captor.getValue().getCronExpression()).isEqualTo("0 0 9 15 1,4,7,10 ?");
+        assertThat(captor.getValue().getTimezone()).isEqualTo("Asia/Taipei");
+    }
+
+    @Test
+    @DisplayName("節點沒指定時區時採用預設時區，而不是 UTC")
+    void syncFromDefinition_usesDefaultTimezoneWhenUnspecified() throws Exception {
+        when(scheduleRepository.findByFlowId(flowId)).thenReturn(List.of());
+        when(schedulerService.scheduleCron(eq(flowId), anyString(), eq("Asia/Taipei"), eq(ownerId)))
+                .thenReturn("quartz-tz");
+
+        scheduleSyncService.syncFromDefinition(flowId, definitionWithFlatTrigger(Map.of(
+                "cron", "0 9 * * *"
+        )), ownerId);
+
+        ArgumentCaptor<Schedule> captor = ArgumentCaptor.forClass(Schedule.class);
+        verify(scheduleRepository).save(captor.capture());
         assertThat(captor.getValue().getTimezone()).isEqualTo("Asia/Taipei");
     }
 }

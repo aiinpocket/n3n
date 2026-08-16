@@ -31,6 +31,13 @@ import java.util.regex.Pattern;
 @Slf4j
 public class N3nExpressionEvaluator implements ExpressionEvaluator {
 
+    /**
+     * $now / $today 採用的時區。容器多半跑在 UTC，直接用系統時區會讓
+     * 「今天」的日期字串對台北使用者差一天。與排程共用同一個設定鍵。
+     */
+    @org.springframework.beans.factory.annotation.Value("${n3n.default-timezone:Asia/Taipei}")
+    private String defaultTimezone = "Asia/Taipei";
+
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\{\\{\\s*(.+?)\\s*\\}\\}");
     private static final Pattern FIELD_PATH_PATTERN = Pattern.compile("^\\$([a-zA-Z_][a-zA-Z0-9_]*)(?:\\.(.+))?$");
     // 同時接受雙引號與單引號（AI 生成的流程慣用 $node['名稱']）
@@ -336,8 +343,8 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
     }
 
     /** 取目前時間的單一部位；時區與 formatNow 一致，避免同一流程裡兩種日期對不起來。 */
-    private static Object nowPart(String part) {
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault());
+    private Object nowPart(String part) {
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zone());
         return switch (part) {
             case "year" -> now.getYear();
             case "month" -> now.getMonthValue();
@@ -350,13 +357,13 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
         };
     }
 
-    private static String formatNow(String momentPattern) {
+    private String formatNow(String momentPattern) {
         String javaPattern = momentPattern
             .replace("YYYY", "yyyy")
             .replace("DD", "dd")
             .replace("A", "a");
         try {
-            return java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+            return java.time.ZonedDateTime.now(zone())
                 .format(DateTimeFormatter.ofPattern(javaPattern));
         } catch (Exception e) {
             log.warn("Unsupported date format pattern '{}': {}", momentPattern, e.getMessage());
@@ -480,5 +487,15 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
 
         // Primitives pass through unchanged
         return value;
+    }
+
+    /** 設定的時區；設定值無效時退回系統時區，不讓表達式整個壞掉。 */
+    private java.time.ZoneId zone() {
+        try {
+            return java.time.ZoneId.of(defaultTimezone);
+        } catch (Exception e) {
+            log.warn("Invalid n3n.default-timezone '{}', falling back to system zone", defaultTimezone);
+            return java.time.ZoneId.systemDefault();
+        }
     }
 }

@@ -32,6 +32,15 @@ public class ScheduleSyncService {
     private final SchedulerService schedulerService;
 
     /**
+     * 節點沒指定時區時採用的預設值。
+     *
+     * <p>使用者說「每天早上 9 點」指的是自己的當地時間，但容器多半跑在 UTC；
+     * 以 UTC 解讀會讓台北使用者的排程晚 8 小時才執行。
+     */
+    @org.springframework.beans.factory.annotation.Value("${n3n.default-timezone:Asia/Taipei}")
+    private String defaultTimezone = "Asia/Taipei";
+
+    /**
      * 依據發布中的流程定義同步自動排程：
      * 新增的 scheduleTrigger 建立排程、設定變更的更新排程、已移除或停用的節點刪除排程。
      * 個別節點同步失敗（如 cron 無效）只記 warning，不會讓發布失敗。
@@ -77,7 +86,7 @@ public class ScheduleSyncService {
                          Map<String, Object> config, Schedule existing) throws SchedulerException {
         boolean enabled = !Boolean.FALSE.equals(config.get("enabled"));
         String cron = resolveQuartzCron(config);
-        String timezone = stringValue(config.get("timezone"), "UTC");
+        String timezone = stringValue(config.get("timezone"), defaultTimezone);
 
         if (!enabled || cron == null) {
             if (existing != null) {
