@@ -160,4 +160,34 @@ class N3nExpressionEvaluatorTest {
         String result = evaluator.evaluateTemplate("  {{$json.foo}}  ", context);
         assertThat(result).isEqualTo("  bar  ");
     }
+
+    @Test
+    @DisplayName("$now.quarter() 回傳 1-4，模型不必再自己算 Math.ceil(month/3)")
+    void evaluate_nowQuarter_returnsQuarterNumber() {
+        Object value = evaluator.evaluate("{{$now.quarter()}}", context);
+        assertThat(value).isInstanceOf(Integer.class);
+        assertThat((Integer) value).isBetween(1, 4);
+    }
+
+    @Test
+    @DisplayName("$now.year()/month()/day() 回傳合理範圍的數字")
+    void evaluate_nowParts_returnNumbers() {
+        assertThat((Integer) evaluator.evaluate("{{$now.year()}}", context)).isGreaterThan(2000);
+        assertThat((Integer) evaluator.evaluate("{{$now.month()}}", context)).isBetween(1, 12);
+        assertThat((Integer) evaluator.evaluate("{{$now.day()}}", context)).isBetween(1, 31);
+    }
+
+    @Test
+    @DisplayName("不支援的算式保留原文，不再靜默變成空字串")
+    void evaluateTemplate_unsupportedArithmeticKeptVisible() {
+        String result = evaluator.evaluateTemplate("Q{{ Math.ceil($now.month() / 3) }}報告", context);
+        assertThat(result).isEqualTo("Q{{ Math.ceil($now.month() / 3) }}報告");
+    }
+
+    @Test
+    @DisplayName("認得的表達式取不到值時仍插入空字串（維持原本行為）")
+    void evaluateTemplate_knownExpressionMissingValueStaysEmpty() {
+        String result = evaluator.evaluateTemplate("[{{$json.notThere}}]", context);
+        assertThat(result).isEqualTo("[]");
+    }
 }

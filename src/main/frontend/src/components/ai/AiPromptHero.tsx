@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, Input, Button, Typography, Space, Tag } from 'antd'
 import { message } from '../../utils/feedback'
+import { logger } from '../../utils/logger'
 import { ThunderboltOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import FlowGeneratorModal from './FlowGeneratorModal'
@@ -16,6 +17,13 @@ export default function AiPromptHero() {
   const { t } = useTranslation()
   const [prompt, setPrompt] = useState('')
   const [generatorOpen, setGeneratorOpen] = useState(false)
+
+  // 追查「生成到一半 modal 自己消失」：這個元件一旦被卸載，generatorOpen 會歸零、
+  // 進行中的生成畫面就整個不見。留下掛載/卸載紀錄以確認是不是重新掛載造成的。
+  useEffect(() => {
+    logger.warn('[trace] AiPromptHero mounted')
+    return () => logger.warn('[trace] AiPromptHero unmounted')
+  }, [])
 
   const examples = [
     t('dashboard.aiHeroExample1'),

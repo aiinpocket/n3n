@@ -47,6 +47,7 @@ import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
 import { getLocale } from '../../utils/locale'
 import { extractApiError } from '../../utils/errorMessages'
+import { logger } from '../../utils/logger'
 
 const { TextArea } = Input
 const { Text, Paragraph } = Typography
@@ -317,6 +318,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   }
 
   const handleClose = () => {
+    // 追查 modal 中途消失：若是走這裡關的，堆疊會指出是誰觸發的
+    logger.warn('[trace] FlowGeneratorModal handleClose', new Error('stack').stack)
     handleReset()
     onClose()
   }

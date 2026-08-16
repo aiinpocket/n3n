@@ -40,6 +40,16 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
     private static final Pattern NOW_FORMAT_PATTERN =
         Pattern.compile("^\\$(?:now|today)\\.format\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)$");
 
+    /**
+     * $now.year() / month() / day() / quarter() / hour() / minute()。
+     *
+     * <p>模型想取「本季」時會寫成 {@code Math.ceil($now.month()/3)} 這種算式，
+     * 而本引擎不做算術，整段會解析失敗變空字串。直接提供 quarter() 等現成函式，
+     * 模型就有正確工具可用，不必自己算。
+     */
+    private static final Pattern NOW_PART_PATTERN =
+        Pattern.compile("^\\$(?:now|today)\\.(year|month|day|date|quarter|hour|minute|second)\\(\\s*\\)$");
+
     private static final ObjectMapper TEMPLATE_MAPPER = new ObjectMapper();
 
     /**
@@ -106,7 +116,12 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
         while (matcher.find()) {
             String expr = matcher.group(1).trim();
             Object value = evaluateExpression(expr, context);
-            String replacement = stringifyForTemplate(value);
+            // 引擎不做算術，模型寫的 {{ Math.ceil($now.month()/3) }} 這類算式會解析不出來。
+            // 過去這種情況靜默插入空字串，使用者只看到欄位莫名少了一段；保留原文才看得出
+            // 是哪個表達式沒生效，背景驗證的輸出樣本也才抓得到。
+            String replacement = value == null && !isKnownExpressionForm(expr)
+                ? matcher.group(0)
+                : stringifyForTemplate(value);
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);
@@ -183,6 +198,11 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             return formatNow("YYYY-MM-DD");
         }
 
+        Matcher nowPartMatcher = NOW_PART_PATTERN.matcher(expr);
+        if (nowPartMatcher.matches()) {
+            return nowPart(nowPartMatcher.group(1));
+        }
+
         // Check for $timestamp
         if ("$timestamp".equals(expr)) {
             return System.currentTimeMillis();
@@ -250,7 +270,8 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             return rootValue;
         }
 
-        log.debug("Unknown expression format: {}", expr);
+        // 用 warn：這代表流程裡有一段設定實際上沒有生效，維運看得到才查得出來
+        log.warn("Unsupported expression, left as-is in output: {}", expr);
         return null;
     }
 
@@ -274,6 +295,43 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
      * 以 moment/n8n 風格 token 格式化目前時間（台北時區慣用的 YYYY-MM-DD 等）。
      * 僅轉換常見 token；其餘字元原樣保留。
      */
+    /**
+     * 這個表達式是不是引擎「認得的形式」。
+     *
+     * <p>用來分辨兩種 null：認得的形式取不到值（例如 {@code $json.notThere}）是正常的，
+     * 該插入空字串；完全不認得的形式（例如 {@code Math.ceil(...)}）代表寫法本身不支援，
+     * 插空字串只會讓錯誤消失在輸出裡。
+     */
+    private static boolean isKnownExpressionForm(String expr) {
+        if (expr == null || !expr.startsWith("$")) {
+            return false;
+        }
+        return expr.startsWith("$json")
+            || expr.startsWith("$node")
+            || expr.startsWith("$env.")
+            || expr.startsWith("$execution.")
+            || expr.startsWith("$workflow.")
+            || expr.startsWith("$now")
+            || expr.startsWith("$today")
+            || expr.equals("$timestamp")
+            || expr.startsWith("$input");
+    }
+
+    /** 取目前時間的單一部位；時區與 formatNow 一致，避免同一流程裡兩種日期對不起來。 */
+    private static Object nowPart(String part) {
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault());
+        return switch (part) {
+            case "year" -> now.getYear();
+            case "month" -> now.getMonthValue();
+            case "day", "date" -> now.getDayOfMonth();
+            case "quarter" -> (now.getMonthValue() - 1) / 3 + 1;
+            case "hour" -> now.getHour();
+            case "minute" -> now.getMinute();
+            case "second" -> now.getSecond();
+            default -> null;
+        };
+    }
+
     private static String formatNow(String momentPattern) {
         String javaPattern = momentPattern
             .replace("YYYY", "yyyy")
