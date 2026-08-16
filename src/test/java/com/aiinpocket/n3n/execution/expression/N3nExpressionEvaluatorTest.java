@@ -185,9 +185,23 @@ class N3nExpressionEvaluatorTest {
     }
 
     @Test
-    @DisplayName("認得的表達式取不到值時仍插入空字串（維持原本行為）")
+    @DisplayName("$json 取不到值時仍插入空字串（選填欄位常見，不製造雜訊）")
     void evaluateTemplate_knownExpressionMissingValueStaysEmpty() {
         String result = evaluator.evaluateTemplate("[{{$json.notThere}}]", context);
         assertThat(result).isEqualTo("[]");
+    }
+
+    @Test
+    @DisplayName("$node[...] 引用不到資料時保留原文，避免模型對著空指令自由發揮")
+    void evaluateTemplate_missingNodeRefKeptVisible() {
+        String result = evaluator.evaluateTemplate("請分析：{{$node[\"99\"].json.data}}", context);
+        assertThat(result).isEqualTo("請分析：{{$node[\"99\"].json.data}}");
+    }
+
+    @Test
+    @DisplayName("$node[...] 取得到資料時正常代入，不受上面規則影響")
+    void evaluateTemplate_existingNodeRefStillInterpolates() {
+        String result = evaluator.evaluateTemplate("圖：{{$node[\"2\"].json.imageUrl}}", context);
+        assertThat(result).isEqualTo("圖：https://fal.media/files/a.png");
     }
 }

@@ -119,7 +119,7 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             // 引擎不做算術，模型寫的 {{ Math.ceil($now.month()/3) }} 這類算式會解析不出來。
             // 過去這種情況靜默插入空字串，使用者只看到欄位莫名少了一段；保留原文才看得出
             // 是哪個表達式沒生效，背景驗證的輸出樣本也才抓得到。
-            String replacement = value == null && !isKnownExpressionForm(expr)
+            String replacement = value == null && shouldKeepUnresolved(expr)
                 ? matcher.group(0)
                 : stringifyForTemplate(value);
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
@@ -315,6 +315,24 @@ public class N3nExpressionEvaluator implements ExpressionEvaluator {
             || expr.startsWith("$today")
             || expr.equals("$timestamp")
             || expr.startsWith("$input");
+    }
+
+    /**
+     * 取不到值時該保留原文（而不是插入空字串）的情況。
+     *
+     * <p>兩種：完全不認得的寫法，以及明確跨節點引用 {@code $node[...]} 卻拿不到資料。
+     * 後者幾乎都是接線或欄位名錯了——曾經發生 aiChat 的提示詞寫
+     * 「請分析這份財報：{{ $node["2"].json.data }}」，該欄位不存在被換成空字串，
+     * 模型收到一句沒有資料的指令便自行寫了一篇通用教學，流程還一路顯示成功，
+     * 使用者打開產出才發現是廢話。保留原文至少讓這件事在輸出裡看得見。
+     *
+     * <p>{@code $json.x} 不在此列：它常被用在可有可無的欄位上，一律保留原文會製造雜訊。
+     */
+    private static boolean shouldKeepUnresolved(String expr) {
+        if (!isKnownExpressionForm(expr)) {
+            return true;
+        }
+        return expr != null && expr.startsWith("$node");
     }
 
     /** 取目前時間的單一部位；時區與 formatNow 一致，避免同一流程裡兩種日期對不起來。 */
