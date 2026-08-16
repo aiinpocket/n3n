@@ -435,7 +435,12 @@
     "probeFailed": "試打失敗",
     "currentConfig": "目前設定值",
     "noConfigSet": "此節點尚未設定任何欄位",
-    "inputMappingsLabel": "上游欄位導入"
+    "inputMappingsLabel": "上游欄位導入",
+    "validationMissingSettings": "「{{label}}」還有必填的設定沒填：{{fields}}",
+    "validationUnknownType": "這個流程用到了本站台沒有安裝的功能（{{type}}），請聯絡管理員",
+    "validationNoType": "有一個步驟沒有指定要做什麼，請刪掉它或重新選一次功能",
+    "scheduleWhen": "什麼時候執行",
+    "scheduleMeaning": "也就是：{{description}}"
   },
   "optimizer": {
     "nodes": "節點數",
@@ -1559,7 +1564,9 @@
     "http504": "閘道逾時",
     "http504Suggestion": "請稍後重試",
     "requestFailed": "請求失敗 ({{status}})",
-    "requestFailedSuggestion": "請稍後重試"
+    "requestFailedSuggestion": "請稍後重試",
+    "nodeConfigIncomplete": "這個步驟還有設定沒填完",
+    "nodeConfigIncompleteSuggestion": "點開流程裡標紅的步驟，把還沒填的欄位補上再試一次"
   },
   "flowGenerator": {
     "title": "AI 流程生成器",
@@ -1674,7 +1681,13 @@
       "waiting_input": "需要你補充一點資訊才能繼續驗證",
       "checking_deps": "正在檢查缺少的節點類型…",
       "done": "流程生成完成！"
-    }
+    },
+    "aiNotReadyTitle": "AI 還沒有接上",
+    "aiNotReadyAdmin": "要讓 AI 幫你把想法變成流程，得先接上一個 AI 服務（例如 ChatGPT、Claude 或 Gemini）。設定頁面上有申請金鑰的連結，照著做大約五分鐘就好。",
+    "aiNotReadyMember": "要讓 AI 幫你把想法變成流程，得先由管理員接上 AI 服務。你可以先請管理員設定，或先從內建範本挑一個開始。",
+    "aiNotReadyGoSettings": "去接上 AI",
+    "aiNotReadyUseTemplate": "先從內建範本開始",
+    "clarifyUnavailable": "AI 現在沒有回應，這不是你描述得不夠清楚。請稍後再試一次，或先從內建範本挑一個開始。"
   },
   "aiPanel": {
     "title": "AI 聊天伴侶",
@@ -2807,7 +2820,12 @@
       "monitoring": "監控",
       "ai": "AI / 機器學習",
       "utility": "工具"
-    }
+    },
+    "builtIn": "內建範本",
+    "builtInHint": "不用先設定任何東西，挑一個接近你想做的事，按下去就有一個現成流程可以改。",
+    "community": "大家分享的",
+    "useThisTemplate": "用這個開始",
+    "stepCount": "{{count}} 個步驟"
   },
   "shortcuts": {
     "commandPalette": "命令面板",
@@ -3101,5 +3119,55 @@
       "assistant": "AI 記下",
       "user": "親筆"
     }
+  },
+  "fieldLabel": {
+    "body": "傳送內容",
+    "caption": "說明文字",
+    "content": "內容",
+    "contentType": "內容類型",
+    "credentialId": "要用哪組帳號密碼",
+    "data": "資料",
+    "delimiter": "分隔符號",
+    "enabled": "啟用",
+    "encoding": "編碼",
+    "field": "要看哪個欄位",
+    "fields": "欄位",
+    "filename": "檔案名稱",
+    "format": "格式",
+    "headers": "標頭",
+    "host": "主機位址",
+    "imageUrl": "圖片網址",
+    "input": "輸入內容",
+    "inputKey": "要讀哪個欄位",
+    "interval": "間隔",
+    "intervalUnit": "間隔單位",
+    "limit": "最多幾筆",
+    "maxResults": "最多取幾筆",
+    "maxTokens": "回答長度上限",
+    "message": "訊息內容",
+    "method": "請求方式",
+    "mode": "模式",
+    "model": "使用的 AI 模型",
+    "name": "名稱",
+    "operation": "要做什麼",
+    "pattern": "比對規則",
+    "payload": "要一起帶上的資料",
+    "port": "連接埠",
+    "prompt": "要交代 AI 的話",
+    "provider": "AI 供應商",
+    "query": "查詢內容",
+    "resource": "對象",
+    "scheduleType": "排程方式",
+    "subject": "主旨",
+    "systemPrompt": "給 AI 的角色設定",
+    "temperature": "回答的發揮空間",
+    "text": "文字",
+    "timeout": "最久等多久（秒）",
+    "timezone": "時區",
+    "to": "寄給誰",
+    "topK": "取前幾筆",
+    "url": "網址",
+    "username": "使用者名稱",
+    "value": "值"
   }
 }

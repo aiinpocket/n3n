@@ -15,13 +15,13 @@ import {
   SearchOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import cronstrue from 'cronstrue/i18n'
 import { schedulerApi } from '../api/scheduler'
 import type { Schedule, CreateScheduleRequest } from '../api/scheduler'
 import { flowApi } from '../api/flow'
 import type { Flow } from '../api/flow'
 import { extractApiError } from '../utils/errorMessages'
 import { getLocale } from '../utils/locale'
+import { describeCron } from '../utils/cron'
 
 const { Text } = Typography
 
@@ -39,24 +39,6 @@ const TIMEZONES = [
   'Europe/Paris',
   'Australia/Sydney',
 ]
-
-const getCronstrueLocale = (): string => {
-  const locale = getLocale()
-  if (locale.startsWith('zh')) return 'zh_TW'
-  if (locale.startsWith('ja')) return 'ja'
-  return 'en'
-}
-
-const describeCron = (cron: string): string | null => {
-  try {
-    // cronstrue expects 5-field cron; Quartz uses 6-field (with seconds)
-    const parts = cron.trim().split(/\s+/)
-    const expr = parts.length === 6 ? parts.slice(1).join(' ') : cron
-    return cronstrue.toString(expr, { locale: getCronstrueLocale(), use24HourTimeFormat: true })
-  } catch {
-    return null
-  }
-}
 
 const SchedulerPage: React.FC = () => {
   const { t } = useTranslation()

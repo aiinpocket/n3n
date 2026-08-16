@@ -435,7 +435,12 @@
     "probeFailed": "Probe failed",
     "currentConfig": "Current configuration",
     "noConfigSet": "No fields configured on this node yet",
-    "inputMappingsLabel": "Upstream field mappings"
+    "inputMappingsLabel": "Upstream field mappings",
+    "validationMissingSettings": "\"{{label}}\" still needs these settings: {{fields}}",
+    "validationUnknownType": "This flow uses a capability that is not installed here ({{type}}) — ask your administrator",
+    "validationNoType": "One step has nothing selected to do — delete it or pick a capability again",
+    "scheduleWhen": "When to run",
+    "scheduleMeaning": "That means: {{description}}"
   },
   "optimizer": {
     "nodes": "Nodes",
@@ -1559,7 +1564,9 @@
     "http504": "Gateway timeout",
     "http504Suggestion": "Please try again later",
     "requestFailed": "Request failed ({{status}})",
-    "requestFailedSuggestion": "Please try again later"
+    "requestFailedSuggestion": "Please try again later",
+    "nodeConfigIncomplete": "This step still has settings to fill in",
+    "nodeConfigIncompleteSuggestion": "Open the step marked in red in your flow, fill in the empty fields, and try again"
   },
   "flowGenerator": {
     "title": "AI Flow Generator",
@@ -1674,7 +1681,13 @@
       "waiting_input": "We need a bit more info from you to keep verifying",
       "checking_deps": "Checking for missing node types…",
       "done": "Flow generation complete!"
-    }
+    },
+    "aiNotReadyTitle": "AI is not connected yet",
+    "aiNotReadyAdmin": "To turn your ideas into flows, an AI service (ChatGPT, Claude or Gemini) has to be connected first. The settings page links to where you request a key — it takes about five minutes.",
+    "aiNotReadyMember": "To turn your ideas into flows, an administrator needs to connect an AI service first. Ask them to set it up, or start from one of the built-in templates.",
+    "aiNotReadyGoSettings": "Connect AI",
+    "aiNotReadyUseTemplate": "Start from a built-in template",
+    "clarifyUnavailable": "The AI is not responding — this is not about how you described it. Please try again later, or start from a built-in template."
   },
   "aiPanel": {
     "title": "AI Chat Companion",
@@ -2807,7 +2820,12 @@
       "monitoring": "Monitoring",
       "ai": "AI / Machine Learning",
       "utility": "Utility"
-    }
+    },
+    "builtIn": "Built-in",
+    "builtInHint": "Nothing to set up first — pick the one closest to what you want, and you get a ready-made flow to adjust.",
+    "community": "Shared by others",
+    "useThisTemplate": "Start with this",
+    "stepCount": "{{count}} steps"
   },
   "shortcuts": {
     "commandPalette": "Command Palette",
@@ -3101,5 +3119,55 @@
       "assistant": "Noted by AI",
       "user": "Written by you"
     }
+  },
+  "fieldLabel": {
+    "body": "Request body",
+    "caption": "Caption",
+    "content": "Content",
+    "contentType": "Content type",
+    "credentialId": "Which account to use",
+    "data": "Data",
+    "delimiter": "Separator",
+    "enabled": "Enabled",
+    "encoding": "Encoding",
+    "field": "Which field to check",
+    "fields": "Fields",
+    "filename": "File name",
+    "format": "Format",
+    "headers": "Headers",
+    "host": "Host",
+    "imageUrl": "Image URL",
+    "input": "Input",
+    "inputKey": "Which field to read",
+    "interval": "Interval",
+    "intervalUnit": "Interval unit",
+    "limit": "Max items",
+    "maxResults": "Max results",
+    "maxTokens": "Max answer length",
+    "message": "Message",
+    "method": "Request method",
+    "mode": "Mode",
+    "model": "AI model",
+    "name": "Name",
+    "operation": "What to do",
+    "pattern": "Match pattern",
+    "payload": "Data to include",
+    "port": "Port",
+    "prompt": "What to ask the AI",
+    "provider": "AI provider",
+    "query": "Query",
+    "resource": "Target",
+    "scheduleType": "Schedule type",
+    "subject": "Subject",
+    "systemPrompt": "Role given to the AI",
+    "temperature": "How creative the answer is",
+    "text": "Text",
+    "timeout": "Timeout (seconds)",
+    "timezone": "Time zone",
+    "to": "Send to",
+    "topK": "Top results",
+    "url": "Web address",
+    "username": "Username",
+    "value": "Value"
   }
 }

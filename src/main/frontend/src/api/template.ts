@@ -15,6 +15,26 @@ export interface Template {
   updatedAt: string
 }
 
+/** 隨程式碼發布的內建範本（後端已濾掉本站台缺節點的） */
+export interface OfficialTemplate {
+  id: string
+  name: string
+  description: string
+  category: string
+  tags: string[]
+  complexity: string
+  estimatedNodes: number
+  useCases: string[]
+  definition: Record<string, unknown>
+}
+
+export interface OfficialTemplateCategory {
+  id: string
+  name: string
+  description: string
+  icon: string
+}
+
 export interface CreateTemplateRequest {
   name: string
   description?: string
@@ -54,6 +74,24 @@ export const templateApi = {
 
   getCategories: async (): Promise<string[]> => {
     const response = await apiClient.get('/templates/categories')
+    return response.data
+  },
+
+  listOfficial: async (category?: string, search?: string): Promise<OfficialTemplate[]> => {
+    const params: Record<string, unknown> = {}
+    if (category) params.category = category
+    if (search) params.search = search
+    const response = await apiClient.get('/templates/official', { params })
+    return response.data
+  },
+
+  getOfficialCategories: async (): Promise<OfficialTemplateCategory[]> => {
+    const response = await apiClient.get('/templates/official/categories')
+    return response.data
+  },
+
+  useOfficialTemplate: async (templateId: string, flowName: string): Promise<FlowFromTemplate> => {
+    const response = await apiClient.post(`/templates/official/${templateId}/use`, null, { params: { flowName } })
     return response.data
   },
 

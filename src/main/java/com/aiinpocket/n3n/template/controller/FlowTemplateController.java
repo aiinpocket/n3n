@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.template.controller;
 import com.aiinpocket.n3n.activity.service.ActivityService;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.template.dto.CreateTemplateRequest;
+import com.aiinpocket.n3n.template.dto.OfficialTemplateDto;
 import com.aiinpocket.n3n.template.dto.TemplateResponse;
 import com.aiinpocket.n3n.template.dto.UpdateTemplateRequest;
 import com.aiinpocket.n3n.template.service.FlowTemplateService;
@@ -49,6 +50,39 @@ public class FlowTemplateController {
     @GetMapping("/categories")
     public ResponseEntity<List<String>> listCategories() {
         return ResponseEntity.ok(templateService.listCategories());
+    }
+
+    /**
+     * 內建官方範本清單。與社群範本（DB）分開：這些隨程式碼發布，新站台一開始就有東西可用。
+     */
+    @GetMapping("/official")
+    public ResponseEntity<List<OfficialTemplateDto>> listOfficialTemplates(
+            @RequestParam(required = false) @Size(max = 100) String category,
+            @RequestParam(required = false) @Size(max = 500) String search) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(templateService.searchOfficialTemplates(search));
+        }
+        if (category != null && !category.isBlank()) {
+            return ResponseEntity.ok(templateService.getOfficialTemplatesByCategory(category));
+        }
+        return ResponseEntity.ok(templateService.getOfficialTemplates());
+    }
+
+    @GetMapping("/official/categories")
+    public ResponseEntity<List<OfficialTemplateDto.CategoryDto>> listOfficialCategories() {
+        return ResponseEntity.ok(templateService.getOfficialCategories());
+    }
+
+    @PostMapping("/official/{templateId}/use")
+    public ResponseEntity<FlowResponse> createFlowFromOfficialTemplate(
+            @PathVariable @Size(max = 200) String templateId,
+            @RequestParam @NotBlank @Size(max = 255) String flowName,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        FlowResponse response = templateService.createFlowFromOfficialTemplate(templateId, flowName, userId);
+        activityService.logActivity(userId, "TEMPLATE_USE", "flow", response.getId(), flowName,
+                java.util.Map.of("officialTemplateId", templateId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/mine")

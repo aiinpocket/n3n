@@ -435,7 +435,12 @@
     "probeFailed": "テスト実行に失敗しました",
     "currentConfig": "現在の設定値",
     "noConfigSet": "このノードにはまだ設定がありません",
-    "inputMappingsLabel": "上流フィールドの取り込み"
+    "inputMappingsLabel": "上流フィールドの取り込み",
+    "validationMissingSettings": "「{{label}}」に未入力の必須設定があります：{{fields}}",
+    "validationUnknownType": "このフローはここにインストールされていない機能（{{type}}）を使用しています。管理者にお問い合わせください",
+    "validationNoType": "何をするか指定されていないステップがあります。削除するか、機能を選び直してください",
+    "scheduleWhen": "いつ実行するか",
+    "scheduleMeaning": "つまり：{{description}}"
   },
   "optimizer": {
     "nodes": "ノード数",
@@ -1559,7 +1564,9 @@
     "http504": "ゲートウェイタイムアウト",
     "http504Suggestion": "しばらくしてから再試行してください",
     "requestFailed": "リクエスト失敗 ({{status}})",
-    "requestFailedSuggestion": "しばらくしてから再試行してください"
+    "requestFailedSuggestion": "しばらくしてから再試行してください",
+    "nodeConfigIncomplete": "このステップにはまだ未入力の設定があります",
+    "nodeConfigIncompleteSuggestion": "フロー内で赤く表示されたステップを開き、未入力の項目を埋めてからもう一度お試しください"
   },
   "flowGenerator": {
     "title": "AIフロー生成",
@@ -1674,7 +1681,13 @@
       "waiting_input": "検証を続けるには追加情報が必要です",
       "checking_deps": "不足しているノードタイプを確認しています…",
       "done": "フロー生成が完了しました！"
-    }
+    },
+    "aiNotReadyTitle": "AI がまだ接続されていません",
+    "aiNotReadyAdmin": "アイデアをフローにするには、まず AI サービス（ChatGPT、Claude、Gemini など）を接続する必要があります。設定ページにキーの申請先へのリンクがあり、5 分ほどで完了します。",
+    "aiNotReadyMember": "アイデアをフローにするには、管理者が AI サービスを接続する必要があります。管理者に設定を依頼するか、組み込みテンプレートから始めてください。",
+    "aiNotReadyGoSettings": "AI を接続する",
+    "aiNotReadyUseTemplate": "組み込みテンプレートから始める",
+    "clarifyUnavailable": "AI が応答していません。説明が不十分だったわけではありません。しばらくしてからもう一度試すか、組み込みテンプレートから始めてください。"
   },
   "aiPanel": {
     "title": "AIチャットパートナー",
@@ -2807,7 +2820,12 @@
       "monitoring": "モニタリング",
       "ai": "AI / 機械学習",
       "utility": "ユーティリティ"
-    }
+    },
+    "builtIn": "組み込みテンプレート",
+    "builtInHint": "事前設定は不要です。やりたいことに近いものを選べば、そのまま調整できるフローができます。",
+    "community": "みんなの共有",
+    "useThisTemplate": "これで始める",
+    "stepCount": "{{count}} ステップ"
   },
   "shortcuts": {
     "commandPalette": "コマンドパレット",
@@ -3101,5 +3119,55 @@
       "assistant": "AI が記録",
       "user": "自分で記入"
     }
+  },
+  "fieldLabel": {
+    "body": "送信内容",
+    "caption": "説明文",
+    "content": "内容",
+    "contentType": "コンテンツタイプ",
+    "credentialId": "使用するアカウント",
+    "data": "データ",
+    "delimiter": "区切り文字",
+    "enabled": "有効",
+    "encoding": "エンコード",
+    "field": "確認する項目",
+    "fields": "項目",
+    "filename": "ファイル名",
+    "format": "形式",
+    "headers": "ヘッダー",
+    "host": "ホスト",
+    "imageUrl": "画像 URL",
+    "input": "入力内容",
+    "inputKey": "読み取る項目",
+    "interval": "間隔",
+    "intervalUnit": "間隔の単位",
+    "limit": "最大件数",
+    "maxResults": "最大取得件数",
+    "maxTokens": "回答の長さ上限",
+    "message": "メッセージ",
+    "method": "リクエスト方式",
+    "mode": "モード",
+    "model": "使用する AI モデル",
+    "name": "名前",
+    "operation": "何をするか",
+    "pattern": "照合パターン",
+    "payload": "一緒に送るデータ",
+    "port": "ポート",
+    "prompt": "AI への指示",
+    "provider": "AI プロバイダー",
+    "query": "クエリ",
+    "resource": "対象",
+    "scheduleType": "スケジュール方式",
+    "subject": "件名",
+    "systemPrompt": "AI の役割設定",
+    "temperature": "回答の自由度",
+    "text": "テキスト",
+    "timeout": "タイムアウト（秒）",
+    "timezone": "タイムゾーン",
+    "to": "送信先",
+    "topK": "上位何件",
+    "url": "URL",
+    "username": "ユーザー名",
+    "value": "値"
   }
 }

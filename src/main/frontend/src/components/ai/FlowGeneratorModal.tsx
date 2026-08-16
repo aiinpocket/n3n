@@ -47,6 +47,8 @@ import SimilarFlowsPanel from './SimilarFlowsPanel'
 import useSpeechRecognition from '../../hooks/useSpeechRecognition'
 import { getLocale } from '../../utils/locale'
 import { extractApiError } from '../../utils/errorMessages'
+import { getAiAvailability } from '../../api/ai'
+import { useAuthStore } from '../../stores/authStore'
 
 const { TextArea } = Input
 const { Text, Paragraph } = Typography
@@ -115,6 +117,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
 }) => {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const isAdmin = useAuthStore((state) => state.user?.roles?.includes('ADMIN') ?? false)
   const [step, setStep] = useState<Step>('input')
   const [isPublishing, setIsPublishing] = useState(false)
   // 建立後自動試跑一次，結束後交給 AI 分析小幫手依實際結果說明/調整
@@ -122,6 +125,8 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   const [userInput, setUserInput] = useState('')
   const [result, setResult] = useState<GenerateFlowResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // null = 還沒問到（例如查詢失敗），不擋使用者
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null)
 
   // Conversation state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -207,6 +212,19 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       setUserInput(initialDescription)
     }
   }, [open, initialDescription])
+
+  // AI 沒接上時，後端每一步都會回失敗，但訊息是「請再描述清楚一點」之類的假回覆，
+  // 使用者會一直重打字卻永遠等不到結果。開啟時先問清楚，直接說明真正的原因。
+  useEffect(() => {
+    if (!open) return
+    getAiAvailability()
+      .then((availability) => {
+        if (mountedRef.current) setAiConfigured(availability.configured)
+      })
+      .catch(() => {
+        if (mountedRef.current) setAiConfigured(null)
+      })
+  }, [open])
 
   // Auto-scroll chat
   useEffect(() => {
@@ -395,6 +413,19 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   ) => {
     if (response.conversationId) {
       setConversationId(response.conversationId)
+    }
+
+    // AI 那端失敗時，別再回一句「請說得更清楚」——使用者會以為是自己講得不好，
+    // 一直重描述卻永遠不會有結果。直接說出真正的狀況。
+    if (response.success === false) {
+      setChatMessages([
+        ...currentMessages,
+        {
+          role: 'assistant',
+          content: t('flowGenerator.clarifyUnavailable'),
+        },
+      ])
+      return
     }
 
     if (response.requirementComplete && response.summary) {
@@ -1481,6 +1512,41 @@ export const FlowGeneratorModal: React.FC<Props> = ({
     )
   }
 
+  /**
+   * AI 還沒接上時的說明。不要求使用者懂什麼是 API 金鑰：
+   * 管理員給一個直達設定的按鈕，一般成員就告訴他找誰，兩種人都給一條還走得通的替代路。
+   */
+  const renderAiNotConfigured = () => (
+    <Result
+      icon={<RobotOutlined style={{ color: 'var(--color-ai)' }} />}
+      title={t('flowGenerator.aiNotReadyTitle')}
+      subTitle={isAdmin ? t('flowGenerator.aiNotReadyAdmin') : t('flowGenerator.aiNotReadyMember')}
+      extra={
+        <Space orientation="vertical" size={8}>
+          {isAdmin && (
+            <Button
+              type="primary"
+              onClick={() => {
+                onClose()
+                navigate('/settings/ai')
+              }}
+            >
+              {t('flowGenerator.aiNotReadyGoSettings')}
+            </Button>
+          )}
+          <Button
+            onClick={() => {
+              onClose()
+              navigate('/templates')
+            }}
+          >
+            {t('flowGenerator.aiNotReadyUseTemplate')}
+          </Button>
+        </Space>
+      }
+    />
+  )
+
   const renderErrorStep = () => (
     <Result
       status="warning"
@@ -1495,6 +1561,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   )
 
   const renderContent = () => {
+    if (aiConfigured === false) {
+      return renderAiNotConfigured()
+    }
     switch (step) {
       case 'input':
         return renderInputStep()
@@ -1527,6 +1596,9 @@ export const FlowGeneratorModal: React.FC<Props> = ({
   }
 
   const getFooter = () => {
+    if (aiConfigured === false) {
+      return <Button onClick={handleClose}>{t('common.close')}</Button>
+    }
     switch (step) {
       case 'input':
         return (
@@ -1643,6 +1715,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
       width={680}
       footer={getFooter()}
     >
+      {aiConfigured !== false && (
       <Steps
         current={getStepIndex()}
         size="small"
@@ -1654,6 +1727,7 @@ export const FlowGeneratorModal: React.FC<Props> = ({
           { title: t('flowGenerator.stepConfirm') },
         ]}
       />
+      )}
 
       {renderContent()}
     </Modal>

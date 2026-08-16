@@ -17,7 +17,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { templateApi } from '../api/template'
-import type { Template, CreateTemplateRequest } from '../api/template'
+import type { Template, CreateTemplateRequest, OfficialTemplate, OfficialTemplateCategory } from '../api/template'
+import OfficialTemplateGrid from '../components/template/OfficialTemplateGrid'
 import { extractApiError } from '../utils/errorMessages'
 import { formatDateTime } from '../utils/locale'
 import logger from '../utils/logger'
@@ -175,7 +176,14 @@ export default function TemplatePage() {
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState('browse')
+  const [activeTab, setActiveTab] = useState('official')
+
+  // 內建範本（隨程式碼發布，新站台一開始就有東西可用）
+  const [officialTemplates, setOfficialTemplates] = useState<OfficialTemplate[]>([])
+  const [officialCategories, setOfficialCategories] = useState<OfficialTemplateCategory[]>([])
+  const [officialCategory, setOfficialCategory] = useState<string>('all')
+  const [officialSearch, setOfficialSearch] = useState('')
+  const [officialLoading, setOfficialLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [myLoading, setMyLoading] = useState(false)
 
@@ -244,10 +252,46 @@ export default function TemplatePage() {
     }
   }, [])
 
+  const loadOfficialTemplates = useCallback(async (category?: string, search?: string) => {
+    setOfficialLoading(true)
+    try {
+      const categoryParam = category && category !== 'all' ? category : undefined
+      const data = await templateApi.listOfficial(categoryParam, search || undefined)
+      setOfficialTemplates(data)
+    } catch (err) {
+      logger.error('Failed to load official templates:', err)
+      setError(extractApiError(err, t('common.loadFailed')))
+    } finally {
+      setOfficialLoading(false)
+    }
+  }, [t])
+
+  const loadOfficialCategories = useCallback(async () => {
+    try {
+      const data = await templateApi.getOfficialCategories()
+      setOfficialCategories(data)
+    } catch (err) {
+      logger.error('Failed to load official categories:', err)
+    }
+  }, [])
+
+  // 使用內建範本：不再多問一次流程名稱，直接用範本名稱建好帶進編輯器
+  const handleUseOfficialTemplate = async (template: OfficialTemplate) => {
+    try {
+      const flow = await templateApi.useOfficialTemplate(template.id, template.name)
+      message.success(t('template.useSuccess'))
+      navigate(`/flows/${flow.id}/edit`)
+    } catch (err) {
+      message.error(extractApiError(err, t('common.createFailed')))
+    }
+  }
+
   useEffect(() => {
     loadTemplates()
     loadCategories()
-  }, [loadTemplates, loadCategories])
+    loadOfficialTemplates()
+    loadOfficialCategories()
+  }, [loadTemplates, loadCategories, loadOfficialTemplates, loadOfficialCategories])
 
   useEffect(() => {
     if (activeTab === 'mine') {
@@ -467,11 +511,70 @@ export default function TemplatePage() {
         onChange={setActiveTab}
         items={[
           {
+            key: 'official',
+            label: (
+              <span>
+                <CrownOutlined />
+                {t('template.builtIn')}
+              </span>
+            ),
+            children: (
+              <>
+                <Card style={{ marginBottom: 16 }}>
+                  <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+                    <Text type="secondary">{t('template.builtInHint')}</Text>
+                    <Row gutter={16} align="middle">
+                      <Col flex="300px">
+                        <Search
+                          placeholder={t('template.search')}
+                          allowClear
+                          enterButton={<SearchOutlined />}
+                          onSearch={(value) => {
+                            setOfficialSearch(value)
+                            loadOfficialTemplates(officialCategory, value)
+                          }}
+                          onChange={(e) => {
+                            if (!e.target.value) {
+                              setOfficialSearch('')
+                              loadOfficialTemplates(officialCategory, '')
+                            }
+                          }}
+                        />
+                      </Col>
+                      <Col flex="auto">
+                        <Space wrap>
+                          <Segmented
+                            options={[
+                              { label: t('template.allCategories'), value: 'all' },
+                              ...officialCategories.map((cat) => ({ label: cat.name, value: cat.id })),
+                            ]}
+                            value={officialCategory}
+                            onChange={(value) => {
+                              const cat = value as string
+                              setOfficialCategory(cat)
+                              loadOfficialTemplates(cat, officialSearch)
+                            }}
+                          />
+                        </Space>
+                      </Col>
+                    </Row>
+                  </Space>
+                </Card>
+
+                <OfficialTemplateGrid
+                  templates={officialTemplates}
+                  loading={officialLoading}
+                  onUse={handleUseOfficialTemplate}
+                />
+              </>
+            ),
+          },
+          {
             key: 'browse',
             label: (
               <span>
                 <BookOutlined />
-                {t('template.allCategories')}
+                {t('template.community')}
               </span>
             ),
             children: (

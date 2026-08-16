@@ -45,6 +45,9 @@ class FlowTemplateServiceTest extends BaseServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry nodeHandlerRegistry;
+
     @InjectMocks
     private FlowTemplateService flowTemplateService;
 
@@ -417,6 +420,97 @@ class FlowTemplateServiceTest extends BaseServiceTest {
 
             assertThatThrownBy(() -> flowTemplateService.updateTemplate(templateId, request, otherUser))
                 .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Official Templates")
+    class OfficialTemplates {
+
+        private com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry registry;
+        private FlowTemplateService service;
+
+        /** 官方範本是從 classpath JSON 載入的，需要真的 ObjectMapper 才解析得出來 */
+        private FlowTemplateService newServiceWithRegistry(
+                com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry registry) {
+            FlowTemplateService s = new FlowTemplateService(
+                templateRepository, flowRepository, flowVersionRepository, new ObjectMapper(), registry);
+            s.loadOfficialTemplates();
+            return s;
+        }
+
+        @BeforeEach
+        void setUpOfficial() {
+            registry = mock(com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry.class);
+            service = newServiceWithRegistry(registry);
+        }
+
+        @Test
+        @DisplayName("所有節點都裝得起來時才列出範本")
+        void getOfficialTemplates_onlyReturnsTemplatesWhoseNodesAreAllRegistered() {
+            when(registry.hasHandler(anyString())).thenReturn(true);
+            int allUsable = service.getOfficialTemplates().size();
+
+            when(registry.hasHandler(anyString())).thenReturn(false);
+            assertThat(service.getOfficialTemplates()).isEmpty();
+            assertThat(allUsable).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("缺節點的範本不會出現在分類清單裡")
+        void getOfficialCategories_dropsCategoriesWithNoUsableTemplate() {
+            when(registry.hasHandler(anyString())).thenReturn(false);
+
+            assertThat(service.getOfficialCategories()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("缺節點的範本連 ID 也查不到，不能被硬套用")
+        void createFlowFromOfficialTemplate_rejectsTemplateWithMissingNodes() {
+            when(registry.hasHandler(anyString())).thenReturn(true);
+            String templateId = service.getOfficialTemplates().get(0).getId();
+
+            when(registry.hasHandler(anyString())).thenReturn(false);
+
+            assertThatThrownBy(() -> service.createFlowFromOfficialTemplate(templateId, "My Flow", userId))
+                .isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("套用官方範本會存成編輯器看得懂的定義（節點有 position 與 data）")
+        @SuppressWarnings("unchecked")
+        void createFlowFromOfficialTemplate_convertsDefinitionToEditorFormat() {
+            when(registry.hasHandler(anyString())).thenReturn(true);
+            String templateId = service.getOfficialTemplates().stream()
+                .filter(t -> !t.getDefinition().isEmpty())
+                .findFirst().orElseThrow().getId();
+
+            UUID flowId = UUID.randomUUID();
+            when(flowRepository.save(any(Flow.class))).thenAnswer(inv -> {
+                Flow f = inv.getArgument(0);
+                return Flow.builder()
+                    .id(flowId).name(f.getName()).description(f.getDescription())
+                    .createdBy(f.getCreatedBy()).createdAt(Instant.now()).updatedAt(Instant.now())
+                    .build();
+            });
+            when(flowVersionRepository.save(any(FlowVersion.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            FlowResponse response = service.createFlowFromOfficialTemplate(templateId, "My Flow", userId);
+
+            assertThat(response.getId()).isEqualTo(flowId);
+
+            org.mockito.ArgumentCaptor<FlowVersion> captor =
+                org.mockito.ArgumentCaptor.forClass(FlowVersion.class);
+            verify(flowVersionRepository).save(captor.capture());
+
+            Map<String, Object> definition = captor.getValue().getDefinition();
+            List<Map<String, Object>> nodes = (List<Map<String, Object>>) definition.get("nodes");
+            assertThat(nodes).isNotEmpty();
+            assertThat(nodes.get(0)).containsKeys("id", "type", "position", "data");
+            assertThat((Map<String, Object>) nodes.get(0).get("data")).containsKeys("label", "nodeType");
+
+            List<Map<String, Object>> edges = (List<Map<String, Object>>) definition.get("edges");
+            assertThat(edges).allSatisfy(e -> assertThat(e).containsKeys("id", "source", "target", "edgeType"));
         }
     }
 

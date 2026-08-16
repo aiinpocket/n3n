@@ -71,8 +71,22 @@ class ScheduleTriggerHandlerTest {
 
             assertThat(result.isSuccess()).isTrue();
             assertThat(result.getOutput()).containsKey("triggeredAt");
-            assertThat(result.getOutput()).containsEntry("timezone", "UTC");
+            // 沒指定時區時採用平台預設（n3n.default-timezone），不是容器的 UTC——
+            // 否則使用者說的「早上 9 點」在台北會變成下午 5 點才跑
+            assertThat(result.getOutput()).containsEntry("timezone", "Asia/Taipei");
             assertThat(result.getOutput()).containsEntry("scheduleType", "cron");
+        }
+
+        @Test
+        void configSchema_timezoneDefault_isPlatformDefaultNotUtc() {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> properties =
+                (Map<String, Object>) handler.getConfigSchema().get("properties");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> timezone = (Map<String, Object>) properties.get("timezone");
+
+            // 設定表單會把 schema 的 default 直接填進節點，寫死 UTC 等於幫使用者選錯時區
+            assertThat(timezone).containsEntry("default", "Asia/Taipei");
         }
 
         @Test

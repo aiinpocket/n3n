@@ -68,6 +68,12 @@ const ERROR_PATTERNS: ErrorPattern[] = [
   },
 
   // 驗證錯誤
+  // 節點設定沒填完（AbstractNodeHandler）：要排在通用 validation 規則之前才會命中
+  {
+    pattern: /this step is missing required settings|configuration validation failed/i,
+    messageKey: 'errorMessage.nodeConfigIncomplete',
+    suggestionKey: 'errorMessage.nodeConfigIncompleteSuggestion',
+  },
   {
     pattern: /validation|invalid.*format/i,
     messageKey: 'errorMessage.validationError',

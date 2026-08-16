@@ -1,6 +1,7 @@
 package com.aiinpocket.n3n.template.service;
 
 import com.aiinpocket.n3n.common.exception.ResourceNotFoundException;
+import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import com.aiinpocket.n3n.flow.dto.FlowResponse;
 import com.aiinpocket.n3n.flow.entity.Flow;
 import com.aiinpocket.n3n.flow.entity.FlowVersion;
@@ -36,6 +37,7 @@ public class FlowTemplateService {
     private final FlowRepository flowRepository;
     private final FlowVersionRepository flowVersionRepository;
     private final ObjectMapper objectMapper;
+    private final NodeHandlerRegistry nodeHandlerRegistry;
 
     // Official templates loaded from JSON (volatile for thread-safe publication from @PostConstruct)
     private volatile List<OfficialTemplateDto> officialTemplates = List.of();
@@ -79,17 +81,24 @@ public class FlowTemplateService {
     // ==================== Official Templates API ====================
 
     /**
-     * Get all official templates
+     * Get all official templates（只含本站台真的裝得起來的，見 {@link #isUsable}）
      */
     public List<OfficialTemplateDto> getOfficialTemplates() {
-        return Collections.unmodifiableList(officialTemplates);
+        return officialTemplates.stream()
+                .filter(this::isUsable)
+                .toList();
     }
 
     /**
-     * Get official template categories
+     * Get official template categories（只留下還有可用範本的分類，避免使用者點進空分類）
      */
     public List<OfficialTemplateDto.CategoryDto> getOfficialCategories() {
-        return Collections.unmodifiableList(officialCategories);
+        Set<String> usedCategories = getOfficialTemplates().stream()
+                .map(OfficialTemplateDto::getCategory)
+                .collect(java.util.stream.Collectors.toSet());
+        return officialCategories.stream()
+                .filter(c -> usedCategories.contains(c.getId()))
+                .toList();
     }
 
     /**
@@ -98,7 +107,23 @@ public class FlowTemplateService {
     public List<OfficialTemplateDto> getOfficialTemplatesByCategory(String category) {
         return officialTemplates.stream()
                 .filter(t -> category.equals(t.getCategory()))
+                .filter(this::isUsable)
                 .toList();
+    }
+
+    /**
+     * 範本裡若用到本站台沒安裝的節點，套用後流程是壞的、使用者也看不懂為什麼，
+     * 所以直接不列出來——寧可少幾個選項，也不要給死路。
+     */
+    @SuppressWarnings("unchecked")
+    private boolean isUsable(OfficialTemplateDto template) {
+        Map<String, Object> definition = template.getDefinition();
+        if (definition == null || !(definition.get("nodes") instanceof List<?> nodes)) {
+            return false;
+        }
+        return ((List<Map<String, Object>>) nodes).stream()
+                .map(n -> String.valueOf(n.get("type")))
+                .allMatch(nodeHandlerRegistry::hasHandler);
     }
 
     /**
@@ -107,6 +132,7 @@ public class FlowTemplateService {
     public Optional<OfficialTemplateDto> getOfficialTemplateById(String templateId) {
         return officialTemplates.stream()
                 .filter(t -> templateId.equals(t.getId()))
+                .filter(this::isUsable)
                 .findFirst();
     }
 
@@ -115,11 +141,12 @@ public class FlowTemplateService {
      */
     public List<OfficialTemplateDto> searchOfficialTemplates(String query) {
         if (query == null || query.isBlank()) {
-            return officialTemplates;
+            return getOfficialTemplates();
         }
 
         String lowerQuery = query.toLowerCase();
         return officialTemplates.stream()
+                .filter(this::isUsable)
                 .filter(t -> matchesOfficialQuery(t, lowerQuery))
                 .sorted((a, b) -> calculateOfficialRelevance(b, lowerQuery) - calculateOfficialRelevance(a, lowerQuery))
                 .toList();
@@ -130,7 +157,7 @@ public class FlowTemplateService {
      */
     public List<OfficialTemplateDto> getRecommendedTemplates(String userInput, int limit) {
         if (userInput == null || userInput.isBlank()) {
-            return officialTemplates.stream()
+            return getOfficialTemplates().stream()
                     .limit(limit)
                     .toList();
         }
@@ -139,6 +166,7 @@ public class FlowTemplateService {
         Set<String> keywords = extractKeywords(lowerInput);
 
         return officialTemplates.stream()
+                .filter(this::isUsable)
                 .map(t -> new ScoredTemplate(t, calculateMatchScore(t, lowerInput, keywords)))
                 .filter(st -> st.score > 0)
                 .sorted((a, b) -> Double.compare(b.score, a.score))
@@ -388,6 +416,89 @@ public class FlowTemplateService {
         log.info("Template created from flow: id={}, flowId={}, version={}", template.getId(), flowId, version);
 
         return TemplateResponse.from(template);
+    }
+
+    /**
+     * 由內建的官方範本建立流程。
+     * 官方範本 JSON 用的是精簡格式（node 只有 id/type/label/config，edge 只有 source/target），
+     * 這裡轉成流程編輯器實際持久化的格式，否則使用者開啟後畫布是空的。
+     */
+    @Transactional
+    public FlowResponse createFlowFromOfficialTemplate(String templateId, String flowName, UUID userId) {
+        OfficialTemplateDto template = getOfficialTemplateById(templateId)
+            .orElseThrow(() -> new ResourceNotFoundException("Official template not found: " + templateId));
+
+        Flow flow = Flow.builder()
+            .name(flowName)
+            .description(template.getDescription())
+            .createdBy(userId)
+            .build();
+        flow = flowRepository.save(flow);
+
+        FlowVersion version = FlowVersion.builder()
+            .flowId(flow.getId())
+            .version("1.0.0")
+            .definition(toEditorDefinition(template.getDefinition()))
+            .settings(Map.of())
+            .status("draft")
+            .createdBy(userId)
+            .build();
+        flowVersionRepository.save(version);
+
+        log.info("Flow created from official template: flowId={}, templateId={}", flow.getId(), templateId);
+
+        return FlowResponse.from(flow, "1.0.0", null);
+    }
+
+    /**
+     * 把官方範本的精簡定義轉成編輯器格式：
+     * node 補上 position 與 data（label + nodeType + config），edge 補上 id 與 edgeType。
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> toEditorDefinition(Map<String, Object> definition) {
+        if (definition == null) {
+            return Map.of("nodes", List.of(), "edges", List.of());
+        }
+
+        List<Map<String, Object>> rawNodes = definition.get("nodes") instanceof List<?> list
+            ? (List<Map<String, Object>>) list
+            : List.of();
+        List<Map<String, Object>> rawEdges = definition.get("edges") instanceof List<?> list
+            ? (List<Map<String, Object>>) list
+            : List.of();
+
+        List<Map<String, Object>> nodes = new ArrayList<>();
+        for (int i = 0; i < rawNodes.size(); i++) {
+            Map<String, Object> raw = rawNodes.get(i);
+            String nodeType = String.valueOf(raw.getOrDefault("type", ""));
+
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("label", raw.getOrDefault("label", nodeType));
+            data.put("nodeType", nodeType);
+            if (raw.get("config") instanceof Map<?, ?> config) {
+                data.putAll((Map<String, Object>) config);
+            }
+
+            nodes.add(Map.of(
+                "id", raw.getOrDefault("id", "n" + (i + 1)),
+                "type", nodeType,
+                "position", Map.of("x", 250, "y", i * 120 + 50),
+                "data", data
+            ));
+        }
+
+        List<Map<String, Object>> edges = new ArrayList<>();
+        for (int i = 0; i < rawEdges.size(); i++) {
+            Map<String, Object> raw = rawEdges.get(i);
+            edges.add(Map.of(
+                "id", raw.getOrDefault("id", "edge-" + i),
+                "source", raw.getOrDefault("source", ""),
+                "target", raw.getOrDefault("target", ""),
+                "edgeType", raw.getOrDefault("edgeType", "success")
+            ));
+        }
+
+        return Map.of("nodes", List.copyOf(nodes), "edges", List.copyOf(edges));
     }
 
     @Transactional

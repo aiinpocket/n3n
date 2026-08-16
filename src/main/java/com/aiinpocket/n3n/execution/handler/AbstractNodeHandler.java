@@ -26,7 +26,7 @@ public abstract class AbstractNodeHandler implements NodeHandler {
             if (!validation.isValid()) {
                 return NodeExecutionResult.builder()
                     .success(false)
-                    .errorMessage("Configuration validation failed: " + validation.getErrors())
+                    .errorMessage(describeValidationErrors(validation))
                     .executionTime(Duration.between(startTime, Instant.now()))
                     .build();
             }
@@ -79,6 +79,25 @@ public abstract class AbstractNodeHandler implements NodeHandler {
                 Map.of("name", "output", "type", "any")
             )
         );
+    }
+
+    /**
+     * 設定不完整時給使用者看的說明。
+     * 原本這裡直接串 List&lt;ValidationError&gt; 的 toString，畫面上會出現
+     * 「Configuration validation failed: [ValidationResult.ValidationError(field=...)]」，
+     * 沒有技術背景的人完全看不懂自己該補什麼。
+     */
+    private String describeValidationErrors(ValidationResult validation) {
+        List<ValidationResult.ValidationError> errors = validation.getErrors();
+        if (errors == null || errors.isEmpty()) {
+            return "This step is missing required settings";
+        }
+        String details = errors.stream()
+            .map(e -> e.getField() == null || e.getField().isBlank()
+                ? e.getMessage()
+                : e.getField() + " — " + e.getMessage())
+            .collect(java.util.stream.Collectors.joining("; "));
+        return "This step is missing required settings: " + details;
     }
 
     /**

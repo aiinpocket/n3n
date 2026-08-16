@@ -30,6 +30,8 @@ import AiCodeGeneratorModal from '../ai/AiCodeGeneratorModal'
 import { useFlowEditorStore } from '../../stores/flowEditorStore'
 import NodeDataPreview from '../execution/NodeDataPreview'
 import { extractApiError } from '../../utils/errorMessages'
+import { CRON_PRESETS, describeCron, isCronField } from '../../utils/cron'
+import { fieldLabel } from '../../utils/fieldLabels'
 import type { EndpointSchemaResponse, JsonSchema } from '../../types'
 
 const { Text, Title } = Typography
@@ -91,6 +93,15 @@ export default function NodeConfigPanel({
   const [pinning, setPinning] = useState(false)
   const [aiCodeModalOpen, setAiCodeModalOpen] = useState(false)
   const [aiCodeFieldKey, setAiCodeFieldKey] = useState<string | null>(null)
+  // 排程欄位目前值的白話說明（跟著使用者輸入即時更新）
+  const cronFieldValue = Form.useWatch(
+    (values) => Object.entries(values ?? {}).find(([k]) => isCronField(k))?.[1],
+    form
+  )
+  const cronDescription = useMemo(
+    () => (typeof cronFieldValue === 'string' ? describeCron(cronFieldValue) : null),
+    [cronFieldValue]
+  )
 
   // Data Pinning
   const { isNodePinned, pinNodeData, unpinNodeData, getNodePinnedData } = useFlowEditorStore()
@@ -383,7 +394,7 @@ export default function NodeConfigPanel({
 
   const renderField = (key: string, property: SchemaProperty, required = false) => {
     const requiredRules = required
-      ? [{ required: true, message: t('editor.enterField', { field: property.title || key }) }]
+      ? [{ required: true, message: t('editor.enterField', { field: fieldLabel(key, property.title) }) }]
       : undefined
 
     // Code editor for code fields
@@ -395,7 +406,7 @@ export default function NodeConfigPanel({
           label={
             <Space>
               <CodeOutlined />
-              {property.title || key}
+              {fieldLabel(key, property.title)}
               {property.description && (
                 <Tooltip title={property.description}>
                   <InfoCircleOutlined style={{ color: 'var(--color-text-tertiary)' }} />
@@ -449,7 +460,7 @@ export default function NodeConfigPanel({
         <Form.Item
           key={key}
           name={key}
-          label={property.title || key}
+          label={fieldLabel(key, property.title)}
           tooltip={property.description}
           initialValue={property.default}
           rules={requiredRules}
@@ -471,7 +482,7 @@ export default function NodeConfigPanel({
         <Form.Item
           key={key}
           name={key}
-          label={property.title || key}
+          label={fieldLabel(key, property.title)}
           tooltip={property.description}
           valuePropName="checked"
           initialValue={property.default}
@@ -487,7 +498,7 @@ export default function NodeConfigPanel({
         <Form.Item
           key={key}
           name={key}
-          label={property.title || key}
+          label={fieldLabel(key, property.title)}
           tooltip={property.description}
           initialValue={property.default}
           rules={requiredRules}
@@ -507,12 +518,53 @@ export default function NodeConfigPanel({
         <Form.Item
           key={key}
           name={key}
-          label={property.title || key}
+          label={fieldLabel(key, property.title)}
           tooltip={property.description}
           help={property.type === 'array' ? t('editor.jsonArrayHint') : undefined}
           rules={requiredRules}
         >
-          <TextArea rows={property.type === 'array' ? 8 : 4} placeholder={t('editor.enterField', { field: property.title || key })} />
+          <TextArea rows={property.type === 'array' ? 8 : 4} placeholder={t('editor.enterField', { field: fieldLabel(key, property.title) })} />
+        </Form.Item>
+      )
+    }
+
+    // 排程時間：不要求使用者自己寫 cron，給常用選項 + 一句看得懂的說明
+    if (isCronField(key)) {
+      return (
+        <Form.Item
+          key={key}
+          name={key}
+          label={t('editor.scheduleWhen')}
+          initialValue={property.default}
+          rules={requiredRules}
+          extra={
+            <Space orientation="vertical" size={4} style={{ marginTop: 4 }}>
+              {cronDescription && (
+                <Text style={{ fontSize: 12, color: 'var(--color-primary)' }}>
+                  {t('editor.scheduleMeaning', { description: cronDescription })}
+                </Text>
+              )}
+              <Space wrap size={[4, 4]}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{t('schedule.presets')}:</Text>
+                {CRON_PRESETS.map((preset) => (
+                  <Tag
+                    key={preset.value}
+                    style={{ cursor: 'pointer', fontSize: 11 }}
+                    onClick={() => {
+                      form.setFieldValue(key, preset.value)
+                      if (node && onUpdate) {
+                        onUpdate(node.id, { ...form.getFieldsValue(), [key]: preset.value })
+                      }
+                    }}
+                  >
+                    {t(preset.labelKey)}
+                  </Tag>
+                ))}
+              </Space>
+            </Space>
+          }
+        >
+          <Input placeholder="0 0 9 * * ?" />
         </Form.Item>
       )
     }
@@ -522,13 +574,13 @@ export default function NodeConfigPanel({
       <Form.Item
         key={key}
         name={key}
-        label={property.title || key}
+        label={fieldLabel(key, property.title)}
         tooltip={property.description}
         initialValue={property.default}
         rules={requiredRules}
       >
         <Input
-          placeholder={property.description || t('editor.enterField', { field: property.title || key })}
+          placeholder={property.description || t('editor.enterField', { field: fieldLabel(key, property.title) })}
           type={property.format === 'uri' ? 'url' : 'text'}
         />
       </Form.Item>
@@ -700,12 +752,24 @@ export default function NodeConfigPanel({
               <div style={{ marginBottom: 16 }}>
                 {nodeTypeInfo ? (
                   <>
-                    <Title level={5}>{nodeTypeInfo.displayName}</Title>
-                    <Text type="secondary">{nodeTypeInfo.description}</Text>
+                    {/* 節點名稱與說明前端已有 98 種譯文，後端只回英文，優先用譯文 */}
+                    <Title level={5}>
+                      {t(`nodeTypes.${nodeType}.label`, { defaultValue: nodeTypeInfo.displayName })}
+                    </Title>
+                    <Text type="secondary">
+                      {t(`nodeTypes.${nodeType}.description`, { defaultValue: nodeTypeInfo.description })}
+                    </Text>
                     <div style={{ marginTop: 8 }}>
-                      <Tag color="blue">{nodeTypeInfo.category}</Tag>
+                      <Tag color="blue">
+                        {t(`nodeCategories.${nodeTypeInfo.category?.toLowerCase()}.label`, {
+                          defaultValue: nodeTypeInfo.category,
+                        })}
+                      </Tag>
                       {nodeTypeInfo.supportsAsync && <Tag color="purple">{t('editor.async')}</Tag>}
-                      {nodeTypeInfo.trigger && <Tag color="green">{t('editor.trigger')}</Tag>}
+                      {/* 觸發器分類的節點不用再掛一個同名標籤，畫面上會變成「觸發器觸發器」 */}
+                      {nodeTypeInfo.trigger && nodeTypeInfo.category?.toLowerCase() !== 'triggers' && (
+                        <Tag color="green">{t('editor.trigger')}</Tag>
+                      )}
                     </div>
                   </>
                 ) : (

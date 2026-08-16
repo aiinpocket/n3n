@@ -20,6 +20,10 @@ import java.util.Map;
 @Slf4j
 public class ScheduleTriggerHandler extends AbstractNodeHandler {
 
+    /** 節點沒指定時區時採用的時區；與排程註冊、$now/$today 共用同一個設定鍵 */
+    @org.springframework.beans.factory.annotation.Value("${n3n.default-timezone:Asia/Taipei}")
+    private String defaultTimezone = "Asia/Taipei";
+
     @Override
     public String getType() {
         return "scheduleTrigger";
@@ -68,7 +72,7 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
         // AI 生成的流程常用 "cron" 作為鍵名，接受其為 cronExpression 的別名
         String cronExpression = getStringConfig(context, "cronExpression",
             getStringConfig(context, "cron", ""));
-        String timezone = getStringConfig(context, "timezone", "UTC");
+        String timezone = getStringConfig(context, "timezone", defaultTimezone);
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of(timezone));
 
@@ -182,7 +186,10 @@ public class ScheduleTriggerHandler extends AbstractNodeHandler {
                 "timezone", Map.of(
                     "type", "string",
                     "title", "Timezone",
-                    "default", "UTC",
+                    // 設定表單會把這個預設值直接填進節點，寫死 UTC 會讓使用者
+                    // 說的「早上 9 點」被存成 UTC 9 點，在台北變成下午 5 點才跑。
+                    // 與排程註冊、$now 共用同一個 n3n.default-timezone。
+                    "default", defaultTimezone,
                     "description", "Timezone for schedule (e.g., 'America/New_York', 'Asia/Tokyo')"
                 ),
                 "enabled", Map.of(

@@ -1,7 +1,10 @@
 package com.aiinpocket.n3n.flow.service;
 
+import com.aiinpocket.n3n.execution.handler.NodeHandler;
+import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -9,6 +12,13 @@ import java.util.*;
 @Service
 @Slf4j
 public class DagParser {
+
+    /** 節點類型與必填設定都以實際註冊的 handler 為準（@Lazy 避開 handler → 執行引擎 → 本類的循環） */
+    private final NodeHandlerRegistry nodeHandlerRegistry;
+
+    public DagParser(@Lazy NodeHandlerRegistry nodeHandlerRegistry) {
+        this.nodeHandlerRegistry = nodeHandlerRegistry;
+    }
 
     @Data
     public static class ParseResult {
@@ -312,20 +322,68 @@ public class DagParser {
         return result.size() == nodeCount ? result : null;
     }
 
+    /**
+     * 檢查每個節點的類型裝得起來、且必填設定都填了。
+     *
+     * 之前這裡比對的是一份寫死的舊類型清單（trigger/action/...），
+     * 和實際註冊的節點類型完全對不上，導致每個真實流程都被報「unknown type」，
+     * 真正會讓執行失敗的「必填設定沒填」卻完全不檢查——使用者驗證通過、一跑就掛。
+     */
     private void validateNodeTypes(List<FlowNode> nodes, ParseResult result) {
-        Set<String> validTypes = Set.of(
-            "trigger", "input", "action", "default", "condition",
-            "loop", "output", "subflow", "script", "api", "wait"
-        );
-
         for (FlowNode node : nodes) {
             String type = node.getType();
-            if (type == null) {
+            if (type == null || type.isBlank()) {
                 result.addWarning("Node " + node.getId() + " has no type specified");
-            } else if (!validTypes.contains(type.toLowerCase())) {
-                result.addWarning("Node " + node.getId() + " has unknown type: " + type);
+                continue;
             }
+            if (!nodeHandlerRegistry.hasHandler(type)) {
+                result.addWarning("Node " + node.getId() + " has unknown type: " + type);
+                continue;
+            }
+            validateRequiredConfig(node, result);
         }
+    }
+
+    /** 必填設定沒填時提早警告，讓使用者在按下執行之前就知道還缺什麼 */
+    @SuppressWarnings("unchecked")
+    private void validateRequiredConfig(FlowNode node, ParseResult result) {
+        NodeHandler handler = nodeHandlerRegistry.findHandler(node.getType()).orElse(null);
+        if (handler == null) {
+            return;
+        }
+
+        Map<String, Object> schema = handler.getConfigSchema();
+        if (schema == null || !(schema.get("required") instanceof List<?> requiredList)) {
+            return;
+        }
+
+        Map<String, Object> data = node.getData() != null ? node.getData() : Map.of();
+        List<String> missing = ((List<Object>) requiredList).stream()
+            .map(String::valueOf)
+            .filter(field -> isBlankValue(data.get(field)))
+            .toList();
+
+        if (!missing.isEmpty()) {
+            String label = data.get("label") instanceof String s && !s.isBlank() ? s : node.getId();
+            result.addWarning("Node " + node.getId() + " (" + label
+                + ") is missing required settings: " + String.join(", ", missing));
+        }
+    }
+
+    private boolean isBlankValue(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof String s) {
+            return s.isBlank();
+        }
+        if (value instanceof Collection<?> c) {
+            return c.isEmpty();
+        }
+        if (value instanceof Map<?, ?> m) {
+            return m.isEmpty();
+        }
+        return false;
     }
 
     public boolean isValidDag(Map<String, Object> definition) {

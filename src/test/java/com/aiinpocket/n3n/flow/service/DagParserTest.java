@@ -1,20 +1,30 @@
 package com.aiinpocket.n3n.flow.service;
 
 import com.aiinpocket.n3n.base.TestDataFactory;
+import com.aiinpocket.n3n.execution.handler.NodeHandler;
+import com.aiinpocket.n3n.execution.handler.NodeHandlerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DagParserTest {
 
     private DagParser dagParser;
+    private NodeHandlerRegistry nodeHandlerRegistry;
 
     @BeforeEach
     void setUp() {
-        dagParser = new DagParser();
+        nodeHandlerRegistry = mock(NodeHandlerRegistry.class);
+        // 預設：所有型別都裝得起來、沒有必填設定，讓既有的 DAG 結構測試不受節點檢查影響
+        when(nodeHandlerRegistry.hasHandler(anyString())).thenReturn(true);
+        when(nodeHandlerRegistry.findHandler(anyString())).thenReturn(Optional.empty());
+        dagParser = new DagParser(nodeHandlerRegistry);
     }
 
     // ========== Valid DAG Tests ==========
@@ -171,6 +181,7 @@ class DagParserTest {
     @Test
     void parse_unknownNodeType_addsWarning() {
         // Given
+        when(nodeHandlerRegistry.hasHandler("unknown_type")).thenReturn(false);
         Map<String, Object> definition = new HashMap<>();
         definition.put("nodes", List.of(
                 createNode("node1", "unknown_type")
@@ -183,6 +194,72 @@ class DagParserTest {
         // Then
         assertThat(result.isValid()).isTrue();
         assertThat(result.getWarnings()).anyMatch(w -> w.contains("unknown type"));
+    }
+
+    @Test
+    void parse_registeredNodeType_doesNotWarnAboutUnknownType() {
+        // 已註冊的節點型別不該被報成「未知」——之前比對的是一份寫死的舊清單
+        Map<String, Object> definition = new HashMap<>();
+        definition.put("nodes", List.of(createNode("node1", "scheduleTrigger")));
+        definition.put("edges", List.of());
+
+        DagParser.ParseResult result = dagParser.parse(definition);
+
+        assertThat(result.getWarnings()).noneMatch(w -> w.contains("unknown type"));
+    }
+
+    @Test
+    void parse_nodeMissingRequiredConfig_addsWarningWithLabel() {
+        // Given：handler 要求 url，節點沒填
+        NodeHandler handler = mock(NodeHandler.class);
+        when(handler.getConfigSchema()).thenReturn(Map.of(
+                "type", "object",
+                "required", List.of("url"),
+                "properties", Map.of("url", Map.of("type", "string"))
+        ));
+        when(nodeHandlerRegistry.findHandler("httpRequest")).thenReturn(Optional.of(handler));
+
+        Map<String, Object> node = new HashMap<>();
+        node.put("id", "node1");
+        node.put("type", "httpRequest");
+        node.put("position", Map.of("x", 0, "y", 0));
+        node.put("data", Map.of("label", "查詢庫存", "nodeType", "httpRequest"));
+
+        Map<String, Object> definition = new HashMap<>();
+        definition.put("nodes", List.of(node));
+        definition.put("edges", List.of());
+
+        // When
+        DagParser.ParseResult result = dagParser.parse(definition);
+
+        // Then：警告要點名是哪個步驟、缺哪個設定
+        assertThat(result.getWarnings())
+                .anyMatch(w -> w.contains("查詢庫存") && w.contains("url"));
+    }
+
+    @Test
+    void parse_nodeWithRequiredConfigFilled_addsNoWarning() {
+        NodeHandler handler = mock(NodeHandler.class);
+        when(handler.getConfigSchema()).thenReturn(Map.of(
+                "type", "object",
+                "required", List.of("url"),
+                "properties", Map.of("url", Map.of("type", "string"))
+        ));
+        when(nodeHandlerRegistry.findHandler("httpRequest")).thenReturn(Optional.of(handler));
+
+        Map<String, Object> node = new HashMap<>();
+        node.put("id", "node1");
+        node.put("type", "httpRequest");
+        node.put("position", Map.of("x", 0, "y", 0));
+        node.put("data", Map.of("label", "查詢庫存", "url", "https://example.com"));
+
+        Map<String, Object> definition = new HashMap<>();
+        definition.put("nodes", List.of(node));
+        definition.put("edges", List.of());
+
+        DagParser.ParseResult result = dagParser.parse(definition);
+
+        assertThat(result.getWarnings()).noneMatch(w -> w.contains("missing required settings"));
     }
 
     @Test

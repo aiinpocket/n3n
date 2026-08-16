@@ -76,6 +76,7 @@ import { getGroupedNodes, getNodeConfig } from '../config/nodeTypes'
 import NodeSearchDrawer from '../components/flow/NodeSearchDrawer'
 import type { ExternalService, ServiceEndpoint } from '../types'
 import { extractApiError } from '../utils/errorMessages'
+import { toFriendlyValidationMessage } from '../utils/validationMessages'
 import { getLayoutedElements } from '../utils/autoLayout'
 import { formApi } from '../api/form'
 import { templateApi } from '../api/template'
@@ -1566,7 +1567,9 @@ export default function FlowEditorPage() {
                   <WarningOutlined /> {t('editor.validationWarnings')} ({validationResult.warnings.length})
                 </Text>
                 {validationResult.warnings.map((warn, i) => (
-                  <Tag key={i} color="warning" style={{ marginBottom: 4, whiteSpace: 'normal' }}>{warn}</Tag>
+                  <Tag key={i} color="warning" style={{ marginBottom: 4, whiteSpace: 'normal' }}>
+                    {toFriendlyValidationMessage(warn).text}
+                  </Tag>
                 ))}
               </div>
             )}
