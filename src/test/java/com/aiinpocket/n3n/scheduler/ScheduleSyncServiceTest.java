@@ -3,6 +3,7 @@ package com.aiinpocket.n3n.scheduler;
 import com.aiinpocket.n3n.base.BaseServiceTest;
 import com.aiinpocket.n3n.scheduler.entity.Schedule;
 import com.aiinpocket.n3n.scheduler.repository.ScheduleRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -231,5 +232,24 @@ class ScheduleSyncServiceTest extends BaseServiceTest {
         assertThat(ScheduleSyncService.resolveQuartzCron(Map.of("cronExpression", "not a cron at all ok"))).isNotNull();
         assertThat(ScheduleSyncService.resolveQuartzCron(Map.of(
                 "scheduleType", "interval", "interval", -1))).isNull();
+    }
+
+    @Test
+    @DisplayName("AI 生成的 cron 鍵名也要認得，否則發布後排程根本沒建立")
+    void resolveQuartzCron_acceptsCronAlias() {
+        // AI 生成 scheduleTrigger 時常寫成 {"cron": "..."}；ScheduleTriggerHandler 早就
+        // 接受這個別名，這裡若不認，流程會顯示已發布卻永遠不會自動執行
+        assertThat(ScheduleSyncService.resolveQuartzCron(Map.of("cron", "0 9 * * *")))
+                .isEqualTo("0 0 9 * * ?");
+        assertThat(ScheduleSyncService.resolveQuartzCron(Map.of("cron", "0 9 15 1,4,7,10 *")))
+                .isEqualTo("0 0 9 15 1,4,7,10 ?");
+    }
+
+    @Test
+    @DisplayName("cronExpression 優先於 cron 別名")
+    void resolveQuartzCron_prefersCanonicalKey() {
+        assertThat(ScheduleSyncService.resolveQuartzCron(Map.of(
+                "cronExpression", "0 8 * * *", "cron", "0 9 * * *")))
+                .isEqualTo("0 0 8 * * ?");
     }
 }

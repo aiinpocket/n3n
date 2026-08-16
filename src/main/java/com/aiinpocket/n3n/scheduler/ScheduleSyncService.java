@@ -195,7 +195,14 @@ public class ScheduleSyncService {
             return intervalToCron(config);
         }
 
+        // AI 生成的節點常把鍵名寫成 "cron"。ScheduleTriggerHandler 早就接受這個別名，
+        // 這裡卻只認 cronExpression——結果是流程發布成功、UI 顯示已發布，排程卻從未
+        // 註冊，使用者要的「每天/每季自動執行」永遠不會發生，而且只有一行伺服器
+        // warn log，畫面上完全看不出來。兩邊必須一致。
         String cron = stringValue(config.get("cronExpression"), "").trim();
+        if (cron.isEmpty()) {
+            cron = stringValue(config.get("cron"), "").trim();
+        }
         if (cron.isEmpty()) {
             return null;
         }
