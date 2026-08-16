@@ -7,7 +7,6 @@ import zhTW from 'antd/locale/zh_TW'
 import enUS from 'antd/locale/en_US'
 import jaJP from 'antd/locale/ja_JP'
 import { useAuthStore } from './stores/authStore'
-import { logger } from './utils/logger'
 import { ErrorBoundary } from './components/error'
 import MainLayout from './components/MainLayout'
 
@@ -80,7 +79,6 @@ function SetupCheck({ children }: { children: React.ReactNode }) {
 
   // Still checking setup status
   if (!setupChecked) {
-    logger.warn('[trace] SetupCheck rendering spinner (whole tree unmounts)')
     return (
       <div style={{
         minHeight: '100vh',
@@ -110,7 +108,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
   const location = useLocation()
   if (!isAuthenticated) {
-    logger.warn('[trace] ProtectedRoute redirecting to /login (whole tree unmounts)')
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   }
   return <>{children}</>

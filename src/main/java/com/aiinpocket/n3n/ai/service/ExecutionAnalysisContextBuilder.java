@@ -10,8 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -26,6 +30,17 @@ import java.util.UUID;
 public class ExecutionAnalysisContextBuilder {
 
     private static final int MAX_OUTPUT_CHARS = 600;
+
+    /**
+     * 失敗節點與其上游節點的輸出配額。
+     *
+     * <p>診斷答案幾乎都藏在上游的實際輸出裡——例如選擇器抓不到東西時，
+     * 上一個 httpRequest 早就把整頁 HTML 抓回來了。全部節點統一截到 600 字元時，
+     * 模型看不到那段 HTML，只能反過來要使用者「右鍵檢查元素、把標籤貼給我」，
+     * 對不懂技術的使用者等於死路。這些節點多給一些額度，讓模型自己找得到答案。
+     */
+    private static final int DIAGNOSTIC_OUTPUT_CHARS = 6000;
+
     // 流程定義要完整給模型，它才能輸出可套用的 flow-fix（截斷會讓修正殘缺）
     private static final int MAX_DEFINITION_CHARS = 20000;
 
@@ -51,11 +66,58 @@ public class ExecutionAnalysisContextBuilder {
         sb.append("\n觸發方式：").append(execution.getTriggerType()).append("\n");
 
         appendTriggerInput(sb, execution);
-        appendNodeResults(sb, executionId, userId, nodes);
+        Set<String> diagnosticNodeIds = diagnosticNodeIds(execution.getFlowVersionId(), nodes);
+        appendNodeResults(sb, executionId, userId, nodes, diagnosticNodeIds);
         appendFlowDefinition(sb, execution.getFlowVersionId());
 
         sb.append("=== 執行紀錄結束 ===\n");
         return sb.toString();
+    }
+
+    /**
+     * 失敗的節點，加上直接餵資料給它們的上游節點。
+     *
+     * <p>這些節點的輸出是診斷的依據，要給模型看得夠多。上游從流程定義的
+     * edges 反查；定義讀不到時退而求其次用執行順序的前一個節點。
+     */
+    private Set<String> diagnosticNodeIds(UUID flowVersionId, List<NodeExecutionResponse> nodes) {
+        Set<String> failed = new LinkedHashSet<>();
+        for (NodeExecutionResponse node : nodes) {
+            if (node.getStatus() != null && node.getStatus().toLowerCase(Locale.ROOT).contains("fail")) {
+                failed.add(String.valueOf(node.getNodeId()));
+            }
+        }
+        if (failed.isEmpty()) {
+            return Set.of();
+        }
+
+        Set<String> result = new LinkedHashSet<>(failed);
+        boolean addedFromEdges = false;
+        try {
+            Optional<FlowVersion> version = flowVersionRepository.findById(flowVersionId);
+            if (version.isPresent() && version.get().getDefinition() instanceof Map<?, ?> def
+                && def.get("edges") instanceof List<?> edges) {
+                for (Object edge : edges) {
+                    if (edge instanceof Map<?, ?> e
+                        && failed.contains(String.valueOf(e.get("target")))) {
+                        result.add(String.valueOf(e.get("source")));
+                        addedFromEdges = true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Cannot read edges for diagnostic context: {}", e.getMessage());
+        }
+
+        if (!addedFromEdges) {
+            // 沒有 edges 可用：以執行順序的前一個節點近似上游
+            for (int i = 1; i < nodes.size(); i++) {
+                if (failed.contains(String.valueOf(nodes.get(i).getNodeId()))) {
+                    result.add(String.valueOf(nodes.get(i - 1).getNodeId()));
+                }
+            }
+        }
+        return result;
     }
 
     private void appendTriggerInput(StringBuilder sb, ExecutionResponse execution) {
@@ -65,7 +127,8 @@ public class ExecutionAnalysisContextBuilder {
     }
 
     private void appendNodeResults(StringBuilder sb, UUID executionId, UUID userId,
-                                   List<NodeExecutionResponse> nodes) {
+                                   List<NodeExecutionResponse> nodes,
+                                   Set<String> diagnosticNodeIds) {
         sb.append("\n各節點結果：\n");
         for (NodeExecutionResponse node : nodes) {
             sb.append("- 節點 ").append(node.getNodeId())
@@ -80,19 +143,21 @@ public class ExecutionAnalysisContextBuilder {
                     sb.append("（例外類別：").append(node.getErrorStack()).append("）");
                 }
             }
-            appendNodeOutput(sb, executionId, userId, node);
+            appendNodeOutput(sb, executionId, userId, node,
+                diagnosticNodeIds.contains(String.valueOf(node.getNodeId()))
+                    ? DIAGNOSTIC_OUTPUT_CHARS : MAX_OUTPUT_CHARS);
             sb.append("\n");
         }
     }
 
     /** 節點輸出存在 Redis（保留 24 小時），逾期或查不到時安靜略過。 */
     private void appendNodeOutput(StringBuilder sb, UUID executionId, UUID userId,
-                                  NodeExecutionResponse node) {
+                                  NodeExecutionResponse node, int maxChars) {
         try {
             Map<String, Object> data = executionService.getNodeData(executionId, node.getNodeId(), userId);
             Object output = data.get("output");
             if (output instanceof Map<?, ?> map && !map.isEmpty()) {
-                sb.append("\n  輸出（截斷）：").append(toJson(output, MAX_OUTPUT_CHARS));
+                sb.append("\n  輸出（截斷）：").append(toJson(output, maxChars));
             }
         } catch (Exception e) {
             log.debug("No node output available for {}/{}", executionId, node.getNodeId());
