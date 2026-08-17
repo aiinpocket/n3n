@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, Form, Input, Button, Typography, Divider, Descriptions, Tag, Alert, Space, Modal, Table } from 'antd'
 import { message } from '../utils/feedback'
-import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, WarningOutlined, MedicineBoxOutlined, HistoryOutlined } from '@ant-design/icons'
+import { LockOutlined, UserOutlined, MailOutlined, SafetyCertificateOutlined, EditOutlined, SafetyOutlined, CheckCircleOutlined, MedicineBoxOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
@@ -194,31 +194,14 @@ export default function AccountSettingsPage() {
           <Divider style={{ margin: '8px 0 16px' }} />
 
           <Space orientation="vertical" style={{ width: '100%' }} size="middle">
-            {/* Recovery Key Status */}
-            {securityStatus.needsRecoveryKeySetup ? (
-              <Alert
-                type="warning"
-                showIcon
-                icon={<WarningOutlined />}
-                title={t('account.recoveryKeyNotSet')}
-                description={t('account.recoveryKeyNotSetDesc')}
-                action={
-                  <Button size="small" type="primary" onClick={() => {
-                    const { logout } = useAuthStore.getState()
-                    logout()
-                    navigate('/login')
-                  }}>
-                    {t('account.reLoginToBackup')}
-                  </Button>
-                }
-              />
-            ) : (
+            {/* Recovery Key 強制備份已廢除：金鑰持久化在資料庫，這裡只報加密系統正常與否 */}
+            {!securityStatus.keyMismatch && (
               <Alert
                 type="success"
                 showIcon
                 icon={<CheckCircleOutlined />}
-                title={t('account.recoveryKeyConfigured')}
-                description={t('account.recoveryKeyConfiguredDesc')}
+                title={t('account.encryptionHealthy')}
+                description={t('account.encryptionHealthyDesc')}
               />
             )}
 

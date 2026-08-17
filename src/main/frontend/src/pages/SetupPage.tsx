@@ -5,13 +5,12 @@ import { UserOutlined, LockOutlined, MailOutlined, RocketOutlined, CheckCircleOu
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from '../components/LanguageSwitcher'
-import RecoveryKeyModal from '../components/security/RecoveryKeyModal'
 
 const { Title, Text, Paragraph } = Typography
 
 export default function SetupPage() {
   const navigate = useNavigate()
-  const { register, isLoading, error, clearError, showRecoveryKeyModal, recoveryKey, confirmRecoveryKeyBackup } = useAuthStore()
+  const { register, isLoading, error, clearError } = useAuthStore()
   const [form] = Form.useForm()
   const [step, setStep] = useState(0)
   const [registeredEmail, setRegisteredEmail] = useState('')
@@ -31,23 +30,13 @@ export default function SetupPage() {
       if (isAdminSetup) {
         setRegisteredEmail(values.email)
         setStep(1)
-        // Only auto-redirect if no recovery key modal needs to be shown.
-        // Recovery key modal takes priority — user must back up their key first.
-        if (!useAuthStore.getState().showRecoveryKeyModal) {
-          redirectTimerRef.current = setTimeout(() => navigate('/'), 2000)
-        }
+        redirectTimerRef.current = setTimeout(() => navigate('/'), 2000)
       } else {
         navigate('/')
       }
     } catch {
       // Error is handled in store
     }
-  }
-
-  const handleRecoveryKeyConfirm = () => {
-    confirmRecoveryKeyBackup()
-    // Now redirect to home after recovery key is backed up
-    redirectTimerRef.current = setTimeout(() => navigate('/'), 1500)
   }
 
   return (
@@ -209,22 +198,13 @@ export default function SetupPage() {
               <Paragraph type="secondary">
                 {t('auth.email')}: <Text strong>{registeredEmail}</Text>
               </Paragraph>
-              {!showRecoveryKeyModal && (
-                <Paragraph type="secondary">
-                  {t('setup.redirecting')}
-                </Paragraph>
-              )}
+              <Paragraph type="secondary">
+                {t('setup.redirecting')}
+              </Paragraph>
             </div>
           )}
         </Space>
       </Card>
-
-      {/* Recovery Key backup modal — shown after first admin registration */}
-      <RecoveryKeyModal
-        open={showRecoveryKeyModal}
-        recoveryKey={recoveryKey || []}
-        onConfirm={handleRecoveryKeyConfirm}
-      />
     </div>
   )
 }

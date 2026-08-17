@@ -78,8 +78,6 @@ interface AuthState {
   setupRequired: boolean | null  // null = 未檢查, true = 需要設定, false = 已設定
   setupChecked: boolean
   // Recovery Key 相關狀態
-  showRecoveryKeyModal: boolean
-  recoveryKey: string[] | null
   checkSetupStatus: () => Promise<void>
   login: (email: string, password: string) => Promise<void>
   loginWithGoogle: (credential: string) => Promise<void>
@@ -87,7 +85,6 @@ interface AuthState {
   logout: () => Promise<void>
   refreshAccessToken: () => Promise<void>
   clearError: () => void
-  confirmRecoveryKeyBackup: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -101,8 +98,6 @@ export const useAuthStore = create<AuthState>()(
       error: null,
       setupRequired: null,
       setupChecked: false,
-      showRecoveryKeyModal: false,
-      recoveryKey: null,
 
       checkSetupStatus: async () => {
         try {
@@ -121,7 +116,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/login', { email, password })
-          const { accessToken, refreshToken, user, recoveryKey, needsRecoveryKeyBackup } = response.data
+          const { accessToken, refreshToken, user } = response.data
 
           set({
             accessToken,
@@ -129,9 +124,6 @@ export const useAuthStore = create<AuthState>()(
             user,
             isAuthenticated: true,
             isLoading: false,
-            // 如果需要備份 Recovery Key，顯示 Modal
-            showRecoveryKeyModal: needsRecoveryKeyBackup || false,
-            recoveryKey: recoveryKey || null,
           })
         } catch (error: unknown) {
           const message = extractApiError(error)
@@ -144,7 +136,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/google', { credential })
-          const { accessToken, refreshToken, user, recoveryKey, needsRecoveryKeyBackup } = response.data
+          const { accessToken, refreshToken, user } = response.data
 
           set({
             accessToken,
@@ -152,9 +144,6 @@ export const useAuthStore = create<AuthState>()(
             user,
             isAuthenticated: true,
             isLoading: false,
-            // 如果需要備份 Recovery Key，顯示 Modal
-            showRecoveryKeyModal: needsRecoveryKeyBackup || false,
-            recoveryKey: recoveryKey || null,
           })
         } catch (error: unknown) {
           const message = extractApiError(error)
@@ -167,7 +156,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
         try {
           const response = await apiClient.post('/auth/register', { email, password, name })
-          const { accessToken, refreshToken, user, isFirstUser, recoveryKey, needsRecoveryKeyBackup } = response.data
+          const { accessToken, refreshToken, user, isFirstUser } = response.data
 
           // Auto-login after registration (Zustand persist handles localStorage)
           if (accessToken) {
@@ -178,9 +167,6 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
               setupRequired: false,
-              // First admin: show Recovery Key backup modal
-              showRecoveryKeyModal: needsRecoveryKeyBackup || false,
-              recoveryKey: recoveryKey || null,
             })
           } else {
             set({
@@ -242,12 +228,6 @@ export const useAuthStore = create<AuthState>()(
 
       clearError: () => set({ error: null }),
 
-      confirmRecoveryKeyBackup: () => {
-        set({
-          showRecoveryKeyModal: false,
-          recoveryKey: null,
-        })
-      },
     }),
     {
       name: 'n3n-auth',

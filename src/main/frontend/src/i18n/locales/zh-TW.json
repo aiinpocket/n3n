@@ -1282,7 +1282,7 @@
   },
   "customTools": {
     "title": "自訂工具",
-    "subtitle": "當內建節點無法滿足需求時，從 Docker Hub 拉取額外的容器工具。",
+    "subtitle": "幫平台加裝新能力的地方。平常不需要進來——內建功能已涵蓋絕大多數需求。",
     "offlineMode": "離線模式",
     "offlineDesc": "無法連接工具庫。請檢查網路連線。",
     "browse": "瀏覽",
@@ -1293,12 +1293,12 @@
     "sortPopular": "最熱門",
     "sortRecent": "最新",
     "sortName": "名稱",
-    "pull": "拉取",
+    "pull": "安裝",
     "remove": "移除",
     "update": "更新",
     "updateTo": "更新至",
-    "pullSuccess": "工具拉取成功",
-    "pullFailed": "工具拉取失敗",
+    "pullSuccess": "工具安裝成功",
+    "pullFailed": "工具安裝失敗",
     "removeSuccess": "工具已移除",
     "removeFailed": "移除失敗",
     "updateSuccess": "工具更新成功",
@@ -1318,7 +1318,9 @@
     "ratings": "則評價",
     "yourRating": "您的評分",
     "rateSuccess": "評分已提交",
-    "rateFailed": "提交評分失敗"
+    "rateFailed": "提交評分失敗",
+    "whatIsThisTitle": "這一頁是做什麼的？",
+    "whatIsThisDesc": "把這裡想成「擴充商店」：如果你要串接的服務在流程編輯器裡找不到對應的步驟，可以來這裡搜尋看看有沒有現成的擴充，點「安裝」就能在流程裡使用。如果你只是想建立流程，直接回儀表板用一句話描述需求，或從範本挑一個開始就可以了。"
   },
   "share": {
     "share": "分享",
@@ -1763,7 +1765,7 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "設定事件驅動觸發器",
     "quickSecurity": "安全性",
-    "quickSecurityDesc": "Recovery Key 與帳戶設定",
+    "quickSecurityDesc": "帳戶與安全設定",
     "loadFailed": "載入儀表板資料失敗",
     "partialLoadFailed": "部分儀表板資料載入失敗",
     "welcomeBack": "歡迎回來，{{name}}",
@@ -1869,7 +1871,9 @@
     "securityLoadFailed": "無法載入安全狀態，請稍後再試。",
     "recentLoginActivity": "最近登入活動",
     "ipAddress": "IP 位址",
-    "viewAllActivity": "查看所有活動 →"
+    "viewAllActivity": "查看所有活動 →",
+    "encryptionHealthy": "加密系統運作正常",
+    "encryptionHealthyDesc": "你的憑證都以加密方式安全保存，不需要做任何事。"
   },
   "admin": {
     "title": "使用者管理",
@@ -2494,6 +2498,46 @@
     "saveArtifact": {
       "label": "儲存產出檔案",
       "description": "將文字、HTML、Markdown、JSON 或 base64 內容存入個人作品庫，可隨時瀏覽與下載"
+    },
+    "logger": {
+      "label": "記錄",
+      "description": "把訊息記進執行紀錄，資料原樣往下傳"
+    },
+    "sslCheck": {
+      "label": "SSL 證書檢查",
+      "description": "檢查網站憑證還有幾天到期"
+    },
+    "fileSystem": {
+      "label": "檔案整理",
+      "description": "列出、刪除、搬移檔案（可只刪過期舊檔）"
+    },
+    "imageResize": {
+      "label": "圖片縮放",
+      "description": "把圖片縮放到指定大小"
+    },
+    "imageConvert": {
+      "label": "圖片轉檔",
+      "description": "轉換圖片格式（PNG/JPG…）"
+    },
+    "pdfGenerator": {
+      "label": "PDF 產生",
+      "description": "把文字內容轉成 PDF 文件"
+    },
+    "sms": {
+      "label": "簡訊",
+      "description": "透過 Twilio 發送手機簡訊"
+    },
+    "firebase": {
+      "label": "App 推播",
+      "description": "透過 Firebase 發送推播通知"
+    },
+    "awsS3": {
+      "label": "AWS S3",
+      "description": "上傳/下載 S3 雲端儲存的檔案"
+    },
+    "salesforce": {
+      "label": "Salesforce",
+      "description": "建立或查詢 CRM 客戶資料"
     }
   },
   "quickActions": {

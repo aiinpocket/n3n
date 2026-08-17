@@ -1282,7 +1282,7 @@
   },
   "customTools": {
     "title": "Custom Tools",
-    "subtitle": "Pull Docker images for additional tools when built-in nodes don't cover your needs.",
+    "subtitle": "Where you add new capabilities to the platform. Most people never need this — the built-in features cover almost everything.",
     "offlineMode": "Offline Mode",
     "offlineDesc": "Unable to connect to the tool registry. Please check your network connection.",
     "browse": "Browse",
@@ -1293,12 +1293,12 @@
     "sortPopular": "Most Popular",
     "sortRecent": "Most Recent",
     "sortName": "Name",
-    "pull": "Pull",
+    "pull": "Install",
     "remove": "Remove",
     "update": "Update",
     "updateTo": "Update to",
-    "pullSuccess": "Tool pulled successfully",
-    "pullFailed": "Failed to pull tool",
+    "pullSuccess": "Tool installed",
+    "pullFailed": "Install failed",
     "removeSuccess": "Tool removed",
     "removeFailed": "Failed to remove tool",
     "updateSuccess": "Tool updated successfully",
@@ -1318,7 +1318,9 @@
     "ratings": "ratings",
     "yourRating": "Your rating",
     "rateSuccess": "Rating submitted",
-    "rateFailed": "Failed to submit rating"
+    "rateFailed": "Failed to submit rating",
+    "whatIsThisTitle": "What is this page?",
+    "whatIsThisDesc": "Think of it as an extension store: if the service you want to connect has no matching step in the flow editor, search here for a ready-made extension and click Install to use it in your flows. If you just want to build a flow, go back to the dashboard and describe it in one sentence, or start from a template."
   },
   "share": {
     "share": "Share",
@@ -1763,7 +1765,7 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "Set up event-driven triggers",
     "quickSecurity": "Security",
-    "quickSecurityDesc": "Recovery key and account settings",
+    "quickSecurityDesc": "Account & security settings",
     "loadFailed": "Failed to load dashboard data",
     "partialLoadFailed": "Some dashboard data failed to load",
     "welcomeBack": "Welcome back, {{name}}",
@@ -1869,7 +1871,9 @@
     "securityLoadFailed": "Unable to load security status. Please try again later.",
     "recentLoginActivity": "Recent Login Activity",
     "ipAddress": "IP Address",
-    "viewAllActivity": "View All Activity →"
+    "viewAllActivity": "View All Activity →",
+    "encryptionHealthy": "Encryption is healthy",
+    "encryptionHealthyDesc": "Your credentials are stored encrypted. Nothing to do here."
   },
   "admin": {
     "title": "User Management",
@@ -2494,6 +2498,46 @@
     "saveArtifact": {
       "label": "Save Artifact",
       "description": "Save text, HTML, Markdown, JSON or base64 content into your artifact library for browsing and downloading"
+    },
+    "logger": {
+      "label": "Logger",
+      "description": "Record a message in the run log; data passes through"
+    },
+    "sslCheck": {
+      "label": "SSL Check",
+      "description": "Check how many days until a site certificate expires"
+    },
+    "fileSystem": {
+      "label": "File System",
+      "description": "List, delete or move files (can delete only old ones)"
+    },
+    "imageResize": {
+      "label": "Image Resize",
+      "description": "Resize an image to a given size"
+    },
+    "imageConvert": {
+      "label": "Image Convert",
+      "description": "Convert image format (PNG/JPG…)"
+    },
+    "pdfGenerator": {
+      "label": "PDF Generate",
+      "description": "Turn text content into a PDF document"
+    },
+    "sms": {
+      "label": "SMS",
+      "description": "Send a text message via Twilio"
+    },
+    "firebase": {
+      "label": "App Push",
+      "description": "Send a push notification via Firebase"
+    },
+    "awsS3": {
+      "label": "AWS S3",
+      "description": "Upload/download files in S3 cloud storage"
+    },
+    "salesforce": {
+      "label": "Salesforce",
+      "description": "Create or query CRM records"
     }
   },
   "quickActions": {

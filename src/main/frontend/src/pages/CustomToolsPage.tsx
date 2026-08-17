@@ -522,6 +522,16 @@ export default function CustomToolsPage() {
         <Text type="secondary">{t('customTools.subtitle')}</Text>
       </div>
 
+      {/* 給不知道這頁在做什麼的使用者：先講清楚多數人不需要它 */}
+      <Alert
+        type="info"
+        showIcon
+        closable
+        style={{ marginBottom: 16 }}
+        title={t('customTools.whatIsThisTitle')}
+        description={t('customTools.whatIsThisDesc')}
+      />
+
       {isOffline && (
         <Alert
           title={t('customTools.offlineMode')}

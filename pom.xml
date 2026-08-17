@@ -263,6 +263,13 @@
             <version>5.5.1</version>
         </dependency>
 
+        <!-- PDFBox for PDF Generator node（搭配 resources/fonts 的 CJK 字型） -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.31</version>
+        </dependency>
+
         <!-- SSHJ for SSH Node + SFTP Backup -->
         <dependency>
             <groupId>com.hierynomus</groupId>

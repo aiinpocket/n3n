@@ -13,7 +13,6 @@ import com.aiinpocket.n3n.auth.repository.RefreshTokenRepository;
 import com.aiinpocket.n3n.auth.repository.UserRepository;
 import com.aiinpocket.n3n.auth.repository.UserRoleRepository;
 import com.aiinpocket.n3n.auth.event.UserAuthenticatedEvent;
-import com.aiinpocket.n3n.credential.service.MasterKeyProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +41,6 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final ActivityService activityService;
     private final com.aiinpocket.n3n.common.service.EmailService emailService;
-    private final MasterKeyProvider masterKeyProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AdminEmailBinder adminEmailBinder;
 
@@ -155,15 +153,8 @@ public class AuthService {
             .message(isFirstUser ? "Admin account created successfully" : "Registration successful")
             .user(UserResponse.from(user, roles));
 
-        // First admin registration: include Recovery Key so frontend can show backup modal
-        if (isFirstUser && masterKeyProvider.needsRecoveryKeySetup()) {
-            var pendingKey = masterKeyProvider.getPendingRecoveryKey();
-            if (pendingKey != null && pendingKey.getWords() != null && !pendingKey.getWords().isEmpty()) {
-                builder.needsRecoveryKeyBackup(true)
-                       .recoveryKey(pendingKey.getWords());
-                log.info("Recovery key included in registration response for first admin user {}", user.getId());
-            }
-        }
+        // Recovery Key 強制備份已廢除：不再於註冊時把金鑰塞進回應逼使用者抄寫。
+        // 主金鑰本來就持久化在 DB；需要額外備份的管理員可透過 /api/security 相關端點自行處理。
 
         return builder.build();
     }
@@ -367,15 +358,7 @@ public class AuthService {
             .expiresIn(jwtService.getAccessTokenExpirationMs() / 1000)
             .user(UserResponse.from(user, roles));
 
-        // 首次部署 + Admin 用戶：回傳 Recovery Key 供前端顯示備份 Modal
-        if (masterKeyProvider.needsRecoveryKeySetup() && roles.contains("ADMIN")) {
-            var pendingKey = masterKeyProvider.getPendingRecoveryKey();
-            if (pendingKey != null && pendingKey.getWords() != null && !pendingKey.getWords().isEmpty()) {
-                builder.needsRecoveryKeyBackup(true)
-                       .recoveryKey(pendingKey.getWords());
-                log.info("Recovery key sent to admin user {} for backup", user.getId());
-            }
-        }
+        // Recovery Key 強制備份已廢除：登入不再彈出「抄寫 12 個單詞」的關卡。
 
         return builder.build();
     }

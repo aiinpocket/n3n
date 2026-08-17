@@ -1282,7 +1282,7 @@
   },
   "customTools": {
     "title": "カスタムツール",
-    "subtitle": "ビルトインノードでカバーできない場合、Docker Hubから追加ツールをプルできます。",
+    "subtitle": "プラットフォームに新しい機能を追加する場所です。通常は使う必要はありません——組み込み機能でほとんどのニーズをカバーしています。",
     "offlineMode": "オフラインモード",
     "offlineDesc": "ツールレジストリに接続できません。ネットワーク接続を確認してください。",
     "browse": "ブラウズ",
@@ -1293,12 +1293,12 @@
     "sortPopular": "人気順",
     "sortRecent": "新着順",
     "sortName": "名前順",
-    "pull": "プル",
+    "pull": "インストール",
     "remove": "削除",
     "update": "更新",
     "updateTo": "更新する",
-    "pullSuccess": "ツールのプルに成功しました",
-    "pullFailed": "ツールのプルに失敗しました",
+    "pullSuccess": "ツールをインストールしました",
+    "pullFailed": "インストールに失敗しました",
     "removeSuccess": "ツールを削除しました",
     "removeFailed": "削除に失敗しました",
     "updateSuccess": "ツールを更新しました",
@@ -1318,7 +1318,9 @@
     "ratings": "件の評価",
     "yourRating": "あなたの評価",
     "rateSuccess": "評価を送信しました",
-    "rateFailed": "評価の送信に失敗しました"
+    "rateFailed": "評価の送信に失敗しました",
+    "whatIsThisTitle": "このページは何をするところ？",
+    "whatIsThisDesc": "拡張ストアだと考えてください：連携したいサービスに対応するステップがフローエディタに見つからないとき、ここで既成の拡張を検索し「インストール」を押せばフローで使えるようになります。フローを作りたいだけなら、ダッシュボードに戻って一言で説明するか、テンプレートから始めてください。"
   },
   "share": {
     "share": "共有",
@@ -1763,7 +1765,7 @@
     "quickWebhooks": "Webhooks",
     "quickWebhooksDesc": "イベント駆動トリガーを設定",
     "quickSecurity": "セキュリティ",
-    "quickSecurityDesc": "Recovery Keyとアカウント設定",
+    "quickSecurityDesc": "アカウントとセキュリティ設定",
     "loadFailed": "ダッシュボードデータの読み込みに失敗しました",
     "partialLoadFailed": "一部のダッシュボードデータの読み込みに失敗しました",
     "welcomeBack": "おかえりなさい、{{name}}さん",
@@ -1869,7 +1871,9 @@
     "securityLoadFailed": "セキュリティ情報の読み込みに失敗しました。後でもう一度お試しください。",
     "recentLoginActivity": "最近のログイン履歴",
     "ipAddress": "IPアドレス",
-    "viewAllActivity": "すべてのアクティビティを表示 →"
+    "viewAllActivity": "すべてのアクティビティを表示 →",
+    "encryptionHealthy": "暗号化システムは正常です",
+    "encryptionHealthyDesc": "認証情報は暗号化して安全に保存されています。対応は不要です。"
   },
   "admin": {
     "title": "ユーザー管理",
@@ -2494,6 +2498,46 @@
     "saveArtifact": {
       "label": "成果物を保存",
       "description": "テキスト・HTML・Markdown・JSON・base64 の内容を成果物ライブラリに保存し、後から閲覧・ダウンロードできます"
+    },
+    "logger": {
+      "label": "ログ記録",
+      "description": "メッセージを実行ログに記録し、データはそのまま渡す"
+    },
+    "sslCheck": {
+      "label": "SSL 証明書チェック",
+      "description": "サイト証明書の有効期限までの日数を確認"
+    },
+    "fileSystem": {
+      "label": "ファイル整理",
+      "description": "ファイルの一覧・削除・移動（古いものだけ削除も可）"
+    },
+    "imageResize": {
+      "label": "画像リサイズ",
+      "description": "画像を指定サイズに変更"
+    },
+    "imageConvert": {
+      "label": "画像変換",
+      "description": "画像形式を変換（PNG/JPG…）"
+    },
+    "pdfGenerator": {
+      "label": "PDF 生成",
+      "description": "テキストを PDF 文書に変換"
+    },
+    "sms": {
+      "label": "SMS",
+      "description": "Twilio 経由でショートメッセージを送信"
+    },
+    "firebase": {
+      "label": "アプリ通知",
+      "description": "Firebase 経由でプッシュ通知を送信"
+    },
+    "awsS3": {
+      "label": "AWS S3",
+      "description": "S3 クラウドストレージのファイルを操作"
+    },
+    "salesforce": {
+      "label": "Salesforce",
+      "description": "CRM レコードの作成・検索"
     }
   },
   "quickActions": {

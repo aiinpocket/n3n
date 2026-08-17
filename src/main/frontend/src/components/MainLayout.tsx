@@ -36,7 +36,6 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import LanguageSwitcher from './LanguageSwitcher'
-import RecoveryKeyModal from './security/RecoveryKeyModal'
 import { approvalApi } from '../api/approval'
 
 const { Header, Sider, Content } = Layout
@@ -49,7 +48,7 @@ export default function MainLayout() {
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0)
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, logout, showRecoveryKeyModal, recoveryKey, confirmRecoveryKeyBackup } = useAuthStore()
+  const { user, logout } = useAuthStore()
   const { t } = useTranslation()
 
   // Fetch pending approval count
@@ -489,12 +488,6 @@ export default function MainLayout() {
         ))}
       </Modal>
 
-      {/* Recovery Key Backup Modal - shown on first admin login */}
-      <RecoveryKeyModal
-        open={showRecoveryKeyModal}
-        recoveryKey={recoveryKey || []}
-        onConfirm={confirmRecoveryKeyBackup}
-      />
     </Layout>
   )
 }
